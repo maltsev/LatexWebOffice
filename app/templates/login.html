@@ -5,7 +5,17 @@
     <img src="/static/img/logo.png" width="351" height="49" alt="LatexWebOffice Logo">
 </div>
 
-<div class="row">
-    <h1>{{ text }}</h1>
+<div class="row" style="margin-top: 40px">
+    {% if username %}
+        <h1>Hallo, {{ username }}!</h1>
+    {% endif %}
+
+    <form action="" method="post" role="form">
+        {% csrf_token %}
+        <div class="form-group">
+            <input type="text" name="username" class="form-control" placeholder="Wie heißt du?">
+        </div>
+        <button type="submit" class="btn btn-success">Ok</button>
+    </form>
 </div>
 {% endblock %}

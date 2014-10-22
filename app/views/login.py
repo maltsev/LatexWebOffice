@@ -3,7 +3,11 @@ from django.shortcuts import render
 from app.models.file import File
 
 def index(request):
-    return render(request, 'login.html', {'text': 'Hallo!'})
+    username = ''
+    if request.method == 'POST':
+        username = request.POST['username']
+
+    return render(request, 'login.html', {'username': username})
 
 
 def test(request):
