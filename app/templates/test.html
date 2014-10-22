@@ -1,0 +1,29 @@
+{% extends "_wrapper.html" %}
+
+{% block content %}
+<div class="row">
+    <img src="/static/img/logo.png" width="351" height="49" alt="LatexWebOffice Logo">
+</div>
+
+<div class="row">
+    <h2>Es sind {{ files.count }} Datei vorhanden</h2>
+
+    <table class="table">
+        <thead>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Source Code</th>
+        </thead>
+
+        <tbody>
+            {% for file in files %}
+                <tr>
+                    <td>{{ file.id }}</td>
+                    <td>{{ file.name }}</td>
+                    <td>{{ file.source_code|truncatewords:"10" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
