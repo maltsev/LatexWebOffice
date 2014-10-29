@@ -1,0 +1,27 @@
+{% extends "_wrapper.html" %}
+
+{% block content %}
+<div class="row">
+    {% comment %}
+        Stub Page
+    {% endcomment %}
+
+    <form action="" method="post" role="form">
+        {% csrf_token %}
+        <div class="form-group">
+            <input type="text" class="form-control" name="login" placeholder="Login">
+        </div>
+        <div class="form-group">
+            <input type="email" class="form-control" name="email" placeholder="Email">
+        </div>
+        <div class="form-group">
+            <input type="password" class="form-control" name="password1" placeholder="Passwort">
+        </div>
+        <div class="form-group">
+            <input type="password" class="form-control" name="password2" placeholder="Passwort wiederholen">
+        </div>
+
+        <button type="submit" class="btn btn-success">Registrieren</button>
+    </form>
+</div>
+{% endblock %}

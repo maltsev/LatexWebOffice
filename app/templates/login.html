@@ -2,20 +2,20 @@
 
 {% block content %}
 <div class="row">
-    <img src="/static/img/logo.png" width="351" height="49" alt="LatexWebOffice Logo">
-</div>
-
-<div class="row" style="margin-top: 40px">
-    {% if username %}
-        <h1>Hallo, {{ username }}!</h1>
-    {% endif %}
+    {% comment %}
+        Stub Page
+    {% endcomment %}
 
     <form action="" method="post" role="form">
         {% csrf_token %}
         <div class="form-group">
-            <input type="text" name="username" class="form-control" placeholder="Wie heißt du?">
+            <input type="text" class="form-control" name="login" placeholder="Login">
         </div>
-        <button type="submit" class="btn btn-success">Ok</button>
+        <div class="form-group">
+            <input type="password" class="form-control" name="password" placeholder="Passwort">
+        </div>
+
+        <button type="submit" class="btn btn-success">Login</button>
     </form>
 </div>
 {% endblock %}
