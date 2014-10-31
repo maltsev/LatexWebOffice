@@ -57,3 +57,8 @@ target/
 .DS_Store
 
 db.sqlite3
+
+#ignore vim temporary files
+*~
+*.swp
+*.swo
