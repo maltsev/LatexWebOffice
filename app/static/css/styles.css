@@ -43,11 +43,48 @@ border-bottom: 2px solid #a8a4a4;
 margin-left: 15%;
 height: 500px;
 background: #eceaea;
+
 }
 #fusszeile{
 width: 100%;
 margin-top: 10px;
 height: 50px;
+}
+#anmeldebutton{
+text-align: center;
+color: white;
+padding-top: 10px;
+margin-right: 20px;
+margin-top: 30px;
+-moz-border-radius: 5px;
+-webkit-border-radius:5px;
+border-radius: 5px; 
+-khtml-border-radius: 5px;
+float: right;
+height: 40px;
+width: 150px;
+background: #b1ca00;
+-moz-box-shadow:    2px 2px 5px 2px #a8a4a4;
+-webkit-box-shadow: 2px 2px 5px 2px #a8a4a4;
+box-shadow:         2px 2px 5px 2px #a8a4a4;
+}
+#registrierungsbutton{
+text-align: center;
+color: #b1ca00;
+padding-top: 10px;
+margin-right: 50px;
+margin-top: 30px;
+-moz-border-radius: 5px;
+-webkit-border-radius:5px;
+border-radius: 5px; 
+-khtml-border-radius: 5px;
+float: right;
+height: 40px;
+width: 150px;
+background: white;
+-moz-box-shadow:    2px 2px 5px 2px #a8a4a4;
+-webkit-box-shadow: 2px 2px 5px 2px #a8a4a4;
+box-shadow:         2px 2px 5px 2px #a8a4a4;
 }
 ul#fusszeile_menue{
 width: 100%;
