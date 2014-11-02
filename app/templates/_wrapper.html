@@ -14,8 +14,25 @@
     <script src="/static/js/main.js"></script>
 </head>
 <body>
-    <div class="container">
+    <div id="wrapper">
+	<div id="kopfzeile">
+	<img src="/static/img/icon.png" id="logo">
+	
+	</div>
+	<div id="menueleiste">
+	 {% block menu %}{% endblock %}
+	</div>
+	<div id="inhalt">
+	
         {% block content %}{% endblock %}
+		</div>
+	<div id="fusszeile">
+		<ul id="fusszeile_menue">
+			<li>Impressum</li>
+			<li>Hilfe</li>
+
+		</ul>
+	</div>
     </div>
 </body>
 </html>

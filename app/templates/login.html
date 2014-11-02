@@ -1,12 +1,6 @@
 {% extends "_wrapper.html" %}
+
 {% block content %}
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
 <div class="row">
     {% comment %}
         Stub Page
@@ -24,5 +18,4 @@
         <button type="submit" class="btn btn-success">Login</button>
     </form>
 </div>
-
 {% endblock %}
