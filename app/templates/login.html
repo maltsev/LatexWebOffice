@@ -16,7 +16,7 @@
 	</ul>
 	{% endif %}
 	
-	<form action="" method="post" role="form">
+	<form action="#" method="post" role="form">
 		{% csrf_token %}
 		<div class="form-group">
 		<ul>
@@ -30,9 +30,10 @@
 		<li class="inputfield">
 			<input type="password" class="form-control" name="password" placeholder="Passwort">
 			</li>
+		</ul>
 		</div>
 	
-		<button type="submit" class="greenbutton" id="loginbutton" class="btn btn-success">ANMELDEN</button>
+		<button type="submit" id="loginbutton" class="greenbutton btn btn-success">ANMELDEN</button>
 		<ul style="float:right;padding-top: 20px;text-align: right;">
 		<li><a href="">Noch nicht registriert?</a></li>
 		<li><a href="">Passwort vergessen?</a></li>
