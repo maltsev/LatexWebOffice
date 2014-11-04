@@ -1,14 +1,70 @@
 body, html{
 margin: 0;
+height: 100%;
 }
 #wrapper{
 width: 100%;
 height: 100%;
 }
+#anmeldebox{
+background: white;
+background: white;
+-moz-box-shadow:    2px 2px 5px 2px #a8a4a4;
+-webkit-box-shadow: 2px 2px 5px 2px #a8a4a4;
+box-shadow:         2px 2px 5px 2px #a8a4a4;
+-moz-border-radius: 5px;
+-webkit-border-radius:5px;
+border-radius: 5px; 
+-khtml-border-radius: 5px;
+width: 100%;
+height: 400px;
+min-height: 400px;
+padding: 5%;
+}
+.inputlabel{
+margin-left: 0;
+width: 30%;
+float:left;
+padding-top: 10px;
+height: 40px;
+text-align: right;
+margin-bottom: 30px;
+}
+.inputfield{
+width: 70%;
+padding-left: 5%;
+margin-bottom: 30px;
+float:left;
+height: 40px;
+
+}
+#loginbutton{
+float:left;
+margin-top: 20px;
+height: 40px;
+padding: 0;
+}
+ul {
+list-style: none;
+margin: 0;
+padding: 0;
+}
+.hline_green{
+margin-bottom: 2%;
+background: #b1ca00;
+height: 2px;
+width: 100%;
+}
+h1{
+font-size: 18pt;
+}
 #kopfzeile{
 width: 100%;
 height: 150px;
 background: white;
+}
+input{
+height: 40px;
 }
 #logo{
 height: 100%;
@@ -38,6 +94,9 @@ border-bottom: 1px solid #b1ca00;
 color: #b1ca00;
 }
 #inhalt{
+padding: 10%;
+padding-top: 50px;
+padding-bottom: 5%;
 border-top: 2px solid #a8a4a4;
 border-bottom: 2px solid #a8a4a4;
 margin-left: 15%;
@@ -50,7 +109,7 @@ width: 100%;
 margin-top: 10px;
 height: 50px;
 }
-#anmeldebutton{
+.greenbutton{
 text-align: center;
 color: white;
 padding-top: 10px;
@@ -68,7 +127,7 @@ background: #b1ca00;
 -webkit-box-shadow: 2px 2px 5px 2px #a8a4a4;
 box-shadow:         2px 2px 5px 2px #a8a4a4;
 }
-#registrierungsbutton{
+.whitebutton{
 text-align: center;
 color: #b1ca00;
 padding-top: 10px;

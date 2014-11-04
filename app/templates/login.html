@@ -1,6 +1,9 @@
 {% extends "_wrapper.html" %}
 
 {% block content %}
+<div id="anmeldebox" >
+<h1>ANMELDEN</h1>
+<div class="hline_green"></div>
 <div class="row">
 	{% comment %}
 	Stub Page
@@ -12,16 +15,27 @@
 		{% endfor %}
 	</ul>
 	{% endif %}
+	
 	<form action="" method="post" role="form">
 		{% csrf_token %}
 		<div class="form-group">
-			<input type="email" class="form-control" name="email" placeholder="Email">
+		<ul>
+		<li class="inputlabel">KENNUNG</li>
+			<li class="inputfield"><input type="email" class="form-control" name="email" placeholder="Email"></li>
+			</ul>
 		</div>
 		<div class="form-group">
+		<ul>
+		<li class="inputlabel">E-Mail-Adresse</li>
+		<li class="inputfield">
 			<input type="password" class="form-control" name="password" placeholder="Passwort">
+			</li>
 		</div>
-
-		<button type="submit" class="btn btn-success">Login</button>
+	
+		<button type="submit" class="greenbutton" id="loginbutton" class="btn btn-success">ANMELDEN</button>
+		<div class="hline_green" style="margin-top: -60px;float:left;"></div>
 	</form>
+
+	</div>
 </div>
 {% endblock %}
