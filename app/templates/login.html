@@ -20,19 +20,23 @@
 		{% csrf_token %}
 		<div class="form-group">
 		<ul>
-		<li class="inputlabel">Kennung</li>
+		<li class="inputlabel">E-Mail-Adresse</li>
 			<li class="inputfield"><input type="email" class="form-control" name="email" placeholder="Email"></li>
 			</ul>
 		</div>
 		<div class="form-group">
 		<ul>
-		<li class="inputlabel">E-Mail-Adresse</li>
+		<li class="inputlabel">Passwort</li>
 		<li class="inputfield">
 			<input type="password" class="form-control" name="password" placeholder="Passwort">
 			</li>
 		</div>
 	
 		<button type="submit" class="greenbutton" id="loginbutton" class="btn btn-success">ANMELDEN</button>
+		<ul style="float:right;padding-top: 20px;text-align: right;">
+		<li><a href="">Noch nicht registriert?</a></li>
+		<li><a href="">Passwort vergessen?</a></li>
+		</ul>
 		<div class="hline_green" style="margin-top: -60px;float:left;"></div>
 	</form>
 

@@ -128,6 +128,9 @@ background: #b1ca00;
 -webkit-box-shadow: 2px 2px 5px 2px #a8a4a4;
 box-shadow:         2px 2px 5px 2px #a8a4a4;
 }
+a {
+color: #b1ca00;
+}
 .whitebutton{
 text-align: center;
 color: #b1ca00;
