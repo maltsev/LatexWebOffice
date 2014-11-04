@@ -61,4 +61,9 @@ db.sqlite3
 #ignore vim temporary files
 *~
 *.swp
+
+#ignore tags
+tags
+
+
 *.swo
