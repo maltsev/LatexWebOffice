@@ -24,5 +24,5 @@ def index(request):
                 
                
         else:
-            messages.error(request,'Email/password incorrect')
+            messages.error(request,'Email oder Passwort falsch.')
     return render(request, 'login.html')
