@@ -81,9 +81,8 @@ height: 100%;
 }
 #menueleiste{
 float: left;
-width: 15%;
+width: 250px;
 background: white;
-border-right: 2px solid #a8a4a4;
 height: 500px;
 
 }
@@ -104,12 +103,13 @@ border-bottom: 1px solid #b1ca00;
 color: #b1ca00;
 }
 #inhalt{
+border-left: 2px solid #a8a4a4;
 padding: 10%;
 padding-top: 50px;
 padding-bottom: 5%;
 border-top: 2px solid #a8a4a4;
 border-bottom: 2px solid #a8a4a4;
-margin-left: 15%;
+margin-left:250px;
 height: 500px;
 background: #eceaea;
 
