@@ -69,17 +69,17 @@ class RegistrationTestClass(TestCase):
 
     def setUp(self):
         self._client = Client()
+
 # Tests that you successfully register when you fill out all fields and
 # enter a valid email address
-
     def test_registerSuccess(self):
         pass
-# Tests that you can't register with an invalid email address
 
+# Tests that you can't register with an invalid email address
     def test_loginFalseInvalidEmail(self):
         pass
-# Tests that you can't register when you didn't fill out all fields
 
+# Tests that you can't register when you didn't fill out all fields
     def test_loginFalseNotFilledAllFields(self):
         pass
 
