@@ -17,7 +17,7 @@
 	</ul>
 	{% endif %}
 	
-	<form action="#" method="post" role="form">
+	<form action="#" method="post" role="form" id="loginForm" onSubmit="validateForm('loginForm')">
 		{% csrf_token %}
 		<div class="form-group">
 		<ul>

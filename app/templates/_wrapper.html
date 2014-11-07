@@ -12,11 +12,12 @@
 
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/main.js"></script>
+    <script src="/static/js/inputvalidation.js"></script>
 </head>
 <body>
     <div id="wrapper">
 	<div id="kopfzeile">
-	<a href="../"><img src="/static/img/icon.png" id="logo" title="Logo vom LatexWebOffice" alt="Logo vom LatexWebOffice"></a>
+	<a href="../"><img src="/static/img/icon.png" id="logo"></a>
 	<a href="/registration/"><div class="whitebutton">REGISTRIEREN</div></a>
 	 <a href="/login/"><div class="greenbutton">ANMELDEN</div></a>
 	
@@ -24,8 +25,15 @@
 	<div id="menueleiste">
 	 {% block menu %}{% endblock %}
 	</div>
+<<<<<<< Updated upstream
 	{% block content %}{% endblock %}
 	
+=======
+	<div id="inhalt">
+		
+        {% block content %}{% endblock %}
+		</div>
+>>>>>>> Stashed changes
 	<div id="fusszeile">
 		<ul id="fusszeile_menue">
 			<li>Impressum</li>
