@@ -18,4 +18,6 @@ function validateForm(id) {
 
 	// TODO: nur submit-Buttons finden
 	document.getElementById(id).getElementsByTagName('button')[0].click();
+
+	return(false);
 }
