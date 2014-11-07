@@ -15,7 +15,9 @@
         Stub Page
     {% endcomment %}
 
-   
+    {% if user.is_authenticated %}
+        <p>Hallo, {{ user.username }}!</p>
+    {% endif %}
 </div>
 </div>
 {% endblock %}
