@@ -52,6 +52,14 @@ def login(request):
     return render(request, 'login.html', {'email': email})
 
 
+## Logout
+#  @param request The HttpRequest Object
+@login_required
+def logout(request):
+    auth.logout(request)
+    return redirect(LOGIN_URL)
+
+
 ## Registration page
 #  @param request The HttpRequest Object
 def registration(request):
