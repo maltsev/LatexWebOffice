@@ -2,47 +2,52 @@
 
 {% block content %}
 <div id="inhalt">
-<div id="anmeldebox" >
-<h1>ANMELDEN</h1>
-<div class="hline_green"></div>
-<div class="row">
-	{% comment %}
-	Stub Page
-	{% endcomment %}
-	{% if messages %}
-	<ul class="messages"><!-- https://docs.djangoproject.com/en/dev/ref/contrib/messages/ to send messages from server to client -->
-		{% for message in messages %}
-		<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-		{% endfor %}
-	</ul>
-	{% endif %}
-	
-	<form action="#" method="post" role="form">
-		{% csrf_token %}
-		<div class="form-group">
-		<ul>
-		<li class="inputlabel">E-Mail-Adresse</li>
-			<li class="inputfield"><input type="email" required class="form-control" name="email" placeholder="Email"></li>
-			</ul>
-		</div>
-		<div class="form-group">
-		<ul>
-		<li class="inputlabel">Passwort</li>
-		<li class="inputfield">
-			<input type="password" class="form-control" name="password" placeholder="Passwort">
-			</li>
-		</ul>
-		</div>
-	
-		<button type="submit" id="loginbutton" class="greenbutton btn btn-success">ANMELDEN</button>
-		<ul style="float:right;padding-top: 20px;text-align: right;">
-		<li><a href="">Noch nicht registriert?</a></li>
-		<li><a href="">Passwort vergessen?</a></li>
-		</ul>
-		<div class="hline_green" style="margin-top: -60px;float:left;"></div>
-	</form>
+    <div id="anmeldebox">
+        <h1>ANMELDEN</h1>
+        <div class="hline_green"></div>
 
-	</div>
-</div>
+        <div class="row">
+            {% if messages %}
+                <ul class="messages"><!-- https://docs.djangoproject.com/en/dev/ref/contrib/messages/ to send messages from server to client -->
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <form action="#" method="post" role="form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <ul>
+                        <li class="inputlabel">E-Mail-Adresse</li>
+                        <li class="inputfield">
+                            <input type="email" required class="form-control" name="email" placeholder="Email" value="{{ email }}">
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="form-group">
+                    <ul>
+                        <li class="inputlabel">Passwort</li>
+                        <li class="inputfield">
+                            <input type="password" required class="form-control" name="password" placeholder="Passwort">
+                        </li>
+                    </ul>
+                </div>
+
+                <button type="submit" id="loginbutton" class="greenbutton btn btn-success">ANMELDEN</button>
+
+                <ul style="float:right;padding-top: 20px;text-align: right;">
+                    <li><a href="/registration/">Noch nicht registriert?</a></li>
+
+                    {% comment %}
+	                    <li><a href="">Passwort vergessen?</a></li>
+	                {% endcomment %}
+                </ul>
+
+                <div class="hline_green" style="margin-top: -60px;float:left;"></div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}
