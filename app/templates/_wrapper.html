@@ -14,6 +14,10 @@
     <script src="/static/js/webshim/polyfiller.js"></script>
     <script>webshim.setOptions({basePath: '/static/js/webshim/shims/'}); webshim.polyfill('forms');</script>
     <script src="/static/js/main.js"></script>
+    <script>
+	var errors ="{{ ERROR_MESSAGES}}".replace(/&#39;/g,"\"")
+    	var ERROR_MESSAGES= JSON.parse(errors);
+	</script> 
 </head>
 <body>
     <div id="wrapper">
