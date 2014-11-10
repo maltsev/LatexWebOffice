@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Mo 10 Nov 2014 12:09:03 CET
+* Last Modified : Mo 10 Nov 2014 15:31:54 CET
 
 * Author :  maltsev
 
@@ -35,8 +35,7 @@ from django.template import Template, context, RequestContext
 def login(request):
     if request.user.is_authenticated():
         return redirect('/')
-
-    email = ''
+    email=''
     if request.method == 'POST':
         email = request.POST['email']
         password = request.POST['password']
@@ -76,6 +75,8 @@ def registration(request):
         return redirect('/')
 
     email = ''
+    firstname=''
+
     if request.method == 'POST':
         first_name = request.POST['first_name']
         email = request.POST['email']
@@ -111,7 +112,7 @@ def registration(request):
                     return redirect('/')
             else:
                 messages.error(request, ERROR_MESSAGES['LOGINORREGFAILED'])
-    return render_to_response('registration.html',context_instance=RequestContext(request))
+    return render_to_response('registration.html',{'email':email,'first_name':first_name},context_instance=RequestContext(request))
 
 
 # Helper function to check if a email address is valid
