@@ -17,6 +17,7 @@
 
 from django.test import TestCase,Client
 from django.contrib.auth.models import User
+from core.settings import LOGIN_URL, ERROR_MESSAGES
 
 class LoginTestClass(TestCase):
 
@@ -28,7 +29,7 @@ class LoginTestClass(TestCase):
     # client - the client to do requests with
     def setUp(self):
         user1active = User.objects.create_user(
-            'test@test.com', password='123456')
+            username='test@test.com', password='123456')
         user1active.save()
         self._user1active = user1active
         user2inactive = User.objects.create_user(
@@ -38,26 +39,26 @@ class LoginTestClass(TestCase):
         self._user2inactive = user2inactive
         self._client = Client()
 
-    # Tests if on incorrect login the client received a failure message and is
-    # directed to the login page
-    def test_loginFails(self):
-        # Testing that a user is not logged in with an incorrect password
+    # Test if a user is not logged in with an incorrect password
+    def test_loginFailIncorrectPassword(self):
         response = self._client.post(
             '/login/', {'email': self._user1active.username, 'password': 'wrong'})
         self.assertNotIn('_auth_user_id', self._client.session)
 
-        # Testing that an user receives a failure message on incorrect login
+    # Test if an user receives a failure message on incorrect login
+    def test_loginFailIncorrectUsername(self):
+        response = self._client.post(
+            '/login/', {'email': 'wrongusername', 'password': self._user1active.password})
+        self.assertContains(response, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
 
-        # Testing that an user is directed to the login page again
-
+    # Testing that a user is logged in with an correct password
     def test_loginSuccess(self):
-
-        # Testing that a user is logged in with an correct password
-
-        # Testing that a user is directed to the "Startseite" after an correct
-        # password
-
-        pass
+        response = self._client.post(
+            '/login/', {'email': self._user1active.username, 'password': self._user1active.password})
+        print(self._client.session)
+        print(response)
+        self.assertIn('_auth_user_id', self._client.session)
+        #self.assertEquals(response['Location'], '/')
 
 
 
@@ -106,6 +107,8 @@ class RegistrationTestClass(TestCase):
         response = self._client.post(
             '/registration/', {'first_name': self.user1_first_name, 'email': self.user1_email,
             'password1': self.user1_password1, 'password2': self.user1_password2})
+        print('test')
+        print(self._client.session)
         self.assertIn('_auth_user_id', self._client.session)
 
     # Test if you can't register when same email is already registered
@@ -118,25 +121,25 @@ class RegistrationTestClass(TestCase):
         response = self._client.post(
             '/registration/', {'first_name': self.user1_first_name, 'email': self.user1_email,
             'password1': self.user1_password1, 'password2': self.user1_password2}, follow=True)
-        self.assertContains(response, 'E-Mail-Adresse ist bereits registriert.')
+        self.assertContains(response, ERROR_MESSAGES['EMAILALREADYEXISTS'])
 
     # Test if you can't register with an invalid email address -> user 2
     def test_registrationFailedInvalidEmail(self):
         response = self._client.post(
             '/registration/', {'first_name': self.user2_first_name, 'email': self.user2_email,
             'password1': self.user2_password1, 'password2': self.user2_password2})
-        self.assertContains(response, 'Ungültige E-Mail-Adresse')
+        self.assertContains(response, ERROR_MESSAGES['INVALIDEMAIL'])
 
     # Test if you can't register when you didn't fill out all fields -> user3
     def test_registrationFailedNotFilledAllFields(self):
         response = self._client.post(
             '/registration/', {'first_name': self.user3_first_name, 'email': self.user3_email,
             'password1': self.user3_password1, 'password2': self.user3_password2})
-        self.assertContains(response, 'Keine leeren Eingaben erlaubt.')
+        self.assertContains(response, ERROR_MESSAGES['NOEMPTYFIELDS'])
 
     # Test if you can't register when the passwords do not match
     def test_registrationFailedPasswordsDontMatch(self):
         response = self._client.post(
             '/registration/', {'first_name': self.user4_first_name, 'email': self.user4_email,
             'password1': self.user4_password1, 'password2': self.user4_password2})
-        self.assertContains(response, 'Passwörter stimmen nicht überein.')
+        self.assertContains(response, ERROR_MESSAGES['PASSWORDSDONTMATCH'])

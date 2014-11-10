@@ -19,7 +19,7 @@ from django.shortcuts import render,redirect
 from django.contrib import messages,auth
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from core.settings import LOGIN_URL
+from core.settings import LOGIN_URL, ERROR_MESSAGES
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
@@ -46,10 +46,10 @@ def login(request):
                 auth.login(request, user)
                 return redirect('/')
             else:
-                messages.error(request, '{0} ist aus ausgesperrt.'.format(email))
+                messages.error(request, ERROR_MESSAGES['INACTIVEACCOUNT'].format(email))
 
         else:
-            messages.error(request, 'E-Mail-Adresse oder Passwort falsch.')
+            messages.error(request, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
 
 
     return render(request, 'login.html')
@@ -83,19 +83,19 @@ def registration(request):
         # validation checks
         # no empty fields
         if first_name == '' or email == '' or password1 == '':
-            messages.error(request, 'Keine leeren Eingaben erlaubt.')
+            messages.error(request, ERROR_MESSAGES['NOEMPTYFIELDS'])
         # email already registered
         elif User.objects.filter(username=email).count() != 0:
-            messages.error(request, 'E-Mail-Adresse ist bereits registriert.')
+            messages.error(request, ERROR_MESSAGES['EMAILALREADYEXISTS'])
         # no valid email format
         elif not validEmail(email):
-            messages.error(request, 'Ungültige E-Mail-Adresse.')
+            messages.error(request, ERROR_MESSAGES['INVALIDEMAIL'])
         # first name can not only contain spaces
         elif first_name.isspace():
-            messages.error(request, 'Vorname darf nicht nur aus Leerzeichen bestehen.')
+            messages.error(request, ERROR_MESSAGES['NOTJUSTSPACESINFIRSTNAME'])
         # passwords do not match
         elif password1 != password2:
-            messages.error(request, 'Passwörter stimmen nicht überein.')
+            messages.error(request, ERROR_MESSAGES['PASSWORDSDONTMATCH'])
         # if all validation checks pass, create new user
         else:
             new_user = User.objects.create_user(username=email.lower(), email=email.lower(),
@@ -108,7 +108,7 @@ def registration(request):
                     auth.login(request, user)
                     return redirect('/')
             else:
-                messages.error(request, 'Anmeldung nach Registrierung fehlgeschlagen.')
+                messages.error(request, ERROR_MESSAGES['LOGINORREGFAILED'])
 
     return render(request, 'registration.html')
 
