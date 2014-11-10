@@ -2,42 +2,49 @@
 
 {% block content %}
 <div id="inhalt" style="height: 630px; ">
+    <div id="registrierungsbox" style="height: 520px;" >
+        <h1>REGISTRIEREN</h1>
+        <div class="hline_green"></div>
 
-	
-<div id="registrierungsbox" style="height: 520px;" >
-<h1>REGISTRIEREN</h1>
-<div class="hline_green"></div>
-<div class="row">
-    {% comment %}
-        Stub Page
-    {% endcomment %}
+        <div class="row">
+            {% comment %}
+            Stub Page
+            {% endcomment %}
 
-    <form action="" method="post" role="form">
-        {% csrf_token %}
-        <div class="form-group">
-		<ul>
-		<li class="inputlabel">Vorname</li>
-            <li class="inputfield"><input type="text" class="form-control" name="first_name" placeholder="Vorname"></li>
-			</ul>
-        </div>
+            {% if messages %}
+                <ul class="messages"><!-- https://docs.djangoproject.com/en/dev/ref/contrib/messages/ to send messages from server to client -->
+                    {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <form action="" method="post" role="form">
+                {% csrf_token %}
+                <div class="form-group">
+		        <ul>
+		        <li class="inputlabel">Vorname</li>
+                    <li class="inputfield"><input type="text" class="form-control" name="first_name" placeholder="Vorname"></li>
+			        </ul>
+                </div>
 		
 		
-        <div class="form-group">
-		<ul>
-		<li class="inputlabel">Email</li>
-            <li class="inputfield"><input type="email" class="form-control" name="email" placeholder="Email"></li>
-			</ul>
-        </div>
+            <div class="form-group">
+		        <ul>
+		        <li class="inputlabel">Email</li>
+                    <li class="inputfield"><input type="email" class="form-control" name="email" placeholder="Email"></li>
+			        </ul>
+                </div>
 		
 		
-        <div class="form-group">
-		<ul>
-		<li class="inputlabel">Passwort</li>
-		<li class="inputfield">
-            <input type="password" class="form-control" name="password1" placeholder="Passwort">
-			</li>
-		</ul>
-        </div>
+                <div class="form-group">
+		        <ul>
+		        <li class="inputlabel">Passwort</li>
+		        <li class="inputfield">
+                    <input type="password" class="form-control" name="password1" placeholder="Passwort">
+			        </li>
+		        </ul>
+                </div>
 		
 		
         <div class="form-group">
@@ -49,8 +56,9 @@
 
         <button type="submit" class="greenbutton btn btn-success">Registrieren</button>
 		<div class="hline_green" style="margin-top: -60px;float:left;"></div>
-    </form>
-</div>
-</div>
+         </form>
+
+        </div>
+    </div>
 </div>
 {% endblock %}
