@@ -54,7 +54,7 @@ def login(request):
             messages.error(request, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
 
 
-    return render_to_response('login.html',context_instance=RequestContext(request))
+    return render_to_response('login.html', {'email': email}, context_instance=RequestContext(request))
 
 
 ## Logout
@@ -76,42 +76,53 @@ def registration(request):
         return redirect('/')
 
     email = ''
+    first_name = ''
+
     if request.method == 'POST':
         first_name = request.POST['first_name']
-        email = request.POST['email']
+        email = request.POST['email'].lower()
         password1 = request.POST['password1']
         password2 = request.POST['password2']
+
+        # boolean, true if there are errors in the user data
+        foundErrors = False
 
         # validation checks
         # no empty fields
         if first_name == '' or email == '' or password1 == '':
             messages.error(request, ERROR_MESSAGES['NOEMPTYFIELDS'])
+            foundErrors = True
         # email already registered
-        elif User.objects.filter(username=email).count() != 0:
+        if User.objects.filter(username=email).count() != 0:
             messages.error(request, ERROR_MESSAGES['EMAILALREADYEXISTS'])
+            foundErrors = True
         # no valid email format
-        elif not validEmail(email):
+        if not validEmail(email):
             messages.error(request, ERROR_MESSAGES['INVALIDEMAIL'])
+            foundErrors = True
         # first name can not only contain spaces
-        elif first_name.isspace():
+        if first_name.isspace():
             messages.error(request, ERROR_MESSAGES['NOTJUSTSPACESINFIRSTNAME'])
+            foundErrors = True
         # passwords do not match
-        elif password1 != password2:
+        if password1 != password2:
             messages.error(request, ERROR_MESSAGES['PASSWORDSDONTMATCH'])
+            foundErrors = True
         # if all validation checks pass, create new user
-        else:
-            new_user = User.objects.create_user(username=email.lower(), email=email.lower(),
+        if not foundErrors:
+            new_user = User.objects.create_user(username=email, email=email,
                                                 password=password1, first_name=first_name)
 
             # user login and redirection to start page
-            user = auth.authenticate(username=email.lower(), password=password1)
+            user = auth.authenticate(username=email, password=password1)
             if user is not None:
                 if user.is_active:
                     auth.login(request, user)
                     return redirect('/')
             else:
                 messages.error(request, ERROR_MESSAGES['LOGINORREGFAILED'])
-    return render_to_response('registration.html',context_instance=RequestContext(request))
+
+    return render_to_response('registration.html', {'first_name': first_name, 'email': email}, context_instance=RequestContext(request))
 
 
 # Helper function to check if a email address is valid
