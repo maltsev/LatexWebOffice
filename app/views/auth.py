@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Thu 07 Nov 2014 23:16:54 PM CET
+* Last Modified : Mo 10 Nov 2014 12:09:03 CET
 
 * Author :  maltsev
 
@@ -15,13 +15,15 @@
 
 """
 
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect, render_to_response
 from django.contrib import messages,auth
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from core.settings import LOGIN_URL, ERROR_MESSAGES
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.template import Template, context, RequestContext
+
 
 # see
 # https://docs.djangoproject.com/en/dev/topics/auth/default/#django.contrib.auth.login
@@ -52,7 +54,7 @@ def login(request):
             messages.error(request, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
 
 
-    return render(request, 'login.html')
+    return render_to_response('login.html',context_instance=RequestContext(request))
 
 
 ## Logout
@@ -109,8 +111,7 @@ def registration(request):
                     return redirect('/')
             else:
                 messages.error(request, ERROR_MESSAGES['LOGINORREGFAILED'])
-
-    return render(request, 'registration.html')
+    return render_to_response('registration.html',context_instance=RequestContext(request))
 
 
 # Helper function to check if a email address is valid
