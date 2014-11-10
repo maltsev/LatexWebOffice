@@ -20,43 +20,37 @@
             {% endif %}
 
             <form action="" method="post" role="form">
-                {% csrf_token %}
-                <div class="form-group">
+            {% csrf_token %}
+            <div class="form-group">
 		        <ul>
 		        <li class="inputlabel">Vorname</li>
-                    <li class="inputfield"><input type="text" class="form-control" name="first_name" placeholder="Vorname"></li>
-			        </ul>
-                </div>
-		
+              <li class="inputfield"><input type="text" required class="form-control" name="first_name" placeholder="Vorname"></li>
+			     </ul>
+            </div>
 		
             <div class="form-group">
 		        <ul>
 		        <li class="inputlabel">Email</li>
-                    <li class="inputfield"><input type="email" class="form-control" name="email" placeholder="Email"></li>
-			        </ul>
-                </div>
-		
-		
-                <div class="form-group">
+              <li class="inputfield"><input type="email" required class="form-control" name="email" placeholder="Email"></li>
+			     </ul>
+            </div>
+
+            <div class="form-group">
 		        <ul>
 		        <li class="inputlabel">Passwort</li>
-		        <li class="inputfield">
-                    <input type="password" class="form-control" name="password1" placeholder="Passwort">
-			        </li>
+		        <li class="inputfield"><input type="password" required class="form-control" name="password1" placeholder="Passwort"></li>
 		        </ul>
-                </div>
-		
-		
-        <div class="form-group">
-		<ul>
-		<li class="inputlabel">Passwort Wiederholen</li>
-		<li class="inputfield">
-            <input type="password" class="form-control" name="password2" placeholder="Passwort wiederholen">
-        </div>
+            </div>
 
-        <button type="submit" class="greenbutton btn btn-success">Registrieren</button>
-		<div class="hline_green" style="margin-top: -60px;float:left;"></div>
-         </form>
+            <div class="form-group">
+              <ul>
+              <li class="inputlabel">Passwort Wiederholen</li>
+              <li class="inputfield"><input type="password" required class="form-control" name="password2" placeholder="Passwort wiederholen"></li>
+            </div>
+
+            <button type="submit" class="greenbutton btn btn-success">Registrieren</button>
+            <div class="hline_green" style="margin-top: -60px;float:left;"></div>
+            </form>
 
         </div>
     </div>
