@@ -54,7 +54,7 @@ def login(request):
             messages.error(request, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
 
 
-    return render_to_response('login.html',context_instance=RequestContext(request))
+    return render_to_response('login.html', {'email': email}, context_instance=RequestContext(request))
 
 
 ## Logout
