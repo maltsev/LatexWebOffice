@@ -10,7 +10,7 @@ function validateForm(id) {
 		// eMail-Adresse
 		if (element.type == 'email') {
 			if (!/(.+)@(.+){2,}\.(.+){2,}/.test(element.value))
-				element.setCustomValidity('Bitte eine gültige eMail-Adresse angeben');
+				element.setCustomValidity('{{ ERROR_MESSAGES.INVALIDEMAIL }}');
 			else
 				element.setCustomValidity('');
 		}
