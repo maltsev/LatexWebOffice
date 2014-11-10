@@ -4,7 +4,7 @@
 
 * Creation Date : 06-11-2014
 
-* Last Modified : Mo 10 Nov 2014 12:03:57 CET
+* Last Modified : Mo 10 Nov 2014 12:33:23 CET
 
 * Author : mattis
 
@@ -28,16 +28,20 @@ class LoginTestClass(TestCase):
     # user2 - an inactive user
     # client - the client to do requests with
     def setUp(self):
+        # create active user1
         user1 = User.objects.create_user(
-            username='test@test.com', password='123456')
-        user1._unhashedpw='123456'
+            username='user1@test.de', password='123456')
+        user1._unhashedpw = '123456'
         self._user1 = user1
+
+        # create inactive user2
         user2 = User.objects.create_user(
-            'test2@test.com', password='test123')
-        user2._unhashedpw='test123'
+            'user2@test.de', password='test123')
+        user2._unhashedpw = 'test123'
         user2.is_active = False
         user2.save()
         self._user2 = user2
+
         self._client = Client()
 
     # Test if a user is not logged in with an incorrect password -> user1
@@ -55,13 +59,13 @@ class LoginTestClass(TestCase):
     # Test if a user can't login when he is set inactive -> user2
     def test_loginFailInactiveUser(self):
         response = self._client.post(
-            '/login/', {'email': self._user2.username, 'password':self._user2._unhashedpw })
-        self.assertIn('_auth_user_id', self._client.session)
+            '/login/', {'email': self._user2.username, 'password': self._user2._unhashedpw})
+        self.assertContains(response, ERROR_MESSAGES['INACTIVEACCOUNT'].format(self._user2.username))
 
     # Test if a user is logged in with an correct password -> user1
     def test_loginSuccess(self):
         response = self._client.post(
-            '/login/', {'email': self._user1.username, 'password':self._user1._unhashedpw })
+            '/login/', {'email': self._user1.username, 'password':self._user1._unhashedpw})
         self.assertIn('_auth_user_id', self._client.session)
 
 
@@ -79,28 +83,28 @@ class RegistrationTestClass(TestCase):
     def setUp(self):
 
         # user 1 data -> everything correct
-        self.user1_first_name = 'user1'
-        self.user1_email = 'user1@test.de'
-        self.user1_password1 = 'test123'
-        self.user1_password2 = 'test123'
+        self._user1_first_name = 'user1'
+        self._user1_email = 'user1@test.de'
+        self._user1_password1 = 'test123'
+        self._user1_password2 = 'test123'
 
         # user 2 data -> incorrect email address (username)
-        self.user2_first_name = 'user2'
-        self.user2_email = 'user2@test'
-        self.user2_password1 = 'test1234'
-        self.user2_password2 = 'test1234'
+        self._user2_first_name = 'user2'
+        self._user2_email = 'user2@test'
+        self._user2_password1 = 'test1234'
+        self._user2_password2 = 'test1234'
 
         # user 3 data -> contains a blank field
-        self.user3_first_name = ''
-        self.user3_email = 'user3@test.de'
-        self.user3_password1 = 'test'
-        self.user3_password2 = 'test'
+        self._user3_first_name = ''
+        self._user3_email = 'user3@test.de'
+        self._user3_password1 = 'test'
+        self._user3_password2 = 'test'
 
         # user 4 data -> passwords do not match
-        self.user4_first_name = 'user4'
-        self.user4_email = 'user3@test.de'
-        self.user4_password1 = 'test123'
-        self.user4_password2 = 'test12'
+        self._user4_first_name = 'user4'
+        self._user4_email = 'user3@test.de'
+        self._user4_password1 = 'test123'
+        self._user4_password2 = 'test12'
 
         self._client = Client()
 
@@ -109,39 +113,39 @@ class RegistrationTestClass(TestCase):
     # if automatic login after registration was successful this test passes
     def test_registrationSuccess(self):
         response = self._client.post(
-            '/registration/', {'first_name': self.user1_first_name, 'email': self.user1_email,
-            'password1': self.user1_password1, 'password2': self.user1_password2})
+            '/registration/', {'first_name': self._user1_first_name, 'email': self._user1_email,
+            'password1': self._user1_password1, 'password2': self._user1_password2})
         self.assertIn('_auth_user_id', self._client.session)
 
     # Test if you can't register when same email is already registered
     def test_registrationFailedAlreadyRegistered(self):
         # create user1 separately again, because user1 from first registrationSuccess
         # doesn't exist here in our database
-        new_user = User.objects.create_user(username=self.user1_email,
-                                               email=self.user1_email, password=self.user1_password1,
-                                               first_name=self.user1_first_name)
+        new_user = User.objects.create_user(username=self._user1_email,
+                                               email=self._user1_email, password=self._user1_password1,
+                                               first_name=self._user1_first_name)
         response = self._client.post(
-            '/registration/', {'first_name': self.user1_first_name, 'email': self.user1_email,
-            'password1': self.user1_password1, 'password2': self.user1_password2}, follow=True)
+            '/registration/', {'first_name': self._user1_first_name, 'email': self._user1_email,
+            'password1': self._user1_password1, 'password2': self._user1_password2}, follow=True)
         self.assertContains(response, ERROR_MESSAGES['EMAILALREADYEXISTS'])
 
     # Test if you can't register with an invalid email address -> user 2
     def test_registrationFailedInvalidEmail(self):
         response = self._client.post(
-            '/registration/', {'first_name': self.user2_first_name, 'email': self.user2_email,
-            'password1': self.user2_password1, 'password2': self.user2_password2})
+            '/registration/', {'first_name': self._user2_first_name, 'email': self._user2_email,
+            'password1': self._user2_password1, 'password2': self._user2_password2})
         self.assertContains(response, ERROR_MESSAGES['INVALIDEMAIL'])
 
     # Test if you can't register when you didn't fill out all fields -> user3
     def test_registrationFailedNotFilledAllFields(self):
         response = self._client.post(
-            '/registration/', {'first_name': self.user3_first_name, 'email': self.user3_email,
-            'password1': self.user3_password1, 'password2': self.user3_password2})
+            '/registration/', {'first_name': self._user3_first_name, 'email': self._user3_email,
+            'password1': self._user3_password1, 'password2': self._user3_password2})
         self.assertContains(response, ERROR_MESSAGES['NOEMPTYFIELDS'])
 
     # Test if you can't register when the passwords do not match
     def test_registrationFailedPasswordsDontMatch(self):
         response = self._client.post(
-            '/registration/', {'first_name': self.user4_first_name, 'email': self.user4_email,
-            'password1': self.user4_password1, 'password2': self.user4_password2})
+            '/registration/', {'first_name': self._user4_first_name, 'email': self._user4_email,
+            'password1': self._user4_password1, 'password2': self._user4_password2})
         self.assertContains(response, ERROR_MESSAGES['PASSWORDSDONTMATCH'])
