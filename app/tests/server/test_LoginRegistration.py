@@ -4,7 +4,7 @@
 
 * Creation Date : 06-11-2014
 
-* Last Modified : Thu 06 Nov 2014 07:20:54 PM CET
+* Last Modified : Mo 10 Nov 2014 12:03:57 CET
 
 * Author : mattis
 
@@ -31,6 +31,7 @@ class LoginTestClass(TestCase):
         user1active = User.objects.create_user(
             username='test@test.com', password='123456')
         user1active.save()
+        user1active._unhashedpw='123456'
         self._user1active = user1active
         user2inactive = User.objects.create_user(
             'test2@test.com', password='none')
@@ -48,17 +49,15 @@ class LoginTestClass(TestCase):
     # Test if an user receives a failure message on incorrect login
     def test_loginFailIncorrectUsername(self):
         response = self._client.post(
-            '/login/', {'email': 'wrongusername', 'password': self._user1active.password})
+            '/login/', {'email': 'wrongusername', 'password': self._user1active._unhashedpw})
         self.assertContains(response, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
 
     # Testing that a user is logged in with an correct password
     def test_loginSuccess(self):
         response = self._client.post(
-            '/login/', {'email': self._user1active.username, 'password': self._user1active.password})
-        print(self._client.session)
-        print(response)
+            '/login/', {'email': self._user1active.username, 'password':self._user1active._unhashedpw })
+       
         self.assertIn('_auth_user_id', self._client.session)
-        #self.assertEquals(response['Location'], '/')
 
 
 
@@ -107,8 +106,6 @@ class RegistrationTestClass(TestCase):
         response = self._client.post(
             '/registration/', {'first_name': self.user1_first_name, 'email': self.user1_email,
             'password1': self.user1_password1, 'password2': self.user1_password2})
-        print('test')
-        print(self._client.session)
         self.assertIn('_auth_user_id', self._client.session)
 
     # Test if you can't register when same email is already registered
