@@ -79,7 +79,8 @@ class RegistrationTestClass(TestCase):
     # user2 - incorrect email address, registration should fail
     # user3 - one blank field, registration should fail
     # user4 - different password, registration should fail
-    #  client - the client to do requests with
+    # user 5 - password contains spaces, registration should fail
+    # client - the client to do requests with
     def setUp(self):
 
         # user 1 data -> everything correct
@@ -102,9 +103,21 @@ class RegistrationTestClass(TestCase):
 
         # user 4 data -> passwords do not match
         self._user4_first_name = 'user4'
-        self._user4_email = 'user3@test.de'
+        self._user4_email = 'user4@test.de'
         self._user4_password1 = 'test123'
         self._user4_password2 = 'test12'
+
+        # user 5 data -> password contains spaces
+        self._user5_first_name = 'user5'
+        self._user5_email = 'user5@test.de'
+        self._user5_password1 = 'test 123'
+        self._user5_password2 = 'test 123'
+
+        # user 6 data -> first_name contains illegal character
+        self._user6_first_name = 'user6©'
+        self._user6_email = 'user6@test.de'
+        self._user6_password1 = 'test123'
+        self._user6_password2 = 'test123'
 
         self._client = Client()
 
@@ -118,7 +131,7 @@ class RegistrationTestClass(TestCase):
         self.assertIn('_auth_user_id', self._client.session)
 
     # Test if you can't register when same email is already registered
-    def test_registrationFailedAlreadyRegistered(self):
+    def test_registrationFailAlreadyRegistered(self):
         # create user1 separately again, because user1 from first registrationSuccess
         # doesn't exist here in our database
         new_user = User.objects.create_user(username=self._user1_email,
@@ -130,22 +143,36 @@ class RegistrationTestClass(TestCase):
         self.assertContains(response, ERROR_MESSAGES['EMAILALREADYEXISTS'])
 
     # Test if you can't register with an invalid email address -> user 2
-    def test_registrationFailedInvalidEmail(self):
+    def test_registrationFailInvalidEmail(self):
         response = self._client.post(
             '/registration/', {'first_name': self._user2_first_name, 'email': self._user2_email,
             'password1': self._user2_password1, 'password2': self._user2_password2})
         self.assertContains(response, ERROR_MESSAGES['INVALIDEMAIL'])
 
     # Test if you can't register when you didn't fill out all fields -> user3
-    def test_registrationFailedNotFilledAllFields(self):
+    def test_registrationFailNotFilledAllFields(self):
         response = self._client.post(
             '/registration/', {'first_name': self._user3_first_name, 'email': self._user3_email,
             'password1': self._user3_password1, 'password2': self._user3_password2})
         self.assertContains(response, ERROR_MESSAGES['NOEMPTYFIELDS'])
 
-    # Test if you can't register when the passwords do not match
-    def test_registrationFailedPasswordsDontMatch(self):
+    # Test if you can't register when the passwords do not match -> user4
+    def test_registrationFailPasswordsDontMatch(self):
         response = self._client.post(
             '/registration/', {'first_name': self._user4_first_name, 'email': self._user4_email,
             'password1': self._user4_password1, 'password2': self._user4_password2})
         self.assertContains(response, ERROR_MESSAGES['PASSWORDSDONTMATCH'])
+
+    # Test if you can't register when password contains spaces -> user5
+    def test_registrationFailPasswordContainsSpaces(self):
+        response = self._client.post(
+            '/registration/', {'first_name': self._user5_first_name, 'email': self._user5_email,
+            'password1': self._user5_password1, 'password2': self._user5_password2})
+        self.assertContains(response, ERROR_MESSAGES['NOSPACESINPASSWORDS'])
+
+    # Test if you can't register when first_name contains illegal characters
+    def test_registrationFailFirstNameIllegalChar(self):
+        response = self._client.post(
+            '/registration/', {'first_name': self._user6_first_name, 'email': self._user6_email,
+            'password1': self._user6_password1, 'password2': self._user6_password2})
+        self.assertContains(response, ERROR_MESSAGES['INVALIDCHARACTERINFIRSTNAME'])
