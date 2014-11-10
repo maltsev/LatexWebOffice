@@ -24,39 +24,44 @@ class LoginTestClass(TestCase):
     """Docstring for LoginTestClass. """
 
     # Setup method. It constructs two users and a client object to do requests with:
-    # user1active - an active user
-    # user2inactive - an inactive user
+    # user1 - an active user
+    # user2 - an inactive user
     # client - the client to do requests with
     def setUp(self):
-        user1active = User.objects.create_user(
+        user1 = User.objects.create_user(
             username='test@test.com', password='123456')
-        user1active.save()
-        user1active._unhashedpw='123456'
-        self._user1active = user1active
-        user2inactive = User.objects.create_user(
-            'test2@test.com', password='none')
-        user2inactive.is_active = False
-        user2inactive.save()
-        self._user2inactive = user2inactive
+        user1._unhashedpw='123456'
+        self._user1 = user1
+        user2 = User.objects.create_user(
+            'test2@test.com', password='test123')
+        user2._unhashedpw='test123'
+        user2.is_active = False
+        user2.save()
+        self._user2 = user2
         self._client = Client()
 
-    # Test if a user is not logged in with an incorrect password
+    # Test if a user is not logged in with an incorrect password -> user1
     def test_loginFailIncorrectPassword(self):
         response = self._client.post(
-            '/login/', {'email': self._user1active.username, 'password': 'wrong'})
+            '/login/', {'email': self._user1.username, 'password': 'wrong'})
         self.assertNotIn('_auth_user_id', self._client.session)
 
-    # Test if an user receives a failure message on incorrect login
+    # Test if an user receives a failure message on incorrect login -> user1
     def test_loginFailIncorrectUsername(self):
         response = self._client.post(
-            '/login/', {'email': 'wrongusername', 'password': self._user1active._unhashedpw})
+            '/login/', {'email': 'wrongusername', 'password': self._user1._unhashedpw})
         self.assertContains(response, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
 
-    # Testing that a user is logged in with an correct password
+    # Test if a user can't login when he is set inactive -> user2
+    def test_loginFailInactiveUser(self):
+        response = self._client.post(
+            '/login/', {'email': self._user2.username, 'password':self._user2._unhashedpw })
+        self.assertIn('_auth_user_id', self._client.session)
+
+    # Test if a user is logged in with an correct password -> user1
     def test_loginSuccess(self):
         response = self._client.post(
-            '/login/', {'email': self._user1active.username, 'password':self._user1active._unhashedpw })
-       
+            '/login/', {'email': self._user1.username, 'password':self._user1._unhashedpw })
         self.assertIn('_auth_user_id', self._client.session)
 
 
