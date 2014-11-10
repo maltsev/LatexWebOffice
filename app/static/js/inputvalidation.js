@@ -1,23 +1,13 @@
-// Überprüft Formular-Daten und zeigt ggf. entsprechende Fehlermeldungen an
-function validateForm(id) {
-	// Eingabefelder des Formulars einlesen
-	var formElements = document.getElementById(id).getElementsByTagName('input');
-
-	// Werte der Eingabefelder überprüfen
-	for (var i = 0; i < formElements.length; ++i) {
-		var element = formElements[i];
-
-		// eMail-Adresse
-		if (element.type == 'email') {
-			if (!/(.+)@(.+){2,}\.(.+){2,}/.test(element.value))
-				element.setCustomValidity('{{ ERROR_MESSAGES.INVALIDEMAIL }}');
-			else
-				element.setCustomValidity('');
-		}
-	}
-
-	// TODO: nur submit-Buttons finden
-	document.getElementById(id).getElementsByTagName('button')[0].click();
-
-	return(false);
+// überprüft, ob die beiden bei der Registrierung angegebenen Passwörter übereinstimmen
+function matchPasswords(event) {
+	if (document.getElementById('password1').value == document.getElementById('password2').value)
+		document.getElementById('password2').setCustomValidity('');
+	else
+		document.getElementById('password2').setCustomValidity(ERROR_MESSAGES.PASSWORDSDONTMATCH);
 }
+$(document).ready(function() {
+	if (document.getElementById('password1') && document.getElementById('password2')) {
+		document.getElementById('password1').addEventListener("input", matchPasswords);
+		document.getElementById('password2').addEventListener("input", matchPasswords);
+	}
+});
