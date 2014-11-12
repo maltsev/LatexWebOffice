@@ -88,12 +88,13 @@ STATIC_URL = '/static/'
 
 # error messages
 ERROR_MESSAGES = {
-    'EMAILALREADYEXISTS' : 'E-Mail-Adresse ist bereits registriert.',
-    'INVALIDEMAIL' : 'Ungültige E-Mail-Adresse',
-    'NOEMPTYFIELDS' : 'Keine leeren Eingaben erlaubt.',
-    'PASSWORDSDONTMATCH' : 'Passwörter stimmen nicht überein.',
-    'INACTIVEACCOUNT' : '{0} ist nicht verifiziert.',
-    'WRONGLOGINCREDENTIALS' : 'E-Mail-Adresse oder Passwort falsch.',
-    'LOGINORREGFAILED' : 'Anmeldung nach Registrierung fehlgeschlagen.',
-    'NOTJUSTSPACESINFIRSTNAME' : 'Vorname darf nicht nur aus Leerzeichen bestehen.'
+    'EMAILALREADYEXISTS': 'E-Mail-Adresse ist bereits registriert.',
+    'INVALIDEMAIL': 'Ungültige E-Mail-Adresse',
+    'NOEMPTYFIELDS': 'Keine leeren Eingaben erlaubt.',
+    'PASSWORDSDONTMATCH': 'Passwörter stimmen nicht überein.',
+    'INACTIVEACCOUNT': '{0} ist nicht verifiziert.',
+    'WRONGLOGINCREDENTIALS': 'E-Mail-Adresse oder Passwort falsch.',
+    'LOGINORREGFAILED': 'Anmeldung nach Registrierung fehlgeschlagen.',
+    'INVALIDCHARACTERINFIRSTNAME': 'Vorname enthält ungültiges Zeichen.',
+    'NOSPACESINPASSWORDS': 'Passwort darf keine Leerzeichen enthalten.'
 }
