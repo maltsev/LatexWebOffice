@@ -30,7 +30,7 @@ class LoginTestClass(TestCase):
     def setUp(self):
         # create active user1
         user1 = User.objects.create_user(
-            username='user1@test.de', password='123456')
+            username='user1@test.de', password='12345')
         user1._unhashedpw = '123456'
         self._user1 = user1
 
