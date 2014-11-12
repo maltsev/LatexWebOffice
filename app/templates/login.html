@@ -1,11 +1,20 @@
+<!--
+@author: Timo Dümke 
+@creation: 05.11.2014 - sprint-nr: 1
+@last-change: 09.11.2014 - sprint-nr: 1
+-->
+
+<!-- embedding file: _wrapper.html -->
 {% extends "_wrapper.html" %}
 
+<!-- content to embed in wrapper.html -->
 {% block content %}
+<!-- Content-Bereich der Anmeldeseite mit dem Anmeldeformular -->
 <div id="inhalt">
     <div id="anmeldebox">
         <h1>ANMELDEN</h1>
         <div class="hline_green"></div>
-
+		<!-- Displaying error messages from Django -->
         <div class="row">
             {% if messages %}
                 <ul class="messages"><!-- https://docs.djangoproject.com/en/dev/ref/contrib/messages/ to send messages from server to client -->
@@ -51,3 +60,4 @@
     </div>
 </div>
 {% endblock %}
+<!-- end of content to embed -->

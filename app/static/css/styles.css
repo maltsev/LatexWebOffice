@@ -1,3 +1,8 @@
+/* 
+@author: Franziska Everinghoff, Timo Dümke 
+@creation: 31.10.2014 - sprint-nr: 1
+@last-change: 10.11.2014 - sprint-nr: 1
+*/
 body, html{
 margin: 0;
 height: 100%;
@@ -94,21 +99,16 @@ float: left;
 width: 250px;
 background: white;
 height: 500px;
-
 }
-
 ul#hauptmenue{
 margin-top: 50px;
 width: 100%;
 float: left;
 list-style: none;
-
 padding: 10%;
 }
 ul#hauptmenue li{
-
 padding: 10px;
-
 border-bottom: 1px solid #b1ca00;
 color: #b1ca00;
 }
