@@ -5,13 +5,15 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Mo 10 Nov 2014 12:09:03 CET
+* Last Modified : Mi 12 Nov 2014 09:16:05 CET
 
 * Author :  maltsev
 
 * Coauthors : mattis, christian
 
 * Sprintnumber : 1
+
+* Backlog entry :  RUA1, RUA4
 
 """
 
