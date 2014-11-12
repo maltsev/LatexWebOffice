@@ -1,6 +1,7 @@
 LatexWebOffice
 ==============
 
+[![Build Status](https://travis-ci.org/Moeplhausen/LatexWebOffice.svg)](https://travis-ci.org/Moeplhausen/LatexWebOffice)
 
 ## Installation
 
