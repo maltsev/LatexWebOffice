@@ -4,7 +4,7 @@
 
 * Creation Date : 06-11-2014
 
-* Last Modified : Mi 12 Nov 2014 10:40:08 CET
+* Last Modified : Mi 12 Nov 2014 10:44:25 CET
 
 * Author : mattis
 
@@ -67,7 +67,6 @@ class LoginTestClass(TestCase):
         response = self._client.post(
             '/login/', {'email': self._user1.username, 'password':self._user1._unhashedpw})
         self.assertIn('_auth_user_id', self._client.session)
-        return false
 
 
 class RegistrationTestClass(TestCase):
