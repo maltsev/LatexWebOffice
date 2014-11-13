@@ -4,7 +4,7 @@
 
 * Creation Date : 06-11-2014
 
-* Last Modified : Thu 13 Nov 2014 11:30:05 AM CET
+* Last Modified : Do 13 Nov 2014 12:55:43 CET
 
 * Author : mattis
 
@@ -76,13 +76,13 @@ class LoginTestClass(TestCase):
         self.assertRedirects(response,'/')
 
 
-
     def test_logoutUser(self):
         self._client.login(username=self._user1.username,password=self._user1._unhashedpw)
         self.assertIn('_auth_user_id',self._client.session)
         response=self._client.get('/logout/')
         self.assertNotIn('_auth_user_id',self._client.session)
         self.assertRedirects(response,'/login/')
+
 
 
 
@@ -193,3 +193,16 @@ class RegistrationTestClass(TestCase):
             '/registration/', {'first_name': self._user6_first_name, 'email': self._user6_email,
             'password1': self._user6_password1, 'password2': self._user6_password2})
         self.assertContains(response, ERROR_MESSAGES['INVALIDCHARACTERINFIRSTNAME'])
+
+
+    # Test that you will be directed to the startseite when trying to register while being already logged in
+
+    def test_registrationRedirectWhenLoggedIn(self):
+        new_user = User.objects.create_user(username=self._user1_email,
+                                               email=self._user1_email, password=self._user1_password1,
+                                               first_name=self._user1_first_name)
+        self._client.login(username=self._user1_email,password=self._user1_password1)
+        self.assertIn('_auth_user_id',self._client.session)
+        response=self._client.get('/registration/')
+        self.assertRedirects(response,'/')
+
