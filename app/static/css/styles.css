@@ -1,8 +1,3 @@
-/* 
-@author: Franziska Everinghoff, Timo Dümke 
-@creation: 31.10.2014 - sprint-nr: 1
-@last-change: 10.11.2014 - sprint-nr: 1
-*/
 body, html{
 margin: 0;
 height: 100%;
@@ -21,7 +16,7 @@ font-weight: bold;
 width: 100%;
 height: 100%;
 }
-#anmeldebox, #registrierungsbox{
+#anmeldebox, #registrierungsbox, #impressumsbox{
 background: white;
 background: white;
 -moz-box-shadow:    2px 2px 5px 2px #a8a4a4;
@@ -88,6 +83,7 @@ font-size: 18pt;
 #kopfzeile{
 width: 100%;
 max-width: 1600px;
+min-width: 1000px;
 height: 150px;
 max-height: 150px;
 background: white;
@@ -103,16 +99,21 @@ float: left;
 width: 250px;
 background: white;
 height: 500px;
+
 }
+
 ul#hauptmenue{
 margin-top: 50px;
 width: 100%;
 float: left;
 list-style: none;
+
 padding: 10%;
 }
 ul#hauptmenue li{
+
 padding: 10px;
+
 border-bottom: 1px solid #b1ca00;
 color: #b1ca00;
 }
@@ -127,11 +128,14 @@ border-bottom: 2px solid #a8a4a4;
 margin-left:250px;
 height: 500px;
 max-width: 1300px;
+min-width: 700px;
 background: #eceaea;
 
 }
 #fusszeile{
 width: 100%;
+max-width: 1600px;
+min-width: 1000px;
 margin-top: 10px;
 height: 50px;
 }
