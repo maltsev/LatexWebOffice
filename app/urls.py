@@ -6,6 +6,6 @@ urlpatterns = patterns('app.views',
     url(r'^registration/', 'auth.registration'),
     url(r'^login/', 'auth.login'),
     url(r'^logout/', 'auth.logout'),
-	url(r'^impressum/', 'main.impressum'),
-	url(r'^hilfe/', 'main.hilfe'),
+    url(r'^impressum/', 'main.impressum'),
+    url(r'^hilfe/', 'main.hilfe'),
 )

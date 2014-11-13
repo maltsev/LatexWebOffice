@@ -23,7 +23,6 @@
 	<a href="../"><img src="/static/img/icon.png" id="logo" alt="Logo vom LatexWebOffice"></a>
         {% if user.is_authenticated %}
             <a href="/logout/"><div class="whitebutton">ABMELDEN</div></a>
-			<a href="/"><div class="greenbutton">MENÜ</div></a>
         {% else %}
         	<a href="/registration/"><div class="whitebutton">REGISTRIEREN</div></a>
 	        <a href="/login/"><div class="greenbutton">ANMELDEN</div></a>
@@ -32,8 +31,17 @@
 	</div>
 	<div id="menueleiste">
 	<!-- loading embedded menu -->
-	 {% block menu %}{% endblock %}
-	 
+	{% if user.is_authenticated %}
+{% block menu %}
+<ul id="hauptmenue">
+<li>Editor</li>
+<li>Dokumentenverwaltung</li>
+<li>Literaturverzeichnis</li>
+<li>Dokumentvorlagen</li>
+<li>Eigenes Profil</li>
+</ul>
+{% endblock %}
+{% endif %}	 
 	</div>
 	<!-- loading embedded menu -->
     {% block content %}{% endblock %}
