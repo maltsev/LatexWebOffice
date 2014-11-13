@@ -27,6 +27,8 @@ box-shadow:         2px 2px 5px 2px #a8a4a4;
 border-radius: 5px; 
 -khtml-border-radius: 5px;
 width: 100%;
+min-width: 500px;
+max-width: 1000px;
 height: 400px;
 min-height: 400px;
 padding: 5%;
@@ -80,7 +82,9 @@ font-size: 18pt;
 }
 #kopfzeile{
 width: 100%;
+max-width: 1600px;
 height: 150px;
+max-height: 150px;
 background: white;
 }
 input{
@@ -114,6 +118,7 @@ color: #b1ca00;
 }
 #inhalt{
 border-left: 2px solid #a8a4a4;
+border-right: 2px solid #a8a4a4;
 padding: 10%;
 padding-top: 50px;
 padding-bottom: 5%;
@@ -121,6 +126,7 @@ border-top: 2px solid #a8a4a4;
 border-bottom: 2px solid #a8a4a4;
 margin-left:250px;
 height: 500px;
+max-width: 1300px;
 background: #eceaea;
 
 }
