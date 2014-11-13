@@ -1,3 +1,9 @@
+/*
+@author: Munzir Mohamed, Thore Thießen
+@creation: 07.11.2014 - sprint-nr: 1
+@last-change: 13.11.2014 - sprint-nr: 1
+*/
+
 // überprüft, ob die beiden bei der Registrierung angegebenen Passwörter übereinstimmen
 function matchPasswords(event) {
 	if ($('#password1').val() == $('#password2').val())
