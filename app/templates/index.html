@@ -1,5 +1,13 @@
+<!--
+@author: Martin Koláček  
+@creation: 03.11.2014 - sprint-nr: 1
+@last-change: 10.11.2014 - sprint-nr: 1
+-->
+
+<!-- embedding file: _wrapper.html -->
 {% extends "_wrapper.html" %}
 
+<!-- content to embed in wrapper.html as menu -->
 {% block menu %}
 <ul id="hauptmenue">
 <li>Editor</li>
@@ -7,11 +15,11 @@
 <li>Literaturverzeichnis</li>
 <li>Dokumentvorlagen</li>
 <li>Eigenes Profil</li>
-<li>Hilfe</li>
-<li>Impressum</li>
 </ul>
 {% endblock %}
+<!-- end of content to embed as menu -->
 
+<!-- content to embed in wrapper.html as content -->
 {% block content %}
 <div id="inhalt">
 <div  class="row">
@@ -25,4 +33,5 @@
 </div>
 </div>
 {% endblock %}
+<!-- end of content to embed -->
 

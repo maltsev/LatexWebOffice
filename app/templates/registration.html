@@ -1,11 +1,19 @@
+<!--
+@author: Franziska Everinghoff 
+@creation: 06.11.2014 - sprint-nr: 1
+@last-change: 10.11.2014 - sprint-nr: 1
+-->
+
+<!-- embedding file: _wrapper.html -->
 {% extends "_wrapper.html" %}
 
+<!-- content to embed in wrapper.html -->
 {% block content %}
 <div id="inhalt" style="height: 680px; ">
     <div id="registrierungsbox" style="height: 570px;" >
         <h1>REGISTRIEREN</h1>
         <div class="hline_green"></div>
-
+		<!-- Displaying error messages from Django -->
         <div class="row">
             {% comment %}
             Stub Page
@@ -56,3 +64,4 @@
     </div>
 </div>
 {% endblock %}
+<!-- end of content to embed -->
