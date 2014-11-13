@@ -4,7 +4,7 @@
 
 * Creation Date : 06-11-2014
 
-* Last Modified : Mi 12 Nov 2014 10:44:25 CET
+* Last Modified : Thu 13 Nov 2014 11:30:05 AM CET
 
 * Author : mattis
 
@@ -18,6 +18,7 @@
 from django.test import TestCase,Client
 from django.contrib.auth.models import User
 from core.settings import LOGIN_URL, ERROR_MESSAGES
+from django.contrib.auth import login, authenticate
 
 class LoginTestClass(TestCase):
 
@@ -67,6 +68,23 @@ class LoginTestClass(TestCase):
         response = self._client.post(
             '/login/', {'email': self._user1.username, 'password':self._user1._unhashedpw})
         self.assertIn('_auth_user_id', self._client.session)
+
+    #Test that if an already logged in user tries to login, a redirect to the start page will be done
+    def test_redirectForAuthenticatedUsers(self):
+        self._client.login(username=self._user1.username,password=self._user1._unhashedpw)
+        response=(self._client.get('/login/'))
+        self.assertRedirects(response,'/')
+
+
+
+    def test_logoutUser(self):
+        self._client.login(username=self._user1.username,password=self._user1._unhashedpw)
+        self.assertIn('_auth_user_id',self._client.session)
+        response=self._client.get('/logout/')
+        self.assertNotIn('_auth_user_id',self._client.session)
+        self.assertRedirects(response,'/login/')
+
+
 
 
 class RegistrationTestClass(TestCase):
