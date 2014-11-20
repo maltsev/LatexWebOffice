@@ -14,12 +14,14 @@
 {% block content %}
 <div id="inhalt">
 <div  class="row">
-    {% comment %}
-        Stub Page
-    {% endcomment %}
-
-    {% if user.is_authenticated %}
-        <p>Hallo, {{ user.first_name }}!</p>
+    {% if projects %}
+        <ul>
+            {% for project in projects %}
+                <li><a href="/project/{{ project.id }}/">{{ project.title }}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Sie haben keine Projekte.</p>
     {% endif %}
 </div>
 </div>
