@@ -96,5 +96,6 @@ ERROR_MESSAGES = {
     'WRONGLOGINCREDENTIALS': 'E-Mail-Adresse oder Passwort falsch.',
     'LOGINORREGFAILED': 'Anmeldung nach Registrierung fehlgeschlagen.',
     'INVALIDCHARACTERINFIRSTNAME': 'Vorname enthält ungültiges Zeichen.',
-    'NOSPACESINPASSWORDS': 'Passwort darf keine Leerzeichen enthalten.'
+    'NOSPACESINPASSWORDS': 'Passwort darf keine Leerzeichen enthalten.',
+    'NOTALLPOSTPARAMETERS': 'You suck',
 }

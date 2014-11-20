@@ -8,6 +8,6 @@ urlpatterns = patterns('app.views',
     url(r'^logout/', 'auth.logout'),
     url(r'^impressum/', 'main.impressum'),
     url(r'^hilfe/', 'main.hilfe'),
-    url('^updatePdf','documents.exportToPdf'),
-	url('^editor','main.editor'),
+    url('^editor','main.editor'),
+    url(r'^updatePdf','documents.exportToPdf'),
 )
