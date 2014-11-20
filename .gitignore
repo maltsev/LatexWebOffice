@@ -62,6 +62,9 @@ db.sqlite3
 *~
 *.swp
 
+#ignore eclipse project file
+/.project
+
 #ignore tags
 tags
 
