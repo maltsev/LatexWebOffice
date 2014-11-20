@@ -1,0 +1,1 @@
+from app.models.file import file, texfile, document
