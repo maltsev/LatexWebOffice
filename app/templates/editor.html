@@ -4,18 +4,18 @@
 @last-change: 20.11.2014 - sprint-nr: 2
 -->
 
-
-
 <!-- embedding file: _wrapper.html -->
 {% extends "_wrapper.html" %}
 
-<!-- content to embed in wrapper.html as content -->
+<!-- Header -->
+{% block header %}
+<!--  TODO: editor.loadsave.js -->
+{% endblock %}
+
+<!-- Inhalt -->
 {% block content %}
-<!-- Pruefung der Authentifizierung -->
+<!-- TODO: Prüfung der Authentifizierung -->
 <div id="inhalt">
 <div id="editor" contenteditable="true"></div>
-
 </div>
 {% endblock %}
-<!-- end of content to embed -->
-
