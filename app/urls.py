@@ -9,4 +9,5 @@ urlpatterns = patterns('app.views',
     url(r'^impressum/', 'main.impressum'),
     url(r'^hilfe/', 'main.hilfe'),
     url('^updatePdf','documents.exportToPdf'),
+	url('^editor','main.editor'),
 )

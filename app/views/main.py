@@ -28,5 +28,5 @@ def impressum(request):
 def hilfe(request):
 	return render(request, 'hilfe.html')
 	
-def hilfe(request):
+def editor(request):
 	return render(request, 'editor.html')
