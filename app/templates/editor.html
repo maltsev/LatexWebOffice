@@ -9,6 +9,7 @@
 
 <!-- Header -->
 {% block header %}
+<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <!--  TODO: editor.loadsave.js -->
 {% endblock %}
 
@@ -16,6 +17,17 @@
 {% block content %}
 <!-- TODO: Prüfung der Authentifizierung -->
 <div id="inhalt">
+<div id="symbolleiste">
+<i class="fa fa-file-o"></i> <!-- Neues tex-Dokument -->
+<i class="fa fa-folder-open-o"></i> <!-- Öffnen eines bestehenden Dokuments -->
+<!-- Speichern des geöffneten Dokuments -->
+<i class="fa fa-file-pdf-o"></i> <!-- pdf Export -->
+<i class="fa fa-file-image-o"></i> <!-- Graphik einfügen -->
+<i class="fa fa-toggle-on"></i>
+<i class="fa fa-toggle-off"></i>
+<!-- parallele Anzeige von tex Code und pdf Ausgabe -->
+</div>
+
 <div id="editor" contenteditable="true"></div>
 </div>
 {% endblock %}
