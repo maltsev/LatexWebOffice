@@ -40,15 +40,15 @@ def execute(request):
             'renamefile': {'command': renameFile, 'parameters': ('id', 'name')},
             'listfiles': {'command': listFiles, 'parameters': ('id',)},
             'projectcreate': {'command': projectCreate, 'parameters': ('name',)},
-            'projectdelete': {'command': projectDelete, 'parameters': ('id',)},
-            'importprojectfromzip': {'command': importProjectFromZip, 'parameters': ()},
+            'importzip': {'command': importZip, 'parameters': ('id',)},
             'listprojects': {'command': listProjects, 'parameters': ()},
             'downloadfile': {'command': downloadFile, 'parameters': ('id',)},
-            'exportprojecttozip': {'command': exportProjectToZip, 'parameters': ('id',)},
+            'exportzip': {'command': exportZip, 'parameters': ('id',)},
             'compile': {'command': latexCompile, 'parameters': ('id',)},
             'createdir': {'command': createDir, 'parameters': ('id', 'name')},
             'renamedir': {'command': renameDir, 'parameters': ('id', 'name')},
-            'rmdir': {'command': rmDir, 'parameters': ('id',)}
+            'rmdir': {'command': rmDir, 'parameters': ('id',)},
+            'fileinfo': {'command': fileInfo, 'parameters': ('id',)}
         }
 
         args = []
@@ -87,6 +87,21 @@ def execute(request):
             return HttpResponse(json.dumps(to_json), content_type="application/json")
 
 
+# liefert ein HTTP Response (Json)
+def jsonResponse(dictionary, status, request):
+    statusstr = 'failure'
+
+    if(status):
+        statusstr = 'success'
+
+    to_json = {
+        'status': statusstr,
+        'request': request.POST,
+        'response': dictionary
+    }
+
+    return HttpResponse(json.dumps(to_json), content_type="application/json")
+
 # aktualisiert eine geänderte Datei eines Projektes in der Datenbank
 # benötigt: id:fileid, content:filecontenttostring
 # liefert: HTTP Response (Json)
@@ -116,10 +131,10 @@ def renameFile(request, user, fileid, newfilename):
     pass
 
 
-# liefert eine Übersicht der Dateien/Ordner eines Projektes
-# benötigt: id:projectid
+# liefert eine Übersicht der Dateien/Unterordner eines Ordners (bzw. Projektes)
+# benötigt: id:folderid
 # liefert: HTTP Response (Json)
-def listFiles(request, user, projectid):
+def listFiles(request, user, folderid):
     pass
 
 
@@ -139,17 +154,10 @@ def projectCreate(request, user, projectname):
     return HttpResponse(json.dumps(to_json), content_type="application/json")
 
 
-# löscht ein vom Client angegebenes Projekt
-# benötigt: id:projectid
-# liefert: HTTP Response (Json)
-def projectDelete(request, user, projectid):
-    pass
-
-
 # importiert ein Projekt aus einer vom Client übergebenen zip Datei
-# benötigt: nichts
+# benötigt: id:folderid
 # liefert: HTTP Response (Json)
-def importProjectFromZip(request, user):
+def importZip(request, user, folderid):
     pass
 
 
@@ -162,15 +170,15 @@ def listProjects(request, user):
 
 # liefert eine vom Client angeforderte Datei als Filestream
 # benötigt: id:fileid
-# liefert: HTTP Response (Json)
+# liefert: filestream
 def downloadFile(request, user, fileid):
     pass
 
 
 # liefert ein vom Client angefordertes Projekt in Form einer zip Datei als Filestream
-# benötigt: id:projectid
-# liefert: HTTP Response (Json)
-def exportProjectToZip(request, user, projectid):
+# benötigt: id:folderid
+# liefert: filestream
+def exportZip(request, user, folderid):
     pass
 
 
@@ -192,6 +200,11 @@ def renameDir(request, user, folderid, newdirectoryname):
 # benötigt: id:folderid
 # liefert: HTTP Response (Json)
 def rmDir(request, user, folderid):
+    pass
+
+# benötigt: id:fileid
+# liefert: HTTP Response (Json) --> fileid, filename, folderid, foldername
+def fileInfo(request, user, fileid):
     pass
 
 
