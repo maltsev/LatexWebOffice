@@ -26,9 +26,14 @@ import json
 
 class LoginTestClass(TestCase):
     def setUp(self):
-        self._client=client=Client()
-       
-    def test_exportToPdfWithoutSendingAllParameters(self):
-        client=self._client 
-        response=client.post('/updatePdf/',{})
+        self._client=Client()
+
+        response = self._client.post(
+            '/registration/', {'first_name': 'test', 'email': 'test@test.de',
+            'password1': '1234', 'password2': '1234'})
+
+
+    def test_projectCreate(self):
+        client=self._client
+        response=client.post('/documents/',{'command': 'projectcreate', 'name':'myProject','testpara':123})
         print(response.content)
