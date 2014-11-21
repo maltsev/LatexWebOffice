@@ -10,5 +10,5 @@ class ProjectAdmin(admin.ModelAdmin):
 
 @admin.register(models.document.Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('name', 'title', 'author', 'project', 'createTime', 'lastModifiedTime')
+    list_display = ('name', 'author', 'project', 'createTime', 'lastModifiedTime')
     list_filter = ('project',)
