@@ -1,7 +1,7 @@
 /*
 @author: Thore Thießen
 @creation: 21.11.2014 - sprint-nr: 2
-@last-change: 21.11.2014 - sprint-nr: 2
+@last-change: 24.11.2014 - sprint-nr: 2
 */
 
 /**
