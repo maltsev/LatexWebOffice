@@ -98,4 +98,11 @@ ERROR_MESSAGES = {
     'INVALIDCHARACTERINFIRSTNAME': 'Vorname enthält ungültiges Zeichen.',
     'NOSPACESINPASSWORDS': 'Passwort darf keine Leerzeichen enthalten.',
     'NOTALLPOSTPARAMETERS': 'You suck',
+    'NOTENOUGHRIGHTS':'Nutzer hat für diese Aktion nicht ausreichend Rechte',
+    'FOLDERNAMEEXISTS':'Dieses Verzeichnis existiert schon',
+    'FILENAMEEXISTS':'Diese Datei existiert schon',
+    'DIRECTORYNOTEXIST':'Dieses Verzeichnis existiert nicht',
+    'FILENOTEXIST':'Diese Datei existiert nicht',
+    'UNKOWNERROR':'Unbekannter Fehler',
+    
 }
