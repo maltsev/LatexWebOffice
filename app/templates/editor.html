@@ -1,10 +1,9 @@
 <!--
-@author: Timo Duemke
+@author: Franziska Everinghoff
 @creation: 20.11.2014 - sprint-nr: 2
 @last-change: 20.11.2014 - sprint-nr: 2
 -->
 
-<!-- embedding file: _wrapper.html -->
 {% extends "_wrapper.html" %}
 
 <!-- Header -->
@@ -18,17 +17,115 @@
 {% block content %}
 <!-- TODO: Prüfung der Authentifizierung -->
 <div id="inhalt">
-<div id="symbolleiste">
-<i class="fa fa-file-o"></i> <!-- Neues tex-Dokument -->
-<i class="fa fa-folder-open-o"></i> <!-- Öffnen eines bestehenden Dokuments -->
-<!-- Speichern des geöffneten Dokuments -->
-<i class="fa fa-file-pdf-o"></i> <!-- pdf Export -->
-<i class="fa fa-file-image-o"></i> <!-- Graphik einfügen -->
-<i class="fa fa-toggle-on"></i>
-<i class="fa fa-toggle-off"></i>
-<!-- parallele Anzeige von tex Code und pdf Ausgabe -->
-</div>
+	
+	<table id="editor_table1" width="100%">
+		<tr>
+		
+		<td style="padding-bottom: 50px">
+		
+		  <div id="menu">
+    <ul>
+      <li class="topmenu">
+        <a href="">Datei</a>
+        <ul>
+          <li class="submenu"><a href="">Öffnen</a></li>
+          <li class="submenu"><a href="">Projektverwaltung</a></li>
+        </ul>
+      </li>
+      <li class="topmenu">
+        <a href="">Bearbeiten</a>
 
-<div id="editor" contenteditable="true"></div>
+      </li>
+      <li class="topmenu">
+        <a href="">Vorlagen</a>
+
+      </li>
+	  <li class="topmenu">
+        <a href="">Assistent</a>
+
+      </li>
+	  <li class="topmenu">
+        <a href="">Bibliegraphie</a>
+
+      </li>
+	  <li class="topmenu">
+        <a href="">Ansicht</a>
+
+      </li>
+	  <li class="topmenu">
+        <a href="">Optionen</a>
+		<ul>
+			<li class="submenu"><a href="">Hilfe</a></li>
+		</ul>
+    </ul>
+  </div
+
+				
+		
+		</td>
+		</tr>
+		<tr>
+		<td>
+		<div id="symbolleiste" >
+
+		<form action="button.htm">
+		  <div>
+			<button name="NewDocument" type="button">
+			 <i class="fa fa-file-o"></i> <!-- Neues tex-Dokument -->       
+			</button>
+			<button name="OpenDocument" type="button">
+			 <i class="fa fa-folder-open-o"></i> <!-- Öffnen eines bestehenden Dokuments -->      
+			</button>
+			<button name="OpenDocument" type="button">
+			 <i class="fa fa-floppy-o"></i> <!-- Speichern des geöffneten Dokuments -->    
+			</button>
+			<button name="UnDo" type="button">
+			<i class="fa fa-undo"></i> <!-- Zurück -->     
+			</button>
+			<button name="ReDo" type="button">
+			<i class="fa fa-repeat"></i> <!-- Vor -->     
+			</button>
+			<button name="CutDocument" type="button">
+			<i class="fa fa-scissors"></i> <!-- Ausschneiden -->     
+			</button>
+			<button name="CopyDocument" type="button">
+			<i class="fa fa-files-o"></i> <!-- Kopieren -->     
+			</button>
+			<button name="PasteDocument" type="button">
+			<i class="fa fa-clipboard"></i> <!-- Einfügen -->     
+			</button>			
+			<button name="OpenDocument" type="button">
+			 <i class="fa fa-file-pdf-o"></i> <!-- pdf Export -->     
+			</button>
+			<button name="OpenDocument" type="button">
+			 <i class="fa fa-file-image-o"></i> <!-- Graphik einfügen -->   
+			</button>
+			<button name="OpenDocument" type="button">
+			<i class="fa fa-refresh"></i>  <!-- parallele Anzeige von tex Code und pdf Ausgabe --> 
+			</button>
+		  </div>
+		</form>
+
+	</div>
+	</td>
+	</tr>
+</table>
+
+<div >
+	<table id="editor_table2">
+		<tr valign="top">
+			<td style="margin-right: 5px;" width="40px">
+			<button name="Fettschrift" type="button">
+			 <i class="fa fa-bold"></i> <!-- Fettschrift -->       
+			</button> <br />
+			<button name="Kursivschrift" type="button">
+			<i class="fa fa-italic"></i> <!-- Kursivschrift -->      
+			</button>	
+			</td>
+			<td>
+				<div id="editor" contenteditable="true"></div>
+			</td>
+		</tr>
+	</table>
 </div>
 {% endblock %}
