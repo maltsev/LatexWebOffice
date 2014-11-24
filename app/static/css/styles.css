@@ -10,6 +10,65 @@ height: 90%;
 min-height: 400px;
 background: white;
 }
+/* elements editor */
+#editor_table2{
+width: 100%;
+margin-top: 5px;
+}
+#menu {
+  font-size:14px;
+  position:absolute;  
+}
+
+#menu ul {
+  list-style-type:none;
+  list-style-image:none;
+  margin:0px;
+  padding:0px;
+}
+
+#menu li.topmenu {
+  float:left;
+}
+
+.topmenu a {
+  float:left;
+  width:135px;
+  text-align:center;
+}
+
+.topmenu ul{
+  display:none;
+}
+
+.topmenu a, .submenu a{
+  padding:1px 5px;
+  border:1px solid #000000;
+  border-collapse:collapse;
+  color:#000000;
+  font-weight:bold;
+  text-decoration:none;
+  background-color:#E6E6E6;
+  margin:0;  
+}
+
+.submenu a{
+  font-size:12px;
+  width:135px;
+  position:relative;
+  clear:both; /* special IE6 */
+}
+
+#menu a:hover, .topmenu.on a {
+  color:#ffffff;
+  background-color:#A4A4A4 !important;
+}
+
+.topmenu:hover ul {
+  display:block;  
+  z-index:500;
+}
+/* elements editor end*/
 .error{
 width: 100%;
 background: #fc8193;
