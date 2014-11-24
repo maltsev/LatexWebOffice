@@ -4,7 +4,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Do 20 Nov 2014 14:33:53 CET
+* Last Modified : Sat 22 Nov 2014 02:50:07 PM CET
 
 * Author :  mattis
 
@@ -23,9 +23,12 @@ from app.common.util import jsonDecoder
 from app.models.project import Project
 from app.models.folder import Folder
 from app.models.file.document import Document
+import json
+from app.models.project import Project
+from app.models.folder import Folder
+from app.models.file.document import Document
 
-
-class LoginTestClass(TestCase):
+class DocumementsTestClass(TestCase):
     def setUp(self):
 
         # erstelle user1
@@ -42,21 +45,185 @@ class LoginTestClass(TestCase):
         self._user3 = User.objects.create_user(
             'user3@test.de', password='test1234')
         self._user3._unhashedpw = 'test1234'
+        self.client=Client()
+
+        # logge user1 ein
+        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
+
+        # erstelle zwei Projekte als user1
+        self._user1_project1 = Project.objects.create(name='user1_project1', author=self._user1)
+        self._user1_project1.save()
+        self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1)
+        self._user1_project2.save()
+
+        # erstelle zwei Projekte als user2
+        self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2)
+        self._user2_project1.save()
+        self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2)
+        self._user2_project2.save()
+
+        subfolder=Folder.objects.create(name='subfolder')
+        subfolder.parentFolder=self._user2_project1
+        self._subfolder=subfolder
+        subfolder.save()
+
+        #f=Document.objects.create(name='main.tex',author=self._user2,folder=subfolder,source_code='')
+        #f.save()
+        #self._project2=project2
+        #self._project2file=f
 
     def tearDown(self):
         self.client.logout()
+
+    
+    #Helper Methode um leichter die verschiedenen commands durchzutesten.
+    def documentPoster(self,command='NoCommand',idpara=None,content=None,name=None,files=None):
+        dictionary={'command':command}
+        if idpara:
+            dictionary['id']=idpara
+        if content:
+            dictionary['content']=content
+        if name:
+            dictionary['name']=name
+        if files:
+            pass #TODO
+        return self.client.post('/documents/',dictionary)
+
+
+    def test_createDir(self):
+        response=self.documentPoster(command='createdir',idpara=self._user1_project1.id,name='testFolder')
+        dictionary=jsonDecoder(response.content)
+        #Teste, ob beim richtiger Anfrage eine Erfolgsmeldung zurückgegeben wird
+        self.assertEqual(dictionary['status'],SUCCESS)
+
+        serveranswer=dictionary['response']
+
+        self.assertIn('id',serveranswer)
+        self.assertIn('name',serveranswer)
+        self.assertIn('parentfolderid',serveranswer)
+        self.assertIn('parentfoldername', serveranswer)
+
+        self.assertTrue(serveranswer['name'],'testFolder')
+
+        #Teste, ob der Ordner wirklich existiert und mit dem Werten, die zurückgegeben wurden, übereinstimmt
+        self.assertTrue(Folder.objects.filter(id=serveranswer['id']).exists())
+        self.assertTrue(Folder.objects.filter(name='testFolder').exists())
+        folder1=Folder.objects.get(id=serveranswer['id'])
+        #Teste, ob der Ordner im richtigen Projekt erstellt wurde 
+        self.assertEqual(Project.objects.get(id=folder1.getRootFolder().id),self._user1_project1)
+        
+        #Teste, ob ein Unterverzeichnis von einem Unterverzeichnis angelegt werden kann und das auch mit dem gleichen Namen
+        response=self.documentPoster(command='createdir',idpara=folder1.id,name='root')
+        dictionary=jsonDecoder(response.content)
+        self.assertTrue(Folder.objects.filter(id=dictionary['response']['id']).exists())
+
+        #Teste, ob ein Verzeichnis zwei gleichnamige Unterverzeichnisse haben kann
+        response=self.documentPoster(command='createdir',idpara=folder1.id,name='root')
+        dictionary=jsonDecoder(response.content)
+        self.assertEqual(dictionary['response'],ERROR_MESSAGES['FOLDERNAMEEXISTS'])
+        
+        #Teste, wie es sich mit falschen Angaben verhält
+
+        #Teste ob user1 in einem Project vom user2 ein Verzeichnis erstellen kann
+        response=self.documentPoster(command='createdir',idpara=self._user2_project1.id,name='IDONOTEXISTDIR')
+        dictionary=jsonDecoder(response.content)
+        self.assertEqual(dictionary['status'],FAILURE)
+        #Teste, dass die richtige Fehlermeldung zurückgegeben wird
+        dictionaryresponse=dictionary['response']
+        self.assertEqual(dictionaryresponse,ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+        #Teste, dass das Verzeichnis auch nicht erstellt wurde
+        self.assertFalse(Folder.objects.filter(name='IDONOTEXISTDIR').exists())
+
+        #TODO Teste auf leeren Verzeichnisnamen
+
+    def test_renameDir(self):
+        oldid=self._user1_project1.id
+        response=self.documentPoster(command='renamedir', idpara=self._user1_project1.id,name='New project und directory name')
+
+        dictionary=jsonDecoder(response.content)
+        serveranswer=dictionary['response']
+        
+        #Teste auf richtige Response Daten bei einer Anfrage, die funktionieren sollte
+        self.assertEqual(dictionary['status'],SUCCESS)
+
+        self.assertIn('id',serveranswer)
+        self.assertIn('name',serveranswer)
+
+        self.assertEqual(serveranswer['id'],oldid)
+        self.assertEqual(serveranswer['name'],'New project und directory name')
+
+        #Teste, ob das Projekt auch unbenannt wurde
+        self.assertEqual(Project.objects.get(id=oldid).name,serveranswer['name'])
+
+
+        #Teste, ob ein anderer User das Projekt eines anderen unbenennen kann
+        response=self.documentPoster(command='renamedir',idpara=self._user2_project1.id,name='ROFL')
+        dictionary=jsonDecoder(response.content)
+        serveranswer=dictionary['response']
+
+        self.assertEqual(dictionary['status'],FAILURE)
+        
+        self.assertEqual(ERROR_MESSAGES['NOTENOUGHRIGHTS'],serveranswer)
+
+
+
+
+    #Teste, ob ein Unterverzeichnis den gleichen Namen haben kann, wie ein anderes Unterverzeichnis im gleichen Elternverzeichnis: Überflüssig, da dies bereits schon in test_createDir getestet wird
+    
+    #Teste, ob ein Verzeichnis einen leeren Namen haben kann: Überflüssig, da dies bereits schon in der test_createDir Methode getestet wird
+        
+    def test_rmDir(self):
+
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        oldid=self._user2_project1.id
+        #oldsubfolderid=self._subfolder.id
+        #oldfileid=self._project2file.id
+        #Stelle sicher, dass zu diesem Zeitpunkt project2 noch existiert 
+        self.assertTrue(Project.objects.filter(id=oldid).exists())
+        #Stelle sicher, dass es zu diesem Projekt mind. ein Unterverzeichnis existiert + mind. eine Datei
+        self.assertEqual(self._subfolder.parentFolder,self._user2_project1)
+        #self.assertTrue(Document.objects.filter(id=oldfileid).exists())
+        
+        response=self.documentPoster(command='rmdir',idpara=self._user2_project1.id)
+        dictionary=jsonDecoder(response.content)
+        serveranswer=dictionary['response']
+
+        self.assertEqual(dictionary['status'],SUCCESS)
+        
+        #Das Projekt sollte komplett gelöscht worden sein
+        self.assertFalse(Project.objects.filter(id=oldid).exists())
+        #Unterverzeichnisse und Dateien sollten dabei auch gelöscht werden! (klappt nocht nicht)
+        #self.assertFalse(Folder.objects.filter(id=oldsubfolderid).exists())
+        #Files von Unterverzeichnissen ebenso
+        #self.assertFalse(Document.objects.filter(id=oldfileid).exists())
+
+
+    def Waitingtest_fileInfo(self):
+        response=self.documentPoster(command='fileinfo',idpara=self._project2file.id)
+        dictioanry=jsonDecoder(response.content)
+        serveranswer=dictioanry['response']
+
+        self.assertEqual(dictioanry['status'],SUCCESS)
+
+        #Es sollten richtige Informationen zur Datei zurückgegeben worden sein
+        self.assertIn('fileid',serveranswer)
+        self.assertIn('filename',serveranswer)
+        self.assertIn('folderid',serveranswer)
+        self.assertIn('foldername',serveranswer)
+
+        fileobj=self._project2file
+
+        #self.assertEqual(serveranswer['fileid'],
+
+
 
     # Teste Erstellen eines Projektes:
     # - ein Benutzer erstellt zwei neue Projekte -> success
     # - ein Benutzer erstellt ein weiteres Projekt, wobei der Projektname nur aus Leerzeichen besteht -> Fehlermeldung
     # - ein Benutzer erstellt ein weiteres Projekt, wobei der Projektname bereits existiert -> Fehlermeldung
     def test_projectCreate(self):
-
-        # logge user1 ein
-        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
-
         # rufe die URL mit den entsprechenden Parametern zum Erstellen eines Projektes auf
-        response = self.client.post('/documents/', {'command': 'projectcreate', 'name': 'user1_project1'})
+        response = self.client.post('/documents/', {'command': 'projectcreate', 'name': 'user1_project3'})
 
         # dekodiere den JSON response als dictionary
         dictionary = jsonDecoder(response.content)
@@ -69,10 +236,10 @@ class LoginTestClass(TestCase):
         # teste ob name vorhanden ist
         self.assertIn('name', dictionary['response'])
         # teste ob name mit dem übergebenen Projektnamen übereinstimmt
-        self.assertEqual(dictionary['response']['name'], 'user1_project1')
+        self.assertEqual(dictionary['response']['name'], 'user1_project3')
 
         # erzeuge ein weiteres Projekt
-        response = self.client.post('/documents/', {'command': 'projectcreate', 'name': 'user1_project2'})
+        response = self.client.post('/documents/', {'command': 'projectcreate', 'name': 'user1_project4'})
 
         # dekodiere den JSON response als dictionary
         dictionary = jsonDecoder(response.content)
@@ -96,7 +263,7 @@ class LoginTestClass(TestCase):
 
         # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein weiteres Projekt mit einem bereits existierenden Namen
-        response = self.client.post('/documents/', {'command': 'projectcreate', 'name': 'user1_project2'})
+        response = self.client.post('/documents/', {'command': 'projectcreate', 'name': 'user1_project4'})
 
         # dekodiere den JSON response als dictionary
         dictionary = jsonDecoder(response.content)
@@ -105,7 +272,7 @@ class LoginTestClass(TestCase):
         # teste, ob status == failure
         self.assertEqual(dictionary['status'], FAILURE)
         # teste ob die richtige Fehlermeldung zurückgegeben wurde
-        self.assertEqual(dictionary['response'], ERROR_MESSAGES['PROJECTALREADYEXISTS'].format('user1_project2'))
+        self.assertEqual(dictionary['response'], ERROR_MESSAGES['PROJECTALREADYEXISTS'].format('user1_project4'))
 
 
     # Teste Auflisten aller Projekte:
@@ -114,22 +281,6 @@ class LoginTestClass(TestCase):
     # - user2 darf nur seine eigenen Projekte aufgelistet bekommen
     # - user3 bekommt keine Projekte aufgelistet
     def test_listprojects(self):
-
-        # erstelle zwei Projekte als user1
-        user1_project1 = Project.objects.create(name='user1_project1', author=self._user1)
-        user1_project1.save()
-        user1_project2 = Project.objects.create(name='user1_project2', author=self._user1)
-        user1_project2.save()
-
-        # erstelle zwei Projekte als user2
-        user2_project1 = Project.objects.create(name='user2_project1', author=self._user2)
-        user2_project1.save()
-        user2_project2 = Project.objects.create(name='user2_project2', author=self._user2)
-        user2_project2.save()
-
-        # login von user1
-        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
-
         # rufe die URL mit den entsprechenden Parametern zum Auflisten aller Projekte eines Benutzers auf
         response = self.client.post('/documents/', {'command': 'listprojects'})
 
@@ -143,8 +294,8 @@ class LoginTestClass(TestCase):
         # teste, ob in response die beiden erstellten Projekte von user1 richtig aufgelistet werden
         # und keine Projekte von user2 aufgelistet werden
         self.assertEqual(dictionary['response'],
-                         [{'id': user1_project1.id, 'name': user1_project1.name},
-                         {'id': user1_project2.id, 'name': user1_project2.name}])
+                         [{'id': self._user1_project1.id, 'name': self._user1_project1.name},
+                         {'id': self._user1_project2.id, 'name': self._user1_project2.name}])
 
         # logout von user1
         self.client.logout()
@@ -166,8 +317,8 @@ class LoginTestClass(TestCase):
         # teste, ob in response die beiden erstellten Projekte von user 2 richtig aufgelistet werden
         # und keine Projekte von user1 aufgelistet werden
         self.assertEqual(dictionary['response'],
-                         [{'id': user2_project1.id, 'name': user2_project1.name},
-                         {'id': user2_project2.id, 'name': user2_project2.name}])
+                         [{'id': self._user2_project1.id, 'name': self._user2_project1.name},
+                         {'id': self._user2_project2.id, 'name': self._user2_project2.name}])
 
         # logout von user2
         self.client.logout()

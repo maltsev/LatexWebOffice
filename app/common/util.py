@@ -19,6 +19,10 @@
 
 from django.http import HttpResponse
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
+from app.models.folder import Folder
+from app.models.project import Project
+from app.models.file.file import File
+from app.models.file.document import Document
 import json
 
 
@@ -51,3 +55,22 @@ def jsonErrorResponse(errormsg, request):
 # liefert die ID und den Namen eines Projektes als dictionary
 def projectToJson(project):
     return dict(id=project.id, name=project.name)
+
+
+# Hilfsmethode um zu überprüfen, ob einer User überhaupt die Rechte hat einen Ordner zu bearbeiten und ob dieser Ordner existiert
+# benötigt: folderid, user, httprequest
+def checkIfDirExistsAndUserHasRights(folderid,user,request):
+    if not Folder.objects.filter(id=folderid).exists():
+        return False,jsonErrorResponse(ERROR_MESSAGES['DIRECTORYNOTEXIST'],request)
+    elif not Project.objects.get(id=Folder.objects.get(id=folderid).getRootFolder().id).author==user:
+        return False,jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
+    else:
+        return True,None
+
+def checkIfFileExistsAndUserHasRights(fileid,user,request):
+    if not File.objects.filter(id=fileid).exists():
+        return False,jsonErrorResponse(ERROR_MESSAGES['FILENOTEXIST'],request)
+    elif not File.objects.get(id=fileid).author==user:
+        return False,jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
+    else:
+        return True,None

@@ -35,6 +35,12 @@ ERROR_MESSAGES = {
     'PROJECTNAMEONLYWHITESPACE': 'Projektname darf nicht nur aus Leerzeichen bestehen.',
     'EMPTYTEXNOTCREATED': 'main.tex Datei konnte im neuen Projekt nicht erstellt werden.',
     'PROJECTALREADYEXISTS': 'Ein Projekt mit dem Namen \"{0}\" existiert bereits.',
+    'NOTENOUGHRIGHTS':'Nutzer hat für diese Aktion nicht ausreichend Rechte',
+    'FOLDERNAMEEXISTS':'Dieses Verzeichnis existiert schon',
+    'FILENAMEEXISTS':'Diese Datei existiert schon',
+    'DIRECTORYNOTEXIST':'Dieses Verzeichnis existiert nicht',
+    'FILENOTEXIST':'Diese Datei existiert nicht',
+    'UNKOWNERROR':'Unbekannter Fehler',
 }
 
 SUCCESS = 'success'
