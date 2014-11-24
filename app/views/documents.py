@@ -18,8 +18,14 @@
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse
-# from models.project import Project
 import json
+import sys, traceback
+from app.models.folder import Folder
+from app.models.project import Project
+from app.models.file.file import File
+from app.models.file.document import Document
+from app.common.util import jsonDecoder, jsonResponse, jsonErrorResponse, projectToJson
+from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 
 
 # Verteilerfunktion
@@ -54,7 +60,7 @@ def execute(request):
         args = []
 
         # aktueller Befehl
-        c=available_commands[request.POST['command']]
+        c = available_commands[request.POST['command']]
         # Parameter dieses Befehls
         paras = c['parameters']
 
@@ -62,12 +68,7 @@ def execute(request):
         for para in paras:
             # wenn der Parameter nicht gefunden wurde, gib Fehlermeldung zurück
             if not request.POST[str(para)]:
-                to_json = {
-                    'status': 'failure',
-                    'request': request.POST,
-                    'response': 'Fehlender Parameter {0}'.format(para)
-                }
-                return HttpResponse(json.dumps(to_json), content_type="application/json")
+                return jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request.POST)
             # sonst füge den Parameter zu der Argumentliste hinzu
             else:
                 args.append(request.POST[para])
@@ -78,29 +79,8 @@ def execute(request):
         # wenn der Schlüssel nicht gefunden wurde
         # gib Fehlermeldung zurück
         except KeyError:
-            to_json = {
-                'status': 'failure',
-                'request': request.POST,
-                'response': 'Befehl nicht gefunden'
-            }
+            return jsonErrorResponse(ERROR_MESSAGES['COMMANDNOTFOUND'], request.POST)
 
-            return HttpResponse(json.dumps(to_json), content_type="application/json")
-
-
-# liefert ein HTTP Response (Json)
-def jsonResponse(dictionary, status, request):
-    statusstr = 'failure'
-
-    if(status):
-        statusstr = 'success'
-
-    to_json = {
-        'status': statusstr,
-        'request': request.POST,
-        'response': dictionary
-    }
-
-    return HttpResponse(json.dumps(to_json), content_type="application/json")
 
 # aktualisiert eine geänderte Datei eines Projektes in der Datenbank
 # benötigt: id:fileid, content:filecontenttostring
@@ -141,17 +121,32 @@ def listFiles(request, user, folderid):
 # erzeugt ein neues Projekt für den Benutzer mit einer leeren main.tex Datei
 # benötigt: name:projectname
 # liefert: HTTP Response (Json)
+# Beispiel response: {'name': 'user1_project1', 'id': 1}
 def projectCreate(request, user, projectname):
-    to_json = {
-        'status': 'success',
-        'command': request.POST['command'],
-        'parameters': None,
-        'reason': 'Projekt Erstellung erfolgreich'
-    }
 
-    print(projectname)
+    # überprüfe ob der Projektname nur aus Leerzeichen besteht
+    if projectname.isspace():
+        return jsonErrorResponse(ERROR_MESSAGES['PROJECTNAMEONLYWHITESPACE'], request)
 
-    return HttpResponse(json.dumps(to_json), content_type="application/json")
+    # überprüfe ob ein Projekt mit dem Namen projectname bereits für diese Benutzer existiert
+    elif Project.objects.filter(name=projectname, author=user).exists():
+        return jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
+    else:
+        # versuche ein neues Projekt zu erstellen
+        try:
+            newproject = Project(name=projectname, author=user)
+            newproject.save()
+        except:
+            return jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTCREATED'], request)
+
+        # versuche eine neue leere main.tex Datei in dem Projekt zu erstellen
+        try:
+            texfile = Document.objects.create(name='main.tex', author=user, folder=newproject, source_code='')
+            texfile.save()
+        except:
+            return jsonErrorResponse(ERROR_MESSAGES['EMPTYTEXNOTCREATED'], request)
+
+    return jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
 
 
 # importiert ein Projekt aus einer vom Client übergebenen zip Datei
@@ -164,8 +159,17 @@ def importZip(request, user, folderid):
 # liefert eine Übersicht aller Projekte eines Benutzers
 # benötigt: nichts
 # liefert: HTTP Response (Json)
+# Beispiel response: [{'id': 1, 'name': 'user1_project1'}, {'id': 2, 'name': 'user1_project2'}, ...]
 def listProjects(request, user):
-    pass
+    availableprojects = Project.objects.filter(author=user)
+
+    if availableprojects == None:
+        json_return = []
+    else:
+        json_return = [projectToJson(project) for project in availableprojects]
+
+    return jsonResponse(json_return, True, request)
+
 
 
 # liefert eine vom Client angeforderte Datei als Filestream

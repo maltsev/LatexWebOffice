@@ -17,7 +17,8 @@
 
 from django.test import TestCase,Client
 from django.contrib.auth.models import User
-from core.settings import LOGIN_URL, ERROR_MESSAGES
+from core.settings import LOGIN_URL
+from app.common.constants import ERROR_MESSAGES
 from django.contrib.auth import login, authenticate
 
 class LoginTestClass(TestCase):
