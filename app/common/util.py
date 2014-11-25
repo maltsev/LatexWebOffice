@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Di 25 Nov 2014 17:13:37 CET
+* Last Modified : Di 25 Nov 2014 20:10:19 CET
 
 * Author :  christian
 
@@ -69,7 +69,7 @@ def checkIfDirExistsAndUserHasRights(folderid,user,request):
 def checkIfFileExistsAndUserHasRights(fileid,user,request):
     if not File.objects.filter(id=fileid).exists():
         return False,jsonErrorResponse(ERROR_MESSAGES['FILENOTEXIST'],request)
-    elif not File.objects.get(id=fileid).folder.getRoot().project.author==user:
+    elif not File.objects.get(id=fileid).folder.getRoot().getProject().author==user:
         return False,jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
     else:
         return True,None

@@ -4,7 +4,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Di 25 Nov 2014 17:54:34 CET
+* Last Modified : Di 25 Nov 2014 20:11:02 CET
 
 * Author :  mattis
 
@@ -249,7 +249,8 @@ class DocumentsTestClass(TestCase):
     
     #Teste das Abrufen von Informationen einer Datei via fileid
     def test_fileInfo(self):
-        response=self.documentPoster(command='fileinfo',idpara=self._user2_subroot_file)
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        response=self.documentPoster(command='fileinfo',idpara=self._user2_subroot_file.id) #TODO test with a string instead of an id
         dictioanry=jsonDecoder(response.content)
         serveranswer=dictioanry['response']
 

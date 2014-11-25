@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Di 25 Nov 2014 16:33:23 CET
+* Last Modified : Di 25 Nov 2014 20:11:39 CET
 
 * Author :  mattis
 
@@ -293,7 +293,7 @@ def fileInfo(request, user, fileid):
     fileobj=File.objects.get(id=fileid)
     folder=Folder.objects.get(id=fileobj.folder.id)
 
-    dictionary={'fileid':fileobj.id,'filename':fileobj.name,'folderid':folder.obj,'foldername':folder.name}
+    dictionary={'fileid':fileobj.id,'filename':fileobj.name,'folderid':folder.id,'foldername':folder.name}
 
     return jsonResponse(dictionary,True,request)
 
