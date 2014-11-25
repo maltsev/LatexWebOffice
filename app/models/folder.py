@@ -11,9 +11,12 @@ class Folder(models.Model):
         return self.parent == self.root
 
     def getRoot(self):
-        if self.is_root():
-            return self
-        return root
+        if self.root:
+            return self.root
+        return self 
+
+    def getProject(self):
+        return self.getRoot().project_set.get()
 
     def __str__(self):
         return self.name

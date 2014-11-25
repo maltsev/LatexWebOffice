@@ -41,7 +41,8 @@ ERROR_MESSAGES = {
     'DIRECTORYNOTEXIST':'Dieses Verzeichnis existiert nicht',
     'FILENOTEXIST':'Diese Datei existiert nicht',
     'UNKOWNERROR':'Unbekannter Fehler',
-    'BLANKNAME':'Leere Namen sind nicht erlaubt'
+    'BLANKNAME':'Leere Namen sind nicht erlaubt',
+    'DATABASEERROR': 'Datenbankfehler',
 }
 
 SUCCESS = 'success'

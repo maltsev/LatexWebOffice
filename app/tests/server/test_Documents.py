@@ -4,7 +4,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Di 25 Nov 2014 16:54:35 CET
+* Last Modified : Di 25 Nov 2014 17:33:33 CET
 
 * Author :  mattis
 
@@ -47,31 +47,35 @@ class DocumentsTestClass(TestCase):
         # logge user1 ein
         self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
 
+        # erstelle die root Ordner für die einzelnen Projekte
+        user1_project1_root = Folder(name='user1_project1')
+        user1_project1_root.save()
+        user1_project2_root = Folder(name='user1_project2')
+        user1_project2_root.save()
+        user2_project1_root = Folder(name='user2_project1')
+        user2_project1_root.save()
+        user2_project2_root = Folder(name='user2_project2')
+        user2_project2_root.save()
+
         # erstelle zwei Projekte als user1
-        self._user1_project1_root=Folder.objects.create(name='root')
-        self._user1_project1_root.save()
-        self._user1_project1 = Project.objects.create(name='user1_project1', author=self._user1,rootFolder=self._user1_project1_root)
+        self._user1_project1 = Project.objects.create(name='user1_project1', author=self._user1,
+                                                      rootFolder=user1_project1_root)
         self._user1_project1.save()
-        self._user1_project2_root=Folder.objects.create(name='root')
-        self._user1_project2_root.save()
-        self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1,rootFolder=self._user1_project2_root)
+        self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1,
+                                                      rootFolder=user1_project2_root)
         self._user1_project2.save()
 
         # erstelle zwei Projekte als user2
-        self._user2_project1_root=Folder.objects.create(name='root')
-        self._user2_project1_root.save()
-        self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2,rootFolder=self._user2_project1_root)
+        self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2,
+                                                      rootFolder=user2_project1_root)
         self._user2_project1.save()
-        self._user2_project2_root=Folder.objects.create(name='root')
-        self._user2_project2_root.save()
-        self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2,rootFolder=self._user2_project2_root)
+        self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2,
+                                                      rootFolder=user2_project2_root)
         self._user2_project2.save()
 
 
         # Speichere einen Unterordner in das Projekt1 vom User 2
-        subfolder=self._user2_project1_subfolder=Folder.objects.create(name='subfolder')
-        subfolder.parent=self._user2_project1_root
-        subfolder.root=self._user2_project1_root
+        subfolder=self._user2_project1_subfolder=Folder.objects.create(name='subfolder',root=user2_project1_root,parent=user2_project1_root)
         subfolder.save()
         
         # Speichere ein Dokument in dem Unterordner
@@ -149,7 +153,7 @@ class DocumentsTestClass(TestCase):
         self.assertTrue(Folder.objects.filter(name='testFolder').exists())
         folder1=Folder.objects.get(id=serveranswer['id'])
         #Teste, ob der Ordner im richtigen Projekt erstellt wurde 
-        self.assertEqual(folder1.getRoot().project,self._user1_project1)
+        self.assertEqual(folder1.getRoot().getProject(),self._user1_project1)
         
         #Teste, ob ein Unterverzeichnis von einem Unterverzeichnis angelegt werden kann und das auch mit dem gleichen Namen
         response=self.documentPoster(command='createdir',idpara=folder1.id,name='root')
@@ -226,8 +230,8 @@ class DocumentsTestClass(TestCase):
         #Stelle sicher, dass zu diesem Zeitpunkt project2 noch existiert 
         self.assertTrue(Project.objects.filter(id=oldid).exists())
         #Stelle sicher, dass es zu diesem Projekt mind. ein Unterverzeichnis existiert + mind. eine Datei
-        self.assertEqual(self._user2_project1_subfolder.parent,self._user2_project1)
-        self.assertTrue(Document.objects.filter(id=oldfileid).exists())
+        self.assertEqual(self._user2_project1_subfolder.parent,self._user2_project1.rootFolder)
+        self.assertTrue(TexFile.objects.filter(id=oldfileid).exists())
         
         response=self.documentPoster(command='rmdir',idpara=self._user2_project1.id)
         dictionary=jsonDecoder(response.content)
@@ -293,6 +297,9 @@ class DocumentsTestClass(TestCase):
         # teste ob name mit dem übergebenen Projektnamen übereinstimmt
         self.assertEqual(dictionary['response']['name'], 'user1_project3')
 
+        # id vom Projekt 3 von user1
+        user1_project3_id = dictionary['response']['id']
+
         # erzeuge ein weiteres Projekt
         response = self.client.post('/documents/', {'command': 'projectcreate', 'name': 'user1_project4'})
 
@@ -302,6 +309,23 @@ class DocumentsTestClass(TestCase):
         # überprüfe die Antwort des Servers
         # teste, ob status == success
         self.assertEqual(dictionary['status'], SUCCESS)
+
+        # id vom Projekt 4 von user1
+        user1_project4_id = dictionary['response']['id']
+
+        # überprüfe, ob die erstellten Projekte in der Datenbank vorhanden sind
+        # user1_project3
+        self.assertTrue(Project.objects.get(id=user1_project3_id))
+        # überprüfe ob für dieses Projekt der root Ordner in der Datenbank angelegt wurde
+        self.assertTrue(Project.objects.get(id=user1_project3_id).rootFolder)
+        # TODO
+        # überprüfe ob die main.tex Datei in der Datenbank vorhanden ist
+        # user1_project4
+        self.assertTrue(Project.objects.get(id=user1_project4_id))
+        # überprüfe ob für dieses Projekt der root Ordner in der Datenbank angelegt wurde
+        self.assertTrue(Project.objects.get(id=user1_project4_id).rootFolder)
+        # TODO
+        # überprüfe ob die main.tex Datei in der Datenbank vorhanden ist
 
         # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein Projekt, dessen Name nur aus Leerzeichen besteht
