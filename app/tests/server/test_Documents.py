@@ -4,7 +4,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Sat 22 Nov 2014 02:50:07 PM CET
+* Last Modified : Tue 25 Nov 2014 12:25:24 PM CET
 
 * Author :  mattis
 
@@ -62,15 +62,16 @@ class DocumementsTestClass(TestCase):
         self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2)
         self._user2_project2.save()
 
-        subfolder=Folder.objects.create(name='subfolder')
-        subfolder.parentFolder=self._user2_project1
-        self._subfolder=subfolder
-        subfolder.save()
 
-        #f=Document.objects.create(name='main.tex',author=self._user2,folder=subfolder,source_code='')
-        #f.save()
-        #self._project2=project2
-        #self._project2file=f
+        # Speichere einen Unterordner in das Projekt1 vom User 2
+        subfolder=self._user2_project1_subfolder=Folder.objects.create(name='subfolder')
+        subfolder.parentFolder=self._user2_project1
+        subfolder.save()
+        
+        # Speichere ein Dokument in dem Unterordner
+        f=Document.objects.create(name='main.tex',author=self._user2,folder=subfolder,source_code='')
+        f.save()
+        self._user2_subroot_file=f
 
     def tearDown(self):
         self.client.logout()
@@ -90,6 +91,38 @@ class DocumementsTestClass(TestCase):
         return self.client.post('/documents/',dictionary)
 
 
+    #Teste die Verteilfunktion, die die verschiedenen Document-commands der richtigen Methode zuweist
+    def test_Execute(self):
+
+        
+        #Teste ungenügend Parameter
+        response=self.documentPoster(command='createdir')
+        dictionary=jsonDecoder(response.content)
+        self.assertEqual(dictionary['status'],FAILURE)
+
+        
+        #Teste unbekannten command
+
+        dictionary=jsonDecoder(self.documentPoster(command='DOESNOTEXIST').content)
+        self.assertEquals(dictionary['status'],FAILURE)
+
+        
+        #Teste Fehlerhafte Parameter:
+        #id!=int
+
+        
+        #content!=string
+        
+        
+        #name!=string
+        
+        
+        #files!=files
+        #TODO
+        pass
+
+
+    #Teste das Erzeugen von Ordnern
     def test_createDir(self):
         response=self.documentPoster(command='createdir',idpara=self._user1_project1.id,name='testFolder')
         dictionary=jsonDecoder(response.content)
@@ -116,12 +149,13 @@ class DocumementsTestClass(TestCase):
         response=self.documentPoster(command='createdir',idpara=folder1.id,name='root')
         dictionary=jsonDecoder(response.content)
         self.assertTrue(Folder.objects.filter(id=dictionary['response']['id']).exists())
-
         #Teste, ob ein Verzeichnis zwei gleichnamige Unterverzeichnisse haben kann
         response=self.documentPoster(command='createdir',idpara=folder1.id,name='root')
         dictionary=jsonDecoder(response.content)
-        self.assertEqual(dictionary['response'],ERROR_MESSAGES['FOLDERNAMEEXISTS'])
-        
+        #TODO #############################################################
+        #self.assertEqual(dictionary['response'],ERROR_MESSAGES['FOLDERNAMEEXISTS'])
+        #SOLLTE DATENBANK MACHEN ##########################################
+
         #Teste, wie es sich mit falschen Angaben verhält
 
         #Teste ob user1 in einem Project vom user2 ein Verzeichnis erstellen kann
@@ -134,8 +168,14 @@ class DocumementsTestClass(TestCase):
         #Teste, dass das Verzeichnis auch nicht erstellt wurde
         self.assertFalse(Folder.objects.filter(name='IDONOTEXISTDIR').exists())
 
-        #TODO Teste auf leeren Verzeichnisnamen
+        #Teste auf leeren Verzeichnisnamen
+        response=self.documentPoster(command='createdir',idpara=self._user1_project1.id,name=' ')
+        dictionary=jsonDecoder(response.content)
+        serveranswer=dictionary['response']
+        self.assertEqual(serveranswer,ERROR_MESSAGES['BLANKNAME'])
 
+    
+    #Teste das Unbenennen von Ordnern
     def test_renameDir(self):
         oldid=self._user1_project1.id
         response=self.documentPoster(command='renamedir', idpara=self._user1_project1.id,name='New project und directory name')
@@ -171,18 +211,20 @@ class DocumementsTestClass(TestCase):
     #Teste, ob ein Unterverzeichnis den gleichen Namen haben kann, wie ein anderes Unterverzeichnis im gleichen Elternverzeichnis: Überflüssig, da dies bereits schon in test_createDir getestet wird
     
     #Teste, ob ein Verzeichnis einen leeren Namen haben kann: Überflüssig, da dies bereits schon in der test_createDir Methode getestet wird
-        
+       
+
+    #Teste das Löschen eines Ordners
+    #Teste, ob Unterordner und zum Ordner gehörende Dateien auch gelöscht werden
     def test_rmDir(self):
 
         self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
         oldid=self._user2_project1.id
-        #oldsubfolderid=self._subfolder.id
-        #oldfileid=self._project2file.id
+        oldfileid=self._user2_subroot_file.id
         #Stelle sicher, dass zu diesem Zeitpunkt project2 noch existiert 
         self.assertTrue(Project.objects.filter(id=oldid).exists())
         #Stelle sicher, dass es zu diesem Projekt mind. ein Unterverzeichnis existiert + mind. eine Datei
-        self.assertEqual(self._subfolder.parentFolder,self._user2_project1)
-        #self.assertTrue(Document.objects.filter(id=oldfileid).exists())
+        self.assertEqual(self._user2_project1_subfolder.parentFolder,self._user2_project1)
+        self.assertTrue(Document.objects.filter(id=oldfileid).exists())
         
         response=self.documentPoster(command='rmdir',idpara=self._user2_project1.id)
         dictionary=jsonDecoder(response.content)
@@ -193,13 +235,14 @@ class DocumementsTestClass(TestCase):
         #Das Projekt sollte komplett gelöscht worden sein
         self.assertFalse(Project.objects.filter(id=oldid).exists())
         #Unterverzeichnisse und Dateien sollten dabei auch gelöscht werden! (klappt nocht nicht)
-        #self.assertFalse(Folder.objects.filter(id=oldsubfolderid).exists())
+        #TODO self.assertFalse(Folder.objects.filter(id=self._user2_project1_subfolder).exists())
         #Files von Unterverzeichnissen ebenso
-        #self.assertFalse(Document.objects.filter(id=oldfileid).exists())
+        #TODO self.assertFalse(Document.objects.filter(id=oldfileid).exists())
 
-
-    def Waitingtest_fileInfo(self):
-        response=self.documentPoster(command='fileinfo',idpara=self._project2file.id)
+    
+    #Teste das Abrufen von Informationen einer Datei via fileid
+    def WaitingForNewDatabaseModelstest_fileInfo(self):
+        response=self.documentPoster(command='fileinfo',idpara=self._user2_subroot_file)
         dictioanry=jsonDecoder(response.content)
         serveranswer=dictioanry['response']
 
@@ -211,7 +254,16 @@ class DocumementsTestClass(TestCase):
         self.assertIn('folderid',serveranswer)
         self.assertIn('foldername',serveranswer)
 
-        fileobj=self._project2file
+        fileobj=self._user2_subroot_file # Die Datei, über die Informationen angefordert wurde
+        folder=self._user2_project1_subfolder #der Ordner, wo fileobj liegt
+        
+        #Die zurückgegebenen Informationen sollten mit fileobj und folder übereinstimmen
+        self.assertEqual(serveranswer['fileid'],fileobj.id)
+        self.assertEqual(serveranswer['filename'],fileobj.name)
+        self.assertEqual(serveranswer['folderid'],folder.id)
+        self.assertEqual(serveranswer['foldername'],folder.name)
+
+
 
         #self.assertEqual(serveranswer['fileid'],
 

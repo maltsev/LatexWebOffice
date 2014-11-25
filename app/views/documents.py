@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Sat 22 Nov 2014 02:49:28 PM CET
+* Last Modified : Tue 25 Nov 2014 12:37:53 PM CET
 
 * Author :  mattis
 
@@ -56,6 +56,11 @@ def execute(request):
             'fileinfo': {'command': fileInfo, 'parameters': ('id',)}
         }
 
+        # wenn der Schlüssel nicht gefunden wurde
+        # gib Fehlermeldung zurück
+        if request.POST['command'] not in available_commands:
+            return jsonErrorResponse(ERROR_MESSAGES['COMMANDNOTFOUND'], request)
+
         args = []
 
         # aktueller Befehl
@@ -73,19 +78,15 @@ def execute(request):
         # durchlaufe alle Parameter des Befehls
         for para in paras:
             # wenn der Parameter nicht gefunden wurde, gib Fehlermeldung zurück
-            if not request.POST[str(para)]:
-                return jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request.POST)
+            if not request.POST.get(para):
+                return jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)
             # sonst füge den Parameter zu der Argumentliste hinzu
             else:
                 args.append(request.POST[para])
 
         # versuche den übergebenen Befehl auszuführen
-        try:
-            return c['command'](request, user, *args)
-        # wenn der Schlüssel nicht gefunden wurde
-        # gib Fehlermeldung zurück
-        except KeyError:
-            return jsonErrorResponse(ERROR_MESSAGES['COMMANDNOTFOUND'], request.POST)
+        #try: TODO FIX THIS TRY MESS
+        return c['command'](request, user, *args)
         #except:
         #    print('Fehler')
         #    to_json['response']=str(sys.exc_info()[0])
@@ -205,7 +206,14 @@ def exportZip(request, user, folderid):
 # benötigt: id:parentdirid, name:directoryname
 # liefert: HTTP Response (Json)
 def createDir(request, user, parentdirid, directoryname):
-    #Check if parentdirid exists
+    
+    #Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)  
+    emptystring,failurereturn=checkObjectForEmptyString(directoryname,user,request)
+    if not emptystring:
+        return failurereturn
+   
+   
+   #Check if parentdirid exists
     rights,failurereturn=checkIfDirExistsAndUserHasRights(parentdirid,user,request)
     if not rights:
         return failurereturn
@@ -213,22 +221,8 @@ def createDir(request, user, parentdirid, directoryname):
 
     parentdir=Folder.objects.get(id=parentdirid) 
 
-
-    ################################
     
-    
-    
-    #Test for empty strings
-    
-    
-    subfolders=parentdir.folder_set.all()
-    for f in subfolders:
-        if f.name==directoryname[:255]: #TODO diesen check muss die Datenbank machen!!!
-            return jsonErrorResponse(ERROR_MESSAGES['FOLDERNAMEEXISTS'],request)
-
-    ################################
-    
-    #Versuche den Ordner in der Datenbank zu speichern 
+   #Versuche den Ordner in der Datenbank zu speichern 
     try:
         newfolder=Folder(name=directoryname,parentFolder=parentdir)
         newfolder.save()
@@ -249,21 +243,13 @@ def renameDir(request, user, folderid, newdirectoryname):
 
     folder=Folder.objects.get(id=folderid) 
 
-    ################################
 
-
-
-    #Test for empty strings
-
-    subfolders=folder.folder_set.all()
-    if folder.parentFolder:
-        subfolders=folder.parentFolder.folder_set.all()
-    for f in subfolders:
-        if f.name==newdirectoryname[:255]: #TODO diesen check muss die Datenbank machen!!!
-            return jsonErrorResponse(ERROR_MESSAGES['FOLDERNAMEEXISTS'],request)
-
-    ################################
-    
+    #Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)  
+    emptystring,failurereturn=checkObjectForEmptyString(folder.name,user,request)
+    if not emptystring:
+        return failurereturn
+   
+    #Versuche die Änderung in die Datenbank zu übernehmen
     try:
         folder.name=newdirectoryname
         folder.save()
@@ -311,27 +297,6 @@ def fileInfo(request, user, fileid):
 # benötigt: id:fileid
 # liefert: HTTP Response (Json)
 def latexCompile(request, user, fileid):
-    """TODO: Docstring for exportToPdf.
-
-    :request: A (POST) HttpRequest that has the following data: 
-    texid: The id of the tex file
-    content: The contents of the tex file
-    :returns: TODO
-
-    """
-    #Get username
-    user = request.user
-    to_json = {
-        'status': 'success',
-        'message': 'you failed',
-        'content': None
-    }
-
-    if ('texid' in request.POST and 'content' in request.POST):
-        texid = request.POST['texid']
-        content = request.POST['content']
-
-
         #- Überprüfe, ob es diese Tex-Datei überhaupt gibt
 
         #Aktualisiere Tex Datei in der Datenbank
@@ -343,9 +308,4 @@ def latexCompile(request, user, fileid):
         #Falls rueckgabe okay -> sende pdf von Ingo an client
 
         #Sonst Fehlermeldung an Client
-        to_json = {
-            'status': 'success',
-            'message': 'you failed',
-            'content': None
-        }
-    return HttpResponse(json.dumps(to_json), content_type="application/json")
+        return jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'],request)

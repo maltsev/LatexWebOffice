@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Mo 24 Nov 2014 12:23:46 CET
+* Last Modified : Tue 25 Nov 2014 12:27:52 PM CET
 
 * Author :  christian
 
@@ -33,7 +33,6 @@ def jsonDecoder(responseContent):
 # liefert ein HTTP Response (Json)
 def jsonResponse(response, status, request):
     statusstr = FAILURE
-
     if(status):
         statusstr = SUCCESS
 
@@ -74,3 +73,10 @@ def checkIfFileExistsAndUserHasRights(fileid,user,request):
         return False,jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
     else:
         return True,None
+
+def checkObjectForEmptyString(name,user,request):
+    if not name.strip():
+        return False,jsonErrorResponse(ERROR_MESSAGES['BLANKNAME'],request)
+    return True,None
+
+    
