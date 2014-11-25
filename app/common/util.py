@@ -22,7 +22,7 @@ from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.file import File
-from app.models.file.document import Document
+from app.models.file.texfile import TexFile
 import json
 
 

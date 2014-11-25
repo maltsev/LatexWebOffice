@@ -22,11 +22,8 @@ from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from app.common.util import jsonDecoder
 from app.models.project import Project
 from app.models.folder import Folder
-from app.models.file.document import Document
+from app.models.file.texfile import TexFile
 import json
-from app.models.project import Project
-from app.models.folder import Folder
-from app.models.file.document import Document
 
 class DocumementsTestClass(TestCase):
     def setUp(self):

@@ -23,7 +23,7 @@ import sys, traceback
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.file import File
-from app.models.file.document import Document
+from app.models.file.texfile import TexFile
 from app.common.util import *
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 
@@ -149,7 +149,7 @@ def projectCreate(request, user, projectname):
 
         # versuche eine neue leere main.tex Datei in dem Projekt zu erstellen
         try:
-            texfile = Document.objects.create(name='main.tex', author=user, folder=newproject, source_code='')
+            texfile = TexFile.objects.create(name='main.tex', author=user, folder=newproject, source_code='')
             texfile.save()
         except:
             return jsonErrorResponse(ERROR_MESSAGES['EMPTYTEXNOTCREATED'], request)

@@ -5,17 +5,18 @@ from app import models
 
 @admin.register(models.folder.Folder)
 class FolderAdmin(admin.ModelAdmin):
-    list_display = ('name', 'createTime', 'parentFolder')
+    list_display = ('name', 'createTime', 'parent', 'root')
+    list_filter = ('parent', 'root')
 
 
 @admin.register(models.project.Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'createTime', 'author')
+    list_display = ('name', 'author', 'createTime', 'rootFolder')
+    list_filter = ('author',)
 
 
-@admin.register(models.document.Document)
-class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'folder', 'createTime', 'lastModifiedTime')
+@admin.register(models.texfile.TexFile)
+class TexFileAdmin(admin.ModelAdmin):
+    list_display = ('name', 'folder', 'createTime', 'lastModifiedTime')
     list_filter = ('folder',)
-
 
