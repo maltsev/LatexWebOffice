@@ -4,7 +4,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Di 25 Nov 2014 17:33:33 CET
+* Last Modified : Di 25 Nov 2014 17:54:34 CET
 
 * Author :  mattis
 
@@ -248,7 +248,7 @@ class DocumentsTestClass(TestCase):
 
     
     #Teste das Abrufen von Informationen einer Datei via fileid
-    def WaitingForNewDatabaseModelstest_fileInfo(self):
+    def test_fileInfo(self):
         response=self.documentPoster(command='fileinfo',idpara=self._user2_subroot_file)
         dictioanry=jsonDecoder(response.content)
         serveranswer=dictioanry['response']
