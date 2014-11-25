@@ -10,5 +10,10 @@ class Folder(models.Model):
     def is_root(self):
         return self.parent == self.root
 
+    def getRoot(self):
+        if self.is_root():
+            return self
+        return root
+
     def __str__(self):
         return self.name

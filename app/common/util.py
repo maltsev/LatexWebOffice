@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Di 25 Nov 2014 16:06:42 CET
+* Last Modified : Di 25 Nov 2014 17:13:37 CET
 
 * Author :  christian
 
@@ -61,7 +61,7 @@ def projectToJson(project):
 def checkIfDirExistsAndUserHasRights(folderid,user,request):
     if not Folder.objects.filter(id=folderid).exists():
         return False,jsonErrorResponse(ERROR_MESSAGES['DIRECTORYNOTEXIST'],request)
-    elif not Project.objects.get(id=Folder.objects.get(id=folderid).root.id).author==user:
+    elif not Folder.objects.get(id=folderid).getRoot().project_set.get().author==user:
         return False,jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
     else:
         return True,None
@@ -69,7 +69,7 @@ def checkIfDirExistsAndUserHasRights(folderid,user,request):
 def checkIfFileExistsAndUserHasRights(fileid,user,request):
     if not File.objects.filter(id=fileid).exists():
         return False,jsonErrorResponse(ERROR_MESSAGES['FILENOTEXIST'],request)
-    elif not File.objects.get(id=fileid).author==user:
+    elif not File.objects.get(id=fileid).folder.getRoot().project.author==user:
         return False,jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
     else:
         return True,None

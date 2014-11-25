@@ -4,7 +4,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Tue 25 Nov 2014 12:25:24 PM CET
+* Last Modified : Di 25 Nov 2014 16:54:35 CET
 
 * Author :  mattis
 
@@ -25,7 +25,7 @@ from app.models.folder import Folder
 from app.models.file.texfile import TexFile
 import json
 
-class DocumementsTestClass(TestCase):
+class DocumentsTestClass(TestCase):
     def setUp(self):
 
         # erstelle user1
@@ -48,25 +48,34 @@ class DocumementsTestClass(TestCase):
         self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
 
         # erstelle zwei Projekte als user1
-        self._user1_project1 = Project.objects.create(name='user1_project1', author=self._user1)
+        self._user1_project1_root=Folder.objects.create(name='root')
+        self._user1_project1_root.save()
+        self._user1_project1 = Project.objects.create(name='user1_project1', author=self._user1,rootFolder=self._user1_project1_root)
         self._user1_project1.save()
-        self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1)
+        self._user1_project2_root=Folder.objects.create(name='root')
+        self._user1_project2_root.save()
+        self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1,rootFolder=self._user1_project2_root)
         self._user1_project2.save()
 
         # erstelle zwei Projekte als user2
-        self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2)
+        self._user2_project1_root=Folder.objects.create(name='root')
+        self._user2_project1_root.save()
+        self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2,rootFolder=self._user2_project1_root)
         self._user2_project1.save()
-        self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2)
+        self._user2_project2_root=Folder.objects.create(name='root')
+        self._user2_project2_root.save()
+        self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2,rootFolder=self._user2_project2_root)
         self._user2_project2.save()
 
 
         # Speichere einen Unterordner in das Projekt1 vom User 2
         subfolder=self._user2_project1_subfolder=Folder.objects.create(name='subfolder')
-        subfolder.parentFolder=self._user2_project1
+        subfolder.parent=self._user2_project1_root
+        subfolder.root=self._user2_project1_root
         subfolder.save()
         
         # Speichere ein Dokument in dem Unterordner
-        f=Document.objects.create(name='main.tex',author=self._user2,folder=subfolder,source_code='')
+        f=TexFile.objects.create(name='main.tex',folder=subfolder,source_code='')
         f.save()
         self._user2_subroot_file=f
 
@@ -140,7 +149,7 @@ class DocumementsTestClass(TestCase):
         self.assertTrue(Folder.objects.filter(name='testFolder').exists())
         folder1=Folder.objects.get(id=serveranswer['id'])
         #Teste, ob der Ordner im richtigen Projekt erstellt wurde 
-        self.assertEqual(Project.objects.get(id=folder1.getRootFolder().id),self._user1_project1)
+        self.assertEqual(folder1.getRoot().project,self._user1_project1)
         
         #Teste, ob ein Unterverzeichnis von einem Unterverzeichnis angelegt werden kann und das auch mit dem gleichen Namen
         response=self.documentPoster(command='createdir',idpara=folder1.id,name='root')
@@ -189,9 +198,6 @@ class DocumementsTestClass(TestCase):
         self.assertEqual(serveranswer['id'],oldid)
         self.assertEqual(serveranswer['name'],'New project und directory name')
 
-        #Teste, ob das Projekt auch unbenannt wurde
-        self.assertEqual(Project.objects.get(id=oldid).name,serveranswer['name'])
-
 
         #Teste, ob ein anderer User das Projekt eines anderen unbenennen kann
         response=self.documentPoster(command='renamedir',idpara=self._user2_project1.id,name='ROFL')
@@ -220,7 +226,7 @@ class DocumementsTestClass(TestCase):
         #Stelle sicher, dass zu diesem Zeitpunkt project2 noch existiert 
         self.assertTrue(Project.objects.filter(id=oldid).exists())
         #Stelle sicher, dass es zu diesem Projekt mind. ein Unterverzeichnis existiert + mind. eine Datei
-        self.assertEqual(self._user2_project1_subfolder.parentFolder,self._user2_project1)
+        self.assertEqual(self._user2_project1_subfolder.parent,self._user2_project1)
         self.assertTrue(Document.objects.filter(id=oldfileid).exists())
         
         response=self.documentPoster(command='rmdir',idpara=self._user2_project1.id)

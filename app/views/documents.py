@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Tue 25 Nov 2014 12:37:53 PM CET
+* Last Modified : Di 25 Nov 2014 16:33:23 CET
 
 * Author :  mattis
 
@@ -224,7 +224,7 @@ def createDir(request, user, parentdirid, directoryname):
     
    #Versuche den Ordner in der Datenbank zu speichern 
     try:
-        newfolder=Folder(name=directoryname,parentFolder=parentdir)
+        newfolder=Folder(name=directoryname,parent=parentdir,root=parentdir.getRoot())
         newfolder.save()
         return jsonResponse({'id':newfolder.id,'name':newfolder.name,'parentfolderid':parentdir.id,'parentfoldername':parentdir.name},True,request)
     except:
@@ -280,25 +280,23 @@ def rmDir(request, user, folderid):
 # benötigt: id:fileid
 # liefert: HTTP Response (Json) --> fileid, filename, folderid, foldername
 def fileInfo(request, user, fileid):
-#TODO funktioniert noch nicht
-   # rights,failurereturn=checkIfFileExistsAndUserHasRights(fileid,user,request)
-   # if not rights:
-   #     return failurereturn
+    rights,failurereturn=checkIfFileExistsAndUserHasRights(fileid,user,request)
+    if not rights:
+        return failurereturn
 
-   # fileobj=File.objects.get(id=fileid)
-   # folder=Folder.objects.get(id=fileobj.folder.id)
+    fileobj=File.objects.get(id=fileid)
+    folder=Folder.objects.get(id=fileobj.folder.id)
 
-    #dictionary={'fileid':fileobj.id,'filename':fileobj.name,'folderid':folder.obj,'foldername':folder.name}
+    dictionary={'fileid':fileobj.id,'filename':fileobj.name,'folderid':folder.obj,'foldername':folder.name}
 
-    #return jsonResponse(dictionary,True,request)
-    pass
+    return jsonResponse(dictionary,True,request)
 
 # Kompiliert eine LaTeX Datei
 # benötigt: id:fileid
 # liefert: HTTP Response (Json)
 def latexCompile(request, user, fileid):
-        #- Überprüfe, ob es diese Tex-Datei überhaupt gibt
-
+        #- Überprüfe, ob es diese Tex-Datei überhaupt gibt und der User die nötigen Rechte auf die Datei hat
+         
         #Aktualisiere Tex Datei in der Datenbank
 
         #Zum Projekt der Tex-Datei dazugehörende Dateien abrufen
