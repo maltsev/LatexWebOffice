@@ -143,6 +143,7 @@ editor.on('change', function(e) {
 	if (token != null){
 	 console.log(token.value);
 	}
+	
 	if (sign == '{' && token.value.charAt(token.value.length-2) != '\\' && editor.getValue().length >= textlength){
 	
 	editor.moveCursorTo(position.row,position.column+1);
@@ -150,6 +151,38 @@ editor.on('change', function(e) {
 	
 	//console.log(position);
 	}
+	
+	else if (sign == '}' && editor.getValue().length < textlength ){
+	position = editor.selection.getCursor();
+	console.log(position);
+	token = editor.session.getTokenAt(position.row,position.column-1);
+	if (token == null){
+	/**editor.find('{',{
+    backwards: false,
+    wrap: false,
+    caseSensitive: false,
+    wholeWord: false,
+    regExp: false
+});**/
+editor.find(/(?(?!\\{)(\{))/,{backwards: true, regExp: true});
+editor.replace('');
+
+	}
+	else {
+	if (token.value.charAt(token.value.length-1) != '\\' ){
+	
+	
+
+editor.find(/(?(?!\\{)(\{))/,{backwards: true, regExp: true});
+editor.editor.replace('');
+
+	}
+	}
+	
+	
+	
+	}
+	
 	textlength = editor.getValue().length;
 });
 </script>
