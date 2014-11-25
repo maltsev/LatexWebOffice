@@ -47,28 +47,42 @@ class DocumementsTestClass(TestCase):
         # logge user1 ein
         self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
 
+        # erstelle die root Ordner für die einzelnen Projekte
+        user1_project1_root = Folder(name='user1_project1')
+        user1_project1_root.save()
+        user1_project2_root = Folder(name='user1_project2')
+        user1_project2_root.save()
+        user2_project1_root = Folder(name='user2_project1')
+        user2_project1_root.save()
+        user2_project2_root = Folder(name='user2_project2')
+        user2_project2_root.save()
+
         # erstelle zwei Projekte als user1
-        self._user1_project1 = Project.objects.create(name='user1_project1', author=self._user1)
+        self._user1_project1 = Project.objects.create(name='user1_project1', author=self._user1,
+                                                      rootFolder=user1_project1_root)
         self._user1_project1.save()
-        self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1)
+        self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1,
+                                                      rootFolder=user1_project2_root)
         self._user1_project2.save()
 
         # erstelle zwei Projekte als user2
-        self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2)
+        self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2,
+                                                      rootFolder=user2_project1_root)
         self._user2_project1.save()
-        self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2)
+        self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2,
+                                                      rootFolder=user2_project2_root)
         self._user2_project2.save()
 
 
         # Speichere einen Unterordner in das Projekt1 vom User 2
-        subfolder=self._user2_project1_subfolder=Folder.objects.create(name='subfolder')
-        subfolder.parentFolder=self._user2_project1
-        subfolder.save()
+        #subfolder=self._user2_project1_subfolder=Folder.objects.create(name='subfolder')
+        #subfolder.parentFolder=self._user2_project1
+        #subfolder.save()
         
         # Speichere ein Dokument in dem Unterordner
-        f=Document.objects.create(name='main.tex',author=self._user2,folder=subfolder,source_code='')
-        f.save()
-        self._user2_subroot_file=f
+        #f=Document.objects.create(name='main.tex',author=self._user2,folder=subfolder,source_code='')
+        #f.save()
+        #self._user2_subroot_file=f
 
     def tearDown(self):
         self.client.logout()
@@ -287,6 +301,9 @@ class DocumementsTestClass(TestCase):
         # teste ob name mit dem übergebenen Projektnamen übereinstimmt
         self.assertEqual(dictionary['response']['name'], 'user1_project3')
 
+        # id vom Projekt 3 von user1
+        user1_project3_id = dictionary['response']['id']
+
         # erzeuge ein weiteres Projekt
         response = self.client.post('/documents/', {'command': 'projectcreate', 'name': 'user1_project4'})
 
@@ -296,6 +313,23 @@ class DocumementsTestClass(TestCase):
         # überprüfe die Antwort des Servers
         # teste, ob status == success
         self.assertEqual(dictionary['status'], SUCCESS)
+
+        # id vom Projekt 4 von user1
+        user1_project4_id = dictionary['response']['id']
+
+        # überprüfe, ob die erstellten Projekte in der Datenbank vorhanden sind
+        # user1_project3
+        self.assertTrue(Project.objects.get(id=user1_project3_id))
+        # überprüfe ob für dieses Projekt der root Ordner in der Datenbank angelegt wurde
+        self.assertTrue(Project.objects.get(id=user1_project3_id).rootFolder)
+        # TODO
+        # überprüfe ob die main.tex Datei in der Datenbank vorhanden ist
+        # user1_project4
+        self.assertTrue(Project.objects.get(id=user1_project4_id))
+        # überprüfe ob für dieses Projekt der root Ordner in der Datenbank angelegt wurde
+        self.assertTrue(Project.objects.get(id=user1_project4_id).rootFolder)
+        # TODO
+        # überprüfe ob die main.tex Datei in der Datenbank vorhanden ist
 
         # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein Projekt, dessen Name nur aus Leerzeichen besteht

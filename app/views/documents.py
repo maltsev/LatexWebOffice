@@ -141,19 +141,25 @@ def projectCreate(request, user, projectname):
     elif Project.objects.filter(name=projectname, author=user).exists():
         return jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
     else:
+        try:
+            rootfolder = Folder(name=projectname)
+            rootfolder.save()
+        except:
+            return jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTCREATED'], request)
+
         # versuche ein neues Projekt zu erstellen
         try:
-            newproject = Project(name=projectname, author=user)
+            newproject = Project(name=projectname, author=user, rootFolder=rootfolder)
             newproject.save()
         except:
             return jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTCREATED'], request)
 
         # versuche eine neue leere main.tex Datei in dem Projekt zu erstellen
         try:
-            texfile = TexFile.objects.create(name='main.tex', author=user, folder=newproject, source_code='')
+            texfile = TexFile.objects.create(name='main.tex', folder=rootfolder, source_code='')
             texfile.save()
         except:
-            return jsonErrorResponse(ERROR_MESSAGES['EMPTYTEXNOTCREATED'], request)
+            return jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTCREATED'], request)
 
     return jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
 
@@ -180,7 +186,7 @@ def listProjects(request, user):
     availableprojects = Project.objects.filter(author=user)
 
     if availableprojects == None:
-        json_return = []
+        return jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
     else:
         json_return = [projectToJson(project) for project in availableprojects]
 
