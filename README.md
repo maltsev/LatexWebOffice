@@ -1,7 +1,7 @@
 LatexWebOffice
 ==============
 
-[![Build Status](https://travis-ci.org/Moeplhausen/LatexWebOffice.svg)](https://travis-ci.org/Moeplhausen/LatexWebOffice) [![Coverage Status](https://img.shields.io/coveralls/Moeplhausen/LatexWebOffice.svg)](https://coveralls.io/r/Moeplhausen/LatexWebOffice)
+[![Build Status](https://travis-ci.org/Moeplhausen/LatexWebOffice.svg)](https://travis-ci.org/Moeplhausen/LatexWebOffice) [![Coverage Status](https://img.shields.io/coveralls/Moeplhausen/LatexWebOffice.svg)](https://coveralls.io/r/Moeplhausen/LatexWebOffice?branch=dev)
 
 ## Installation
 
