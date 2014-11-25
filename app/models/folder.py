@@ -12,9 +12,3 @@ class Folder(models.Model):
 
     def __str__(self):
         return self.name
-
-    def getRootFolder(self):
-        if self.parentFolder==None:
-            return self
-        else:
-            return self.parentFolder.getRootFolder()
