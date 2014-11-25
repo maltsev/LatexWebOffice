@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Mo 24 Nov 2014 12:23:23 CET
+* Last Modified : Tue 25 Nov 2014 11:19:56 AM CET
 
 * Author :  christian
 
@@ -41,6 +41,7 @@ ERROR_MESSAGES = {
     'DIRECTORYNOTEXIST':'Dieses Verzeichnis existiert nicht',
     'FILENOTEXIST':'Diese Datei existiert nicht',
     'UNKOWNERROR':'Unbekannter Fehler',
+    'BLANKNAME':'Leere Namen sind nicht erlaubt'
 }
 
 SUCCESS = 'success'
