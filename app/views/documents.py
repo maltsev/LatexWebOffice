@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Di 25 Nov 2014 20:11:39 CET
+* Last Modified : Tue 25 Nov 2014 09:59:26 PM CET
 
 * Author :  mattis
 
@@ -302,10 +302,16 @@ def fileInfo(request, user, fileid):
 # liefert: HTTP Response (Json)
 def latexCompile(request, user, fileid):
         #- Überprüfe, ob es diese Tex-Datei überhaupt gibt und der User die nötigen Rechte auf die Datei hat
-         
-        #Aktualisiere Tex Datei in der Datenbank
+        rights,failurereturn=checkIfFileExistsAndUserHasRights(fileid,user,request)
+        if not rights:
+            return failurereturn
+
 
         #Zum Projekt der Tex-Datei dazugehörende Dateien abrufen
+        texfileobj=TexFile.objects.get(id=fileid)
+        projectobj=texfileobj.folder.getProject()
+
+        projectDictionaryFileBytes=getProjectBytesFromProjectObject(projectobj)
 
         #rueckgabe=Sende Dateien an Ingo's Methode
 

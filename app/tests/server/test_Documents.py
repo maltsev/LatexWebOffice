@@ -4,7 +4,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Di 25 Nov 2014 20:11:02 CET
+* Last Modified : Tue 25 Nov 2014 08:51:04 PM CET
 
 * Author :  mattis
 
@@ -79,7 +79,7 @@ class DocumentsTestClass(TestCase):
         subfolder.save()
         
         # Speichere ein Dokument in dem Unterordner
-        f=TexFile.objects.create(name='main.tex',folder=subfolder,source_code='')
+        f=TexFile.objects.create(name='main.tex',folder=subfolder,source_code='testsource')
         f.save()
         self._user2_subroot_file=f
 
@@ -271,9 +271,11 @@ class DocumentsTestClass(TestCase):
         self.assertEqual(serveranswer['folderid'],folder.id)
         self.assertEqual(serveranswer['foldername'],folder.name)
 
-
-
-        #self.assertEqual(serveranswer['fileid'],
+    def test_latexCompile(self):
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        response=self.documentPoster(command='compile',idpara=self._user2_subroot_file.id)
+        dictionary=jsonDecoder(response.content)
+        print(dictionary)
 
 
 
