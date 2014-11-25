@@ -11,7 +11,8 @@
 <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <script src="/static/js/jquery.cookie.js"></script>
 <script src="/static/js/editor.js"></script>
-<script src="/static/js/editor-completion.js"></script>
+<script src="/static/js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+
 {% endblock %}
 
 <!-- Inhalt -->
@@ -124,7 +125,34 @@
 			</button>	
 			</td>
 			<td>
-				<iframe id="editor" onkeypress="updateCursorposition()" onkeyup="autoComplete(event,'{','}')">
+				<div id="editor"></div>
+				<script>
+    var editor = ace.edit("editor");
+					var textlength = editor.getValue().length;
+
+	//  Clouds  Eclipse GIthub
+    editor.setTheme("ace/theme/clouds");
+    editor.getSession().setMode("ace/mode/latex");
+	editor.setOptions({
+    enableBasicAutocompletion: true
+});
+editor.on('change', function(e) {
+    var sign = e.data.text;
+	var position = editor.selection.getCursor();
+	var token = editor.session.getTokenAt(position.row,position.column);
+	if (token != null){
+	 console.log(token.value);
+	}
+	if (sign == '{' && token.value.charAt(token.value.length-2) != '\\' && editor.getValue().length >= textlength){
+	
+	editor.moveCursorTo(position.row,position.column+1);
+	editor.insert("\n\n}");
+	
+	//console.log(position);
+	}
+	textlength = editor.getValue().length;
+});
+</script>
 
 			</td>
 		</tr>
