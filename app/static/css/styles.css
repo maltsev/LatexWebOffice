@@ -10,7 +10,7 @@ height: 90%;
 min-height: 400px;
 background: white;
 }
-/* elements editor */
+/* Editor Menueleiste */
 #editor_table2{
 width: 100%;
 margin-top: 5px;
@@ -76,7 +76,7 @@ width: 100%;
   display:block;  
   z-index:500;
 }
-/* elements editor end*/
+/* Ende Editor Menueleiste*/
 .error{
 width: 100%;
 background: #fc8193;
