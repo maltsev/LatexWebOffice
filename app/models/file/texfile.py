@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.db import models
-from app.models.file import file
+from app.models.file.plaintextfile import PlainTextFile
 
 
-class TexFile(file.File):
-    source_code = models.TextField(blank=True)
+class TexFile(PlainTextFile):
+    pass
