@@ -4,7 +4,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Mi 26 Nov 2014 12:04:18 CET
+* Last Modified : Mi 26 Nov 2014 14:58:13 CET
 
 * Author :  mattis
 
@@ -492,8 +492,6 @@ class DocumentsTestClass(TestCase):
         dictionary=jsonDecoder(response.content)
         #Teste, ob beim richtiger Anfrage eine Erfolgsmeldung zurückgegeben wird
         self.assertEqual(dictionary['status'],SUCCESS)
-
-
 
         #Teste, ob ob man zwischen Projekten Dateuen verschieben darf (sollte man dürfen)
         response=self.documentPoster(command='movefile',idpara=self._user2_subroot_file.id,idpara2=self._user2_project2.rootFolder.id)
