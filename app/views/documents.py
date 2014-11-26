@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Tue 25 Nov 2014 09:59:26 PM CET
+* Last Modified : Mi 26 Nov 2014 13:14:27 CET
 
 * Author :  mattis
 
@@ -39,26 +39,29 @@ def execute(request):
         # hole den aktuellen Benutzer
         user = request.user
 
+
+        globalparas={'id':{'name':'id','type':int},'content':{'name':'content','type':str},'folderid':{'name':'folderid','type':int},'name':{'name':'name','type':str}}
+
         # dictionary mit verfügbaren Befehlen und den entsprechenden Aktionen
         available_commands = {
-            'updatefile': {'command': updateFile, 'parameters': ('id', 'content')},
-            'uploadfiles': {'command': uploadFiles, 'parameters': ('id', 'folderid')},
-            'deletefile': {'command': deleteFile, 'parameters': ('id',)},
-            'renamefile': {'command': renameFile, 'parameters': ('id', 'name')},
-            'movefile': {'command': moveFile, 'parameters': ('id', 'folderid')},
-            'listfiles': {'command': listFiles, 'parameters': ('id',)},
-            'projectcreate': {'command': projectCreate, 'parameters': ('name',)},
-            'projectrm': {'command': projectRm, 'parameters': ('id',)},
-            'importzip': {'command': importZip, 'parameters': ('id',)},
+            'updatefile': {'command': updateFile, 'parameters': (globalparas['id'], globalparas['content'])},
+            'uploadfiles': {'command': uploadFiles, 'parameters': (globalparas['id'], globalparas['folderid'])},
+            'deletefile': {'command': deleteFile, 'parameters': (globalparas['id'],)},
+            'renamefile': {'command': renameFile, 'parameters': (globalparas['id'], globalparas['name'])},
+            'movefile': {'command': moveFile, 'parameters': (globalparas['id'], globalparas['folderid'])},
+            'listfiles': {'command': listFiles, 'parameters': (globalparas['id'],)},
+            'projectcreate': {'command': projectCreate, 'parameters': (globalparas['name'],)},
+            'projectrm': {'command': projectRm, 'parameters': (globalparas['id'],)},
+            'importzip': {'command': importZip, 'parameters': (globalparas['id'],)},
             'listprojects': {'command': listProjects, 'parameters': ()},
-            'downloadfile': {'command': downloadFile, 'parameters': ('id',)},
-            'exportzip': {'command': exportZip, 'parameters': ('id',)},
-            'compile': {'command': latexCompile, 'parameters': ('id',)},
-            'createdir': {'command': createDir, 'parameters': ('id', 'name')},
-            'renamedir': {'command': renameDir, 'parameters': ('id', 'name')},
-            'rmdir': {'command': rmDir, 'parameters': ('id',)},
-            'fileinfo': {'command': fileInfo, 'parameters': ('id',)},
-            'shareproject': {'command': shareProject, 'parameters': ('id', 'name')}
+            'downloadfile': {'command': downloadFile, 'parameters': (globalparas['id'],)},
+            'exportzip': {'command': exportZip, 'parameters': (globalparas['id'],)},
+            'compile': {'command': latexCompile, 'parameters': (globalparas['id'],)},
+            'createdir': {'command': createDir, 'parameters': (globalparas['id'], globalparas['name'])},
+            'renamedir': {'command': renameDir, 'parameters': (globalparas['id'], globalparas['name'])},
+            'rmdir': {'command': rmDir, 'parameters': (globalparas['id'],)},
+            'fileinfo': {'command': fileInfo, 'parameters': (globalparas['id'],)},
+            'shareproject': {'command': shareProject, 'parameters': (globalparas['id'], globalparas['name'])}
         }
 
         # wenn der Schlüssel nicht gefunden wurde
@@ -75,12 +78,14 @@ def execute(request):
 
         # durchlaufe alle Parameter des Befehls
         for para in paras:
-            # wenn der Parameter nicht gefunden wurde, gib Fehlermeldung zurück
-            if not request.POST.get(para):
+            # wenn der Parameter nicht gefunden wurde oder ein Parameter, welcher eine id angeben sollte Zeichen enthält, die keine Zahlen sind, gib Fehlermeldung zurück
+            if not request.POST.get(para['name']) or (para['type']==int and (not request.POST.get(para['name']).isdigit())):
+                request.POST['command']
+                request.POST.get(para['name'])
                 return jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)
             # sonst füge den Parameter zu der Argumentliste hinzu
             else:
-                args.append(request.POST[para])
+                args.append(request.POST[para['name']])
 
         # versuche den übergebenen Befehl auszuführen
         # try: TODO FIX THIS TRY MESS
@@ -90,6 +95,7 @@ def execute(request):
         #    to_json['response']=str(sys.exc_info()[0])
 
 
+    return jsonResponse({}, True, request)
 # aktualisiert eine geänderte Datei eines Projektes in der Datenbank
 # benötigt: id:fileid, content:filecontenttostring
 # liefert: HTTP Response (Json)
@@ -107,7 +113,6 @@ def updateFile(request, user, fileid, filecontenttostring):
     text.source_code = filecontenttostring
     text.save()
 
-    return jsonResponse({}, True, request)
 
 
 # speichert vom Client gesendete Dateien im entsprechenden Projektordner
@@ -470,4 +475,25 @@ def shareProject(request, user, projectid, inviteusername):
 # benötigt: id: fileid, folderid: newfolderid
 # liefert HTTP Response (Json)
 def moveFile(request, user, fileid, newfolderid):
-    pass
+    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
+    rights, failurereturn = checkIfFileExistsAndUserHasRights(fileid, user, request)
+    if not rights:
+        return failurereturn
+
+    #überprüfe, ob der Ordner mit der id newfolderid existiert und newfolderid dem User gehört
+    rights, failurereturn=checkIfDirExistsAndUserHasRights(newfolderid,user,request)
+    fileobj=File.objects.get(id=fileid)
+    if not rights:
+        return failurereturn
+    folderobj=Folder.objects.get(id=newfolderid)
+
+
+    fileobj.folder=folderobj
+
+    fileobj.save()
+
+    return jsonResponse({},True,request)
+
+    
+
+
