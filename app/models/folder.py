@@ -16,7 +16,7 @@ class Folder(models.Model):
         return self 
 
     def getProject(self):
-        return self.getRoot().project_set.get()
+        return self.getRoot().project
 
     def __str__(self):
         return self.name

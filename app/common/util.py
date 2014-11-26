@@ -61,7 +61,7 @@ def projectToJson(project):
 def checkIfDirExistsAndUserHasRights(folderid,user,request):
     if not Folder.objects.filter(id=folderid).exists():
         return False,jsonErrorResponse(ERROR_MESSAGES['DIRECTORYNOTEXIST'],request)
-    elif not Folder.objects.get(id=folderid).getRoot().project_set.get().author==user:
+    elif not Folder.objects.get(id=folderid).getRoot().project.author==user:
         return False,jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
     else:
         return True,None
