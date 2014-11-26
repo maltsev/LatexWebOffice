@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Tue 25 Nov 2014 09:47:04 PM CET
+* Last Modified : Mi 26 Nov 2014 12:33:24 CET
 
 * Author :  christian
 
@@ -99,7 +99,7 @@ def _getFoldersAndFiles(folderobj,data={},printing=False,ident=''):
         if printing:
             print('    ',f)
             print('     ',f.source_code)
-        fileslist.append({'file':{'name':f.name,'bytes':str.encode(f.source_code)}})
+        fileslist.append({'name':f.name,'bytes':str.encode(f.source_code)})
     
     #Hole Binary files
     #TODO
@@ -110,7 +110,7 @@ def _getFoldersAndFiles(folderobj,data={},printing=False,ident=''):
     for folder in folders:
         if printing:
             print(folder)
-        folderslist.append({'folder':_getFoldersAndFiles(folder,data={},printing=printing,ident=ident+'    ')})
+        folderslist.append(_getFoldersAndFiles(folder,data={},printing=printing,ident=ident+'    '))
 
     return data
 

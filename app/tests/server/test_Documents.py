@@ -4,7 +4,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Mi 26 Nov 2014 10:08:29 CET
+* Last Modified : Mi 26 Nov 2014 14:58:13 CET
 
 * Author :  mattis
 
@@ -97,10 +97,12 @@ class DocumentsTestClass(TestCase):
 
     
     #Helper Methode um leichter die verschiedenen commands durchzutesten.
-    def documentPoster(self,command='NoCommand',idpara=None,content=None,name=None,files=None):
+    def documentPoster(self,command='NoCommand',idpara=None,idpara2=None,content=None,name=None,files=None):
         dictionary={'command':command}
         if idpara:
             dictionary['id']=idpara
+        if idpara2:
+            dictionary['folderid']=idpara2
         if content:
             dictionary['content']=content
         if name:
@@ -144,6 +146,7 @@ class DocumentsTestClass(TestCase):
     #Teste das Erzeugen von Ordnern
     def test_createDir(self):
         response=self.documentPoster(command='createdir',idpara=self._user1_project1.rootFolder.id,name='testFolder')
+
         dictionary=jsonDecoder(response.content)
         #Teste, ob beim richtiger Anfrage eine Erfolgsmeldung zurückgegeben wird
         self.assertEqual(dictionary['status'],SUCCESS)
@@ -154,7 +157,6 @@ class DocumentsTestClass(TestCase):
         self.assertIn('name',serveranswer)
         self.assertIn('parentfolderid',serveranswer)
         self.assertIn('parentfoldername', serveranswer)
-
         self.assertTrue(serveranswer['name'],'testFolder')
 
         #Teste, ob der Ordner wirklich existiert und mit dem Werten, die zurückgegeben wurden, übereinstimmt
@@ -485,4 +487,27 @@ class DocumentsTestClass(TestCase):
 
     def test_projectRm(self):
         pass
+
+    def test_moveDir(self):
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        response=self.documentPoster(command='movefile',idpara=self._user2_subroot_file.id,idpara2=self._user2_project1.rootFolder.id)
+
+        dictionary=jsonDecoder(response.content)
+        #Teste, ob beim richtiger Anfrage eine Erfolgsmeldung zurückgegeben wird
+        self.assertEqual(dictionary['status'],SUCCESS)
+
+        #Teste, ob ob man zwischen Projekten Dateuen verschieben darf (sollte man dürfen)
+        response=self.documentPoster(command='movefile',idpara=self._user2_subroot_file.id,idpara2=self._user2_project2.rootFolder.id)
+        self.assertEqual(jsonDecoder(response.content)['status'],SUCCESS)
+        
+        #Teste, dass es eine Fehlermeldung gibt, falls die Datei in einen Ordner verschoben wird, die dem User nicht gehört
+        response=self.documentPoster(command='movefile',idpara=self._user2_subroot_file.id,idpara2=self._user1_project1.rootFolder.id)
+        self.assertEqual(jsonDecoder(response.content)['status'],FAILURE)
+       
+       #Teste, ob Fehlermeldung bei falscher fileid
+        response=self.documentPoster(command='movefile',idpara=-1,idpara2=self._user2_project1.rootFolder.id)
+        self.assertEqual(jsonDecoder(response.content)['status'],FAILURE)
+
+        
+
 
