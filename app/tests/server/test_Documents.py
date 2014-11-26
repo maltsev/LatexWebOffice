@@ -25,12 +25,13 @@ from app.models.project import Project
 from app.models.folder import Folder
 from app.models.file.texfile import TexFile
 from app.models.file.file import File
-from core.settings import FILEDATA_URL, TMP_FILEDATA_URL
+from django.conf import settings
+#from core.settings import FILEDATA_URL, TMP_FILEDATA_URL
 from django.utils.encoding import smart_str
 import json, os
 
 @override_settings(FILEDATA_URL=os.path.join(os.path.expanduser('~'), 'latexweboffice', 'tests'),
-                   TMP_FILEDATA_URL=os.path.join(FILEDATA_URL, 'tmp'))
+                   TMP_FILEDATA_URL=os.path.join(settings.FILEDATA_URL, 'tmp'))
 class DocumentsTestClass(TestCase):
     def setUp(self):
 
@@ -435,7 +436,7 @@ class DocumentsTestClass(TestCase):
 
     def test_downloadfile(self):
 
-        user1_dir = os.path.join(FILEDATA_URL, str(self._user1.id))
+        user1_dir = os.path.join(settings.FILEDATA_URL, str(self._user1.id))
         user1_project1_dir = os.path.join(user1_dir, str(self._user1_project1.id))
         if not os.path.isdir(user1_project1_dir):
             os.makedirs(user1_project1_dir)
@@ -477,6 +478,8 @@ class DocumentsTestClass(TestCase):
 
         #response = self.client.post('/documents/', {'command': 'listfiles', 'id': rootfolder.id})
 
+        #projdump=(jsonDecoder(response.content)['response'])
+        #print(projdump)
         #self.assertEqual(file, smart_str(response.content))
 
     def test_projectRm(self):
