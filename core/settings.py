@@ -85,3 +85,7 @@ LOGIN_URL = '/login/'
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Speicherort für Dateien
+FILEDATA_URL = os.path.join(os.path.expanduser('~'), 'latexweboffice')
+TMP_FILEDATA_URL = os.path.join(FILEDATA_URL, 'tmp')

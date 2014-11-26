@@ -7,13 +7,11 @@ class Folder(models.Model):
     parent = models.ForeignKey("self", blank=True, null=True, related_name='parentFolder') # Darf leer sein nur bei RootFolder
     root = models.ForeignKey("self", blank=True, null=True, related_name='rootFolder') # Darf leer sein nur bei RootFolder
 
-    def is_root(self):
-        return self.parent == self.root
 
     def getRoot(self):
         if self.root:
             return self.root
-        return self 
+        return self
 
     def getProject(self):
         return self.getRoot().project_set.get()
