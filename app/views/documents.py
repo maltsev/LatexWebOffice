@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mi 26 Nov 2014 13:22:44 CET
+* Last Modified : Mi 26 Nov 2014 15:33:04 CET
 
 * Author :  mattis
 
@@ -161,8 +161,8 @@ def renameFile(request, user, fileid, newfilename):
     if not rights:
         return failurereturn
 
-    # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = util.checkObjectForEmptyString(newfilename, user, request)
+    # Teste, ob der filename keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
+    emptystring, failurereturn = util.checkObjectForInvalidString(newfilename, user, request)
     if not emptystring:
         return failurereturn
 
@@ -327,7 +327,7 @@ def exportZip(request, user, folderid):
 # liefert: HTTP Response (Json)
 def createDir(request, user, parentdirid, directoryname):
     # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = util.checkObjectForEmptyString(directoryname, user, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(directoryname, user, request)
     if not emptystring:
         return failurereturn
 
@@ -362,7 +362,7 @@ def renameDir(request, user, folderid, newdirectoryname):
 
 
     # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = util.checkObjectForEmptyString(folder.name, user, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(folder.name, user, request)
     if not emptystring:
         return failurereturn
 

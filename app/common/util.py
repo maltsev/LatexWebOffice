@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Mi 26 Nov 2014 12:33:24 CET
+* Last Modified : Mi 26 Nov 2014 15:32:19 CET
 
 * Author :  christian
 
@@ -82,7 +82,7 @@ def checkIfProjectExistsAndUserHasRights(projectid,user,request):
     else:
         return True,None
 
-def checkObjectForEmptyString(name,user,request):
+def checkObjectForInvalidString(name,user,request):
     if name.isspace():
         return False,jsonErrorResponse(ERROR_MESSAGES['BLANKNAME'],request)
     return True,None
