@@ -43,6 +43,7 @@ ERROR_MESSAGES = {
     'UNKOWNERROR':'Unbekannter Fehler',
     'BLANKNAME':'Leere Namen sind nicht erlaubt',
     'DATABASEERROR': 'Datenbankfehler',
+    'PROJECTNOTEXIST': 'Projekt nicht gefunden',
 }
 
 SUCCESS = 'success'
