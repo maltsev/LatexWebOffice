@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Di 25 Nov 2014 17:13:37 CET
+* Last Modified : Tue 25 Nov 2014 09:47:04 PM CET
 
 * Author :  christian
 
@@ -61,7 +61,7 @@ def projectToJson(project):
 def checkIfDirExistsAndUserHasRights(folderid,user,request):
     if not Folder.objects.filter(id=folderid).exists():
         return False,jsonErrorResponse(ERROR_MESSAGES['DIRECTORYNOTEXIST'],request)
-    elif not Folder.objects.get(id=folderid).getRoot().project_set.get().author==user:
+    elif not Folder.objects.get(id=folderid).getProject().author==user:
         return False,jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
     else:
         return True,None
@@ -87,4 +87,36 @@ def checkObjectForEmptyString(name,user,request):
         return False,jsonErrorResponse(ERROR_MESSAGES['BLANKNAME'],request)
     return True,None
 
+def _getFoldersAndFiles(folderobj,data={},printing=False,ident=''):
+    data['name']=folderobj.name
+    fileslist=[]
+    folderslist=[]
+    data['files']=fileslist
+    data['folders']=folderslist
+    #Hole TexFiles
+    texfiles=TexFile.objects.filter(folder=folderobj)
+    for f in texfiles:
+        if printing:
+            print('    ',f)
+            print('     ',f.source_code)
+        fileslist.append({'file':{'name':f.name,'bytes':str.encode(f.source_code)}})
+    
+    #Hole Binary files
+    #TODO
+
+    #Füge rekursiv die Unterordner hinzu
+    folders=Folder.objects.filter(parent=folderobj)
+
+    for folder in folders:
+        if printing:
+            print(folder)
+        folderslist.append({'folder':_getFoldersAndFiles(folder,data={},printing=printing,ident=ident+'    ')})
+
+    return data
+
+
+def getProjectBytesFromProjectObject(projectobj):
+    rootfolder=projectobj.rootFolder
+    return _getFoldersAndFiles(rootfolder,printing=False)
+    
     

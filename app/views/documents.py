@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Di 25 Nov 2014 16:33:23 CET
+* Last Modified : Tue 25 Nov 2014 09:59:26 PM CET
 
 * Author :  mattis
 
@@ -442,9 +442,10 @@ def fileInfo(request, user, fileid):
     fileobj = File.objects.get(id=fileid)
     folder = Folder.objects.get(id=fileobj.folder.id)
 
-    dictionary = {'fileid': fileobj.id, 'filename': fileobj.name, 'folderid': folder.obj, 'foldername': folder.name}
+    dictionary = {'fileid': fileobj.id, 'filename': fileobj.name, 'folderid': folder.id, 'foldername': folder.name}
 
     return jsonResponse(dictionary, True, request)
+
 
 
 # Kompiliert eine LaTeX Datei
@@ -456,6 +457,17 @@ def latexCompile(request, user, fileid):
     #Aktualisiere Tex Datei in der Datenbank
 
     #Zum Projekt der Tex-Datei dazugehörende Dateien abrufen
+        #- Überprüfe, ob es diese Tex-Datei überhaupt gibt und der User die nötigen Rechte auf die Datei hat
+    rights,failurereturn=checkIfFileExistsAndUserHasRights(fileid,user,request)
+    if not rights:
+        return failurereturn
+
+
+    #Zum Projekt der Tex-Datei dazugehörende Dateien abrufen
+    texfileobj=TexFile.objects.get(id=fileid)
+    projectobj=texfileobj.folder.getProject()
+
+    projectDictionaryFileBytes=getProjectBytesFromProjectObject(projectobj)
 
     #rueckgabe=Sende Dateien an Ingo's Methode
 
