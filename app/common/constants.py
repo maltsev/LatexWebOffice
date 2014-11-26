@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Mi 26 Nov 2014 12:01:51 CET
+* Last Modified : Mi 26 Nov 2014 15:50:55 CET
 
 * Author :  christian
 
@@ -44,7 +44,8 @@ ERROR_MESSAGES = {
     'BLANKNAME':'Leere Namen sind nicht erlaubt',
     'DATABASEERROR': 'Datenbankfehler',
     'PROJECTNOTEXIST': 'Projekt nicht gefunden',
+    'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
 }
-
+INVALIDCHARS='<>;|"\/?*'
 SUCCESS = 'success'
 FAILURE = 'failure'

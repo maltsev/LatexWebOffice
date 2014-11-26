@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Mi 26 Nov 2014 15:32:19 CET
+* Last Modified : Mi 26 Nov 2014 16:05:19 CET
 
 * Author :  christian
 
@@ -18,7 +18,7 @@
 """
 
 from django.http import HttpResponse
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
+from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.file import File
@@ -74,6 +74,24 @@ def checkIfFileExistsAndUserHasRights(fileid,user,request):
     else:
         return True,None
 
+# Vorraussetzung: das Objekt existiert in der Datenbank
+def checkIfFileOrFolderAlreadyExists(idpara,newname,modelObj):
+    oldobj=modelObj.objects.get(id=idpara)
+
+    if type(modelObj)==File:
+        folder=oldobj.folder
+        for dirfile in modelObj.objects.filter(folder=folder):
+            if dirfile.name.lower()==newname.lower():
+                return False,jsonErrorResponse(ERROR_MESSAGES['FILENAMEEXISTS'])
+
+    else:
+        folder=oldobj.parent
+        for dirobj in modelObj.objects.filter(parent=folder):
+            if dirobj.name.lower()==newname.lower():
+                return False,jsonErrorResponse(ERROR_MESSAGES['FOLDERNAMEEXISTS'])
+    return True,None
+
+
 def checkIfProjectExistsAndUserHasRights(projectid,user,request):
     if not Project.objects.filter(id=projectid).exists():
         return False,jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'],request)
@@ -85,6 +103,8 @@ def checkIfProjectExistsAndUserHasRights(projectid,user,request):
 def checkObjectForInvalidString(name,user,request):
     if name.isspace():
         return False,jsonErrorResponse(ERROR_MESSAGES['BLANKNAME'],request)
+    if any(invalid in name for invalid in INVALIDCHARS):
+        return False,jsonErrorResponse(ERROR_MESSAGES['INVALIDNAME'],request)
     return True,None
 
 def _getFoldersAndFiles(folderobj,data={},printing=False,ident=''):
