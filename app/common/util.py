@@ -69,7 +69,15 @@ def checkIfDirExistsAndUserHasRights(folderid,user,request):
 def checkIfFileExistsAndUserHasRights(fileid,user,request):
     if not File.objects.filter(id=fileid).exists():
         return False,jsonErrorResponse(ERROR_MESSAGES['FILENOTEXIST'],request)
-    elif not File.objects.get(id=fileid).folder.getRoot().project.author==user:
+    elif not File.objects.get(id=fileid).folder.getRoot().getProject().author==user:
+        return False,jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
+    else:
+        return True,None
+
+def checkIfProjectExistsAndUserHasRights(projectid,user,request):
+    if not Project.objects.filter(id=projectid).exists():
+        return False,jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'],request)
+    elif not Project.objects.get(id=projectid).author == user:
         return False,jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
     else:
         return True,None

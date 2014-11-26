@@ -17,14 +17,20 @@
 """
 
 from django.test import TestCase,Client
+from django.test.utils import override_settings
 from django.contrib.auth.models import User
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from app.common.util import jsonDecoder
 from app.models.project import Project
 from app.models.folder import Folder
 from app.models.file.texfile import TexFile
-import json
+from app.models.file.file import File
+from core.settings import FILEDATA_URL, TMP_FILEDATA_URL
+from django.utils.encoding import smart_str
+import json, os
 
+@override_settings(FILEDATA_URL=os.path.join(os.path.expanduser('~'), 'latexweboffice', 'tests'),
+                   TMP_FILEDATA_URL=os.path.join(FILEDATA_URL, 'tmp'))
 class DocumentsTestClass(TestCase):
     def setUp(self):
 
@@ -418,3 +424,57 @@ class DocumentsTestClass(TestCase):
 
         # teste, ob in response ein leeres Array übergeben wurde, da user3 keine Projekte besitzt
         self.assertEqual(dictionary['response'], [])
+
+    def test_listfiles(self):
+        pass
+
+
+    def test_downloadfile(self):
+
+        user1_dir = os.path.join(FILEDATA_URL, str(self._user1.id))
+        user1_project1_dir = os.path.join(user1_dir, str(self._user1_project1.id))
+        if not os.path.isdir(user1_project1_dir):
+            os.makedirs(user1_project1_dir)
+
+
+        rootfolder = self._user1_project1.rootFolder
+
+        folder1 = Folder(name='folder1', parent=rootfolder, root=rootfolder)
+        folder1.save()
+
+        folder2 = Folder(name='folder2', parent=rootfolder, root=rootfolder)
+        folder2.save()
+
+        folder3 = Folder(name='folder3', parent=rootfolder, root=rootfolder)
+        folder3.save()
+
+        subfolder1 = Folder(name='subfolder1', parent=folder3, root=rootfolder)
+        subfolder1.save()
+
+        user1_tex1 = TexFile(name='main.tex', folder=subfolder1, source_code='test tex file\n')
+        user1_tex1.save()
+
+        user1_bin1 = File(name='test.bin', folder=rootfolder)
+        user1_bin1.save()
+        file = os.path.join(user1_project1_dir, str(user1_bin1.id))
+        user1_binary1_file = open(file, 'w')
+        user1_binary1_file.write('test binary file\n')
+        user1_binary1_file.close()
+
+
+        #response = self.client.post('/documents/', {'command': 'downloadfile', 'id': user1_bin1.id})
+
+        response = self.client.post('/documents/', {'command': 'downloadfile', 'id': user1_tex1.id})
+
+        print('response:')
+        print(response['Content-Type'])
+        print(response['Content-Length'])
+        print(response['Content-Disposition'])
+
+        #response = self.client.post('/documents/', {'command': 'listfiles', 'id': rootfolder.id})
+
+        #self.assertEqual(file, smart_str(response.content))
+
+    def test_projectRm(self):
+        pass
+
