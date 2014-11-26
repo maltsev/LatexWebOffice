@@ -18,15 +18,14 @@
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse
-import json
 import sys, traceback
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.file import File
 from app.models.file.texfile import TexFile
-from app.common.util import *
+from app.common import util
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
-from core.settings import FILEDATA_URL, TMP_FILEDATA_URL
+from django.conf import settings
 import mimetypes, os, io
 from django.db import transaction
 
@@ -34,6 +33,7 @@ from django.db import transaction
 # liest den vom Client per POST Data übergebenen Befehl ein
 # und führt die entsprechende Methode aus
 @login_required
+@require_http_methods(['POST'])
 def execute(request):
     if request.method == 'POST' and 'command' in request.POST:
         # hole den aktuellen Benutzer
@@ -64,7 +64,7 @@ def execute(request):
         # wenn der Schlüssel nicht gefunden wurde
         # gib Fehlermeldung zurück
         if request.POST['command'] not in available_commands:
-            return jsonErrorResponse(ERROR_MESSAGES['COMMANDNOTFOUND'], request)
+            return util.jsonErrorResponse(ERROR_MESSAGES['COMMANDNOTFOUND'], request)
 
         args = []
 
@@ -77,7 +77,7 @@ def execute(request):
         for para in paras:
             # wenn der Parameter nicht gefunden wurde, gib Fehlermeldung zurück
             if not request.POST.get(para):
-                return jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)
+                return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)
             # sonst füge den Parameter zu der Argumentliste hinzu
             else:
                 args.append(request.POST[para])
@@ -95,19 +95,19 @@ def execute(request):
 # liefert: HTTP Response (Json)
 def updateFile(request, user, fileid, filecontenttostring):
     # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = checkIfFileExistsAndUserHasRights(fileid, user, request)
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         return failurereturn
 
     if not TextFile.objects.filter(id=fileid).exists():
-        return jsonErrorResponse(ERROR_MESSAGES['NOTEXFILE'], request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['NOTEXFILE'], request)
 
     text = TextFile.objects.get(id=fileid)
 
     text.source_code = filecontenttostring
     text.save()
 
-    return jsonResponse({}, True, request)
+    return util.jsonResponse({}, True, request)
 
 
 # speichert vom Client gesendete Dateien im entsprechenden Projektordner
@@ -123,7 +123,7 @@ def uploadFiles(request, user, projectid, folderid):
 # liefert: HTTP Response (Json)
 def deleteFile(request, user, fileid):
     # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = checkIfFileExistsAndUserHasRights(fileid, user, request)
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         return failurereturn
 
@@ -134,13 +134,13 @@ def deleteFile(request, user, fileid):
 
     if not fileExtension == '.tex':
         projectid = fileobj.folder.getProject().id
-        filepath = os.path.join(FILEDATA_URL, str(user.id), str(projectid), str(fileobj.id))
+        filepath = os.path.join(settings.FILEDATA_URL, str(user.id), str(projectid), str(fileobj.id))
 
         os.remove(filepath)
 
     fileobj.delete()
 
-    return jsonResponse({}, True, request)
+    return util.jsonResponse({}, True, request)
 
 
 # benennt eine vom Client angegebene Datei um
@@ -148,12 +148,12 @@ def deleteFile(request, user, fileid):
 # liefert: HTTP Response (Json)
 def renameFile(request, user, fileid, newfilename):
     # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = checkIfFileExistsAndUserHasRights(fileid, user, request)
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         return failurereturn
 
     # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = checkObjectForEmptyString(newfilename, user, request)
+    emptystring, failurereturn = util.checkObjectForEmptyString(newfilename, user, request)
     if not emptystring:
         return failurereturn
 
@@ -162,7 +162,7 @@ def renameFile(request, user, fileid, newfilename):
     fileobj.name = newfilename
     fileobj.save()
 
-    return jsonResponse({}, True, request)
+    return util.jsonResponse({}, True, request)
 
 
 # liefert eine Übersicht der Dateien/Unterordner eines Ordners (bzw. Projektes)
@@ -171,36 +171,15 @@ def renameFile(request, user, fileid, newfilename):
 # Beispiel response: {type: 'folder', name: 'folder1', id=1, content: {type :
 def listFiles(request, user, folderid):
     # Check if parentdirid exists
-    rights, failurereturn = checkIfDirExistsAndUserHasRights(folderid, user, request)
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
     if not rights:
         return failurereturn
 
     current_folder = Folder.objects.get(id=folderid)
 
-    folderandfiles_structure = listFiles_Helper(current_folder, data={})
+    folderandfiles_structure = util.getFolderAndFileStructureAsDict(current_folder)
 
-    #print(folderandfiles_structure)
-
-    return jsonResponse(folderandfiles_structure, True, request)
-
-
-def listFiles_Helper(folderobj, data={}):
-    data['name'] = folderobj.name
-    data['id'] = folderobj.id
-    filelist = []
-    folderlist = []
-    data['files'] = filelist
-    data['folders'] = folderlist
-    files = File.objects.filter(folder=folderobj)
-    for f in files:
-        filelist.append({'file': {'id': f.id, 'name': f.name}})
-
-    folders = Folder.objects.filter(parent=folderobj)
-
-    for f in folders:
-        folderlist.append({'folder': listFiles_Helper(f, data={})})
-
-    return data
+    return util.jsonResponse(folderandfiles_structure, True, request)
 
 
 # erzeugt ein neues Projekt für den Benutzer mit einer leeren main.tex Datei
@@ -210,11 +189,11 @@ def listFiles_Helper(folderobj, data={}):
 def projectCreate(request, user, projectname):
     # überprüfe ob der Projektname nur aus Leerzeichen besteht
     if projectname.isspace():
-        return jsonErrorResponse(ERROR_MESSAGES['PROJECTNAMEONLYWHITESPACE'], request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTNAMEONLYWHITESPACE'], request)
 
     # überprüfe ob ein Projekt mit dem Namen projectname bereits für diese Benutzer existiert
     elif Project.objects.filter(name=projectname, author=user).exists():
-        return jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
     else:
         try:
             with transaction.atomic():
@@ -225,9 +204,9 @@ def projectCreate(request, user, projectname):
                 texfile = TexFile.objects.create(name='main.tex', folder=rootfolder, source_code='')
                 texfile.save()
         except:
-            return jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTCREATED'], request)
+            return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTCREATED'], request)
 
-    return jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
+    return util.jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
 
 
 # löscht ein vorhandenes Projekt eines Benutzers
@@ -235,7 +214,7 @@ def projectCreate(request, user, projectname):
 # liefert: HTTP Response (Json)
 def projectRm(request, user, projectid):
     # überprüfe ob das Projekt existiert und der user die Rechte zum Löschen hat
-    rights, failurereturn = checkIfProjectExistsAndUserHasRights(projectid, user, request)
+    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(projectid, user, request)
     # sonst gib eine Fehlermeldung zurück
     if not rights:
         return failurereturn
@@ -249,9 +228,9 @@ def projectRm(request, user, projectid):
     # versuche das Projekt zu löschen
     try:
         projectdel.delete()
-        return jsonResponse({}, True, request)
+        return util.jsonResponse({}, True, request)
     except:
-        return jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
 # importiert ein Projekt aus einer vom Client übergebenen zip Datei
@@ -269,11 +248,11 @@ def listProjects(request, user):
     availableprojects = Project.objects.filter(author=user)
 
     if availableprojects is None:
-        return jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
     else:
-        json_return = [projectToJson(project) for project in availableprojects]
+        json_return = [util.projectToJson(project) for project in availableprojects]
 
-    return jsonResponse(json_return, True, request)
+    return util.jsonResponse(json_return, True, request)
 
 
 # liefert eine vom Client angeforderte Datei als Filestream
@@ -281,7 +260,7 @@ def listProjects(request, user):
 # liefert: filestream
 def downloadFile(request, user, fileid):
     # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = checkIfFileExistsAndUserHasRights(fileid, user, request)
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         return failurereturn
 
@@ -299,7 +278,7 @@ def downloadFile(request, user, fileid):
         userfile = TexFile.objects.get(id=fileid)
         # erstelle einen Ordner im temp Verzeichnis, falls nicht bereits vorhanden
         # Form ...latexweboffice/temp/projectid/fileid
-        userfile_path = os.path.join(TMP_FILEDATA_URL, str(userfile_project_id))
+        userfile_path = os.path.join(settings.TMP_FILEDATA_URL, str(userfile_project_id))
         if not os.path.isdir(userfile_path):
             os.makedirs(userfile_path)
         # erstelle die tex Datei und lese sie ein
@@ -315,7 +294,7 @@ def downloadFile(request, user, fileid):
     else:
         # Pfad zur Binärdatei
         # Form .../latexweboffice/userid/projectid/fileid
-        userfile_path = os.path.join(FILEDATA_URL, str(user.id), str(userfile_project_id), str(userfile.id))
+        userfile_path = os.path.join(settings.FILEDATA_URL, str(user.id), str(userfile_project_id), str(userfile.id))
 
         # lese die Datei ein
         file_dl = open(userfile_path, 'r')
@@ -350,13 +329,13 @@ def exportZip(request, user, folderid):
 # liefert: HTTP Response (Json)
 def createDir(request, user, parentdirid, directoryname):
     # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = checkObjectForEmptyString(directoryname, user, request)
+    emptystring, failurereturn = util.checkObjectForEmptyString(directoryname, user, request)
     if not emptystring:
         return failurereturn
 
 
         #Check if parentdirid exists
-    rights, failurereturn = checkIfDirExistsAndUserHasRights(parentdirid, user, request)
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(parentdirid, user, request)
     if not rights:
         return failurereturn
 
@@ -367,17 +346,17 @@ def createDir(request, user, parentdirid, directoryname):
     try:
         newfolder = Folder(name=directoryname, parent=parentdir, root=parentdir.getRoot())
         newfolder.save()
-        return jsonResponse({'id': newfolder.id, 'name': newfolder.name, 'parentfolderid': parentdir.id,
+        return util.jsonResponse({'id': newfolder.id, 'name': newfolder.name, 'parentfolderid': parentdir.id,
                              'parentfoldername': parentdir.name}, True, request)
     except:
-        return jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
 
 
 # benennt den Ordner mit der angegebenen ID um
 # benötigt: id:folderid, name:newdirectoryname
 # liefert: HTTP Response (Json)
 def renameDir(request, user, folderid, newdirectoryname):
-    rights, failurereturn = checkIfDirExistsAndUserHasRights(folderid, user, request)
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
     if not rights:
         return failurereturn
 
@@ -385,7 +364,7 @@ def renameDir(request, user, folderid, newdirectoryname):
 
 
     # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = checkObjectForEmptyString(folder.name, user, request)
+    emptystring, failurereturn = util.checkObjectForEmptyString(folder.name, user, request)
     if not emptystring:
         return failurereturn
 
@@ -393,31 +372,31 @@ def renameDir(request, user, folderid, newdirectoryname):
     try:
         folder.name = newdirectoryname
         folder.save()
-        return jsonResponse({'id': folder.id, 'name': folder.name}, True, request)
+        return util.jsonResponse({'id': folder.id, 'name': folder.name}, True, request)
     except:
-        return jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
 
 
 # löscht den Ordner mit der angegebenen ID
 # benötigt: id:folderid
 # liefert: HTTP Response (Json)
 def rmDir(request, user, folderid):
-    rights, failurereturn = checkIfDirExistsAndUserHasRights(folderid, user, request)
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
     if not rights:
         return failurereturn
 
     folder = Folder.objects.get(id=folderid)
     try:
         folder.delete()
-        return jsonResponse({}, True, request)
+        return util.jsonResponse({}, True, request)
     except:
-        return jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
 
 
 # benötigt: id:fileid
 # liefert: HTTP Response (Json) --> fileid, filename, folderid, foldername
 def fileInfo(request, user, fileid):
-    rights, failurereturn = checkIfFileExistsAndUserHasRights(fileid, user, request)
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         return failurereturn
 
@@ -426,7 +405,7 @@ def fileInfo(request, user, fileid):
 
     dictionary = {'fileid': fileobj.id, 'filename': fileobj.name, 'folderid': folder.id, 'foldername': folder.name}
 
-    return jsonResponse(dictionary, True, request)
+    return util.jsonResponse(dictionary, True, request)
 
 
 
@@ -440,7 +419,7 @@ def latexCompile(request, user, fileid):
 
     #Zum Projekt der Tex-Datei dazugehörende Dateien abrufen
         #- Überprüfe, ob es diese Tex-Datei überhaupt gibt und der User die nötigen Rechte auf die Datei hat
-    rights,failurereturn=checkIfFileExistsAndUserHasRights(fileid,user,request)
+    rights,failurereturn=util.checkIfFileExistsAndUserHasRights(fileid,user,request)
     if not rights:
         return failurereturn
 
@@ -449,14 +428,14 @@ def latexCompile(request, user, fileid):
     texfileobj=TexFile.objects.get(id=fileid)
     projectobj=texfileobj.folder.getProject()
 
-    projectDictionaryFileBytes=getProjectBytesFromProjectObject(projectobj)
+    projectDictionaryFileBytes=util.getProjectBytesFromProjectObject(projectobj)
 
     #rueckgabe=Sende Dateien an Ingo's Methode
 
     #Falls rueckgabe okay -> sende pdf von Ingo an client
 
     #Sonst Fehlermeldung an Client
-    return jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
+    return util.jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
 
 
 # gibt ein Projekt für einen anderen Benutzer zum Bearbeiten frei

@@ -83,7 +83,7 @@ def checkIfProjectExistsAndUserHasRights(projectid,user,request):
         return True,None
 
 def checkObjectForEmptyString(name,user,request):
-    if not name.strip():
+    if name.isspace():
         return False,jsonErrorResponse(ERROR_MESSAGES['BLANKNAME'],request)
     return True,None
 
@@ -115,8 +115,29 @@ def _getFoldersAndFiles(folderobj,data={},printing=False,ident=''):
     return data
 
 
+def _getFoldersAndFilesJson(folderobj, data={}):
+    data['name'] = folderobj.name
+    data['id'] = folderobj.id
+    filelist = []
+    folderlist = []
+    data['files'] = filelist
+    data['folders'] = folderlist
+    files = File.objects.filter(folder=folderobj)
+    for f in files:
+        filelist.append({'id': f.id, 'name': f.name})
+
+    folders = Folder.objects.filter(parent=folderobj)
+
+    for f in folders:
+        folderlist.append(_getFoldersAndFilesJson(f, data={}))
+
+    return data
+
+
 def getProjectBytesFromProjectObject(projectobj):
     rootfolder=projectobj.rootFolder
     return _getFoldersAndFiles(rootfolder,printing=False)
-    
-    
+
+
+def getFolderAndFileStructureAsDict(folderobj):
+    return _getFoldersAndFilesJson(folderobj, data={})
