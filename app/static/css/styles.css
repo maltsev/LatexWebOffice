@@ -40,6 +40,7 @@ width: 100%;
 .topmenu a {
   float:left;
   width:100%;
+  min-width: 100px;
   text-align:center;
 }
 
@@ -61,6 +62,7 @@ width: 100%;
 .submenu a{
   font-size:12px;
   width:100%;
+  min-width: 100px;
   position:relative;
   clear:both; /* special IE6 */
 }
