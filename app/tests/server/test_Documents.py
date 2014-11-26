@@ -281,7 +281,6 @@ class DocumentsTestClass(TestCase):
         self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
         response=self.documentPoster(command='compile',idpara=self._user2_subroot_file.id)
         dictionary=jsonDecoder(response.content)
-        print(dictionary)
 
 
 
@@ -465,14 +464,14 @@ class DocumentsTestClass(TestCase):
         user1_binary1_file.close()
 
 
-        #response = self.client.post('/documents/', {'command': 'downloadfile', 'id': user1_bin1.id})
+        response = self.client.post('/documents/', {'command': 'downloadfile', 'id': user1_bin1.id})
 
-        response = self.client.post('/documents/', {'command': 'downloadfile', 'id': user1_tex1.id})
+        #response = self.client.post('/documents/', {'command': 'downloadfile', 'id': user1_tex1.id})
 
-        print('response:')
-        print(response['Content-Type'])
-        print(response['Content-Length'])
-        print(response['Content-Disposition'])
+        #print('response:')
+        #print(response['Content-Type'])
+        #print(response['Content-Length'])
+        #print(response['Content-Disposition'])
 
         #response = self.client.post('/documents/', {'command': 'listfiles', 'id': rootfolder.id})
 

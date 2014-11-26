@@ -319,9 +319,9 @@ def downloadFile(request, user, fileid):
         userfile_path = os.path.join(TMP_FILEDATA_URL, str(userfile_project_id))
         if not os.path.isdir(userfile_path):
             os.makedirs(userfile_path)
-
         # erstelle die tex Datei und lese sie ein
         file_dl = open(os.path.join(userfile_path, str(userfile.id)), 'r+')
+
         file_dl.write(userfile.source_code)
         response = HttpResponse(file_dl.read())
         file_dl.close()
