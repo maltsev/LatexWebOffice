@@ -4,5 +4,15 @@ from django.contrib.auth.models import User
 from app.models.folder import Folder
 
 
-class Project(Folder):
+class Project(models.Model):
+    name = models.CharField(max_length=255)
     author = models.ForeignKey(User)
+    createTime = models.DateTimeField(auto_now_add=True)
+    rootFolder = models.ForeignKey(Folder)
+
+    class Meta:
+        unique_together = ('name', 'author')
+
+
+    def __str__(self):
+        return self.name

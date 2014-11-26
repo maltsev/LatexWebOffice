@@ -13,7 +13,7 @@
 * Sprintnumber : 1
 
 """
-from django.conf import settings
+from app.common.constants import ERROR_MESSAGES
 
 def error_messages(request):
-    return {'ERROR_MESSAGES':settings.ERROR_MESSAGES}
+    return {'ERROR_MESSAGES':ERROR_MESSAGES}
