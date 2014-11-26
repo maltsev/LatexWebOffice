@@ -10,12 +10,18 @@ height: 90%;
 min-height: 400px;
 background: white;
 }
-/* elements editor */
+/* Editor Menueleiste */
 #editor_table2{
 width: 100%;
 margin-top: 5px;
 }
+
+#editor_table1{
+width: 100%;
+margin-top: 5px;
+}
 #menu {
+width: 100%;
   font-size:14px;
   position:absolute;  
 }
@@ -33,7 +39,8 @@ margin-top: 5px;
 
 .topmenu a {
   float:left;
-  width:135px;
+  width:100%;
+  min-width: 100px;
   text-align:center;
 }
 
@@ -54,7 +61,8 @@ margin-top: 5px;
 
 .submenu a{
   font-size:12px;
-  width:135px;
+  width:100%;
+  min-width: 100px;
   position:relative;
   clear:both; /* special IE6 */
 }
@@ -68,7 +76,7 @@ margin-top: 5px;
   display:block;  
   z-index:500;
 }
-/* elements editor end*/
+/* Ende Editor Menueleiste*/
 .error{
 width: 100%;
 background: #fc8193;

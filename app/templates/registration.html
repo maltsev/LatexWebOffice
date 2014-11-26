@@ -18,14 +18,14 @@
     <div id="registrierungsbox">
         <h1>REGISTRIEREN</h1>
         <div class="hline_green"></div>
-		<!-- Displaying error messages from Django -->
+		<!-- Anzeigen der Fehlermeldung -->
         <div class="row">
             {% comment %}
             Stub Page
             {% endcomment %}
 
             {% if messages %}
-                <ul class="messages"><!-- https://docs.djangoproject.com/en/dev/ref/contrib/messages/ to send messages from server to client -->
+                <ul class="messages"><!-- https://docs.djangoproject.com/en/dev/ref/contrib/messages/ Senden der Meldungen vom Server zum Client -->
                     {% for message in messages %}
                     <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
                     {% endfor %}
@@ -34,6 +34,7 @@
 
             <form action="#" method="post" role="form">
             {% csrf_token %}
+			<!-- Eingabefelder für Vorname, Mailadresse, Passwort und Passwort wdh.-->
             <div class="form-group">
 		        <ul>
 		        <li class="inputlabel">Vorname</li>

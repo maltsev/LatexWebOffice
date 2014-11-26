@@ -4,7 +4,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Tue 25 Nov 2014 08:51:04 PM CET
+* Last Modified : Mi 26 Nov 2014 10:08:29 CET
 
 * Author :  mattis
 
@@ -140,7 +140,7 @@ class DocumentsTestClass(TestCase):
 
     #Teste das Erzeugen von Ordnern
     def test_createDir(self):
-        response=self.documentPoster(command='createdir',idpara=self._user1_project1.id,name='testFolder')
+        response=self.documentPoster(command='createdir',idpara=self._user1_project1.rootFolder.id,name='testFolder')
         dictionary=jsonDecoder(response.content)
         #Teste, ob beim richtiger Anfrage eine Erfolgsmeldung zurückgegeben wird
         self.assertEqual(dictionary['status'],SUCCESS)
