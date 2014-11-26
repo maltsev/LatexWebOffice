@@ -27,7 +27,8 @@ from app.models.file.texfile import TexFile
 from app.common.util import *
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from core.settings import FILEDATA_URL, TMP_FILEDATA_URL
-import mimetypes, os
+import mimetypes, os, io
+from django.db import transaction
 
 # Verteilerfunktion
 # liest den vom Client per POST Data übergebenen Befehl ein
@@ -44,6 +45,7 @@ def execute(request):
             'uploadfiles': {'command': uploadFiles, 'parameters': ('id', 'folderid')},
             'deletefile': {'command': deleteFile, 'parameters': ('id',)},
             'renamefile': {'command': renameFile, 'parameters': ('id', 'name')},
+            'movefile': {'command': moveFile, 'parameters': ('id', 'folderid')},
             'listfiles': {'command': listFiles, 'parameters': ('id',)},
             'projectcreate': {'command': projectCreate, 'parameters': ('name',)},
             'projectrm': {'command': projectRm, 'parameters': ('id',)},
@@ -55,7 +57,8 @@ def execute(request):
             'createdir': {'command': createDir, 'parameters': ('id', 'name')},
             'renamedir': {'command': renameDir, 'parameters': ('id', 'name')},
             'rmdir': {'command': rmDir, 'parameters': ('id',)},
-            'fileinfo': {'command': fileInfo, 'parameters': ('id',)}
+            'fileinfo': {'command': fileInfo, 'parameters': ('id',)},
+            'shareproject': {'command': shareProject, 'parameters': ('id', 'name')}
         }
 
         # wenn der Schlüssel nicht gefunden wurde
@@ -69,12 +72,6 @@ def execute(request):
         c = available_commands[request.POST['command']]
         # Parameter dieses Befehls
         paras = c['parameters']
-
-        to_json = {
-            'status': 'failure',
-            'request': request.POST,
-            'response': ''
-        }
 
         # durchlaufe alle Parameter des Befehls
         for para in paras:
@@ -102,18 +99,13 @@ def updateFile(request, user, fileid, filecontenttostring):
     if not rights:
         return failurereturn
 
-    fileobj = File.objects.get(id=fileid)
-
-    # finde die Dateiendung heraus
-    fileName, fileExtension = os.path.splitext(fileobj.name)
-
-    if not fileExtension == '.tex':
+    if not TextFile.objects.filter(id=fileid).exists():
         return jsonErrorResponse(ERROR_MESSAGES['NOTEXFILE'], request)
 
-    tex = TexFile.objects.get(id=fileid)
+    text = TextFile.objects.get(id=fileid)
 
-    tex.source_code = filecontenttostring
-    tex.save()
+    text.source_code = filecontenttostring
+    text.save()
 
     return jsonResponse({}, True, request)
 
@@ -225,22 +217,13 @@ def projectCreate(request, user, projectname):
         return jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
     else:
         try:
-            rootfolder = Folder(name=projectname)
-            rootfolder.save()
-        except:
-            return jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTCREATED'], request)
-
-        # versuche ein neues Projekt zu erstellen
-        try:
-            newproject = Project(name=projectname, author=user, rootFolder=rootfolder)
-            newproject.save()
-        except:
-            return jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTCREATED'], request)
-
-        # versuche eine neue leere main.tex Datei in dem Projekt zu erstellen
-        try:
-            texfile = TexFile.objects.create(name='main.tex', folder=rootfolder, source_code='')
-            texfile.save()
+            with transaction.atomic():
+                rootfolder = Folder(name=projectname)
+                rootfolder.save()
+                newproject = Project(name=projectname, author=user, rootFolder=rootfolder)
+                newproject.save()
+                texfile = TexFile.objects.create(name='main.tex', folder=rootfolder, source_code='')
+                texfile.save()
         except:
             return jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTCREATED'], request)
 
@@ -345,7 +328,6 @@ def downloadFile(request, user, fileid):
         ctype = 'application/octet-stream'
     response['Content-Type'] = ctype
     response['Content-Length'] = str(os.stat(userfile_path).st_size)
-    print(userfile_path)
     if encoding is not None:
         response['Content-Encoding'] = encoding
 
@@ -475,3 +457,17 @@ def latexCompile(request, user, fileid):
 
     #Sonst Fehlermeldung an Client
     return jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
+
+
+# gibt ein Projekt für einen anderen Benutzer zum Bearbeiten frei
+# benötigt: id: projectid, name:inviteusername
+# liefert HTTP Response (Json)
+def shareProject(request, user, projectid, inviteusername):
+    pass
+
+
+# verschiebt eine Datei in einen anderen Ordner
+# benötigt: id: fileid, folderid: newfolderid
+# liefert HTTP Response (Json)
+def moveFile(request, user, fileid, newfolderid):
+    pass
