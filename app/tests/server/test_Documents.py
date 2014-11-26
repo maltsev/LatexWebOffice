@@ -21,10 +21,12 @@ from django.test.utils import override_settings
 from django.contrib.auth.models import User
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from app.common.util import jsonDecoder
-from app.models.project import Project
 from app.models.folder import Folder
-from app.models.file.texfile import TexFile
+from app.models.project import Project
 from app.models.file.file import File
+from app.models.file.texfile import TexFile
+from app.models.file.plaintextfile import PlainTextFile
+from app.models.file.binaryfile import BinaryFile
 from django.conf import settings
 #from core.settings import FILEDATA_URL, TMP_FILEDATA_URL
 from django.utils.encoding import smart_str
@@ -457,7 +459,7 @@ class DocumentsTestClass(TestCase):
         user1_tex1 = TexFile(name='main.tex', folder=subfolder1, source_code='test tex file\n')
         user1_tex1.save()
 
-        user1_bin1 = File(name='test.bin', folder=rootfolder)
+        user1_bin1 = BinaryFile(name='test.bin', folder=rootfolder)
         user1_bin1.save()
         file = os.path.join(user1_project1_dir, str(user1_bin1.id))
         user1_binary1_file = open(file, 'w')
@@ -465,14 +467,15 @@ class DocumentsTestClass(TestCase):
         user1_binary1_file.close()
 
 
-        response = self.client.post('/documents/', {'command': 'downloadfile', 'id': user1_bin1.id})
+        #response = self.client.post('/documents/', {'command': 'downloadfile', 'id': user1_bin1.id})
 
-        #response = self.client.post('/documents/', {'command': 'downloadfile', 'id': user1_tex1.id})
+        response = self.client.post('/documents/', {'command': 'downloadfile', 'id': user1_tex1.id})
 
-        #print('response:')
-        #print(response['Content-Type'])
-        #print(response['Content-Length'])
-        #print(response['Content-Disposition'])
+        print('response:')
+        print(response.content.decode('utf-8'))
+        print(response['Content-Type'])
+        print(response['Content-Length'])
+        print(response['Content-Disposition'])
 
         #response = self.client.post('/documents/', {'command': 'listfiles', 'id': rootfolder.id})
 

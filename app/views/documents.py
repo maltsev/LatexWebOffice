@@ -23,6 +23,8 @@ from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.file import File
 from app.models.file.texfile import TexFile
+from app.models.file.plaintextfile import PlainTextFile
+from app.models.file.binaryfile import BinaryFile
 from app.common import util
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from django.conf import settings
@@ -99,13 +101,13 @@ def updateFile(request, user, fileid, filecontenttostring):
     if not rights:
         return failurereturn
 
-    if not TextFile.objects.filter(id=fileid).exists():
+    if not PlainTextFile.objects.filter(id=fileid).exists():
         return util.jsonErrorResponse(ERROR_MESSAGES['NOTEXFILE'], request)
 
-    text = TextFile.objects.get(id=fileid)
+    plaintextobj = PlainTextFile.objects.get(id=fileid)
 
-    text.source_code = filecontenttostring
-    text.save()
+    plaintextobj.source_code = filecontenttostring
+    plaintextobj.save()
 
     return util.jsonResponse({}, True, request)
 
@@ -264,53 +266,42 @@ def downloadFile(request, user, fileid):
     if not rights:
         return failurereturn
 
-    # lese das File Objekt aus der Datenbank ein
-    userfile = File.objects.get(id=fileid)
-
-    # lese die zugehörige Projekt id ein
-    userfile_project_id = userfile.folder.getRoot().getProject().id
-
-    # finde die Dateiendung heraus
-    fileName, fileExtension = os.path.splitext(userfile.name)
-
-    # wenn eine .tex Datei angefordert wurde
-    if fileExtension == '.tex':
-        userfile = TexFile.objects.get(id=fileid)
-        # erstelle einen Ordner im temp Verzeichnis, falls nicht bereits vorhanden
-        # Form ...latexweboffice/temp/projectid/fileid
-        userfile_path = os.path.join(settings.TMP_FILEDATA_URL, str(userfile_project_id))
-        if not os.path.isdir(userfile_path):
-            os.makedirs(userfile_path)
-        # erstelle die tex Datei und lese sie ein
-        file_dl = open(os.path.join(userfile_path, str(userfile.id)), 'r+')
-
-        file_dl.write(userfile.source_code)
-        response = HttpResponse(file_dl.read())
-        file_dl.close()
-
-        userfile_path = os.path.join(userfile_path, str(userfile.id))
+    # wenn eine PlainText Datei angefordert wurde
+    if PlainTextFile.objects.filter(id=fileid).exists():
+        downloadfile = PlainTextFile.objects.get(id=fileid)
+        # hole den source code der PlainText Datei
+        downloadfile_source_code = downloadfile.source_code
+        # erstelle die PlainText Datei als in-memory stream und schreibe den source_code rein
+        downloadfileIO = io.StringIO()
+        downloadfile_size = downloadfileIO.write(downloadfile_source_code)
+        response = HttpResponse(downloadfileIO.getvalue())
+        downloadfileIO.close()
 
     # sonst wurde eine Binärdatei angefordert
     else:
         # Pfad zur Binärdatei
         # Form .../latexweboffice/userid/projectid/fileid
-        userfile_path = os.path.join(settings.FILEDATA_URL, str(user.id), str(userfile_project_id), str(userfile.id))
+
+        downloadfile = BinaryFile.objects.get(id=fileid)
+        downloadfile_projectid = BinaryFile.objects.get(id=fileid).folder.getProject().id
+        downloadfile_path = os.path.join(settings.FILEDATA_URL, str(user.id), str(downloadfile_projectid), str(downloadfile.id))
+        downloadfile_size = str(os.stat(downloadfile_path).st_size)
 
         # lese die Datei ein
-        file_dl = open(userfile_path, 'r')
+        file_dl = open(downloadfile_path, 'r')
         response = HttpResponse(file_dl.read())
         file_dl.close()
 
-    ctype, encoding = mimetypes.guess_type(userfile.name)
+    ctype, encoding = mimetypes.guess_type(downloadfile.name)
 
     if ctype is None:
         ctype = 'application/octet-stream'
     response['Content-Type'] = ctype
-    response['Content-Length'] = str(os.stat(userfile_path).st_size)
+    response['Content-Length'] = downloadfile_size
     if encoding is not None:
         response['Content-Encoding'] = encoding
 
-    filename_header = 'filename=%s' % userfile.name.encode('utf-8')
+    filename_header = 'filename=%s' % downloadfile.name.encode('utf-8')
 
     response['Content-Disposition'] = 'attachment; ' + filename_header
 
