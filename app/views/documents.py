@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mi 26 Nov 2014 13:16:22 CET
+* Last Modified : Mi 26 Nov 2014 13:22:44 CET
 
 * Author :  mattis
 
@@ -114,10 +114,7 @@ def updateFile(request, user, fileid, filecontenttostring):
     text.source_code = filecontenttostring
     text.save()
 
-<<<<<<< HEAD
-=======
     return util.jsonResponse({}, True, request)
->>>>>>> 13a827343057d69c0e8b2910ddbbfb82e2e1bea2
 
 
 # speichert vom Client gesendete Dateien im entsprechenden Projektordner
@@ -460,12 +457,12 @@ def shareProject(request, user, projectid, inviteusername):
 # liefert HTTP Response (Json)
 def moveFile(request, user, fileid, newfolderid):
     # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = checkIfFileExistsAndUserHasRights(fileid, user, request)
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         return failurereturn
 
     #überprüfe, ob der Ordner mit der id newfolderid existiert und newfolderid dem User gehört
-    rights, failurereturn=checkIfDirExistsAndUserHasRights(newfolderid,user,request)
+    rights, failurereturn=util.checkIfDirExistsAndUserHasRights(newfolderid,user,request)
     fileobj=File.objects.get(id=fileid)
     if not rights:
         return failurereturn
@@ -476,7 +473,7 @@ def moveFile(request, user, fileid, newfolderid):
 
     fileobj.save()
 
-    return jsonResponse({},True,request)
+    return util.jsonResponse({},True,request)
 
     
 
