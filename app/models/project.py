@@ -8,7 +8,7 @@ class Project(models.Model):
     name = models.CharField(max_length=255)
     author = models.ForeignKey(User)
     createTime = models.DateTimeField(auto_now_add=True)
-    rootFolder = models.OneToOneField(Folder)
+    rootFolder = models.ForeignKey(Folder)
 
     class Meta:
         unique_together = ('name', 'author')
