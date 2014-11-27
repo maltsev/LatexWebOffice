@@ -1,6 +1,6 @@
 """
 
-* Purpose : Test des Verzeichnismodells (app/view/documents.py)
+* Purpose : Test des Verzeichnismodells (app/models/folder.py)
 
 * Creation Date : 26-11-2014
 
@@ -13,12 +13,12 @@
 * Backlog entry :
 
 """
-from django.test import TestCase
+from django.core.exceptions import ObjectDoesNotExist
 from app.models.folder import Folder
 from app.models.file.file import File
-from django.core.exceptions import ObjectDoesNotExist
+from app.tests.server.models.modeltestcase import ModelTestCase
 
-class FolderTestCase(TestCase):
+class FolderTestCase(ModelTestCase):
     def setUp(self):
         self.root = root = Folder.objects.create(name='root')
         self.root_file1 = File.objects.create(name='root_file1', folder=root)
