@@ -39,7 +39,8 @@ var braces = {
 function autoBraceCompletion(e) {
 	if (e.data.action == 'insertText') {
 		var pos = editor.getSelection().getCursor();
-		if (e.data.text in braces) {
+		if (e.data.text in braces && 
+				editor.getSession().getLine(pos.row).charAt(pos.column - 1) != '\\') {
 			// schließende Klammer zu einer eingegebenen öffnenden hinzufügen
 			editor.moveCursorTo(pos.row, pos.column + 1);
 			editor.insert(braces[e.data.text]);
