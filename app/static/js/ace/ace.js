@@ -7887,7 +7887,6 @@ var Range = require("../range").Range;
 
 
 function BracketMatch() {
-
     this.findMatchingBracket = function(position, chr) {
         if (position.column == 0) return null;
 

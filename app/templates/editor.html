@@ -132,7 +132,7 @@
 					editor.setOptions({
 					enableBasicAutocompletion: true
 				});
-				editor.on('change', function(e) {
+editor.on('change', function(e) {
 					var sign = e.data.text;
 					var position = editor.selection.getCursor();
 					var token = editor.session.getTokenAt(position.row,position.column);
@@ -142,12 +142,15 @@
 					if (sign == '{' && token.value.charAt(token.value.length-2) != '\\' && editor.getValue().length >= textlength){
 					
 					editor.moveCursorTo(position.row,position.column+1);
-					editor.insert("\n\n}");
-					
+					editor.insert("}");
+					position = editor.selection.getCursor();
+					editor.moveCursorTo(position.row,position.column-2);
+
 					//console.log(position);
 					}
 					textlength = editor.getValue().length;
 				});
+				
 				</script>
 			<!-- Ende Editoreingabefenster -->
 			</td>
