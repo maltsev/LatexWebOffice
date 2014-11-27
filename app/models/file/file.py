@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import io
 from django.db import models
 from app.models import folder
 
@@ -11,6 +12,10 @@ class File(models.Model):
 
     class Meta:
         unique_together = ('name', 'folder')
+
+
+    def getContent(self):
+        return io.StringIO()
 
     def __str__(self):
         return self.name

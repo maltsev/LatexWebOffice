@@ -5,3 +5,6 @@ from app.models.file.file import File
 
 class BinaryFile(File):
     filepath = models.CharField(max_length=255)
+
+    def getContent(self):
+        return open(str(self.filepath), 'r')
