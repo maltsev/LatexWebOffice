@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 28 Nov 2014 13:55:49 CET
+* Last Modified : Fri 28 Nov 2014 10:07:41 PM CET
 
 * Author :  mattis
 
@@ -21,6 +21,8 @@ from app.common import util
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from django.conf import settings
 from app.views import file, folder, project
+from django.http import HttpResponse, Http404
+
 
 # Schnittstellenfunktion
 # bietet eine Schnittstelle zur Kommunikation zwischen Client und Server
@@ -52,7 +54,7 @@ def execute(request):
             'deletefile': {'command': file.deleteFile, 'parameters': (globalparas['id'],)},
             'renamefile': {'command': file.renameFile, 'parameters': (globalparas['id'], globalparas['name'])},
             'movefile': {'command': file.moveFile, 'parameters': (globalparas['id'], globalparas['folderid'])},
-            'uploadfiles': {'command': file.uploadFiles, 'parameters': (globalparas['id'], globalparas['folderid'])},
+            'uploadfiles': {'command': file.uploadFiles, 'parameters': (globalparas['id'],)},
             'downloadfile': {'command': file.downloadFile, 'parameters': (globalparas['id'],)},
             'fileinfo': {'command': file.fileInfo, 'parameters': (globalparas['id'],)},
             'compile': {'command': file.latexCompile, 'parameters': (globalparas['id'],)},
@@ -93,3 +95,4 @@ def execute(request):
         # except:
         #    print('Fehler')
         #    to_json['response']=str(sys.exc_info()[0])
+    raise Http404

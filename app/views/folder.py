@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 28 Nov 2014 13:31:09 CET
+* Last Modified : Fri 28 Nov 2014 10:27:13 PM CET
 
 * Author :  mattis
 
@@ -24,8 +24,8 @@ from app.models.file.binaryfile import BinaryFile
 from app.common import util
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from django.conf import settings
-import mimetypes, os, io
 from django.db import transaction
+import mimetypes, os, io
 
 
 # erstellt einen neuen Ordner im angegebenen Verzeichnis
@@ -33,7 +33,7 @@ from django.db import transaction
 # liefert: HTTP Response (Json)
 def createDir(request, user, parentdirid, directoryname):
     # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = util.checkObjectForInvalidString(directoryname, user, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(directoryname,  request)
     if not emptystring:
         return failurereturn
 
@@ -93,7 +93,7 @@ def renameDir(request, user, folderid, newdirectoryname):
     folder = Folder.objects.get(id=folderid)
 
     # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = util.checkObjectForInvalidString(folder.name, user, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(folder.name, request)
     if not emptystring:
         return failurereturn
 

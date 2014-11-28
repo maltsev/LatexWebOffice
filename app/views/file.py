@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 28 Nov 2014 13:59:49 CET
+* Last Modified : Fri 28 Nov 2014 10:26:52 PM CET
 
 * Author :  christian
 
@@ -23,11 +23,10 @@ from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.common import util
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
+from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE 
 from django.conf import settings
 import mimetypes, os, io
 from django.db import transaction
-
 
 # erstellt eine neue .tex Datei in der Datenbank ohne Textinhalt
 # benötigt: id:folderid name:filename
@@ -47,7 +46,7 @@ def createTexFile(request, user, folderid, texname):
 
     # Teste, ob der Dateiname kein leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
     # oder ungültige Sonderzeichen enthält
-    emptystring, failurereturn = util.checkObjectForInvalidString(texname, user, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(texname, request)
     if not emptystring:
         return failurereturn
     try:
@@ -110,7 +109,7 @@ def renameFile(request, user, fileid, newfilename):
         return failurereturn
 
     # Teste, ob der filename keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = util.checkObjectForInvalidString(newfilename, user, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(newfilename, request)
     if not emptystring:
         return failurereturn
 
@@ -164,10 +163,25 @@ def moveFile(request, user, fileid, newfolderid):
 # bzw. in der Datenbank (.tex)/
 # benötigt: id:projectid, folderid:folderid
 # liefert: HTTP Response (Json)
-def uploadFiles(request, user, projectid, folderid):
-    # for afile in request.FILES.getlist('files'):
-    #    File(file=afile, files=test).save()
-    pass
+def uploadFiles(request, user, folderid):
+    
+    # Teste ob der Ordner existiert und der User rechte auf dem Ordner hat
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
+    if not rights:
+        return failurereturn
+    folder=Folder.objects.get(id=folderid)
+
+    if not request.FILES and not request.FILES.getlist('files'):
+       return util.jsonErrorResponse(ERROR_MESSAGES['NOTALLPOSTPARAMETERS'],request)
+
+    files=request.FILES.getlist('files')
+
+
+    
+
+
+
+    return util.uploadFiles(files,folder,request)
 
 
 # liefert eine vom Client angeforderte Datei als Filestream
