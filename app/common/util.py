@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fr 28 Nov 2014 11:55:48 CET
+* Last Modified : Fr 28 Nov 2014 13:58:11 CET
 
 * Author :  christian
 
@@ -186,14 +186,14 @@ def getFolderAndFileStructureAsDict(folderobj):
 # Helper Methode um leichter die verschiedenen commands durchzutesten.
 def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content=None, name=None, files=None):
     dictionary = {'command': command}
-    if idpara:
+    if idpara!=None:
         dictionary['id'] = idpara
-    if idpara2:
+    if idpara2!=None:
         dictionary['folderid'] = idpara2
-    if content:
+    if content!=None:
         dictionary['content'] = content
-    if name:
+    if name!=None:
         dictionary['name'] = name
-    if files:
+    if files!=None:
         pass  # TODO
     return self.client.post('/documents/', dictionary)

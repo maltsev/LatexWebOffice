@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Mi 26 Nov 2014 14:58:13 CET
+* Last Modified : Fr 28 Nov 2014 13:50:10 CET
 
 * Author :  christian
 
@@ -218,6 +218,12 @@ class FileTestClass(TestCase):
         # sollte failure als status liefern
         # sollte die Fehlermeldung ERROR_MESSAGES['FILENOTEXIST'] liefern
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENOTEXIST'])
+
+        # Sende Anfrage zum ändern der Datei als user1 mit einer fileid.
+        # Die Datei soll nun nur noch einen leeren String beinhalten
+        response = util.documentPoster(self,command='updatefile',idpara=self._user1_tex1.id,content='')
+        util.validateJsonSuccessResponse(self,response.content,{})
+
 
 
     # Teste das Löschen einer Datei

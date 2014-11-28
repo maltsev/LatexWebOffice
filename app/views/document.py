@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mi 26 Nov 2014 15:33:04 CET
+* Last Modified : Fr 28 Nov 2014 13:55:49 CET
 
 * Author :  mattis
 
@@ -79,7 +79,7 @@ def execute(request):
         for para in paras:
             # wenn der Parameter nicht gefunden wurde oder ein Parameter, welcher eine id angeben sollte
             # Zeichen enthält, die keine Zahlen sind, gib Fehlermeldung zurück
-            if not request.POST.get(para['name']):
+            if request.POST.get(para['name'])==None:
                 return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)
             elif para['type'] == int and (not request.POST.get(para['name']).isdigit()):
                 return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)
