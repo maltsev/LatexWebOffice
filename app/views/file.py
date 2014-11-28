@@ -31,6 +31,7 @@ from django.db import transaction
 
 # erstellt eine neue .tex Datei in der Datenbank ohne Textinhalt
 # benötigt: id:folderid name:filename
+# liefert HTTP Response (Json); response: id=fileid, name=filename
 def createTexFile(request, user, folderid, texname):
     # Überprüfe ob der Ordner existiert, und der Benutzer die entsprechenden Rechte besitzt
     rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
@@ -90,17 +91,10 @@ def deleteFile(request, user, fileid):
     if not rights:
         return failurereturn
 
+    # hole das file object
     fileobj = File.objects.get(id=fileid)
 
-    # finde die Dateiendung heraus
-    fileName, fileExtension = os.path.splitext(fileobj.name)
-
-    if not fileExtension == '.tex':
-        projectid = fileobj.folder.getProject().id
-        filepath = os.path.join(settings.FILEDATA_URL, str(user.id), str(projectid), str(fileobj.id))
-
-        #os.remove(filepath)
-
+    # lösche die Datei
     fileobj.delete()
 
     return util.jsonResponse({}, True, request)
@@ -120,8 +114,15 @@ def renameFile(request, user, fileid, newfilename):
     if not emptystring:
         return failurereturn
 
+    # hole das file object
     fileobj = File.objects.get(id=fileid)
 
+    # Teste ob eine Datei mit dem selben Namen schon existiert
+    unique, failurereturn = util.checkIfFileOrFolderIsUnique(newfilename, File, fileobj.folder, request)
+    if not unique:
+        return failurereturn
+
+    # setze den neuen Dateinamen und speichere das Objekt
     fileobj.name = newfilename
     fileobj.save()
 
@@ -137,15 +138,23 @@ def moveFile(request, user, fileid, newfolderid):
     if not rights:
         return failurereturn
 
-    # überprüfe, ob der Ordner mit der id newfolderid existiert und newfolderid dem User gehört
+    # überprüfe, ob die Datei mit der id fileid existiert und newfolderid dem User gehört
     rights, failurereturn = util.checkIfDirExistsAndUserHasRights(newfolderid, user, request)
     fileobj = File.objects.get(id=fileid)
     if not rights:
         return failurereturn
+
+    # hole das folder und file object
     folderobj = Folder.objects.get(id=newfolderid)
+    fileobj = File.objects.get(id=fileid)
 
+    # Teste ob eine Datei mit dem selben Namen schon existiert
+    unique, failurereturn = util.checkIfFileOrFolderIsUnique(fileobj.name, File, folderobj, request)
+    if not unique:
+        return failurereturn
+
+    # setze den neuen Ordner des folderobj und speichere die Änderung
     fileobj.folder = folderobj
-
     fileobj.save()
 
     return util.jsonResponse({}, True, request)

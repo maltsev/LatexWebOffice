@@ -44,7 +44,7 @@ def projectCreate(request, user, projectname):
         return failurereturn
 
     # überprüfe ob ein Projekt mit dem Namen projectname bereits für diese Benutzer existiert
-    elif Project.objects.filter(name=projectname, author=user).exists():
+    if Project.objects.filter(name=projectname, author=user).exists():
         return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
     else:
         try:
@@ -68,11 +68,8 @@ def projectRm(request, user, projectid):
     if not rights:
         return failurereturn
 
-    # zu löschendes Projekt
+    # hole das zu löschende Projekt
     projectdel = Project.objects.get(id=projectid)
-
-    # TODO zugehörige Dateien und Ordner löschen
-    # shutil.rmtree(projectdel.rootFolder)
 
     # versuche das Projekt zu löschen
     try:
@@ -116,15 +113,3 @@ def exportZip(request, user, folderid):
 # liefert HTTP Response (Json)
 def shareProject(request, user, projectid, inviteusername):
     pass
-
-
-# TODO löschen ?
-@login_required
-def list(request):
-    projects = Project.objects.all()
-    return render_to_response('index.html', {'projects': projects}, context_instance=RequestContext(request))
-
-
-@login_required
-def editor(request, projectId):
-    return HttpResponse("Project id: {}".format(projectId))

@@ -10,19 +10,3 @@
 {% block header %}
 {% endblock %}
 
-<!-- Inhalt -->
-{% block content %}
-<div id="inhalt">
-<div  class="row">
-    {% if projects %}
-        <ul>
-            {% for project in projects %}
-                <li><a href="/project/{{ project.id }}/">{{ project.title }}</a></li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>Sie haben keine Projekte.</p>
-    {% endif %}
-</div>
-</div>
-{% endblock %}

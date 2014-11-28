@@ -91,6 +91,10 @@ class FileTestClass(TestCase):
         # Erstelle eine .tex Datei für user1 in user1_project1_root (Projekt root Verzeichnis)
         self._user1_tex1 = TexFile(name='main.tex', folder=self._user1_project1_root, source_code='user1_tex1\n')
         self._user1_tex1.save()
+        self._user1_tex2 = TexFile(name='tex2.tex', folder=self._user1_project1_root, source_code='user1_tex2\n')
+        self._user1_tex2.save()
+        self._user1_tex3 = TexFile(name='TEX2.tex', folder=self._user1_project1_folder1, source_code='user1_tex3\n')
+        self._user1_tex3.save()
 
         self._user1_dir = os.path.join(settings.FILEDATA_URL, str(self._user1.id))
         self._user1_project1_dir = os.path.join(self._user1_dir, str(self._user1_project1.id))
@@ -132,9 +136,9 @@ class FileTestClass(TestCase):
         # überprüfe die Antwort des Servers
         # sollte success als status liefern
         # response sollte mit serveranswer übereinstimmen
-        serveranswer = {'id': 4, 'name': self._user1_tex1_newname}
+        texfileobj = TexFile.objects.get(name='newmain.tex')
+        serveranswer = {'id': texfileobj.id, 'name': self._user1_tex1_newname}
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
-
 
         # Sende Anfrage zum erstellen einer neuen .tex Datei mit einem Namen, der bereits im selben Ordner existiert
         response = util.documentPoster(self, command='createtex', idpara=self._user1_project1_root.id,
@@ -301,6 +305,15 @@ class FileTestClass(TestCase):
         # sollte die Fehlermeldung ERROR_MESSAGES['FILENOTEXIST'] liefern
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENOTEXIST'])
 
+        # Sende Anfrage zum erstellen einer neuen .tex Datei mit einem Namen, der bereits im selben Ordner existiert
+        response = util.documentPoster(self, command='renamefile', idpara=self._user1_tex2.id,
+                                       name=self._user1_tex3.name)
+
+        # überprüfe die Antwort des Servers
+        # sollte failure als status liefern
+        # sollte ERROR_MESSAGES['FILENAMEEXISTS'] als Fehlermeldung liefern
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENAMEEXISTS'])
+
 
     # Teste das Verschieben einer Datei
     def test_movefile(self):
@@ -346,6 +359,15 @@ class FileTestClass(TestCase):
         # sollte failure als status liefern
         # sollte die Fehlermeldung ERROR_MESSAGES['FILENOTEXIST'] liefern
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENOTEXIST'])
+
+        # Sende Anfrage zum verschieben einer Datei mit einem Namen, der bereits im selben Ziel Ordner existiert
+        response = util.documentPoster(self, command='movefile', idpara=self._user1_tex3.id,
+                                       idpara2=self._user1_project1_root.id)
+
+        # überprüfe die Antwort des Servers
+        # sollte failure als status liefern
+        # sollte ERROR_MESSAGES['FILENAMEEXISTS'] als Fehlermeldung liefern
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENAMEEXISTS'])
 
 
     # Teste upload lokaler Dateien auf den Server
