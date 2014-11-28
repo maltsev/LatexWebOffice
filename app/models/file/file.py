@@ -15,5 +15,9 @@ class File(models.Model):
     def getContent(self):
         return io.StringIO()
 
+    # Method stub
+    def getTempPath(self):
+        return ''
+
     def __str__(self):
         return self.name

@@ -27,6 +27,14 @@ class Folder(models.Model):
         file = rootFolder.file_set.filter(name='main.tex').get()
         return TexFile.objects.get(pk=file.pk)
 
+    # Method stub
+    def getTempPath(self):
+        return ''
+
+    # Method stub
+    def getFilesRecursively(self):
+        return []
+
     def __str__(self):
         return self.name
 
