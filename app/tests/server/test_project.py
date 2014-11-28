@@ -247,3 +247,18 @@ class ProjectTestClass(TestCase):
 
         # teste, ob in response ein leeres Array übergeben wurde, da user3 keine Projekte besitzt
         self.assertEqual(dictionary['response'], [])
+
+
+    # Teste das Importieren von Projekten mit einer .zip Datei
+    def test_importzip(self):
+        pass
+
+
+    # Teste das Exportieren eines Projektes als .zip Datei
+    def test_exportzip(self):
+        pass
+
+
+    # Teste die Freigabe eines Projektes für andere Benutzer
+    def test_shareproject(self):
+        pass
