@@ -49,9 +49,7 @@ def projectCreate(request, user, projectname):
     else:
         try:
             with transaction.atomic():
-                rootfolder = Folder.objects.create(name=projectname)
-                newproject = Project.objects.create(name=projectname, author=user, rootFolder=rootfolder)
-                texfile = TexFile.objects.create(name='main.tex', folder=rootfolder, source_code='')
+                newproject = Project.objects.create(name=projectname, author=user)
         except:
             return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTCREATED'], request)
 

@@ -49,21 +49,13 @@ class FileTestClass(TestCase):
         # logge user1 ein
         self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
 
-        # erstelle die root Ordner für die einzelnen Projekte
-        self._user1_project1_root = Folder(name='user1_project1')
-        self._user1_project1_root.save()
-        self._user2_project1_root = Folder(name='user2_project1')
-        self._user2_project1_root.save()
-
         # erstelle ein Projekt als user1
-        self._user1_project1 = Project.objects.create(name='USer1_project1', author=self._user1,
-                                                      rootFolder=self._user1_project1_root)
-        self._user1_project1.save()
+        self._user1_project1 = Project.objects.create(name='USer1_project1', author=self._user1)
+        self._user1_project1_root = self._user1_project1.rootFolder
 
         # erstelle ein Projekt als user2
-        self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2,
-                                                      rootFolder=self._user2_project1_root)
-        self._user2_project1.save()
+        self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2)
+        self._user2_project1_root = self._user2_project1.rootFolder
 
         # erstelle zwei Order für user1, die dem Projekt user1_project1 zugewiesen werden
         # erstelle einen Unterordner in _user1_project1_folder2
@@ -89,7 +81,8 @@ class FileTestClass(TestCase):
         self._user2_project1_folder1_subfolder1.save()
 
         # Erstelle eine .tex Datei für user1 in user1_project1_root (Projekt root Verzeichnis)
-        self._user1_tex1 = TexFile(name='main.tex', folder=self._user1_project1_root, source_code='user1_tex1\n')
+        self._user1_tex1 = self._user1_project1_root.getMainTex()
+        self._user1_tex1.source_code = 'user1_tex1\n'
         self._user1_tex1.save()
         self._user1_tex2 = TexFile(name='tex2.tex', folder=self._user1_project1_root, source_code='user1_tex2\n')
         self._user1_tex2.save()
@@ -111,7 +104,8 @@ class FileTestClass(TestCase):
         user1_binfile1.close()
 
         # Erstelle eine .tex Datei für user1 in user1_project1_root (Projekt root Verzeichnis)
-        self._user2_tex1 = TexFile(name='main.tex', folder=self._user2_project1_root, source_code='user2_tex1\n')
+        self._user2_tex1 = self._user2_project1_root.getMainTex()
+        self._user2_tex1.source_code = 'user2_tex1\n'
         self._user2_tex1.save()
 
         self._user1_tex1_newcode = 'user1_tex1\n\nnew text added'

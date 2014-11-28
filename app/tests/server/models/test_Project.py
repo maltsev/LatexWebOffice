@@ -34,8 +34,14 @@ class ProjectTestCase(ModelTestCase):
         self.project.delete()
         self.checkCascadeDelete()
 
+    def test_mainTex(self):
+        self.mainTexFile.source_code = 'test src'
+        self.mainTexFile.save()
+        self.assertEqual('test src', self.project.rootFolder.getMainTex().source_code)
+
     def checkCascadeDelete(self):
-        self.assertRaises(ObjectDoesNotExist, Project.objects.get, pk=self.project.id)
-        self.assertRaises(ObjectDoesNotExist, Folder.objects.get, pk=self.rootFolder.id)
-        self.assertRaises(ObjectDoesNotExist, Folder.objects.get, pk=self.rootFolder_dir1.id)
-        self.assertRaises(ObjectDoesNotExist, File.objects.get, pk=self.rootFolder_dir1_file1.id)
+        self.assertRaises(ObjectDoesNotExist, Project.objects.get, pk=self.project.pk)
+        self.assertRaises(ObjectDoesNotExist, Folder.objects.get, pk=self.rootFolder.pk)
+        self.assertRaises(ObjectDoesNotExist, Folder.objects.get, pk=self.rootFolder_dir1.pk)
+        self.assertRaises(ObjectDoesNotExist, File.objects.get, pk=self.rootFolder_dir1_file1.pk)
+        self.assertRaises(ObjectDoesNotExist, File.objects.get, pk=self.mainTexFile.pk)

@@ -25,6 +25,7 @@ class ModelTestCase(TestCase):
 
         self.project = Project.objects.create(name='LatexWebOffice', author=self.author)
         self.rootFolder = self.project.rootFolder
+        self.mainTexFile = self.rootFolder.getMainTex()
 
         self.rootFolder_dir1 = Folder.objects.create(name='rootFolder_dir1', parent=self.rootFolder, root=self.rootFolder)
         self.rootFolder_dir1_file1 = File.objects.create(name='rootFolder_dir1_file1', folder=self.rootFolder_dir1)
