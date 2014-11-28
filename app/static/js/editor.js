@@ -67,23 +67,21 @@ function loadFile(id) {
 			'X-CSRFToken': $.cookie('csrftoken')
 		},
 		'dataType': 'text',
-		'complete': function(response, status) {
-			if (status == 'success') {
-				// Datei in den Editor laden
-				editor.setValue(response.responseText, 0);
-			} else {
-				// Fehler bei der Anfrage
-				// TODO: Client umleiten?
-
-				// DEBUG
-				console.log({
-					'error': 'Fehler beim Laden der Datei',
-					'id': id,
-					'statusCode': response.status,
-					'statusText': response.statusText
-				});
-			}
-
+		'error': function(response, textStatus, errorThrown) {
+			// Fehler bei der Anfrage
+			// DEBUG
+			console.log({
+				'error': 'Fehler beim Laden der Datei',
+				'details': errorThrown,
+				'id': id,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+			// TODO: Client umleiten?
+		},
+		'success': function(data, textStatus, response) {
+			// Datei erfolgreich geladen
+			editor.setValue(data, 0);
 			// TODO: Editor-Funktionen entsperren
 		}
 	});
@@ -94,5 +92,42 @@ function loadFile(id) {
  * @param id ID der Datei
  */
 function saveFile(id) {
-	// TODO: implementieren
+	// TODO: Editor-Funktionen sperren
+
+	// Dokument schicken
+	jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'updatefile',
+			'id': id,
+			'content': editor.getValue()
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			// Fehler beim Speichern
+			console.log({
+				'error': 'Fehler beim Speichern der Datei',
+				'details': errorThrown,
+				'id': id,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+			// TODO: Editor-Funktionen entsperren
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success')
+				// Server-seitiger Fehler
+				console.log({
+					'error': 'Fehler beim Speichern der Datei',
+					'details': data.response,
+					'id': id,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			// TODO: Editor-Funktionen entsperren
+		}
+	});
 }
