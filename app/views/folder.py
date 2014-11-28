@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mi 26 Nov 2014 15:33:04 CET
+* Last Modified : Fr 28 Nov 2014 11:14:15 CET
 
 * Author :  mattis
 
@@ -58,12 +58,19 @@ def createDir(request, user, parentdirid, directoryname):
 # benötigt: id:folderid
 # liefert: HTTP Response (Json)
 def rmDir(request, user, folderid):
-    # Teste
+    # Teste 
     rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
     if not rights:
         return failurereturn
 
     folder = Folder.objects.get(id=folderid)
+
+    # Rootfolder dürfen nicht gelöscht werden
+    if folder==folder.getRoot():
+        return util.jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
+    
+    # TODO Teste ob Ordnername in diesem Verzeichnis bereits existiert
+
     try:
         folder.delete()
         return util.jsonResponse({}, True, request)
@@ -86,6 +93,8 @@ def renameDir(request, user, folderid, newdirectoryname):
     if not emptystring:
         return failurereturn
 
+    # TODO Teste ob Ordnername in diesem Verzeichnis bereits existiert
+    
     # Versuche die Änderung in die Datenbank zu übernehmen
     try:
         folder.name = newdirectoryname
@@ -112,6 +121,7 @@ def moveDir(request, user, folderid, newfolderid):
     folderobj = Folder.objects.get(id=folderid)
     newparentfolderobj = Folder.objects.get(id=newfolderid)
 
+    # TODO Teste ob Ordnername in diesem Verzeichnis bereits existiert
     # Versuche die Änderung in die Datenbank zu übernehmen
     try:
         # setze den newfolder als neues übergeordnetes Verzeichnis

@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Mi 26 Nov 2014 14:58:13 CET
+* Last Modified : Fr 28 Nov 2014 11:24:26 CET
 
 * Author :  mattis
 
@@ -92,12 +92,6 @@ class FolderTestClass(TestCase):
                                                          root=self._user2_project1_root)
         self._user2_project1_folder1_subfolder1.save()
 
-        # Erstelle eine .tex Datei für user1 in user1_project1_root (Projekt root Verzeichnis)
-        self._user1_tex1 = TexFile(name='main.tex', folder=self._user1_project1_root, source_code='user1_tex1\n')
-        self._user1_tex1.save()
-        self._user1_tex2 = TexFile(name='test.tex', folder=self._user1_project1_folder1, source_code='user1_tex2\n')
-        self._user1_tex2.save()
-
         self._user1_dir = os.path.join(settings.FILEDATA_URL, str(self._user1.id))
         self._user1_project1_dir = os.path.join(self._user1_dir, str(self._user1_project1.id))
         if not os.path.isdir(self._user1_project1_dir):
@@ -181,26 +175,32 @@ class FolderTestClass(TestCase):
     # Teste, ob Unterordner und zum Ordner gehörende Dateien auch gelöscht werden
     def test_rmDir(self):
         self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
-        oldid = self._user1_project1.id
-        oldfileid = self._user1_tex2.id
-        # Stelle sicher, dass zu diesem Zeitpunkt project2 noch existiert
-        self.assertTrue(Project.objects.filter(id=oldid).exists())
+        oldrootfolderid = self._user1_project1.rootFolder.id
+        oldtodeletefolder = self._user1_project1_folder2
+        oldsubdeletefolder=self._user1_project1_folder2_subfolder1
+        oldfileid = self._user1_binary1.id
+        # Stelle sicher, dass zu diesem Zeitpunkt der rootordner von project1 noch existiert
+        self.assertTrue(Folder.objects.filter(id=oldrootfolderid).exists())
         # Stelle sicher, dass es zu diesem Projekt mind. ein Unterverzeichnis existiert + mind. eine Datei
         self.assertEqual(self._user1_project1_folder1.parent, self._user1_project1.rootFolder)
-        self.assertTrue(TexFile.objects.filter(id=oldfileid).exists())
+        self.assertTrue(File.objects.filter(id=oldfileid).exists())
 
-        response = util.documentPoster(self, command='rmdir', idpara=self._user1_project1.id)
+        # Teste, dass man keinen Rootfolder löschen kann
+        response = util.documentPoster(self, command='rmdir', idpara=self._user1_project1_root.id)
         dictionary = util.jsonDecoder(response.content)
         serveranswer = dictionary['response']
+        self.assertEqual(dictionary['status'], FAILURE)
 
-        self.assertEqual(dictionary['status'], SUCCESS)
+        # Teste, dass man sonstige Ordner löschen kann
+        response=util.documentPoster(self,command='rmdir',idpara=self._user1_project1_folder2.id)
 
-        # Das Projekt sollte komplett gelöscht worden sein
-        self.assertFalse(Project.objects.filter(id=oldid).exists())
-        # Unterverzeichnisse und Dateien sollten dabei auch gelöscht werden! (klappt nocht nicht)
-        #TODO self.assertFalse(Folder.objects.filter(id=self._user1_project1_folder1).exists())
+        self.assertFalse(Folder.objects.filter(id=oldtodeletefolder.id).exists())
+
+        # Unterverzeichnisse und Dateien sollten dabei auch gelöscht werden! 
+        self.assertFalse(Folder.objects.filter(id=oldsubdeletefolder.id).exists())
+        
         # Files von Unterverzeichnissen ebenso
-        #TODO self.assertFalse(Document.objects.filter(id=oldfileid).exists())
+        self.assertFalse(File.objects.filter(id=oldfileid).exists())
 
 
     # Teste das Unbenennen von Ordnern
