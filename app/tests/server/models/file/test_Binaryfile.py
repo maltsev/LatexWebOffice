@@ -31,5 +31,6 @@ class BinaryFileTestCase(ModelTestCase):
 
         binaryFile = BinaryFile.objects.create(name='readme.txt', filepath=filepath, folder=self.rootFolder_dir1)
         self.assertEqual(sourceCode, binaryFile.getContent().readline())
+        binaryFile.delete()
 
-        os.unlink(filepath)
+        self.assertFalse(os.path.isfile(filepath))

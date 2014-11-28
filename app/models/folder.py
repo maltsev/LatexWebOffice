@@ -8,10 +8,13 @@ class Folder(models.Model):
     root = models.ForeignKey("self", blank=True, null=True, related_name='rootFolder') # Darf leer sein nur bei RootFolder
 
 
+    def isRoot(self):
+        return not self.root or self.root is self
+
     def getRoot(self):
-        if self.root:
-            return self.root
-        return self
+        if self.isRoot():
+            return self
+        return self.root
 
     def getProject(self):
         return self.getRoot().project_set.get()
