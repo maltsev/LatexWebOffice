@@ -17,12 +17,19 @@
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-	
+
+
+@login_required
+def index(request):
+    return render(request, 'index.html')
+
 def impressum(request):
-	return render(request, 'impressum.html')
-	
+    return render(request, 'impressum.html')
+
+
 def hilfe(request):
-	return render(request, 'hilfe.html')
-	
+    return render(request, 'hilfe.html')
+
+
 def editor(request):
-	return render(request, 'editor.html')
+    return render(request, 'editor.html')
