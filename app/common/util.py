@@ -33,7 +33,7 @@ def jsonDecoder(responseContent):
 # liefert ein HTTP Response (Json)
 def jsonResponse(response, status, request):
     statusstr = FAILURE
-    if(status):
+    if (status):
         statusstr = SUCCESS
 
     to_json = {
@@ -50,89 +50,114 @@ def jsonErrorResponse(errormsg, request):
     return jsonResponse(errormsg, False, request)
 
 
-# Hilfsmethode
 # liefert die ID und den Namen eines Projektes als dictionary
 def projectToJson(project):
     return dict(id=project.id, name=project.name)
 
 
-# Hilfsmethode um zu überprüfen, ob einer User überhaupt die Rechte hat einen Ordner zu bearbeiten und ob dieser Ordner existiert
+# Hilfsmethode um zu überprüfen, ob einer User die Rechte hat einen Ordner zu bearbeiten und ob dieser Ordner existiert
 # benötigt: folderid, user, httprequest
-def checkIfDirExistsAndUserHasRights(folderid,user,request):
+def checkIfDirExistsAndUserHasRights(folderid, user, request):
     if not Folder.objects.filter(id=folderid).exists():
-        return False,jsonErrorResponse(ERROR_MESSAGES['DIRECTORYNOTEXIST'],request)
-    elif not Folder.objects.get(id=folderid).getProject().author==user:
-        return False,jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
+        return False, jsonErrorResponse(ERROR_MESSAGES['DIRECTORYNOTEXIST'], request)
+    elif not Folder.objects.get(id=folderid).getProject().author == user:
+        return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
-        return True,None
+        return True, None
 
-def checkIfFileExistsAndUserHasRights(fileid,user,request):
+
+def checkIfFileExistsAndUserHasRights(fileid, user, request):
     if not File.objects.filter(id=fileid).exists():
-        return False,jsonErrorResponse(ERROR_MESSAGES['FILENOTEXIST'],request)
-    elif not File.objects.get(id=fileid).folder.getRoot().getProject().author==user:
-        return False,jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
+        return False, jsonErrorResponse(ERROR_MESSAGES['FILENOTEXIST'], request)
+    elif not File.objects.get(id=fileid).folder.getRoot().getProject().author == user:
+        return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
-        return True,None
+        return True, None
+
+
+def validateJsonFailureResponse(self, responsecontent, errormsg):
+    return _validateServerJsonResponse(self, responsecontent, FAILURE, errormsg)
+
+
+def validateJsonSuccessResponse(self, responsecontent, response):
+    return _validateServerJsonResponse(self, responsecontent, SUCCESS, response)
+
+
+def _validateServerJsonResponse(self, responsecontent, status, response):
+    # dekodiere den JSON response als dictionary
+    dictionary = jsonDecoder(responsecontent)
+
+    # Prüfe ob status, request und response in der Antwort enhalten sind
+    self.assertIn('status', dictionary)
+    self.assertIn('request', dictionary)
+    self.assertIn('response', dictionary)
+
+    # Überprüfe, ob der status korrekt ist
+    self.assertEqual(dictionary['status'], status)
+    # Überprüfe, ob eine korrekte Antwort geliefert wurde
+    self.assertEqual(dictionary['response'], response)
+
 
 # Vorraussetzung: das Objekt existiert in der Datenbank
-def checkIfFileOrFolderAlreadyExists(idpara,newname,modelObj):
-    oldobj=modelObj.objects.get(id=idpara)
-
-    if type(modelObj)==File:
-        folder=oldobj.folder
-        for dirfile in modelObj.objects.filter(folder=folder):
-            if dirfile.name.lower()==newname.lower():
-                return False,jsonErrorResponse(ERROR_MESSAGES['FILENAMEEXISTS'])
-
+def checkIfFileOrFolderAlreadyExists(newname, modelObj, request):
+    if type(modelObj) == File:
+        if File.objects.filter(name__iexact=newname.lower).exists():
+            return False, jsonErrorResponse(ERROR_MESSAGES['FILENAMEEXISTS'], request)
     else:
-        folder=oldobj.parent
-        for dirobj in modelObj.objects.filter(parent=folder):
-            if dirobj.name.lower()==newname.lower():
-                return False,jsonErrorResponse(ERROR_MESSAGES['FOLDERNAMEEXISTS'])
-    return True,None
+        if Folder.objects.filter(name__iexact=newname.lower).exists():
+            return False, jsonErrorResponse(ERROR_MESSAGES['FOLDERNAMEEXISTS'], request)
+    return True, None
 
 
-def checkIfProjectExistsAndUserHasRights(projectid,user,request):
+def checkIfProjectExistsAndUserHasRights(projectid, user, request):
     if not Project.objects.filter(id=projectid).exists():
-        return False,jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'],request)
+        return False, jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'], request)
     elif not Project.objects.get(id=projectid).author == user:
-        return False,jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
+        return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
-        return True,None
+        return True, None
 
-def checkObjectForInvalidString(name,user,request):
+
+def checkObjectForInvalidString(name, user, request):
     if name.isspace():
-        return False,jsonErrorResponse(ERROR_MESSAGES['BLANKNAME'],request)
+        return False, jsonErrorResponse(ERROR_MESSAGES['BLANKNAME'], request)
     if any(invalid in name for invalid in INVALIDCHARS):
-        return False,jsonErrorResponse(ERROR_MESSAGES['INVALIDNAME'],request)
-    return True,None
+        return False, jsonErrorResponse(ERROR_MESSAGES['INVALIDNAME'], request)
+    return True, None
 
-def _getFoldersAndFiles(folderobj,data={},printing=False,ident=''):
-    data['name']=folderobj.name
-    fileslist=[]
-    folderslist=[]
-    data['files']=fileslist
-    data['folders']=folderslist
-    #Hole TexFiles
-    texfiles=TexFile.objects.filter(folder=folderobj)
+
+def _getFoldersAndFiles(folderobj, data={}, printing=False, ident=''):
+    data['name'] = folderobj.name
+    fileslist = []
+    folderslist = []
+    data['files'] = fileslist
+    data['folders'] = folderslist
+    # Hole TexFiles
+    texfiles = TexFile.objects.filter(folder=folderobj)
     for f in texfiles:
         if printing:
-            print('    ',f)
-            print('     ',f.source_code)
-        fileslist.append({'name':f.name,'bytes':str.encode(f.source_code)})
-    
-    #Hole Binary files
-    #TODO
+            print('    ', f)
+            print('     ', f.source_code)
+        fileslist.append({'name': f.name, 'bytes': str.encode(f.source_code)})
+
+    # Hole Binary files
+    # TODO
 
     #Füge rekursiv die Unterordner hinzu
-    folders=Folder.objects.filter(parent=folderobj)
+    folders = Folder.objects.filter(parent=folderobj)
 
     for folder in folders:
         if printing:
             print(folder)
-        folderslist.append(_getFoldersAndFiles(folder,data={},printing=printing,ident=ident+'    '))
+        folderslist.append(_getFoldersAndFiles(folder, data={}, printing=printing, ident=ident + '    '))
 
     return data
+
+
+def getProjectBytesFromProjectObject(projectobj):
+    rootfolder = projectobj.rootFolder
+
+    return _getFoldersAndFiles(rootfolder, printing=False)
 
 
 def _getFoldersAndFilesJson(folderobj, data={}):
@@ -154,10 +179,21 @@ def _getFoldersAndFilesJson(folderobj, data={}):
     return data
 
 
-def getProjectBytesFromProjectObject(projectobj):
-    rootfolder=projectobj.rootFolder
-    return _getFoldersAndFiles(rootfolder,printing=False)
-
-
 def getFolderAndFileStructureAsDict(folderobj):
     return _getFoldersAndFilesJson(folderobj, data={})
+
+
+# Helper Methode um leichter die verschiedenen commands durchzutesten.
+def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content=None, name=None, files=None):
+    dictionary = {'command': command}
+    if idpara:
+        dictionary['id'] = idpara
+    if idpara2:
+        dictionary['folderid'] = idpara2
+    if content:
+        dictionary['content'] = content
+    if name:
+        dictionary['name'] = name
+    if files:
+        pass  # TODO
+    return self.client.post('/documents/', dictionary)

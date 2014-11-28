@@ -17,7 +17,7 @@
 
 """
 
-# error messages
+# Fehlermeldungen, welche von den verschiedenen Methoden zur Rückgabe genutzt werden
 ERROR_MESSAGES = {
     'EMAILALREADYEXISTS': 'E-Mail-Adresse ist bereits registriert.',
     'INVALIDEMAIL': 'Ungültige E-Mail-Adresse',
@@ -32,20 +32,24 @@ ERROR_MESSAGES = {
     'PROJECTNOTCREATED': 'Fehler beim Erstellen des Projektes',
     'COMMANDNOTFOUND': 'Befehl nicht gefunden',
     'MISSINGPARAMETER': 'Fehlender Parameter: {0}',
-    'PROJECTNAMEONLYWHITESPACE': 'Projektname darf nicht nur aus Leerzeichen bestehen.',
+    'FILENOTCREATED': 'Datei konnte nicht erstellt werden.',
     'EMPTYTEXNOTCREATED': 'main.tex Datei konnte im neuen Projekt nicht erstellt werden.',
     'PROJECTALREADYEXISTS': 'Ein Projekt mit dem Namen \"{0}\" existiert bereits.',
-    'NOTENOUGHRIGHTS':'Nutzer hat für diese Aktion nicht ausreichend Rechte',
-    'FOLDERNAMEEXISTS':'Dieses Verzeichnis existiert schon',
-    'FILENAMEEXISTS':'Diese Datei existiert schon',
-    'DIRECTORYNOTEXIST':'Dieses Verzeichnis existiert nicht',
-    'FILENOTEXIST':'Diese Datei existiert nicht',
-    'UNKOWNERROR':'Unbekannter Fehler',
-    'BLANKNAME':'Leere Namen sind nicht erlaubt',
+    'NOTENOUGHRIGHTS': 'Nutzer hat für diese Aktion nicht ausreichend Rechte',
+    'FOLDERNAMEEXISTS': 'Dieses Verzeichnis existiert schon',
+    'FILENAMEEXISTS': 'Diese Datei existiert schon',
+    'DIRECTORYNOTEXIST': 'Dieses Verzeichnis existiert nicht',
+    'FILENOTEXIST': 'Diese Datei existiert nicht',
+    'UNKOWNERROR': 'Unbekannter Fehler',
+    'BLANKNAME': 'Leere Namen sind nicht erlaubt',
     'DATABASEERROR': 'Datenbankfehler',
     'PROJECTNOTEXIST': 'Projekt nicht gefunden',
     'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
+    'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
 }
-INVALIDCHARS='<>;|"\/?*'
+
+# Ungültige Zeichen für Dateien und Ordner
+INVALIDCHARS = '<>;|"\/?*'
+
 SUCCESS = 'success'
 FAILURE = 'failure'

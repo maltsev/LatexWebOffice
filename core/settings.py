@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
+import os, sys
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -89,3 +89,18 @@ STATIC_URL = '/static/'
 # Speicherort für Dateien
 FILEDATA_URL = os.path.join(os.path.expanduser('~'), 'latexweboffice')
 TMP_FILEDATA_URL = os.path.join(FILEDATA_URL, 'tmp')
+
+# Einstellungen für die Django Tests
+if 'test' in sys.argv:
+    PASSWORD_HASHERS = (
+        'django.contrib.auth.hashers.MD5PasswordHasher',
+    )
+    FILEDATA_URL = os.path.join(os.path.expanduser('~'), 'latexweboffice', 'tests')
+    TMP_FILEDATA_URL = os.path.join(FILEDATA_URL, 'tmp')
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(FILEDATA_URL, 'db.sqlite3'),
+        }
+    }

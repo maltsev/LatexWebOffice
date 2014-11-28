@@ -17,11 +17,11 @@
 
 from django.test import TestCase,Client
 from django.contrib.auth.models import User
-from core.settings import LOGIN_URL
 from app.common.constants import ERROR_MESSAGES
 from django.contrib.auth import login, authenticate
 
-class LoginTestClass(TestCase):
+
+class AuthLoginTestClass(TestCase):
 
     """Docstring for LoginTestClass. """
 
@@ -88,7 +88,7 @@ class LoginTestClass(TestCase):
 
 
 
-class RegistrationTestClass(TestCase):
+class AuthRegistrationTestClass(TestCase):
 
     """Docstring for RegistrationTestClass. """
 
@@ -206,4 +206,3 @@ class RegistrationTestClass(TestCase):
         self.assertIn('_auth_user_id',self._client.session)
         response=self._client.get('/registration/')
         self.assertRedirects(response,'/')
-
