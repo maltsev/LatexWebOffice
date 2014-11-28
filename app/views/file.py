@@ -15,7 +15,7 @@
 * Backlog entry : TEK1, 3ED9, DOK8
 
 """
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.file import File
@@ -177,7 +177,7 @@ def downloadFile(request, user, fileid):
     # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
     rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
-        return failurereturn
+        raise Http404
 
     # wenn eine PlainText Datei angefordert wurde
     if PlainTextFile.objects.filter(id=fileid).exists():
