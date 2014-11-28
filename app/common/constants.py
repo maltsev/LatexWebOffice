@@ -43,6 +43,7 @@ ERROR_MESSAGES = {
     'UNKOWNERROR': 'Unbekannter Fehler',
     'BLANKNAME': 'Leere Namen sind nicht erlaubt',
     'DATABASEERROR': 'Datenbankfehler',
+    'COMPILATIONERROR' : 'Fehler beim Kompilieren' ,
     'PROJECTNOTEXIST': 'Projekt nicht gefunden',
     'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
