@@ -135,6 +135,17 @@ class FileTestClass(TestCase):
         serveranswer = {'id': 4, 'name': self._user1_tex1_newname}
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
+
+        # Sende Anfrage zum erstellen einer neuen .tex Datei mit einem Namen, der bereits im selben Ordner existiert
+        response = util.documentPoster(self, command='createtex', idpara=self._user1_project1_root.id,
+                                       name='MAIN.tex')
+
+        # überprüfe die Antwort des Servers
+        # sollte failure als status liefern
+        # sollte ERROR_MESSAGES['FILENAMEEXISTS'] als Fehlermeldung liefern
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENAMEEXISTS'])
+
+
         # Sende Anfrage zum erstellen der Datei als user1 mit der folderid die user2 gehört
         response = util.documentPoster(self, command='createtex', idpara=self._user2_project1_folder1.id,
                                        name='newname')

@@ -99,12 +99,12 @@ def _validateServerJsonResponse(self, responsecontent, status, response):
 
 
 # Vorraussetzung: das Objekt existiert in der Datenbank
-def checkIfFileOrFolderAlreadyExists(newname, modelObj, request):
-    if type(modelObj) == File:
-        if File.objects.filter(name__iexact=newname.lower).exists():
+def checkIfFileOrFolderIsUnique(newname, modelClass, folder, request):
+    if modelClass == File:
+        if File.objects.filter(name__iexact=newname.lower, folder=folder).exists():
             return False, jsonErrorResponse(ERROR_MESSAGES['FILENAMEEXISTS'], request)
     else:
-        if Folder.objects.filter(name__iexact=newname.lower).exists():
+        if Folder.objects.filter(name__iexact=newname.lower, parent=folder).exists():
             return False, jsonErrorResponse(ERROR_MESSAGES['FOLDERNAMEEXISTS'], request)
     return True, None
 

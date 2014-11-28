@@ -37,6 +37,13 @@ def createTexFile(request, user, folderid, texname):
     if not rights:
         return failurereturn
 
+    file_folder = Folder.objects.get(id=folderid)
+
+    # Teste ob eine .tex Datei mit dem selben Namen schon existiert
+    unique, failurereturn = util.checkIfFileOrFolderIsUnique(texname, File, file_folder, request)
+    if not unique:
+        return failurereturn
+
     # Teste, ob der Dateiname kein leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
     # oder ungültige Sonderzeichen enthält
     emptystring, failurereturn = util.checkObjectForInvalidString(texname, user, request)
