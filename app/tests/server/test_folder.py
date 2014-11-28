@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Fr 28 Nov 2014 11:24:26 CET
+* Last Modified : Fr 28 Nov 2014 13:19:46 CET
 
 * Author :  mattis
 
@@ -148,9 +148,7 @@ class FolderTestClass(TestCase):
         #Teste, ob ein Verzeichnis zwei gleichnamige Unterverzeichnisse haben kann
         response = util.documentPoster(self, command='createdir', idpara=folder1.id, name='root')
         dictionary = util.jsonDecoder(response.content)
-        #TODO #############################################################
-        #self.assertEqual(dictionary['response'],ERROR_MESSAGES['FOLDERNAMEEXISTS'])
-        #SOLLTE DATENBANK MACHEN ##########################################
+        self.assertEqual(dictionary['response'],ERROR_MESSAGES['FOLDERNAMEEXISTS'])
 
         #Teste, wie es sich mit falschen Angaben verhält
 
@@ -205,9 +203,9 @@ class FolderTestClass(TestCase):
 
     # Teste das Unbenennen von Ordnern
     def test_renameDir(self):
-        oldid = self._user1_project1.id
-        response = util.documentPoster(self, command='renamedir', idpara=self._user1_project1.id,
-                                       name='New project und directory name')
+        oldid = self._user1_project1_folder1.id
+        response = util.documentPoster(self, command='renamedir', idpara=self._user1_project1_folder1.id,
+                                       name='newname')
 
         dictionary = util.jsonDecoder(response.content)
         serveranswer = dictionary['response']
@@ -219,8 +217,13 @@ class FolderTestClass(TestCase):
         self.assertIn('name', serveranswer)
 
         self.assertEqual(serveranswer['id'], oldid)
-        self.assertEqual(serveranswer['name'], 'New project und directory name')
+        self.assertEqual(serveranswer['name'], 'newname')
 
+        # Teste, ob ein Unterverzeichnis den gleichen Namen haben kann, wie ein anderes Unterverzeichnis
+        # im gleichen Elternverzeichnis
+        response = util.documentPoster(self, command='renamedir', idpara=self._user1_project1_folder2.id, name='newname')
+        dictionary = util.jsonDecoder(response.content)
+        self.assertEqual(dictionary['response'],ERROR_MESSAGES['FOLDERNAMEEXISTS'])
 
         # Teste, ob ein anderer User das Projekt eines anderen unbenennen kann
         response = util.documentPoster(self, command='renamedir', idpara=self._user2_project1.id, name='ROFL')
@@ -232,8 +235,6 @@ class FolderTestClass(TestCase):
         self.assertEqual(ERROR_MESSAGES['NOTENOUGHRIGHTS'], serveranswer)
 
 
-    # Teste, ob ein Unterverzeichnis den gleichen Namen haben kann, wie ein anderes Unterverzeichnis
-    # im gleichen Elternverzeichnis: Überflüssig, da dies bereits schon in test_createDir getestet wird
 
     # Teste, ob ein Verzeichnis einen leeren Namen haben kann: Überflüssig, da dies bereits schon
     # in der test_createDir Methode getestet wird
@@ -261,8 +262,7 @@ class FolderTestClass(TestCase):
         # Teste, ob ob man zwischen Projekten Dateuen verschieben darf (sollte man dürfen)
         response = util.documentPoster(self, command='movedir', idpara=self._user1_project1_folder2.id,
                                        idpara2=self._user1_project2.rootFolder.id)
-
-        #self.assertEqual(util.jsonDecoder(response.content)['status'], SUCCESS)
+        self.assertEqual(util.jsonDecoder(response.content)['status'], SUCCESS)
 
         # Teste, dass es eine Fehlermeldung gibt, falls die Datei in einen Ordner verschoben wird,
         # die dem User nicht gehört
@@ -273,6 +273,19 @@ class FolderTestClass(TestCase):
         # Teste, ob Fehlermeldung bei falscher fileid
         response = util.documentPoster(self, command='movedir', idpara=-1, idpara2=self._user1_project1_folder2.id)
         self.assertEqual(util.jsonDecoder(response.content)['status'], FAILURE)
+
+    
+    # Teste, dass beim Verschieben eines Ordners nach überprüft wird, ob es einen gleichnamigen Unterordner im neuen Parentordner schon gibt 
+    def test_moveDir2(self):
+        
+        # Teste, ob Fehlermeldung, falls es einen gleichnamigen Unterordner im Ordner schon gibt
+        # Benenne subfolder so um, dass er den gleichen Namen, wie parentfolder
+        self._user1_project1_folder2_subfolder1.name=self._user1_project1_folder2.name
+        self._user1_project1_folder2_subfolder1.save()
+        # Versuche subfolder in den gleichen Ordner wie parentfolder zu verschieben
+        response = util.documentPoster(self, command='movedir', idpara=self._user1_project1_folder2_subfolder1.id, idpara2=self._user1_project1_folder2.id)
+        dictionary = util.jsonDecoder(response.content)
+        self.assertEqual(dictionary['response'],ERROR_MESSAGES['FOLDERNAMEEXISTS'])
 
 
     # Teste das Auflisten der Datei- und Ordnerstruktur eines Ordners

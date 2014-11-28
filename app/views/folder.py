@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 28 Nov 2014 11:14:15 CET
+* Last Modified : Fr 28 Nov 2014 13:31:09 CET
 
 * Author :  mattis
 
@@ -44,6 +44,11 @@ def createDir(request, user, parentdirid, directoryname):
 
     parentdir = Folder.objects.get(id=parentdirid)
 
+    # Teste ob Ordnername in diesem Verzeichnis bereits existiert
+    unique, failurereturn = util.checkIfFileOrFolderIsUnique(directoryname, Folder, parentdir , request)
+    if not unique:
+        return failurereturn
+
     # Versuche den Ordner in der Datenbank zu speichern
     try:
         newfolder = Folder(name=directoryname, parent=parentdir, root=parentdir.getRoot())
@@ -69,7 +74,6 @@ def rmDir(request, user, folderid):
     if folder==folder.getRoot():
         return util.jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
     
-    # TODO Teste ob Ordnername in diesem Verzeichnis bereits existiert
 
     try:
         folder.delete()
@@ -93,7 +97,10 @@ def renameDir(request, user, folderid, newdirectoryname):
     if not emptystring:
         return failurereturn
 
-    # TODO Teste ob Ordnername in diesem Verzeichnis bereits existiert
+    # Teste ob Ordnername in diesem Verzeichnis bereits existiert
+    unique, failurereturn = util.checkIfFileOrFolderIsUnique(newdirectoryname, Folder, folder.parent , request)
+    if not unique:
+        return failurereturn
     
     # Versuche die Änderung in die Datenbank zu übernehmen
     try:
@@ -121,7 +128,12 @@ def moveDir(request, user, folderid, newfolderid):
     folderobj = Folder.objects.get(id=folderid)
     newparentfolderobj = Folder.objects.get(id=newfolderid)
 
-    # TODO Teste ob Ordnername in diesem Verzeichnis bereits existiert
+    # Teste ob Ordnername in diesem Verzeichnis bereits existiert
+    unique, failurereturn = util.checkIfFileOrFolderIsUnique(folderobj.name, Folder, newparentfolderobj , request)
+    if not unique:
+        return failurereturn
+    
+    
     # Versuche die Änderung in die Datenbank zu übernehmen
     try:
         # setze den newfolder als neues übergeordnetes Verzeichnis
