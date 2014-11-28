@@ -416,18 +416,16 @@ class FileTestClass(TestCase):
         response = util.documentPoster(self, command='downloadfile', idpara=self._user2_tex1.id)
 
         # überprüfe die Antwort des Servers
-        # sollte success als status liefern
-        # sollte Fehlermeldung ERROR_MESSAGES['NOTENOUGHRIGHTS'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+        # sollte status code 404 liefern
+        self.assertEqual(response.status_code, 404)
 
-        # Sende Anfrage zum Verschieben der Datei als user1 mit einer fileid
+        # Sende Anfrage zum Download der Datei als user1 mit einer fileid
         # die auf dem Server in der Datenbank nicht existiert
         response = util.documentPoster(self, command='downloadfile', idpara=self._user1_invalidid)
 
         # überprüfe die Antwort des Servers
-        # sollte success als status liefern
-        # sollte Fehlermeldung ERROR_MESSAGES['FILENOTEXIST'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENOTEXIST'])
+        # sollte status code 404 liefern
+        self.assertEqual(response.status_code, 404)
 
 
     # Teste das Abrufen von Informationen einer Datei via fileid
