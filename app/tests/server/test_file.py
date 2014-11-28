@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Fri 28 Nov 2014 10:14:09 PM CET
+* Last Modified : Fri 28 Nov 2014 10:46:03 PM CET
 
 * Author :  christian
 
@@ -391,8 +391,8 @@ class FileTestClass(TestCase):
     
         # überprüfe die Antwort des Servers
         # sollte success als status liefern
-        # response sollte folgendes sein
-        dictionary={'failure': [{'name': '4', 'reason': 'Dateityp ist nicht erlaubt'}],
+        # response sollte von folgender Form sein:
+        dictionary={'failure': [{'name': '5', 'reason': 'Dateityp ist nicht erlaubt'}],
             'success': [{'id': 7, 'name': 'test2.tex'}]
             }
         util.validateJsonSuccessResponse(self, response.content, dictionary)
