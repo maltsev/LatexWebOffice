@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fr 28 Nov 2014 13:58:11 CET
+* Last Modified : Fri 28 Nov 2014 10:34:44 PM CET
 
 * Author :  christian
 
@@ -18,12 +18,13 @@
 """
 
 from django.http import HttpResponse
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS
+from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.file import File
 from app.models.file.texfile import TexFile
 import json
+import mimetypes
 
 
 def jsonDecoder(responseContent):
@@ -118,7 +119,7 @@ def checkIfProjectExistsAndUserHasRights(projectid, user, request):
         return True, None
 
 
-def checkObjectForInvalidString(name, user, request):
+def checkObjectForInvalidString(name, request):
     if name.isspace():
         return False, jsonErrorResponse(ERROR_MESSAGES['BLANKNAME'], request)
     if any(invalid in name for invalid in INVALIDCHARS):
@@ -197,3 +198,41 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content
     if files!=None:
         pass  # TODO
     return self.client.post('/documents/', dictionary)
+
+def uploadFiles(files,folder,request):
+    errors=[]
+    success=[]
+
+    for f in files:
+        mime,encoding=mimetypes.guess_type(f.name)
+        
+        # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
+        illegalstring, failurereturn = checkObjectForInvalidString(f.name, request)
+        if not illegalstring:
+            return failurereturn
+
+
+        #Überprüfe auf doppelte Dateien unter Nichtbeachtung Groß- und Kleinschreibung
+        # Teste ob Ordnername in diesem Verzeichnis bereits existiert
+        unique, failurereturn = checkIfFileOrFolderIsUnique(f.name, File, folder , request)
+        if not unique:
+            return failurereturn
+
+
+        # Überprüfe auf verbotene Dateiendungen
+        if mime in ALLOWEDMIMETYPES['binary']:
+            pass #TODO waiting for binaryfile constructor
+        elif mime in ALLOWEDMIMETYPES['text']:
+            if mime=='text/x-tex':
+                texfile=TexFile(name=f.name,source_code=f.read().decode('utf-8'),folder=folder)
+                # Überprüfe, ob Datenbank Datei speichern kann TODO
+                texfile.save()
+                success.append({'name':texfile.name,'id':texfile.id})
+            else:
+                plainfile=PlainTextFile(name=f.name,source_code=f.read().decode('utf-8'))
+                # Überprüfe, ob Datenbank Datei speichern kann TODO
+                plainfile.save()
+                success.append({'name':plainfile.name,'id':plainfile.id})
+        else: #Unerlaubtes Mimetype
+            errors.append({'name':f.name,'reason':ERROR_MESSAGES['ILLEGALFILETYPE']})
+    return jsonResponse({'success':success,'failure':errors},True,request)

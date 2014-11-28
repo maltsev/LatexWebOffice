@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mi 26 Nov 2014 15:33:04 CET
+* Last Modified : Fri 28 Nov 2014 10:32:47 PM CET
 
 * Author :  christian
 
@@ -39,7 +39,7 @@ from django.template import RequestContext
 def projectCreate(request, user, projectname):
     # Teste, ob der Projektname kein leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
     # oder ungültige Sonderzeichen enthält
-    emptystring, failurereturn = util.checkObjectForInvalidString(projectname, user, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(projectname, request)
     if not emptystring:
         return failurereturn
 
