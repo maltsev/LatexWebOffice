@@ -15,11 +15,10 @@ class Project(models.Model):
     class Meta:
         unique_together = ('name', 'author')
 
-
     def __str__(self):
         return self.name
 
 
 @receiver(post_delete, sender=Project)
-def projectAfterDelete(instance, **kwargs):
+def projectPostDelete(instance, **kwargs):
     instance.rootFolder.delete()
