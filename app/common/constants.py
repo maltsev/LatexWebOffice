@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fri 28 Nov 2014 09:17:52 PM CET
+* Last Modified : Sat 29 Nov 2014 03:24:34 PM CET
 
 * Author :  christian
 
@@ -61,6 +61,9 @@ ALLOWEDMIMETYPES = {
         'binary':{
             'image/png':{
                 'png',
+                },
+            'image/jpeg':{
+                'jpg',
                 },
             'image/jpg':{
                 'jpg',

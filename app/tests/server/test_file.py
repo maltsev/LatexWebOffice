@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Sat 29 Nov 2014 02:00:34 AM CET
+* Last Modified : Sat 29 Nov 2014 07:00:25 PM CET
 
 * Author :  christian
 
@@ -82,7 +82,7 @@ class FileTestClass(TestCase):
 
         # Erstelle eine .tex Datei für user1 in user1_project1_root (Projekt root Verzeichnis)
         self._user1_tex1 = self._user1_project1_root.getMainTex()
-        self._user1_tex1.source_code = 'user1_tex1\n'
+        self._user1_tex1.source_code = "\\documentclass[a4paper,10pt]{article} \\usepackage[utf8]{inputenc} \\title{test} \\begin{document} \\maketitle \\begin{abstract} \\end{abstract} \\section{} \\end{document}"
         self._user1_tex1.save()
         self._user1_tex2 = TexFile(name='tex2.tex', folder=self._user1_project1_root, source_code='user1_tex2\n')
         self._user1_tex2.save()
@@ -103,7 +103,7 @@ class FileTestClass(TestCase):
         self._user1_binary1_size = self._user1_binfile1.write(self._user1_binary1_str)
         self._user1_binfile1.close()
 
-        # Erstelle eine weitere Binärdatei für user1 in user1_project1_folder2_subfolder2
+        # Erstelle eine TexDatei für user1 in user1_project1_folder2_subfolder2
         self._user1_binary2 = BinaryFile(name='test2.tex', folder=self._user1_project1_folder2_subfolder1)
         self._user1_binary2.save()
         self._user1_binary2_str = 'user1_binary2'
@@ -111,6 +111,15 @@ class FileTestClass(TestCase):
         self._user1_binfile2 = open(self._file_path2, 'w')
         self._user1_binary2_size = self._user1_binfile2.write(self._user1_binary2_str)
         self._user1_binfile2.close()
+        
+        # Erstelle eine BildDatei für user1 in user1_project1_folder2_subfolder2
+        self._user1_binary3 = BinaryFile(name='test2.jpg', folder=self._user1_project1_folder2_subfolder1)
+        self._user1_binary3.save()
+        self._user1_binary3_str = 'user1_binary3'
+        self._file_path3 = os.path.join(self._user1_project1_dir, str(self._user1_binary3.name))
+        self._user1_binfile3 = open(self._file_path3, 'w')
+        self._user1_binary3_size = self._user1_binfile3.write(self._user1_binary3_str)
+        self._user1_binfile3.close()
 
         # Erstelle eine .tex Datei für user1 in user1_project1_root (Projekt root Verzeichnis)
         self._user2_tex1 = self._user2_project1_root.getMainTex()
@@ -384,7 +393,7 @@ class FileTestClass(TestCase):
         dic={
                 'command':'uploadfiles',
                 'id':self._user1_project1_root.id,
-                'files':[open(self._file_path1,'rb'),open(self._file_path2,'rb')]
+                'files':[open(self._file_path1,'rb'),open(self._file_path2,'rb'),open(self._file_path3,'rb')]
                 }
 
         response=self.client.post('/documents/',dic)
@@ -393,9 +402,21 @@ class FileTestClass(TestCase):
         # sollte success als status liefern
         # response sollte von folgender Form sein:
         dictionary={'failure': [{'name': '5', 'reason': 'Dateityp ist nicht erlaubt'}],
-            'success': [{'id': 7, 'name': 'test2.tex'}]
+                'success': [{'id': 8, 'name': 'test2.tex'},{'id':9,'name':'test3.jpg'}]
             }
-        util.validateJsonSuccessResponse(self, response.content, dictionary)
+
+
+        serveranswer=(util.jsonDecoder(response.content)['response'])
+        
+        # Es sollte eig. immer 'success' ausgegeben werden, da auch 'success' kommen sollte, selbst wenn keine einzige Datei akezeptiert wurde
+        self.assertEqual(util.jsonDecoder(response.content)['status'],'success')
+        
+        # Es sollten genau 2 Dateien vom Server akzeptiert werden: test2.tex und test3.jpg
+        self.assertEqual(len(serveranswer['success']),2)
+        # Eine Datei sollte nicht akzeptiert werden
+        self.assertEqual(len(serveranswer['failure']),1)
+        # Der Fehler sollte sein, dass der Dateityp nicht erlaubt ist
+        self.assertEqual(serveranswer['failure'][0]['reason'],ERROR_MESSAGES['ILLEGALFILETYPE'])
 
         # Teste, ob Fehlermeldung, falls versucht wird, Dateien in einen Ordner hochzuladen, auf dem der User keine Rchte hat
         dic['id']=self._user2_project1_folder1.id
@@ -408,7 +429,6 @@ class FileTestClass(TestCase):
         response=self.client.post('/documents/',dic)
         util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['NOTALLPOSTPARAMETERS'])
 
-        # TODO Teste binäre Dateien
 
     # Teste download von Dateien auf dem Server zum Client
     def test_downloadfile(self):
@@ -494,3 +514,13 @@ class FileTestClass(TestCase):
 
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
+
+        self.assertEqual(dictionary['status'],SUCCESS)
+        serveranswer=dictionary['response']
+        self.assertIn('id',serveranswer)
+        self.assertIn('name',serveranswer)
+
+        # Teste Fehlerhafte Datei
+        response=util.documentPoster(self,command='compile',idpara=self._user1_tex2.id)
+        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['COMPILATIONERROR'])
+

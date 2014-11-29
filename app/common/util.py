@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Sat 29 Nov 2014 02:32:16 AM CET
+* Last Modified : Sat 29 Nov 2014 04:17:09 PM CET
 
 * Author :  christian
 
@@ -134,16 +134,14 @@ def _getFoldersAndFiles(folderobj, data={}, printing=False, ident=''):
     folderslist = []
     data['files'] = fileslist
     data['folders'] = folderslist
-    # Hole TexFiles
-    texfiles = TexFile.objects.filter(folder=folderobj)
-    for f in texfiles:
+    # Hole Files
+    files = File.objects.filter(folder=folderobj)
+    for f in files:
         if printing:
             print('    ', f)
-            print('     ', f.source_code)
-        fileslist.append({'name': f.name, 'bytes': str.encode(f.source_code)})
+            print('     ', f.id)
+        fileslist.append({'name': f.name, 'id': f.id})
 
-    # Hole Binary files
-    # TODO
 
     #Füge rekursiv die Unterordner hinzu
     folders = Folder.objects.filter(parent=folderobj)
@@ -156,10 +154,10 @@ def _getFoldersAndFiles(folderobj, data={}, printing=False, ident=''):
     return data
 
 
-def getProjectBytesFromProjectObject(projectobj):
+def getProjectFilesFromProjectObject(projectobj,printing=False):
     rootfolder = projectobj.rootFolder
 
-    return _getFoldersAndFiles(rootfolder, printing=False)
+    return _getFoldersAndFiles(rootfolder, printing=printing)
 
 
 def _getFoldersAndFilesJson(folderobj, data={}):
@@ -203,6 +201,7 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content
 def uploadFile(f,folder,request):
 
     mime,encoding=mimetypes.guess_type(f.name)
+
     
     # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
     illegalstring, failurereturn = checkObjectForInvalidString(f.name, request)
