@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Sat 29 Nov 2014 02:08:39 AM CET
+* Last Modified : Sat 29 Nov 2014 02:16:01 AM CET
 
 * Author :  christian
 
@@ -219,10 +219,9 @@ def uploadFile(f,folder,request):
 
     # Überprüfe auf verbotene Dateiendungen
     if mime in ALLOWEDMIMETYPES['binary']:
-        pass
-        #binfile = BinaryFile(name=f.name,requestFile=f)
-        #binfile.save()
-        #return True, {'name':binfile.name,'id':binfile.id}
+        binfile = BinaryFile.objects.createFromRequestFile(name=f.name,requestFile=f,folder=folder)
+        binfile.save()
+        return True, {'name':binfile.name,'id':binfile.id}
     elif mime in ALLOWEDMIMETYPES['text']:
         if mime=='text/x-tex':
             texfile=TexFile(name=f.name,source_code=f.read().decode('utf-8'),folder=folder)
