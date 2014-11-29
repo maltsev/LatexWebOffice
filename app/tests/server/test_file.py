@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Fri 28 Nov 2014 10:46:03 PM CET
+* Last Modified : Sat 29 Nov 2014 12:38:00 AM CET
 
 * Author :  christian
 
@@ -381,13 +381,13 @@ class FileTestClass(TestCase):
 
     # Teste upload lokaler Dateien auf den Server
     def test_uploadfiles(self):
-        dictionary={
+        dic={
                 'command':'uploadfiles',
                 'id':self._user1_project1_root.id,
                 'files':[open(self._file_path1,'rb'),open(self._file_path2,'rb')]
                 }
 
-        response=self.client.post('/documents/',dictionary)
+        response=self.client.post('/documents/',dic)
     
         # überprüfe die Antwort des Servers
         # sollte success als status liefern
@@ -397,9 +397,17 @@ class FileTestClass(TestCase):
             }
         util.validateJsonSuccessResponse(self, response.content, dictionary)
 
+        # Teste, ob Fehlermeldung, falls versucht wird, Dateien in einen Ordner hochzuladen, auf dem der User keine Rchte hat
+        dic['id']=self._user2_project1_folder1.id
+        response=self.client.post('/documents/',dic)
+        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['NOTENOUGHRIGHTS'])
 
-        
-        
+        # Falls keine Dateien versendet wurden, sollte ebenfalls eine Fehlermeldung zurückgegeben werden
+        dic['files']=None
+        dic['id']=self._user1_project1_root.id
+        response=self.client.post('/documents/',dic)
+        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['NOTALLPOSTPARAMETERS'])
+
 
 
     # Teste download von Dateien auf dem Server zum Client

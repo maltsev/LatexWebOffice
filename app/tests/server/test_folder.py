@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Fr 28 Nov 2014 13:19:46 CET
+* Last Modified : Sat 29 Nov 2014 12:27:56 AM CET
 
 * Author :  mattis
 
@@ -200,6 +200,11 @@ class FolderTestClass(TestCase):
         # Files von Unterverzeichnissen ebenso
         self.assertFalse(File.objects.filter(id=oldfileid).exists())
 
+        #Teste, dass ein User nur Ordner löschen kann, auf die er Rechte hat
+        response=util.documentPoster(self,command='rmdir',idpara=self._user2_project1_folder1.id)
+        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+
+
 
     # Teste das Unbenennen von Ordnern
     def test_renameDir(self):
@@ -231,13 +236,12 @@ class FolderTestClass(TestCase):
         serveranswer = dictionary['response']
 
         self.assertEqual(dictionary['status'], FAILURE)
-
         self.assertEqual(ERROR_MESSAGES['NOTENOUGHRIGHTS'], serveranswer)
 
+        # Teste, ob ein Verzeichnis einen leeren Namen haben kann
+        response=util.documentPoster(self,command='renamedir',idpara=self._user1_project1_folder2.id,name='?/')
+        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['INVALIDNAME'])
 
-
-    # Teste, ob ein Verzeichnis einen leeren Namen haben kann: Überflüssig, da dies bereits schon
-    # in der test_createDir Methode getestet wird
 
 
     # Teste das Verschieben eines Ordners
@@ -273,6 +277,14 @@ class FolderTestClass(TestCase):
         # Teste, ob Fehlermeldung bei falscher fileid
         response = util.documentPoster(self, command='movedir', idpara=-1, idpara2=self._user1_project1_folder2.id)
         self.assertEqual(util.jsonDecoder(response.content)['status'], FAILURE)
+
+        # Teste, ob Fehlermeldung, falls ein Ordner verschoben wird, auf dem der User keine Rechte hat
+        response=util.documentPoster(self,command='movedir',idpara=self._user2_project1_folder1.id,idpara2=self._user1_project1_folder1.id)
+        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+
+        #Teste, ob Fehlermeldung, falls ein Ordner in einen Ordner verschoben wird, auf die der User keine Rechte hat
+        response=util.documentPoster(self,command='movedir',idpara=self._user1_project1_folder1.id,idpara2=self._user2_project1_folder1.id)
+        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['NOTENOUGHRIGHTS'])
 
     
     # Teste, dass beim Verschieben eines Ordners nach überprüft wird, ob es einen gleichnamigen Unterordner im neuen Parentordner schon gibt 
