@@ -4,26 +4,44 @@
 @last-change: 25.11.2014 - sprint-nr: 2
 */
 
+/// ID der im Editor geöffneten Datei
+var id;
+
 /// Editor
 var editor;
 
 /**
- * Lädt den ACE-Editor, sobald das Dokument vollständig geladen wurde.
+ * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
  */
 $(document).ready(function() {
-	editor = ace.edit('editor');
+	// Datei-ID abfragen
+	id = parseInt($(document).getUrlParam('id'), 10);
+	if (isNaN(id))
+		// ungültige ID
+		backToProject();
+	else {
+		// ACE-Editor laden
+		editor = ace.edit('editor');
 
-	// Clouds-Theme
-	editor.setTheme('ace/theme/clouds');
+		// Clouds-Theme
+		editor.setTheme('ace/theme/clouds');
 
-	// Latex-Modus
-	editor.getSession().setMode('ace/mode/latex');
-	// TODO: ACE-BasicAutoCompletion?
+		// Latex-Modus
+		editor.getSession().setMode('ace/mode/latex');
 
-	// automatisches Setzen von Klammern
-	editor.on('change', autoBraceCompletion);
+		// automatisches Setzen von Klammern
+		editor.on('change', autoBraceCompletion);
 
-	// TODO: automatische Vervollständigung von Blöcken (\begin{…} … \end{…})
+		// TODO: automatische Vervollständigung von Blöcken (\begin{…} … \end{…})
+
+		// Button für das Speichern belegen
+		$('#save').click(function() {
+			saveFile(id);
+		});
+
+		// Dokument laden
+		loadFile(id);
+	}
 });
 
 /// Klammern, welche automatisch geschlossen werden sollen
@@ -50,6 +68,15 @@ function autoBraceCompletion(e) {
 }
 
 /**
+ * Leitet den Benutzer zurück zur Projektverwaltung.
+ */
+function backToProject() {
+	// TODO: auf das richtige Projekt verweisen?
+	// FIXME: Adresse für die Projektverwaltung eingeben
+	window.location.replace('/');
+}
+
+/**
  * Lädt eine Datei in den Editor.
  * @param id ID der Datei
  */
@@ -69,7 +96,6 @@ function loadFile(id) {
 		'dataType': 'text',
 		'error': function(response, textStatus, errorThrown) {
 			// Fehler bei der Anfrage
-			// DEBUG
 			console.log({
 				'error': 'Fehler beim Laden der Datei',
 				'details': errorThrown,
@@ -77,7 +103,7 @@ function loadFile(id) {
 				'statusCode': response.status,
 				'statusText': response.statusText
 			});
-			// TODO: Client umleiten?
+			backToProject();
 		},
 		'success': function(data, textStatus, response) {
 			// Datei erfolgreich geladen
