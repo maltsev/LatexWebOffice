@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fri 28 Nov 2014 10:26:52 PM CET
+* Last Modified : Sat 29 Nov 2014 01:14:03 AM CET
 
 * Author :  christian
 
@@ -164,24 +164,37 @@ def moveFile(request, user, fileid, newfolderid):
 # benötigt: id:projectid, folderid:folderid
 # liefert: HTTP Response (Json)
 def uploadFiles(request, user, folderid):
+
+    errors=[]
+    success=[]
+
     
     # Teste ob der Ordner existiert und der User rechte auf dem Ordner hat
     rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
     if not rights:
         return failurereturn
     folder=Folder.objects.get(id=folderid)
-
+    
+    # Teste ob auch Dateien gesendet wurden
     if not request.FILES and not request.FILES.getlist('files'):
        return util.jsonErrorResponse(ERROR_MESSAGES['NOTALLPOSTPARAMETERS'],request)
-
+    
+    # Hole dateien aus dem request
     files=request.FILES.getlist('files')
 
 
+    # Gehe die Dateien einzeln durch, bei Erfolg, setze id und name auf die success Liste
+    # Bei Fehler, setzte mit name und Grund auf die errors Liste
+    for f in files:
+        rsp,response=util.uploadFile(f,folder,request)
+        if not rsp:
+            errors.append({'name':f.name,'reason':response})
+        else:
+            success.append(response)
+
     
 
-
-
-    return util.uploadFiles(files,folder,request)
+    return util.jsonResponse({'success':success,'failure':errors},True,request)
 
 
 # liefert eine vom Client angeforderte Datei als Filestream

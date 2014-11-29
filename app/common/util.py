@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fri 28 Nov 2014 10:34:44 PM CET
+* Last Modified : Sat 29 Nov 2014 01:04:53 AM CET
 
 * Author :  christian
 
@@ -236,3 +236,37 @@ def uploadFiles(files,folder,request):
         else: #Unerlaubtes Mimetype
             errors.append({'name':f.name,'reason':ERROR_MESSAGES['ILLEGALFILETYPE']})
     return jsonResponse({'success':success,'failure':errors},True,request)
+
+def uploadFile(f,folder,request):
+
+    mime,encoding=mimetypes.guess_type(f.name)
+    
+    # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
+    illegalstring, failurereturn = checkObjectForInvalidString(f.name, request)
+    if not illegalstring:
+        return False,ERROR_MESSAGES['INVALIDNAME']
+
+
+    #Überprüfe auf doppelte Dateien unter Nichtbeachtung Groß- und Kleinschreibung
+    # Teste ob Ordnername in diesem Verzeichnis bereits existiert
+    unique, failurereturn = checkIfFileOrFolderIsUnique(f.name, File, folder , request)
+    if not unique:
+        return False, ERROR_MESSAGES['INVALIDNAME']
+
+
+    # Überprüfe auf verbotene Dateiendungen
+    if mime in ALLOWEDMIMETYPES['binary']:
+        pass #TODO waiting for binaryfile constructor
+    elif mime in ALLOWEDMIMETYPES['text']:
+        if mime=='text/x-tex':
+            texfile=TexFile(name=f.name,source_code=f.read().decode('utf-8'),folder=folder)
+            # Überprüfe, ob Datenbank Datei speichern kann TODO
+            texfile.save()
+            return True,{'name':texfile.name,'id':texfile.id}
+        else:
+            plainfile=PlainTextFile(name=f.name,source_code=f.read().decode('utf-8'))
+            # Überprüfe, ob Datenbank Datei speichern kann TODO
+            plainfile.save()
+            return True,{'name':plainfile.name,'id':plainfile.id}
+    else: #Unerlaubtes Mimetype
+        return False, ERROR_MESSAGES['ILLEGALFILETYPE']
