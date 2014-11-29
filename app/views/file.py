@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Sat 29 Nov 2014 07:02:44 PM CET
+* Last Modified : Sat 29 Nov 2014 07:18:39 PM CET
 
 * Author :  christian
 
@@ -275,71 +275,67 @@ def latexCompile(request, user, fileid):
 
     # Zum Projekt der Tex-Datei dazugehörende Dateien abrufen
     # - Überprüfe, ob es diese Tex-Datei überhaupt gibt und der User die nötigen Rechte auf die Datei hat
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(
+        fileid, user, request)
     if not rights:
         return failurereturn
-
 
     # Zum Projekt der Tex-Datei dazugehörende Dateien abrufen
     texfileobj = TexFile.objects.get(id=fileid)
     projectobj = texfileobj.folder.getProject()
     projectDictionaryFiles = util.getProjectFilesFromProjectObject(projectobj)
 
-    try:
-        tmpdirname='/tmp/testing'
-        import shutil
-        shutil.rmtree(tmpdirname)
-        tmpdir=os.mkdir(tmpdirname)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        try:
+            tocompilefilename = ''
 
-        tocompilefilename=''
+            def createFiles(hier, parent, tocompilefilename=''):
+                foldername = os.path.join(parent, hier['name'])
+                os.mkdir(foldername)
 
-        def createFiles(hier,parent,tocompilefilename=''):
-            foldername=os.path.join(parent,hier['name'])
-            os.mkdir(foldername)
+                for f in hier['files']:
+                    filename = os.path.join(foldername, f['name'])
 
+                    if str(f['id']) == fileid:
+                        tocompilefilename = filename
 
-            for f in hier['files']:
-                filename=os.path.join(foldername,f['name'])
-                
-                if str(f['id'])==fileid:
-                    tocompilefilename=filename
+                    if TexFile.objects.filter(id=f['id']).exists():
+                        fo = open(filename, 'w')
+                        fo.write(TexFile.objects.get(id=f['id']).source_code)
+                        fo.close()
+                    else:
+                        fo = open(filename, 'wb')
+                        # fo.write(BinaryFile.objects.get(id=f['id']).getContent().read())
+                        fo.close()
 
-                if TexFile.objects.filter(id=f['id']).exists():
-                    fo=open(filename,'w')
-                    fo.write(TexFile.objects.get(id=f['id']).source_code)
-                    fo.close()
-                else:
-                    fo=open(filename,'wb')
-                    #fo.write(BinaryFile.objects.get(id=f['id']).getContent().read())
-                    fo.close()
+                for d in hier['folders']:
+                    tocompilefilename = createFiles(
+                        d, foldername, tocompilefilename)
 
+                return tocompilefilename
 
+            tocompilefilename = createFiles(
+                projectDictionaryFiles, tmpdirname, tocompilefilename)
 
-            for d in hier['folders']:
-                tocompilefilename=createFiles(d,foldername,tocompilefilename)
+            import subprocess as sub
+            cmd = ["pdflatex", "-halt-on-error",
+                   "-interaction=batchmode", "%s" % tocompilefilename]
+            p = sub.Popen(
+                cmd, stdout=sub.PIPE, stderr=sub.PIPE, cwd=tmpdirname)
+            output, errors = p.communicate()
+            p.wait()
 
-            return tocompilefilename
-
-
-
-        tocompilefilename=createFiles(projectDictionaryFiles,tmpdirname,tocompilefilename)
-        
-        import subprocess as sub
-        cmd=["pdflatex", "-halt-on-error", "-interaction=batchmode", "%s" % tocompilefilename]
-        p = sub.Popen(cmd,stdout=sub.PIPE,stderr=sub.PIPE,cwd=tmpdirname)
-        output, errors = p.communicate()
-        p.wait()
-
-    except:
-        pass
-    pdffilename=os.path.join(tmpdirname,texfileobj.name)[:-3]+'pdf'
-    if os.path.isfile(pdffilename):
-        pdffile=BinaryFile.objects.createFromFile(name=pdffilename,folder=texfileobj.folder,file=open(pdffilename,'rb'))
-        return util.jsonResponse({'id':pdffile.id,'name':'output.pdf'},True,request)
+            pdffilename = os.path.join(
+                tmpdirname, texfileobj.name)[:-3] + 'pdf'
+            if os.path.isfile(pdffilename):
+                pdffile = BinaryFile.objects.createFromFile(
+                    name=pdffilename, folder=texfileobj.folder, file=open(pdffilename, 'rb'))
+                return util.jsonResponse({'id': pdffile.id, 'name': 'output.pdf'}, True, request)
+        except:
+            pass
 
     # rueckgabe=Sende Dateien an Ingo's Methode
 
-    # Falls rueckgabe okay -> sende pdf von Ingo an client
-
     # Sonst Fehlermeldung an Client
+
     return util.jsonErrorResponse(ERROR_MESSAGES['COMPILATIONERROR'], request)
