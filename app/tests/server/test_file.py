@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Sat 29 Nov 2014 12:38:00 AM CET
+* Last Modified : Sat 29 Nov 2014 02:00:34 AM CET
 
 * Author :  christian
 
@@ -408,7 +408,7 @@ class FileTestClass(TestCase):
         response=self.client.post('/documents/',dic)
         util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['NOTALLPOSTPARAMETERS'])
 
-
+        # TODO Teste binäre Dateien
 
     # Teste download von Dateien auf dem Server zum Client
     def test_downloadfile(self):

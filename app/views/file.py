@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Sat 29 Nov 2014 01:14:03 AM CET
+* Last Modified : Sat 29 Nov 2014 01:49:37 AM CET
 
 * Author :  christian
 
@@ -167,11 +167,13 @@ def uploadFiles(request, user, folderid):
 
     errors=[]
     success=[]
+    
 
     
     # Teste ob der Ordner existiert und der User rechte auf dem Ordner hat
     rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
     if not rights:
+        print('fuck')
         return failurereturn
     folder=Folder.objects.get(id=folderid)
     
