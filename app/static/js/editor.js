@@ -82,6 +82,7 @@ function loadFile(id) {
 		'success': function(data, textStatus, response) {
 			// Datei erfolgreich geladen
 			editor.setValue(data, 0);
+			editor.getSelection().selectTo(0, 0);
 			// TODO: Editor-Funktionen entsperren
 		}
 	});
