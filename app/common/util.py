@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Sat 29 Nov 2014 01:04:53 AM CET
+* Last Modified : Sat 29 Nov 2014 02:06:58 AM CET
 
 * Author :  christian
 
@@ -23,6 +23,7 @@ from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.file import File
 from app.models.file.texfile import TexFile
+from app.models.file.binaryfile import BinaryFile
 import json
 import mimetypes
 
@@ -62,6 +63,8 @@ def checkIfDirExistsAndUserHasRights(folderid, user, request):
     if not Folder.objects.filter(id=folderid).exists():
         return False, jsonErrorResponse(ERROR_MESSAGES['DIRECTORYNOTEXIST'], request)
     elif not Folder.objects.get(id=folderid).getProject().author == user:
+        print(user)
+        print(Folder.objects.get(id=folderid).getProject().author)
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
         return True, None
@@ -199,44 +202,6 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content
         pass  # TODO
     return self.client.post('/documents/', dictionary)
 
-def uploadFiles(files,folder,request):
-    errors=[]
-    success=[]
-
-    for f in files:
-        mime,encoding=mimetypes.guess_type(f.name)
-        
-        # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
-        illegalstring, failurereturn = checkObjectForInvalidString(f.name, request)
-        if not illegalstring:
-            return failurereturn
-
-
-        #Überprüfe auf doppelte Dateien unter Nichtbeachtung Groß- und Kleinschreibung
-        # Teste ob Ordnername in diesem Verzeichnis bereits existiert
-        unique, failurereturn = checkIfFileOrFolderIsUnique(f.name, File, folder , request)
-        if not unique:
-            return failurereturn
-
-
-        # Überprüfe auf verbotene Dateiendungen
-        if mime in ALLOWEDMIMETYPES['binary']:
-            pass #TODO waiting for binaryfile constructor
-        elif mime in ALLOWEDMIMETYPES['text']:
-            if mime=='text/x-tex':
-                texfile=TexFile(name=f.name,source_code=f.read().decode('utf-8'),folder=folder)
-                # Überprüfe, ob Datenbank Datei speichern kann TODO
-                texfile.save()
-                success.append({'name':texfile.name,'id':texfile.id})
-            else:
-                plainfile=PlainTextFile(name=f.name,source_code=f.read().decode('utf-8'))
-                # Überprüfe, ob Datenbank Datei speichern kann TODO
-                plainfile.save()
-                success.append({'name':plainfile.name,'id':plainfile.id})
-        else: #Unerlaubtes Mimetype
-            errors.append({'name':f.name,'reason':ERROR_MESSAGES['ILLEGALFILETYPE']})
-    return jsonResponse({'success':success,'failure':errors},True,request)
-
 def uploadFile(f,folder,request):
 
     mime,encoding=mimetypes.guess_type(f.name)
@@ -256,7 +221,10 @@ def uploadFile(f,folder,request):
 
     # Überprüfe auf verbotene Dateiendungen
     if mime in ALLOWEDMIMETYPES['binary']:
-        pass #TODO waiting for binaryfile constructor
+        pass
+        #binfile = BinaryFile(name=f.name,requestFile=f)
+        #binfile.save()
+        #return True, {'name':binfile.name,'id':binfile.id}
     elif mime in ALLOWEDMIMETYPES['text']:
         if mime=='text/x-tex':
             texfile=TexFile(name=f.name,source_code=f.read().decode('utf-8'),folder=folder)

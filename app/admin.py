@@ -5,7 +5,7 @@ from app import models
 
 @admin.register(models.folder.Folder)
 class FolderAdmin(admin.ModelAdmin):
-    list_display = ('name', 'createTime', 'parent', 'root')
+    list_display = ('id', 'name', 'createTime', 'parent', 'root')
     list_filter = ('parent', 'root')
 
 
