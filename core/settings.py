@@ -86,6 +86,11 @@ LOGIN_URL = '/login/'
 
 STATIC_URL = '/static/'
 
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = 'media'
+
+
 # Speicherort für Dateien
 FILEDATA_URL = os.path.join(os.path.expanduser('~'), 'latexweboffice')
 TMP_FILEDATA_URL = os.path.join(FILEDATA_URL, 'tmp')
