@@ -13,7 +13,7 @@ from core import settings
 class Folder(models.Model):
     name = models.CharField(max_length=255)
     createTime = models.DateTimeField(auto_now_add=True)
-    parent = models.ForeignKey("self", blank=True, null=True, related_name='parentFolder') # Darf leer sein nur bei RootFolder
+    parent = models.ForeignKey("self", blank=True, null=True, related_name='children') # Darf leer sein nur bei RootFolder
     root = models.ForeignKey("self", blank=True, null=True, related_name='rootFolder') # Darf leer sein nur bei RootFolder
 
 
@@ -66,7 +66,7 @@ class Folder(models.Model):
 
         files = list(File.objects.filter(folder=self).exclude(pk__in=excludeFileIds).all())
 
-        folders = list(self.parentFolder.all())
+        folders = list(self.children.all())
 
         return texFiles + plainTextFiles + imageFiles + pdfFiles + folders + files
 
