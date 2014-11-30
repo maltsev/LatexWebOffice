@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import io
+import io, hashlib, os
 from django.db import models
 
 class File(models.Model):
@@ -15,9 +15,25 @@ class File(models.Model):
     def getContent(self):
         return io.StringIO()
 
-    # Method stub
+
     def getTempPath(self):
-        return ''
+        fileContentObj = self.getContent()
+        if hasattr(fileContentObj, 'getvalue') and callable(fileContentObj.getvalue):
+            fileContent = fileContentObj.getvalue().encode("utf-8")
+        else:
+            fileContent = fileContentObj.read()
+
+        fileTempName = hashlib.md5(fileContent).hexdigest()
+        fileTempPath = os.path.join(self.folder.getTempPath(), fileTempName)
+
+        if not os.path.exists(fileTempPath):
+            file = open(fileTempPath, 'wb')
+            file.write(fileContent)
+            file.close()
+
+        return fileTempPath
+
+
 
     def __str__(self):
         return self.name
