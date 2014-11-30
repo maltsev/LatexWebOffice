@@ -68,5 +68,7 @@ db.sqlite3
 #ignore tags
 tags
 
+#ignore ropeproject
+.ropeproject/
 
 *.swo
