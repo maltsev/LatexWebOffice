@@ -4,14 +4,29 @@
 @last-change: 25.11.2014 - sprint-nr: 2
 */
 
-/// Editor
+// Editor
 var editor;
 
 /**
  * Lädt den ACE-Editor, sobald das Dokument vollständig geladen wurde.
  */
 $(document).ready(function() {
+var langTools = ace.require("ace/ext/language_tools");
 	editor = ace.edit('editor');
+	 var Completer = {
+        getCompletions: function(editor, session, pos, prefix, callback) {
+            if (prefix.length === 0) { callback(null, []); return }
+            $.getJSON(
+                "http://rhymebrain.com/talk?function=getRhymes&word=" + prefix,
+                function(wordList) {
+                    // wordList like [{"word":"flow","freq":24,"score":300,"flags":"bc","syllables":"1"}]
+                    callback(null, wordList.map(function(ea) {
+                        return {name: ea.word, value: ea.word, score: ea.score, meta: "rhyme"}
+                    }));
+                })
+        }
+    }
+    langTools.addCompleter(Completer);
 
 	// Clouds-Theme
 	editor.setTheme('ace/theme/clouds');
@@ -19,14 +34,17 @@ $(document).ready(function() {
 	// Latex-Modus
 	editor.getSession().setMode('ace/mode/latex');
 	// TODO: ACE-BasicAutoCompletion?
-
+	editor.setOptions({
+    enableBasicAutocompletion: true
+});
 	// automatisches Setzen von Klammern
 	editor.on('change', autoBraceCompletion);
 
+	
 	// TODO: automatische Vervollständigung von Blöcken (\begin{…} … \end{…})
 });
 
-/// Klammern, welche automatisch geschlossen werden sollen
+// Klammern, welche automatisch geschlossen werden sollen
 var braces = {
 	'{': '}',
 	'[': ']'
@@ -67,22 +85,23 @@ function loadFile(id) {
 			'X-CSRFToken': $.cookie('csrftoken')
 		},
 		'dataType': 'text',
-		'error': function(response, textStatus, errorThrown) {
-			// Fehler bei der Anfrage
-			// DEBUG
-			console.log({
-				'error': 'Fehler beim Laden der Datei',
-				'details': errorThrown,
-				'id': id,
-				'statusCode': response.status,
-				'statusText': response.statusText
-			});
-			// TODO: Client umleiten?
-		},
-		'success': function(data, textStatus, response) {
-			// Datei erfolgreich geladen
-			editor.setValue(data, 0);
-			editor.getSelection().selectTo(0, 0);
+		'complete': function(response, status) {
+			if (status == 'success') {
+				// Datei in den Editor laden
+				editor.setValue(response.responseText, 0);
+			} else {
+				// Fehler bei der Anfrage
+				// TODO: Client umleiten?
+
+				// DEBUG
+				console.log({
+					'error': 'Fehler beim Laden der Datei',
+					'id': id,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			}
+
 			// TODO: Editor-Funktionen entsperren
 		}
 	});
@@ -93,42 +112,5 @@ function loadFile(id) {
  * @param id ID der Datei
  */
 function saveFile(id) {
-	// TODO: Editor-Funktionen sperren
-
-	// Dokument schicken
-	jQuery.ajax('/documents/', {
-		'type': 'POST',
-		'data': {
-			'command': 'updatefile',
-			'id': id,
-			'content': editor.getValue()
-		},
-		'headers': {
-			'X-CSRFToken': $.cookie('csrftoken')
-		},
-		'dataType': 'json',
-		'error': function(response, textStatus, errorThrown) {
-			// Fehler beim Speichern
-			console.log({
-				'error': 'Fehler beim Speichern der Datei',
-				'details': errorThrown,
-				'id': id,
-				'statusCode': response.status,
-				'statusText': response.statusText
-			});
-			// TODO: Editor-Funktionen entsperren
-		},
-		'success': function(data, textStatus, response) {
-			if (data.status != 'success')
-				// Server-seitiger Fehler
-				console.log({
-					'error': 'Fehler beim Speichern der Datei',
-					'details': data.response,
-					'id': id,
-					'statusCode': response.status,
-					'statusText': response.statusText
-				});
-			// TODO: Editor-Funktionen entsperren
-		}
-	});
+	// TODO: implementieren
 }
