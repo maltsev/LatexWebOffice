@@ -27,6 +27,7 @@ $(document).ready(function() {
 		editor = ace.edit('editor');
 		editor.setTheme('ace/theme/clouds');
 		editor.getSession().setMode('ace/mode/latex');
+		editor.setOptions({'enableBasicAutocompletion': true});
 
 		// automatisches Setzen von Klammern
 		editor.on('change', autoBraceCompletion);
