@@ -24,7 +24,8 @@ from app.models.project import Project
 from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
-import json
+from app.models.file.plaintextfile import PlainTextFile
+import json, zipfile, os
 import mimetypes
 
 
@@ -234,3 +235,23 @@ def uploadFile(f,folder,request):
             return True,{'name':plainfile.name,'id':plainfile.id}
     else: #Unerlaubtes Mimetype
         return False, ERROR_MESSAGES['ILLEGALFILETYPE']
+
+
+# Erstellt eine zip Datei des übergebenen Ordners inklusive aller Unterordner und zugehöriger Dateien
+# folderpath ist der Pfad zum Ordner, aus dem die .zip Datei erstellt werden soll, Beispiel: /home/user/test
+# zip_file_path ist der Pfad zur .zip Datei, Beispiel: /home/user/test.zip
+def createZipFromFolder(folderpath, zip_file_path):
+    zip_file = zipfile.ZipFile(zip_file_path, 'w', compression=zipfile.ZIP_DEFLATED)
+
+    for folderpath, foldernames, files in os.walk(os.path.join(folderpath)):
+        zip_file.write(folderpath)
+        for filename in files:
+            zip_file.write(os.path.join(folderpath, filename))
+    zip_file.close()
+
+
+# entpackt alle Dateien und Ordner der zip Datei zip_file_path in den Ordner folderpath
+def extractZipToFolder(folderpath, zip_file_path):
+    zip_file = zipfile.ZipFile(zip_file_path, 'r')
+    zip_file.extractall(folderpath)
+    zip_file.close()
