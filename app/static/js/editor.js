@@ -47,6 +47,11 @@ $(document).ready(function() {
 			saveFile(id);
 		});
 
+		// Button für das Kompilieren belegen
+		$('#compile').click(function() {
+			compile(id);
+		});
+
 		// Dokument laden
 		loadFile(id);
 	}
@@ -166,6 +171,51 @@ function saveFile(id) {
 				changesSaved = true;
 
 			// TODO: Editor-Funktionen entsperren
+		}
+	});
+}
+
+/**
+ * Kompiliert eine Datei und zeigt die PDF an.
+ * @param id ID der Datei
+ */
+function compile(id) {
+	// TODO: parallele Anzeige TEX/PDF implementieren
+
+	// Dokument kompilieren
+	jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'compile',
+			'id': id
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			// Fehler beim Aufruf
+			console.log({
+				'error': 'Fehler beim Kompilieren',
+				'details': errorThrown,
+				'id': id,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success')
+				// Server-seitiger Fehler
+				console.log({
+					'error': 'Fehler beim Kompilieren',
+					'details': data.response,
+					'id': id,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			else
+				// Dokument anzeigen
+				window.location.assign('/documents/?command=downloadfile&id=' + id);
 		}
 	});
 }
