@@ -19,7 +19,7 @@ from app.models.file.binaryfile import BinaryFile
 from app.tests.server.models.modeltestcase import ModelTestCase
 
 class BinaryFileTestCase(ModelTestCase):
-    testBinaryFilepath = os.path.join(BASE_DIR, 'app/static/img/icon.png')
+    testBinaryFilepath = os.path.join(BASE_DIR, 'app', 'static', 'img', 'icon.png')
 
 
     def setUp(self):

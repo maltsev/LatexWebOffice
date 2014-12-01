@@ -41,7 +41,7 @@ class Folder(models.Model):
         if self.parent:
             folderPath = os.path.join(self.parent.getTempPath(), str(self.pk))
         else:
-            folderPath = os.path.join(settings.BASE_DIR, 'media/projects', str(self.pk))
+            folderPath = os.path.join(settings.BASE_DIR, 'media', 'projects', str(self.pk))
 
         if not os.path.exists(folderPath):
             os.makedirs(folderPath)
