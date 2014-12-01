@@ -10,6 +10,9 @@ var id;
 /// Editor
 var editor;
 
+/// Änderungen im Editor gespeichert?
+var changesSaved = true;
+
 /**
  * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
  */
@@ -22,17 +25,22 @@ $(document).ready(function() {
 	else {
 		// ACE-Editor laden
 		editor = ace.edit('editor');
-
-		// Clouds-Theme
 		editor.setTheme('ace/theme/clouds');
-
-		// Latex-Modus
 		editor.getSession().setMode('ace/mode/latex');
 
 		// automatisches Setzen von Klammern
 		editor.on('change', autoBraceCompletion);
 
 		// TODO: automatische Vervollständigung von Blöcken (\begin{…} … \end{…})
+
+		// Speicheraufforderung bei ungespeicherten Änderungen
+		editor.on('change', function() {
+			changesSaved = false;
+		});
+		$(window).bind('beforeunload', function() {
+			if (!changesSaved)
+				return('Ungespeicherte Änderungen, wollen Sie den Editor wirklich verlassen?');
+		});
 
 		// Button für das Speichern belegen
 		$('#save').click(function() {
@@ -154,6 +162,9 @@ function saveFile(id) {
 					'statusCode': response.status,
 					'statusText': response.statusText
 				});
+			else
+				changesSaved = true;
+
 			// TODO: Editor-Funktionen entsperren
 		}
 	});
