@@ -1,7 +1,7 @@
 /*
 @author: Thore Thießen, Timo Dümke
 @creation: 21.11.2014 - sprint-nr: 2
-@last-change: 29.11.2014 - sprint-nr: 2
+@last-change: 01.12.2014 - sprint-nr: 2
 */
 
 /// ID der im Editor geöffneten Datei
@@ -181,6 +181,7 @@ function saveFile(id) {
  */
 function compile(id) {
 	// TODO: parallele Anzeige TEX/PDF implementieren
+	// TODO: Editor-Funktionen sperren?
 
 	// Dokument kompilieren
 	jQuery.ajax('/documents/', {
@@ -215,7 +216,7 @@ function compile(id) {
 				});
 			else
 				// Dokument anzeigen
-				window.location.assign('/documents/?command=downloadfile&id=' + id);
+				postRedirect('/documents/', {'command': 'downloadfile', 'id': id});
 		}
 	});
 }
