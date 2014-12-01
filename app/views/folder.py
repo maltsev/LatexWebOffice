@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 28 Nov 2014 13:31:09 CET
+* Last Modified : Sat 29 Nov 2014 12:28:42 AM CET
 
 * Author :  mattis
 
@@ -24,34 +24,41 @@ from app.models.file.binaryfile import BinaryFile
 from app.common import util
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from django.conf import settings
-import mimetypes, os, io
 from django.db import transaction
+import mimetypes
+import os
+import io
 
 
 # erstellt einen neuen Ordner im angegebenen Verzeichnis
 # benötigt: id:parentdirid, name:directoryname
 # liefert: HTTP Response (Json)
 def createDir(request, user, parentdirid, directoryname):
-    # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = util.checkObjectForInvalidString(directoryname, user, request)
+    # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind
+    # nicht erlaubt)
+    emptystring, failurereturn = util.checkObjectForInvalidString(
+        directoryname,  request)
     if not emptystring:
         return failurereturn
 
     # Teste ob der übergeordnete Ordner existiert
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(parentdirid, user, request)
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
+        parentdirid, user, request)
     if not rights:
         return failurereturn
 
     parentdir = Folder.objects.get(id=parentdirid)
 
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert
-    unique, failurereturn = util.checkIfFileOrFolderIsUnique(directoryname, Folder, parentdir , request)
+    unique, failurereturn = util.checkIfFileOrFolderIsUnique(
+        directoryname, Folder, parentdir, request)
     if not unique:
         return failurereturn
 
     # Versuche den Ordner in der Datenbank zu speichern
     try:
-        newfolder = Folder(name=directoryname, parent=parentdir, root=parentdir.getRoot())
+        newfolder = Folder(
+            name=directoryname, parent=parentdir, root=parentdir.getRoot())
         newfolder.save()
         return util.jsonResponse({'id': newfolder.id, 'name': newfolder.name, 'parentfolderid': parentdir.id,
                                   'parentfoldername': parentdir.name}, True, request)
@@ -63,17 +70,17 @@ def createDir(request, user, parentdirid, directoryname):
 # benötigt: id:folderid
 # liefert: HTTP Response (Json)
 def rmDir(request, user, folderid):
-    # Teste 
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
+    # Teste
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
+        folderid, user, request)
     if not rights:
         return failurereturn
 
     folder = Folder.objects.get(id=folderid)
 
     # Rootfolder dürfen nicht gelöscht werden
-    if folder==folder.getRoot():
-        return util.jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'],request)
-    
+    if folder == folder.getRoot():
+        return util.jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
 
     try:
         folder.delete()
@@ -86,22 +93,26 @@ def rmDir(request, user, folderid):
 # benötigt: id:folderid, name:newdirectoryname
 # liefert: HTTP Response (Json)
 def renameDir(request, user, folderid, newdirectoryname):
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
+        folderid, user, request)
     if not rights:
         return failurereturn
 
     folder = Folder.objects.get(id=folderid)
 
-    # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = util.checkObjectForInvalidString(folder.name, user, request)
+    # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind
+    # nicht erlaubt)
+    emptystring, failurereturn = util.checkObjectForInvalidString(
+        newdirectoryname, request)
     if not emptystring:
         return failurereturn
 
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert
-    unique, failurereturn = util.checkIfFileOrFolderIsUnique(newdirectoryname, Folder, folder.parent , request)
+    unique, failurereturn = util.checkIfFileOrFolderIsUnique(
+        newdirectoryname, Folder, folder.parent, request)
     if not unique:
         return failurereturn
-    
+
     # Versuche die Änderung in die Datenbank zu übernehmen
     try:
         folder.name = newdirectoryname
@@ -115,13 +126,17 @@ def renameDir(request, user, folderid, newdirectoryname):
 # benötigt: id: folderid, folderid: newfolderid
 # liefert HTTP Response (Json)
 def moveDir(request, user, folderid, newfolderid):
-    # Überprüfe ob der zu verschiebende Ordner existiert, und der Benutzer die entsprechenden Rechte besitzt
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
+    # Überprüfe ob der zu verschiebende Ordner existiert, und der Benutzer die
+    # entsprechenden Rechte besitzt
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
+        folderid, user, request)
     if not rights:
         return failurereturn
 
-    # Überprüfe ob Ziel Ordner existiert, und der Benutzer die entsprechenden Rechte besitzt
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(newfolderid, user, request)
+    # Überprüfe ob Ziel Ordner existiert, und der Benutzer die entsprechenden
+    # Rechte besitzt
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
+        newfolderid, user, request)
     if not rights:
         return failurereturn
 
@@ -129,25 +144,17 @@ def moveDir(request, user, folderid, newfolderid):
     newparentfolderobj = Folder.objects.get(id=newfolderid)
 
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert
-    unique, failurereturn = util.checkIfFileOrFolderIsUnique(folderobj.name, Folder, newparentfolderobj , request)
+    unique, failurereturn = util.checkIfFileOrFolderIsUnique(
+        folderobj.name, Folder, newparentfolderobj, request)
     if not unique:
         return failurereturn
-    
-    
+
     # Versuche die Änderung in die Datenbank zu übernehmen
     try:
         # setze den newfolder als neues übergeordnetes Verzeichnis
         folderobj.parent = newparentfolderobj
-        # wenn der Ordner in ein anderes Projekt verschoben wird
-        if not folderobj.root == newparentfolderobj.root:
-            # passe den root Ordner an
-            # wenn der Zielorder ein root folder eines Projektes ist
-            if newparentfolderobj.root is None:
-                # setze diesen als neuen übergeordneten Ordner
-                folderobj.root = newparentfolderobj
-            else:
-                # sonst setze den root folder des Zielprojektes
-                folderobj.root = newparentfolderobj.root
+        # Dessen root Verzeichnis wird auch das Rootverzeichnis vom folderobj
+        folderobj.root = newparentfolderobj.getRoot()
         folderobj.save()
         return util.jsonResponse({'id': folderobj.id, 'name': folderobj.name,
                                   'parentid': folderobj.parent.id, 'rootid': folderobj.root.id}, True, request)
@@ -160,13 +167,16 @@ def moveDir(request, user, folderid, newfolderid):
 # liefert: HTTP Response (Json)
 # Beispiel response: {type: 'folder', name: 'folder1', id=1, content: {type :
 def listFiles(request, user, folderid):
-    # Überprüfe ob der user auf den Ordner zugreifen darf und dieser auch existiert
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
+    # Überprüfe ob der user auf den Ordner zugreifen darf und dieser auch
+    # existiert
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
+        folderid, user, request)
     if not rights:
         return failurereturn
 
     current_folder = Folder.objects.get(id=folderid)
 
-    folderandfiles_structure = util.getFolderAndFileStructureAsDict(current_folder)
+    folderandfiles_structure = util.getFolderAndFileStructureAsDict(
+        current_folder)
 
     return util.jsonResponse(folderandfiles_structure, True, request)

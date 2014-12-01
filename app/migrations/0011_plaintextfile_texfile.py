@@ -14,7 +14,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PlainTextFile',
             fields=[
-                ('file_ptr', models.OneToOneField(serialize=False, parent_link=True, primary_key=True, to='app.File', auto_created=True)),
+                ('file_ptr', models.OneToOneField(serialize=False, parent_link=True,
+                                                  primary_key=True, to='app.File', auto_created=True)),
                 ('source_code', models.TextField(blank=True)),
             ],
             options={
@@ -24,7 +25,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TexFile',
             fields=[
-                ('plaintextfile_ptr', models.OneToOneField(serialize=False, parent_link=True, primary_key=True, to='app.PlainTextFile', auto_created=True)),
+                ('plaintextfile_ptr', models.OneToOneField(serialize=False, parent_link=True,
+                                                           primary_key=True, to='app.PlainTextFile', auto_created=True)),
             ],
             options={
             },

@@ -17,8 +17,8 @@
 
 """
 
-from django.shortcuts import render,redirect, render_to_response
-from django.contrib import messages,auth
+from django.shortcuts import render, redirect, render_to_response
+from django.contrib import messages, auth
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from core.settings import LOGIN_URL
@@ -32,7 +32,7 @@ import re
 # see
 # https://docs.djangoproject.com/en/dev/topics/auth/default/#django.contrib.auth.login
 
-## Default handler for login requests by the client that sends the client the login page.
+# Default handler for login requests by the client that sends the client the login page.
 #  If correct login details were sent with the request (over POST data), the user will be redirected to a success page.
 #  Otherwise an error message will be inserted into the django messages queue.
 #  @param request The HttpRequest Object
@@ -45,23 +45,23 @@ def login(request):
         email = request.POST['email']
         password = request.POST['password']
 
-         # Email is case-insensitive, but login is case-sensitive
+        # Email is case-insensitive, but login is case-sensitive
         user = auth.authenticate(username=email.lower(), password=password)
         if user is not None:
             if user.is_active:
                 auth.login(request, user)
                 return redirect('/')
             else:
-                messages.error(request, ERROR_MESSAGES['INACTIVEACCOUNT'].format(email))
+                messages.error(
+                    request, ERROR_MESSAGES['INACTIVEACCOUNT'].format(email))
 
         else:
             messages.error(request, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
 
-
     return render_to_response('login.html', {'email': email}, context_instance=RequestContext(request))
 
 
-## Logout
+# Logout
 #  @param request The HttpRequest Object
 @login_required
 def logout(request):
@@ -69,7 +69,7 @@ def logout(request):
     return redirect(LOGIN_URL)
 
 
-## Default handler for registration requests by the client that sends the user the registration page.
+# Default handler for registration requests by the client that sends the user the registration page.
 #  If correct registration details were sent with the request (over POST data), the user will be logged in
 #  and redirected to the start page
 #  Otherwise an error message will be inserted into the django messages queue.
@@ -112,7 +112,8 @@ def registration(request):
         # first name may only contain standard ASCII characters
         # and some german special characters
         if not regex_first_name.match(first_name):
-            messages.error(request, ERROR_MESSAGES['INVALIDCHARACTERINFIRSTNAME'])
+            messages.error(
+                request, ERROR_MESSAGES['INVALIDCHARACTERINFIRSTNAME'])
             foundErrors = True
         # passwords may not contain any spaces
         if ' ' in password1:

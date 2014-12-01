@@ -16,7 +16,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Document',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', primary_key=True, serialize=False)),
+                ('id', models.AutoField(
+                    auto_created=True, verbose_name='ID', primary_key=True, serialize=False)),
                 ('name', models.CharField(max_length=255)),
                 ('createTime', models.DateTimeField(auto_now_add=True)),
                 ('lastModifiedTime', models.DateTimeField(auto_now=True)),
@@ -31,7 +32,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Folder',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', primary_key=True, serialize=False)),
+                ('id', models.AutoField(
+                    auto_created=True, verbose_name='ID', primary_key=True, serialize=False)),
                 ('name', models.CharField(max_length=255)),
                 ('createTime', models.DateTimeField(auto_now_add=True)),
             ],
@@ -42,7 +44,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Project',
             fields=[
-                ('folder_ptr', models.OneToOneField(auto_created=True, primary_key=True, to='app.Folder', parent_link=True, serialize=False)),
+                ('folder_ptr', models.OneToOneField(auto_created=True,
+                                                    primary_key=True, to='app.Folder', parent_link=True, serialize=False)),
                 ('author', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
             options={

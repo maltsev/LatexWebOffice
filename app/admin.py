@@ -5,7 +5,7 @@ from app import models
 
 @admin.register(models.folder.Folder)
 class FolderAdmin(admin.ModelAdmin):
-    list_display = ('name', 'createTime', 'parent', 'root')
+    list_display = ('id', 'name', 'createTime', 'parent', 'root')
     list_filter = ('parent', 'root')
 
 
@@ -20,3 +20,7 @@ class TexFileAdmin(admin.ModelAdmin):
     list_display = ('name', 'folder', 'createTime', 'lastModifiedTime')
     list_filter = ('folder',)
 
+
+@admin.register(models.file.File)
+class FileAdmin(admin.ModelAdmin):
+    list_display = ('name', 'folder')

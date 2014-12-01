@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from django.db import models
-from app.models.file.binaryfile import BinaryFile
+from app.models.file import binaryfile
 
 
-class Image(BinaryFile):
-    pass
+class Image(binaryfile.BinaryFile):
+    objects = binaryfile.BinaryFileManager()

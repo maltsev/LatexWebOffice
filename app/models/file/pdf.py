@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from django.db import models
-from app.models.file.binaryfile import BinaryFile
+from app.models.file import binaryfile
 
 
-class PDF(BinaryFile):
-    pass
+class PDF(binaryfile.BinaryFile):
+    objects = binaryfile.BinaryFileManager()

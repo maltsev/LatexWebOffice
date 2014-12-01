@@ -14,7 +14,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='BinaryFile',
             fields=[
-                ('file_ptr', models.OneToOneField(auto_created=True, parent_link=True, primary_key=True, to='app.File', serialize=False)),
+                ('file_ptr', models.OneToOneField(auto_created=True,
+                                                  parent_link=True, primary_key=True, to='app.File', serialize=False)),
                 ('filepath', models.CharField(max_length=255)),
             ],
             options={
@@ -24,7 +25,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Image',
             fields=[
-                ('binaryfile_ptr', models.OneToOneField(auto_created=True, parent_link=True, primary_key=True, to='app.BinaryFile', serialize=False)),
+                ('binaryfile_ptr', models.OneToOneField(auto_created=True,
+                                                        parent_link=True, primary_key=True, to='app.BinaryFile', serialize=False)),
             ],
             options={
             },
@@ -33,7 +35,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PDF',
             fields=[
-                ('binaryfile_ptr', models.OneToOneField(auto_created=True, parent_link=True, primary_key=True, to='app.BinaryFile', serialize=False)),
+                ('binaryfile_ptr', models.OneToOneField(auto_created=True,
+                                                        parent_link=True, primary_key=True, to='app.BinaryFile', serialize=False)),
             ],
             options={
             },

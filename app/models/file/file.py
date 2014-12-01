@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import io
+import hashlib
+import os
 from django.db import models
 
+
 class File(models.Model):
-    name = models.CharField(max_length=255) # Dateiname (z.B. readme.tex)
+    name = models.CharField(max_length=255)  # Dateiname (z.B. readme.tex)
     createTime = models.DateTimeField(auto_now_add=True)
     lastModifiedTime = models.DateTimeField(auto_now=True)
     folder = models.ForeignKey("Folder")
@@ -11,13 +14,25 @@ class File(models.Model):
     class Meta:
         unique_together = ('name', 'folder')
 
-
     def getContent(self):
         return io.StringIO()
 
-    # Method stub
     def getTempPath(self):
-        return ''
+        fileContentObj = self.getContent()
+        if hasattr(fileContentObj, 'getvalue') and callable(fileContentObj.getvalue):
+            fileContent = fileContentObj.getvalue().encode("utf-8")
+        else:
+            fileContent = fileContentObj.read()
+
+        fileTempName = hashlib.md5(fileContent).hexdigest()
+        fileTempPath = os.path.join(self.folder.getTempPath(), fileTempName)
+
+        if not os.path.exists(fileTempPath):
+            file = open(fileTempPath, 'wb')
+            file.write(fileContent)
+            file.close()
+
+        return fileTempPath
 
     def __str__(self):
         return self.name

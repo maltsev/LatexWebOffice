@@ -1,10 +1,10 @@
-""" 
+"""
 
 * Purpose : Dokument- und Projektverwaltung Schnittstelle
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 28 Nov 2014 13:55:49 CET
+* Last Modified : Mo 01 Dez 2014 15:30:31 CET
 
 * Author :  mattis
 
@@ -18,9 +18,10 @@
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from app.common import util
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
-from django.conf import settings
+from app.common.constants import ERROR_MESSAGES
 from app.views import file, folder, project
+from django.http import Http404
+
 
 # Schnittstellenfunktion
 # bietet eine Schnittstelle zur Kommunikation zwischen Client und Server
@@ -52,7 +53,7 @@ def execute(request):
             'deletefile': {'command': file.deleteFile, 'parameters': (globalparas['id'],)},
             'renamefile': {'command': file.renameFile, 'parameters': (globalparas['id'], globalparas['name'])},
             'movefile': {'command': file.moveFile, 'parameters': (globalparas['id'], globalparas['folderid'])},
-            'uploadfiles': {'command': file.uploadFiles, 'parameters': (globalparas['id'], globalparas['folderid'])},
+            'uploadfiles': {'command': file.uploadFiles, 'parameters': (globalparas['id'],)},
             'downloadfile': {'command': file.downloadFile, 'parameters': (globalparas['id'],)},
             'fileinfo': {'command': file.fileInfo, 'parameters': (globalparas['id'],)},
             'compile': {'command': file.latexCompile, 'parameters': (globalparas['id'],)},
@@ -79,7 +80,7 @@ def execute(request):
         for para in paras:
             # wenn der Parameter nicht gefunden wurde oder ein Parameter, welcher eine id angeben sollte
             # Zeichen enthält, die keine Zahlen sind, gib Fehlermeldung zurück
-            if request.POST.get(para['name'])==None:
+            if request.POST.get(para['name']) == None:
                 return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)
             elif para['type'] == int and (not request.POST.get(para['name']).isdigit()):
                 return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)
@@ -93,3 +94,4 @@ def execute(request):
         # except:
         #    print('Fehler')
         #    to_json['response']=str(sys.exc_info()[0])
+    raise Http404
