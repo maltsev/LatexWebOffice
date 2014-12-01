@@ -77,8 +77,8 @@ class FolderTestCase(ModelTestCase):
             self.root.getFilesAndFoldersRecursively(), key=sortFunc))
 
     def test_getTempFilepath(self):
-        rootDirpath = os.path.join(
-            settings.BASE_DIR, settings.MEDIA_ROOT, 'projects', str(self.root.pk))
+        rootDirpath = os.path.join(settings.BASE_DIR, settings.MEDIA_ROOT,
+                                   'projects', str(self.root.pk) + '_' + self.root.name)
         self.assertEquals(rootDirpath, self.root.getTempPath())
         self.assertTrue(os.path.exists(rootDirpath))
 
@@ -86,3 +86,18 @@ class FolderTestCase(ModelTestCase):
         for fileOrFolder in filesAndFolders:
             fileOrFolderPath = fileOrFolder.getTempPath()
             self.assertTrue(os.path.exists(fileOrFolderPath))
+
+    def test_dumpRootFolder(self):
+        filesAndFolders = [
+            ['main.tex'], ['root_file1'], ['root_dir1'], ['root_dir2'],
+            ['root_dir1', 'root_dir1_file1'], ['root_dir1', 'root_dir1_dir1'],
+            ['root_dir1', 'root_dir1_dir1', 'root_dir1_dir1_dir1'],
+            ['root_dir1', 'root_dir1_dir1', 'root_dir1_dir1_dir1', 'root_dir1_dir1_dir1_file1'],
+            ['root_dir1', 'root_dir1_dir1', 'root_dir1_dir1_dir1', 'root_dir1_dir1_dir1_file2']
+        ]
+
+        self.assertEqual(self.root.getTempPath(), self.root.dumpRootFolder())
+        for fileOrFolder in filesAndFolders:
+            pathParts = [self.root.getTempPath()] + fileOrFolder
+            path = os.path.join(*pathParts)
+            self.assertTrue(os.path.exists(path), "Not exists: {}".format(path))

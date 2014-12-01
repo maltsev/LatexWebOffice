@@ -39,9 +39,7 @@ class File(models.Model):
         else:
             fileContent = fileContentObj.read()
 
-        fileTempName = hashlib.md5(fileContent).hexdigest()
-        fileTempPath = os.path.join(self.folder.getTempPath(), fileTempName)
-
+        fileTempPath = os.path.join(self.folder.getTempPath(), self.name)
         if not os.path.exists(fileTempPath):
             file = open(fileTempPath, 'wb')
             file.write(fileContent)

@@ -54,15 +54,22 @@ class Folder(models.Model):
 
     def getTempPath(self):
         if self.parent:
-            folderPath = os.path.join(self.parent.getTempPath(), str(self.pk))
+            folderPath = os.path.join(self.parent.getTempPath(), self.name)
         else:
             folderPath = os.path.join(
-                settings.BASE_DIR, 'media', 'projects', str(self.pk))
+                settings.BASE_DIR, 'media', 'projects', str(self.pk) + '_' + self.name)
 
         if not os.path.exists(folderPath):
             os.makedirs(folderPath)
 
         return folderPath
+
+    def dumpRootFolder(self):
+        root = self.getRoot()
+        for fileOrFolder in self.getFilesAndFoldersRecursively():
+            fileOrFolder.getTempPath()
+
+        return root.getTempPath()
 
     def getFilesAndFolders(self):
         excludeFileIds = []
