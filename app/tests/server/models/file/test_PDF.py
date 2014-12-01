@@ -13,22 +13,24 @@
 * Backlog entry :
 
 """
-import tempfile, os
+import tempfile
+import os
 from core.settings import BASE_DIR
 from app.models.file.pdf import PDF
 from app.tests.server.models.modeltestcase import ModelTestCase
 
-class PDFTestCase(ModelTestCase):
-    testBinaryFilepath = os.path.join(BASE_DIR, 'app', 'static', 'img', 'icon.png')
 
+class PDFTestCase(ModelTestCase):
+    testBinaryFilepath = os.path.join(
+        BASE_DIR, 'app', 'static', 'img', 'icon.png')
 
     def setUp(self):
         self.setUpProject()
 
-
     def test_createFromFile(self):
         file = open(self.testBinaryFilepath, 'rb')
-        pdfFile = PDF.objects.createFromFile(name='icon.png', folder=self.rootFolder_dir1, file=file)
+        pdfFile = PDF.objects.createFromFile(
+            name='icon.png', folder=self.rootFolder_dir1, file=file)
 
         file.seek(0)
         self.assertEqual(file.read(), pdfFile.getContent().read())

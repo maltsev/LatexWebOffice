@@ -16,12 +16,14 @@
 from app.models.file.plaintextfile import PlainTextFile
 from app.tests.server.models.modeltestcase import ModelTestCase
 
+
 class PlainTextFileTestCase(ModelTestCase):
+
     def setUp(self):
         self.setUpProject()
 
-
     def test_getContent(self):
         sourceCode = 'Straße, ändern, tést'
-        plainTextFile = PlainTextFile.objects.create(name='readme.txt', source_code=sourceCode, folder=self.rootFolder_dir1)
+        plainTextFile = PlainTextFile.objects.create(
+            name='readme.txt', source_code=sourceCode, folder=self.rootFolder_dir1)
         self.assertEqual(sourceCode, plainTextFile.getContent().getvalue())

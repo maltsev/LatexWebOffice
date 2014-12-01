@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Sat 29 Nov 2014 04:17:09 PM CET
+* Last Modified : Mo 01 Dez 2014 15:27:13 CET
 
 * Author :  christian
 
@@ -25,7 +25,9 @@ from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
 from app.models.file.plaintextfile import PlainTextFile
-import json, zipfile, os
+import json
+import zipfile
+import os
 import mimetypes
 
 
@@ -143,19 +145,19 @@ def _getFoldersAndFiles(folderobj, data={}, printing=False, ident=''):
             print('     ', f.id)
         fileslist.append({'name': f.name, 'id': f.id})
 
-
-    #Füge rekursiv die Unterordner hinzu
+    # Füge rekursiv die Unterordner hinzu
     folders = Folder.objects.filter(parent=folderobj)
 
     for folder in folders:
         if printing:
             print(folder)
-        folderslist.append(_getFoldersAndFiles(folder, data={}, printing=printing, ident=ident + '    '))
+        folderslist.append(
+            _getFoldersAndFiles(folder, data={}, printing=printing, ident=ident + '    '))
 
     return data
 
 
-def getProjectFilesFromProjectObject(projectobj,printing=False):
+def getProjectFilesFromProjectObject(projectobj, printing=False):
     rootfolder = projectobj.rootFolder
 
     return _getFoldersAndFiles(rootfolder, printing=printing)
@@ -187,53 +189,56 @@ def getFolderAndFileStructureAsDict(folderobj):
 # Helper Methode um leichter die verschiedenen commands durchzutesten.
 def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content=None, name=None, files=None):
     dictionary = {'command': command}
-    if idpara!=None:
+    if idpara != None:
         dictionary['id'] = idpara
-    if idpara2!=None:
+    if idpara2 != None:
         dictionary['folderid'] = idpara2
-    if content!=None:
+    if content != None:
         dictionary['content'] = content
-    if name!=None:
+    if name != None:
         dictionary['name'] = name
-    if files!=None:
+    if files != None:
         pass  # TODO
     return self.client.post('/documents/', dictionary)
 
-def uploadFile(f,folder,request):
 
-    mime,encoding=mimetypes.guess_type(f.name)
+def uploadFile(f, folder, request):
 
-    
-    # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
+    mime, encoding = mimetypes.guess_type(f.name)
+
+    # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen
+    # haben
     illegalstring, failurereturn = checkObjectForInvalidString(f.name, request)
     if not illegalstring:
-        return False,ERROR_MESSAGES['INVALIDNAME']
+        return False, ERROR_MESSAGES['INVALIDNAME']
 
-
-    #Überprüfe auf doppelte Dateien unter Nichtbeachtung Groß- und Kleinschreibung
+    # Überprüfe auf doppelte Dateien unter Nichtbeachtung Groß- und Kleinschreibung
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert
-    unique, failurereturn = checkIfFileOrFolderIsUnique(f.name, File, folder , request)
+    unique, failurereturn = checkIfFileOrFolderIsUnique(
+        f.name, File, folder, request)
     if not unique:
         return False, ERROR_MESSAGES['INVALIDNAME']
 
-
     # Überprüfe auf verbotene Dateiendungen
     if mime in ALLOWEDMIMETYPES['binary']:
-        binfile = BinaryFile.objects.createFromRequestFile(name=f.name,requestFile=f,folder=folder)
+        binfile = BinaryFile.objects.createFromRequestFile(
+            name=f.name, requestFile=f, folder=folder)
         binfile.save()
-        return True, {'name':binfile.name,'id':binfile.id}
+        return True, {'name': binfile.name, 'id': binfile.id}
     elif mime in ALLOWEDMIMETYPES['text']:
-        if mime=='text/x-tex':
-            texfile=TexFile(name=f.name,source_code=f.read().decode('utf-8'),folder=folder)
+        if mime == 'text/x-tex':
+            texfile = TexFile(
+                name=f.name, source_code=f.read().decode('utf-8'), folder=folder)
             # Überprüfe, ob Datenbank Datei speichern kann TODO
             texfile.save()
-            return True,{'name':texfile.name,'id':texfile.id}
+            return True, {'name': texfile.name, 'id': texfile.id}
         else:
-            plainfile=PlainTextFile(name=f.name,source_code=f.read().decode('utf-8'))
+            plainfile = PlainTextFile(
+                name=f.name, source_code=f.read().decode('utf-8'))
             # Überprüfe, ob Datenbank Datei speichern kann TODO
             plainfile.save()
-            return True,{'name':plainfile.name,'id':plainfile.id}
-    else: #Unerlaubtes Mimetype
+            return True, {'name': plainfile.name, 'id': plainfile.id}
+    else:  # Unerlaubtes Mimetype
         return False, ERROR_MESSAGES['ILLEGALFILETYPE']
 
 
@@ -241,7 +246,8 @@ def uploadFile(f,folder,request):
 # folderpath ist der Pfad zum Ordner, aus dem die .zip Datei erstellt werden soll, Beispiel: /home/user/test
 # zip_file_path ist der Pfad zur .zip Datei, Beispiel: /home/user/test.zip
 def createZipFromFolder(folderpath, zip_file_path):
-    zip_file = zipfile.ZipFile(zip_file_path, 'w', compression=zipfile.ZIP_DEFLATED)
+    zip_file = zipfile.ZipFile(
+        zip_file_path, 'w', compression=zipfile.ZIP_DEFLATED)
 
     for folderpath, foldernames, files in os.walk(os.path.join(folderpath)):
         zip_file.write(folderpath)
@@ -250,7 +256,8 @@ def createZipFromFolder(folderpath, zip_file_path):
     zip_file.close()
 
 
-# entpackt alle Dateien und Ordner der zip Datei zip_file_path in den Ordner folderpath
+# entpackt alle Dateien und Ordner der zip Datei zip_file_path in den
+# Ordner folderpath
 def extractZipToFolder(folderpath, zip_file_path):
     zip_file = zipfile.ZipFile(zip_file_path, 'r')
     zip_file.extractall(folderpath)

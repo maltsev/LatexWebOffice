@@ -34,6 +34,7 @@ class ProjectTestClass(TestCase):
 
     # Initialiserung der benötigten Objekte
     # -> wird vor jedem Test ausgeführt
+
     def setUp(self):
         # erstelle user1
         self._user1 = User.objects.create_user(
@@ -49,10 +50,11 @@ class ProjectTestClass(TestCase):
         self._user3 = User.objects.create_user(
             'user3@test.de', password='test1234')
         self._user3._unhashedpw = 'test1234'
-        self.client=Client()
+        self.client = Client()
 
         # logge user1 ein
-        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
+        self.client.login(
+            username=self._user1.username, password=self._user1._unhashedpw)
 
         # erstelle die root Ordner für die einzelnen Projekte
         user1_project1_root = Folder(name='user1_project1')
@@ -80,12 +82,10 @@ class ProjectTestClass(TestCase):
                                                       rootFolder=user2_project2_root)
         self._user2_project2.save()
 
-
     # Freigabe von nicht mehr benötigten Resourcen
     # -> wird nach jedem Test ausgeführt
     def tearDown(self):
         pass
-
 
     # Teste Erstellen eines Projektes:
     # - ein Benutzer erstellt zwei neue Projekte -> success
@@ -93,7 +93,8 @@ class ProjectTestClass(TestCase):
     # - ein Benutzer erstellt ein weiteres Projekt, wobei der Projektname bereits existiert -> Fehlermeldung
     def test_projectCreate(self):
         # Sende Anfrage zum Erstellen eines neuen Projektes
-        response = self.client.post('/documents/', {'command': 'projectcreate', 'name': 'user1_project3'})
+        response = self.client.post(
+            '/documents/', {'command': 'projectcreate', 'name': 'user1_project3'})
 
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
@@ -112,7 +113,8 @@ class ProjectTestClass(TestCase):
         user1_project3_id = dictionary['response']['id']
 
         # erzeuge ein weiteres Projekt
-        response = self.client.post('/documents/', {'command': 'projectcreate', 'name': 'user1_project4'})
+        response = self.client.post(
+            '/documents/', {'command': 'projectcreate', 'name': 'user1_project4'})
 
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
@@ -127,20 +129,23 @@ class ProjectTestClass(TestCase):
         # überprüfe, ob die erstellten Projekte in der Datenbank vorhanden sind
         # user1_project3
         self.assertTrue(Project.objects.get(id=user1_project3_id))
-        # überprüfe ob für dieses Projekt der root Ordner in der Datenbank angelegt wurde
+        # überprüfe ob für dieses Projekt der root Ordner in der Datenbank
+        # angelegt wurde
         self.assertTrue(Project.objects.get(id=user1_project3_id).rootFolder)
         # TODO
         # überprüfe ob die main.tex Datei in der Datenbank vorhanden ist
         # user1_project4
         self.assertTrue(Project.objects.get(id=user1_project4_id))
-        # überprüfe ob für dieses Projekt der root Ordner in der Datenbank angelegt wurde
+        # überprüfe ob für dieses Projekt der root Ordner in der Datenbank
+        # angelegt wurde
         self.assertTrue(Project.objects.get(id=user1_project4_id).rootFolder)
         # TODO
         # überprüfe ob die main.tex Datei in der Datenbank vorhanden ist
 
         # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein Projekt, dessen Name nur aus Leerzeichen besteht
-        response = self.client.post('/documents/', {'command': 'projectcreate', 'name': '    '})
+        response = self.client.post(
+            '/documents/', {'command': 'projectcreate', 'name': '    '})
 
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
@@ -153,7 +158,8 @@ class ProjectTestClass(TestCase):
 
         # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein Projekt, dessen Name ungültige Sonderzeichen enthält
-        response = self.client.post('/documents/', {'command': 'projectcreate', 'name': '<>\\'})
+        response = self.client.post(
+            '/documents/', {'command': 'projectcreate', 'name': '<>\\'})
 
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
@@ -166,7 +172,8 @@ class ProjectTestClass(TestCase):
 
         # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein weiteres Projekt mit einem bereits existierenden Namen
-        response = self.client.post('/documents/', {'command': 'projectcreate', 'name': 'user1_project4'})
+        response = self.client.post(
+            '/documents/', {'command': 'projectcreate', 'name': 'user1_project4'})
 
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
@@ -175,13 +182,12 @@ class ProjectTestClass(TestCase):
         # teste, ob status == failure
         self.assertEqual(dictionary['status'], FAILURE)
         # teste ob die richtige Fehlermeldung zurückgegeben wurde
-        self.assertEqual(dictionary['response'], ERROR_MESSAGES['PROJECTALREADYEXISTS'].format('user1_project4'))
-
+        self.assertEqual(dictionary['response'], ERROR_MESSAGES[
+                         'PROJECTALREADYEXISTS'].format('user1_project4'))
 
     # Teste Löschen eines Projektes
     def test_projectRm(self):
         pass
-
 
     # Teste Auflisten aller Projekte:
     # - user1 und user2 besitzen jeweils 2 Projekte, user3 keine
@@ -189,7 +195,8 @@ class ProjectTestClass(TestCase):
     # - user2 darf nur seine eigenen Projekte aufgelistet bekommen
     # - user3 bekommt keine Projekte aufgelistet
     def test_listprojects(self):
-        # rufe die URL mit den entsprechenden Parametern zum Auflisten aller Projekte eines Benutzers auf
+        # rufe die URL mit den entsprechenden Parametern zum Auflisten aller
+        # Projekte eines Benutzers auf
         response = self.client.post('/documents/', {'command': 'listprojects'})
 
         # dekodiere den JSON response als dictionary
@@ -203,16 +210,18 @@ class ProjectTestClass(TestCase):
         # und keine Projekte von user2 aufgelistet werden
         self.assertEqual(dictionary['response'],
                          [{'id': self._user1_project1.id, 'name': self._user1_project1.name},
-                         {'id': self._user1_project2.id, 'name': self._user1_project2.name}])
+                          {'id': self._user1_project2.id, 'name': self._user1_project2.name}])
 
         # logout von user1
         self.client.logout()
 
         # --------------------------------------------------------------------------------------------------------------
         # login von user2
-        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        self.client.login(
+            username=self._user2.username, password=self._user2._unhashedpw)
 
-        # rufe die URL mit den entsprechenden Parametern zum Auflisten aller Projekte eines Benutzers auf
+        # rufe die URL mit den entsprechenden Parametern zum Auflisten aller
+        # Projekte eines Benutzers auf
         response = self.client.post('/documents/', {'command': 'listprojects'})
 
         # dekodiere den JSON response als dictionary
@@ -226,16 +235,18 @@ class ProjectTestClass(TestCase):
         # und keine Projekte von user1 aufgelistet werden
         self.assertEqual(dictionary['response'],
                          [{'id': self._user2_project1.id, 'name': self._user2_project1.name},
-                         {'id': self._user2_project2.id, 'name': self._user2_project2.name}])
+                          {'id': self._user2_project2.id, 'name': self._user2_project2.name}])
 
         # logout von user2
         self.client.logout()
 
         # --------------------------------------------------------------------------------------------------------------
         # login von user3
-        self.client.login(username=self._user3.username, password=self._user3._unhashedpw)
+        self.client.login(
+            username=self._user3.username, password=self._user3._unhashedpw)
 
-        # rufe die URL mit den entsprechenden Parametern zum Auflisten aller Projekte eines Benutzers auf
+        # rufe die URL mit den entsprechenden Parametern zum Auflisten aller
+        # Projekte eines Benutzers auf
         response = self.client.post('/documents/', {'command': 'listprojects'})
 
         # dekodiere den JSON response als dictionary
@@ -245,19 +256,17 @@ class ProjectTestClass(TestCase):
         # teste, ob status == success
         self.assertEqual(dictionary['status'], SUCCESS)
 
-        # teste, ob in response ein leeres Array übergeben wurde, da user3 keine Projekte besitzt
+        # teste, ob in response ein leeres Array übergeben wurde, da user3
+        # keine Projekte besitzt
         self.assertEqual(dictionary['response'], [])
-
 
     # Teste das Importieren von Projekten mit einer .zip Datei
     def test_importzip(self):
         pass
 
-
     # Teste das Exportieren eines Projektes als .zip Datei
     def test_exportzip(self):
         pass
-
 
     # Teste die Freigabe eines Projektes für andere Benutzer
     def test_shareproject(self):

@@ -21,10 +21,11 @@ from app.models.project import Project
 from app.models.file.file import File
 from app.tests.server.models.modeltestcase import ModelTestCase
 
+
 class ProjectTestCase(ModelTestCase):
+
     def setUp(self):
         self.setUpProject()
-
 
     def test_cascadeDeleteRootFolder(self):
         self.rootFolder.delete()
@@ -37,11 +38,17 @@ class ProjectTestCase(ModelTestCase):
     def test_mainTex(self):
         self.mainTexFile.source_code = 'test src'
         self.mainTexFile.save()
-        self.assertEqual('test src', self.project.rootFolder.getMainTex().source_code)
+        self.assertEqual(
+            'test src', self.project.rootFolder.getMainTex().source_code)
 
     def checkCascadeDelete(self):
-        self.assertRaises(ObjectDoesNotExist, Project.objects.get, pk=self.project.pk)
-        self.assertRaises(ObjectDoesNotExist, Folder.objects.get, pk=self.rootFolder.pk)
-        self.assertRaises(ObjectDoesNotExist, Folder.objects.get, pk=self.rootFolder_dir1.pk)
-        self.assertRaises(ObjectDoesNotExist, File.objects.get, pk=self.rootFolder_dir1_file1.pk)
-        self.assertRaises(ObjectDoesNotExist, File.objects.get, pk=self.mainTexFile.pk)
+        self.assertRaises(
+            ObjectDoesNotExist, Project.objects.get, pk=self.project.pk)
+        self.assertRaises(
+            ObjectDoesNotExist, Folder.objects.get, pk=self.rootFolder.pk)
+        self.assertRaises(
+            ObjectDoesNotExist, Folder.objects.get, pk=self.rootFolder_dir1.pk)
+        self.assertRaises(
+            ObjectDoesNotExist, File.objects.get, pk=self.rootFolder_dir1_file1.pk)
+        self.assertRaises(
+            ObjectDoesNotExist, File.objects.get, pk=self.mainTexFile.pk)

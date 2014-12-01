@@ -26,7 +26,11 @@ from app.models.file.binaryfile import BinaryFile
 from app.common import util
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from django.conf import settings
-import mimetypes, os, io, tempfile, zipfile
+import mimetypes
+import os
+import io
+import tempfile
+import zipfile
 from django.db import transaction
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -39,17 +43,20 @@ from django.template import RequestContext
 def projectCreate(request, user, projectname):
     # Teste, ob der Projektname kein leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
     # oder ungültige Sonderzeichen enthält
-    emptystring, failurereturn = util.checkObjectForInvalidString(projectname, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(
+        projectname, request)
     if not emptystring:
         return failurereturn
 
-    # überprüfe ob ein Projekt mit dem Namen projectname bereits für diese Benutzer existiert
+    # überprüfe ob ein Projekt mit dem Namen projectname bereits für diese
+    # Benutzer existiert
     if Project.objects.filter(name=projectname, author=user).exists():
         return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
     else:
         try:
             with transaction.atomic():
-                newproject = Project.objects.create(name=projectname, author=user)
+                newproject = Project.objects.create(
+                    name=projectname, author=user)
         except:
             return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTCREATED'], request)
 
@@ -60,8 +67,10 @@ def projectCreate(request, user, projectname):
 # benötigt: id:projectid
 # liefert: HTTP Response (Json)
 def projectRm(request, user, projectid):
-    # überprüfe ob das Projekt existiert und der user die Rechte zum Löschen hat
-    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(projectid, user, request)
+    # überprüfe ob das Projekt existiert und der user die Rechte zum Löschen
+    # hat
+    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(
+        projectid, user, request)
     # sonst gib eine Fehlermeldung zurück
     if not rights:
         return failurereturn
@@ -87,7 +96,8 @@ def listProjects(request, user):
     if availableprojects is None:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
     else:
-        json_return = [util.projectToJson(project) for project in availableprojects]
+        json_return = [util.projectToJson(project)
+                       for project in availableprojects]
 
     return util.jsonResponse(json_return, True, request)
 
@@ -97,19 +107,21 @@ def listProjects(request, user):
 # liefert: HTTP Response (Json)
 def importZip(request, user, folderid):
     # Teste ob der Ordner existiert und der User rechte auf dem Ordner hat
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
+        folderid, user, request)
     if not rights:
         return failurereturn
-    folder=Folder.objects.get(id=folderid)
+    folder = Folder.objects.get(id=folderid)
 
     # Teste ob auch Dateien gesendet wurden
     if not request.FILES and not request.FILES.getlist('files'):
-       return util.jsonErrorResponse(ERROR_MESSAGES['NOTALLPOSTPARAMETERS'],request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['NOTALLPOSTPARAMETERS'], request)
 
     # Hole dateien aus dem request
-    files=request.FILES.getlist('files')
+    files = request.FILES.getlist('files')
 
-    # Erstelle ein temp Verzeichnis, in welches die .zip Datei entpackt werden soll
+    # Erstelle ein temp Verzeichnis, in welches die .zip Datei entpackt werden
+    # soll
     _, tmp = tempfile.mkstemp()
 
     # speichere die .zip Datei im tmp Verzeichnis
@@ -131,8 +143,6 @@ def importZip(request, user, folderid):
 
     # speichere die Datei/den Ordner in der Datenbank
 
-
-
     return util.jsonResponse({}, True, request)
 
 
@@ -140,24 +150,29 @@ def importZip(request, user, folderid):
 # benötigt: id:folderid
 # liefert: filestream
 def exportZip(request, user, folderid):
-    # Überprüfe ob der Ordner existiert, und der Benutzer die entsprechenden Rechte besitzt
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
+    # Überprüfe ob der Ordner existiert, und der Benutzer die entsprechenden
+    # Rechte besitzt
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
+        folderid, user, request)
     if not rights:
         raise Http404
 
     # hole das Ordner Objekt
     folderobj = Folder.objects.get(id=folderid)
 
-    # erstelle ein temp Verzeichnis mit alle Dateien und Unterordnern des gegegeben Ordners
+    # erstelle ein temp Verzeichnis mit alle Dateien und Unterordnern des
+    # gegegeben Ordners
     _, tmp = tempfile.mkstemp()
 
-    # TODO alle Unterordner und Dateien des Ordners in das tmp Verzeichnis kopieren
+    # TODO alle Unterordner und Dateien des Ordners in das tmp Verzeichnis
+    # kopieren
 
     # Unterorder im tmp Verzeichnis, das zur zip Datei hinzugefügt werden soll
     tmp_folder = os.path.join(tmp, folderobj.name)
 
     # erstelle die .zip Datei
-    util.createZipFromFolder(tmp_folder, os.path.join(tmp, folderobj.name + '.zip'))
+    util.createZipFromFolder(
+        tmp_folder, os.path.join(tmp, folderobj.name + '.zip'))
 
     # lese die erstellte .zip Datei ein
     file_dl_path = os.path.join(tmp_folder, folderobj.name, '.zip')
@@ -183,7 +198,6 @@ def exportZip(request, user, folderid):
     response['Content-Disposition'] = 'attachment; ' + filename_header
 
     return response
-
 
 
 # gibt ein Projekt für einen anderen Benutzer zum Bearbeiten frei
