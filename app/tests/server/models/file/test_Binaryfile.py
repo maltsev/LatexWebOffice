@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """
 
-* Purpose : Test des BinaryFile-Modells (app/models/binaryfile.py)
+* Purpose : Test des BinaryFile-Modells (app/models/file/binaryfile.py)
 
 * Creation Date : 26-11-2014
 

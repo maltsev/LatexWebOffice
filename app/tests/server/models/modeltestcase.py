@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """
 
-* Purpose : Test des Projectmodells (app/models/project.py)
+* Purpose : Allgemeine ModelTestCase
 
 * Creation Date : 26-11-2014
 

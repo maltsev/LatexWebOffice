@@ -1,4 +1,19 @@
 # -*- coding: utf-8 -*-
+"""
+
+* Purpose :  Django Adminpanel
+
+* Creation Date : 22-11-2014
+
+* Last Modified : 1 Dec 2014 22:13:00 CET
+
+* Author :  maltsev
+
+* Sprintnumber : 2
+
+* Backlog entry :
+
+"""
 from django.contrib import admin
 from app import models
 

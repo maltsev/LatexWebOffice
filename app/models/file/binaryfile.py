@@ -1,4 +1,19 @@
 # -*- coding: utf-8 -*-
+"""
+
+* Purpose : BinaryFile Modell (app/models/file/binaryfile.py)
+
+* Creation Date : 26-11-2014
+
+* Last Modified : 1 Dec 2014 22:13:00 CET
+
+* Author :  maltsev
+
+* Sprintnumber : 2
+
+* Backlog entry :
+
+"""
 import os
 import tempfile
 from django.db import models

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """
 
-* Purpose : Test des PlainTextFile-Modells (app/models/plaintextfile.py)
+* Purpose : Test des PlainTextFile-Modells (app/models/file/plaintextfile.py)
 
 * Creation Date : 26-11-2014
 

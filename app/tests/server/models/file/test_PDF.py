@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 * Purpose : Test des PDF-Modells (app/models/file/pdf.py)
