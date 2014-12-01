@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 28 Nov 2014 13:59:49 CET
+* Last Modified : Sat 29 Nov 2014 07:18:39 PM CET
 
 * Author :  christian
 
@@ -22,12 +22,12 @@ from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
+from app.models.file.pdf import PDF
 from app.common import util
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
+from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE 
 from django.conf import settings
-import mimetypes, os, io
+import mimetypes, os, io, tempfile
 from django.db import transaction
-
 
 # erstellt eine neue .tex Datei in der Datenbank ohne Textinhalt
 # benötigt: id:folderid name:filename
@@ -47,7 +47,7 @@ def createTexFile(request, user, folderid, texname):
 
     # Teste, ob der Dateiname kein leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
     # oder ungültige Sonderzeichen enthält
-    emptystring, failurereturn = util.checkObjectForInvalidString(texname, user, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(texname, request)
     if not emptystring:
         return failurereturn
     try:
@@ -110,7 +110,7 @@ def renameFile(request, user, fileid, newfilename):
         return failurereturn
 
     # Teste, ob der filename keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = util.checkObjectForInvalidString(newfilename, user, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(newfilename, request)
     if not emptystring:
         return failurereturn
 
@@ -164,10 +164,37 @@ def moveFile(request, user, fileid, newfolderid):
 # bzw. in der Datenbank (.tex)/
 # benötigt: id:projectid, folderid:folderid
 # liefert: HTTP Response (Json)
-def uploadFiles(request, user, projectid, folderid):
-    # for afile in request.FILES.getlist('files'):
-    #    File(file=afile, files=test).save()
-    pass
+def uploadFiles(request, user, folderid):
+
+    errors=[]
+    success=[]
+    
+
+    
+    # Teste ob der Ordner existiert und der User rechte auf dem Ordner hat
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
+    if not rights:
+        return failurereturn
+    folder=Folder.objects.get(id=folderid)
+    
+    # Teste ob auch Dateien gesendet wurden
+    if not request.FILES and not request.FILES.getlist('files'):
+       return util.jsonErrorResponse(ERROR_MESSAGES['NOTALLPOSTPARAMETERS'],request)
+    
+    # Hole dateien aus dem request
+    files=request.FILES.getlist('files')
+
+
+    # Gehe die Dateien einzeln durch, bei Erfolg, setze id und name auf die success Liste
+    # Bei Fehler, setzte mit name und Grund auf die errors Liste
+    for f in files:
+        rsp,response=util.uploadFile(f,folder,request)
+        if not rsp:
+            errors.append({'name':f.name,'reason':response})
+        else:
+            success.append(response)
+
+    return util.jsonResponse({'success':success,'failure':errors},True,request)
 
 
 # liefert eine vom Client angeforderte Datei als Filestream
@@ -248,20 +275,67 @@ def latexCompile(request, user, fileid):
 
     # Zum Projekt der Tex-Datei dazugehörende Dateien abrufen
     # - Überprüfe, ob es diese Tex-Datei überhaupt gibt und der User die nötigen Rechte auf die Datei hat
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(
+        fileid, user, request)
     if not rights:
         return failurereturn
-
 
     # Zum Projekt der Tex-Datei dazugehörende Dateien abrufen
     texfileobj = TexFile.objects.get(id=fileid)
     projectobj = texfileobj.folder.getProject()
+    projectDictionaryFiles = util.getProjectFilesFromProjectObject(projectobj)
 
-    projectDictionaryFileBytes = util.getProjectBytesFromProjectObject(projectobj)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        try:
+            tocompilefilename = ''
+
+            def createFiles(hier, parent, tocompilefilename=''):
+                foldername = os.path.join(parent, hier['name'])
+                os.mkdir(foldername)
+
+                for f in hier['files']:
+                    filename = os.path.join(foldername, f['name'])
+
+                    if str(f['id']) == fileid:
+                        tocompilefilename = filename
+
+                    if TexFile.objects.filter(id=f['id']).exists():
+                        fo = open(filename, 'w')
+                        fo.write(TexFile.objects.get(id=f['id']).source_code)
+                        fo.close()
+                    else:
+                        fo = open(filename, 'wb')
+                        # fo.write(BinaryFile.objects.get(id=f['id']).getContent().read())
+                        fo.close()
+
+                for d in hier['folders']:
+                    tocompilefilename = createFiles(
+                        d, foldername, tocompilefilename)
+
+                return tocompilefilename
+
+            tocompilefilename = createFiles(
+                projectDictionaryFiles, tmpdirname, tocompilefilename)
+
+            import subprocess as sub
+            cmd = ["pdflatex", "-halt-on-error",
+                   "-interaction=batchmode", "%s" % tocompilefilename]
+            p = sub.Popen(
+                cmd, stdout=sub.PIPE, stderr=sub.PIPE, cwd=tmpdirname)
+            output, errors = p.communicate()
+            p.wait()
+
+            pdffilename = os.path.join(
+                tmpdirname, texfileobj.name)[:-3] + 'pdf'
+            if os.path.isfile(pdffilename):
+                pdffile = BinaryFile.objects.createFromFile(
+                    name=pdffilename, folder=texfileobj.folder, file=open(pdffilename, 'rb'))
+                return util.jsonResponse({'id': pdffile.id, 'name': 'output.pdf'}, True, request)
+        except:
+            pass
 
     # rueckgabe=Sende Dateien an Ingo's Methode
 
-    # Falls rueckgabe okay -> sende pdf von Ingo an client
-
     # Sonst Fehlermeldung an Client
-    return util.jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
+
+    return util.jsonErrorResponse(ERROR_MESSAGES['COMPILATIONERROR'], request)

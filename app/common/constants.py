@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Mi 26 Nov 2014 15:50:55 CET
+* Last Modified : Sat 29 Nov 2014 03:24:34 PM CET
 
 * Author :  christian
 
@@ -47,7 +47,30 @@ ERROR_MESSAGES = {
     'PROJECTNOTEXIST': 'Projekt nicht gefunden',
     'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
+    'ILLEGALFILETYPE': 'Dateityp ist nicht erlaubt',
 }
+
+ALLOWEDMIMETYPES = {
+        'text':{
+            'text/x-tex':{
+                'tex',
+                },
+
+                
+            },
+        'binary':{
+            'image/png':{
+                'png',
+                },
+            'image/jpeg':{
+                'jpg',
+                },
+            'image/jpg':{
+                'jpg',
+                }
+        }
+        }
+       
 
 # Ungültige Zeichen für Dateien und Ordner
 INVALIDCHARS = '<>;|"\/?*'
