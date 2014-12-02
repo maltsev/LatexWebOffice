@@ -25,7 +25,7 @@ from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
 from app.models.file.plaintextfile import PlainTextFile
-import json, zipfile, os
+import json, zipfile, os, shutil, tempfile
 import mimetypes
 
 
@@ -241,13 +241,17 @@ def uploadFile(f,folder,request, importzip=False):
 # folderpath ist der Pfad zum Ordner, aus dem die .zip Datei erstellt werden soll, Beispiel: /home/user/test
 # zip_file_path ist der Pfad zur .zip Datei, Beispiel: /home/user/test.zip
 def createZipFromFolder(folderpath, zip_file_path, compression=False):
-    zip_file = zipfile.ZipFile(zip_file_path, 'w', compression=zipfile.ZIP_DEFLATED)
 
-    for folderpath, foldernames, files in os.walk(os.path.join(folderpath)):
-        zip_file.write(folderpath)
-        for filename in files:
-            zip_file.write(os.path.join(folderpath, filename))
-    zip_file.close()
+    relroot = os.path.abspath(folderpath)
+    with zipfile.ZipFile(zip_file_path, "w") as zip:
+        for root, dirs, files in os.walk(folderpath):
+            # add directory (needed for empty dirs)
+            zip.write(root, os.path.relpath(root, relroot))
+            for file in files:
+                filename = os.path.join(root, file)
+                if os.path.isfile(filename): # regular files only
+                    arcname = os.path.join(os.path.relpath(root, relroot), file)
+                    zip.write(filename, arcname)
 
 
 # entpackt alle Dateien und Ordner der zip Datei zip_file_path in den Ordner folderpath

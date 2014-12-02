@@ -132,39 +132,38 @@ def importZip(request, user, folderid):
 
 
 # liefert ein vom Client angefordertes Projekt in Form einer zip Datei als Filestream
-# benötigt: id:folderid
+# benötigt: id:projectid
 # liefert: filestream
-def exportZip(request, user, folderid):
-    # Überprüfe ob der Ordner existiert, und der Benutzer die entsprechenden Rechte besitzt
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
+def exportZip(request, user, projectid):
+    # Überprüfe ob das Projekt, und der Benutzer die entsprechenden Rechte besitzt
+    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(projectid, user, request)
     if not rights:
         raise Http404
 
-    # hole das Ordner Objekt
-    folderobj = Folder.objects.get(id=folderid)
+    # hole das Projekt Objekt
+    projectobj = Project.objects.get(id=projectid)
 
-    # erstelle ein temp Verzeichnis mit alle Dateien und Unterordnern des gegegeben Ordners
-    _, tmp = tempfile.mkstemp()
+    # erstelle ein temp Verzeichnis mit einer Kopie des Projektes
+    project_tmp_path = projectobj.rootFolder.dumpRootFolder()
 
-    # TODO alle Unterordner und Dateien des Ordners in das tmp Verzeichnis kopieren
 
-    # Unterorder im tmp Verzeichnis, das zur zip Datei hinzugefügt werden soll
-    tmp_folder = os.path.join(tmp, folderobj.name)
+    # tmp Verzeichnis in dem die zip Datei gespeichert wird
+    zip_tmp_path = tempfile.mkdtemp()
+    zip_file_path = os.path.join(zip_tmp_path, projectobj.name + '.zip')
 
     # erstelle die .zip Datei
-    util.createZipFromFolder(tmp_folder, os.path.join(tmp, folderobj.name + '.zip'))
+    util.createZipFromFolder(project_tmp_path, zip_file_path)
 
     # lese die erstellte .zip Datei ein
-    file_dl_path = os.path.join(tmp_folder, folderobj.name, '.zip')
-    file_dl = open(file_dl_path, 'rb')
+    file_dl = open(zip_file_path, 'rb')
 
     response = HttpResponse(file_dl.read())
 
     file_dl.close()
 
-    file_dl_size = str(os.stat(file_dl_path).st_size)
+    file_dl_size = str(os.stat(zip_file_path).st_size)
 
-    ctype, encoding = mimetypes.guess_type(folderobj.name + '.zip')
+    ctype, encoding = mimetypes.guess_type(zip_file_path)
 
     if ctype is None:
         ctype = 'application/octet-stream'
@@ -173,7 +172,7 @@ def exportZip(request, user, folderid):
     if encoding is not None:
         response['Content-Encoding'] = encoding
 
-    filename_header = 'filename=%s' % (folderobj.name + '.zip').encode('utf-8')
+    filename_header = 'filename=%s' % (projectobj.name + '.zip').encode('utf-8')
 
     response['Content-Disposition'] = 'attachment; ' + filename_header
 

@@ -26,6 +26,7 @@ from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.tests.server.viewtestcase import ViewTestCase
+import tempfile, zipfile, shutil, os
 
 
 class ProjectTestClass(ViewTestCase):
@@ -235,6 +236,12 @@ class ProjectTestClass(ViewTestCase):
 
     # Teste das Exportieren eines Projektes als .zip Datei
     def test_exportzip(self):
+        # Sende Anfrag zum exportieren eines Projektes
+        #response = util.documentPoster(self, command='exportzip', idpara=self._user1_project1.id)
+
+        #print(response['Content-Type'])
+
+        #print(response['Content-Length'])
         pass
 
 
