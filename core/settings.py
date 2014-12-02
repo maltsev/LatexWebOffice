@@ -90,22 +90,15 @@ STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = 'media'
 
-
-# Speicherort für Dateien
-FILEDATA_URL = os.path.join(os.path.expanduser('~'), 'latexweboffice')
-TMP_FILEDATA_URL = os.path.join(FILEDATA_URL, 'tmp')
-
 # Einstellungen für die Django Tests
 if 'test' in sys.argv:
     PASSWORD_HASHERS = (
         'django.contrib.auth.hashers.MD5PasswordHasher',
     )
-    FILEDATA_URL = os.path.join(os.path.expanduser('~'), 'latexweboffice', 'tests')
-    TMP_FILEDATA_URL = os.path.join(FILEDATA_URL, 'tmp')
 
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(FILEDATA_URL, 'db.sqlite3'),
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
