@@ -21,17 +21,15 @@ from app.common import compile
 from django.test import TestCase
 from core.settings import BASE_DIR
 
-
 class CompilerTestClass(TestCase):
-
+    
     # testet, ob latexmk.pl existiert
-
     def test_exists(self):
         os.chdir(BASE_DIR)
         self.assertTrue(os.path.exists(compile.latexmk_path()))
-
+        
     # testet, ob latexmk.pl ausführbar ist
     def test_executeable(self):
         os.chdir(BASE_DIR)
         path = compile.latexmk_path()
-        self.assertTrue(os.path.isfile(path) and os.access(path, os.X_OK))
+        self.assertTrue(os.path.isfile(path) and os.access(path,os.X_OK))

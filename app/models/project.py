@@ -1,4 +1,19 @@
 # -*- coding: utf-8 -*-
+"""
+
+* Purpose :  Modell (app/models/file/)
+
+* Creation Date : 20-11-2014
+
+* Last Modified : 1 Dec 2014 22:13:00 CET
+
+* Author :  maltsev
+
+* Sprintnumber : 2
+
+* Backlog entry :
+
+"""
 import random
 import string
 from django.db import models
@@ -25,11 +40,9 @@ class Project(models.Model):
 def projectPostDelete(instance, **kwargs):
     instance.rootFolder.delete()
 
-
 @receiver(pre_save, sender=Project)
 def projectPreSave(instance, **kwargs):
     if not hasattr(instance, 'rootFolder') or not instance.rootFolder:
-        randomFolderName = ''.join(
-            random.choice(string.ascii_lowercase + string.digits) for _ in range(32))
+        randomFolderName = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(32))
         rootFolder = Folder.objects.create(name=randomFolderName)
         instance.rootFolder = rootFolder

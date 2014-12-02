@@ -1,10 +1,10 @@
-"""
+""" 
 
 * Purpose : Dokument- und Projektverwaltung Schnittstelle
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mo 01 Dez 2014 15:30:31 CET
+* Last Modified : Fri 28 Nov 2014 10:07:41 PM CET
 
 * Author :  mattis
 
@@ -18,9 +18,10 @@
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from app.common import util
-from app.common.constants import ERROR_MESSAGES
+from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
+from django.conf import settings
 from app.views import file, folder, project
-from django.http import Http404
+from django.http import HttpResponse, Http404
 
 
 # Schnittstellenfunktion
@@ -80,7 +81,7 @@ def execute(request):
         for para in paras:
             # wenn der Parameter nicht gefunden wurde oder ein Parameter, welcher eine id angeben sollte
             # Zeichen enthält, die keine Zahlen sind, gib Fehlermeldung zurück
-            if request.POST.get(para['name']) == None:
+            if request.POST.get(para['name'])==None:
                 return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)
             elif para['type'] == int and (not request.POST.get(para['name']).isdigit()):
                 return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)

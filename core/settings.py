@@ -9,8 +9,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
-import sys
+import os, sys
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -28,8 +27,7 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-TEMPLATE_CONTEXT_PROCESSORS += (
-    'app.contextprocessors.settingsprocessor.error_messages',)
+TEMPLATE_CONTEXT_PROCESSORS+=('app.contextprocessors.settingsprocessor.error_messages',)
 
 # Application definition
 
@@ -67,7 +65,22 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers':['console'],
+            'propagate': True,
+            'level':'DEBUG',
+        }
+    },
+}
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 
@@ -102,8 +115,7 @@ if 'test' in sys.argv:
     PASSWORD_HASHERS = (
         'django.contrib.auth.hashers.MD5PasswordHasher',
     )
-    FILEDATA_URL = os.path.join(
-        os.path.expanduser('~'), 'latexweboffice', 'tests')
+    FILEDATA_URL = os.path.join(os.path.expanduser('~'), 'latexweboffice', 'tests')
     TMP_FILEDATA_URL = os.path.join(FILEDATA_URL, 'tmp')
 
     DATABASES = {

@@ -25,31 +25,31 @@ import json
 class MainTestClass(TestCase):
     # Initialiserung der benötigten Objekte
     # -> wird vor jedem Test ausgeführt
-
     def setUp(self):
         pass
+
 
     # Freigabe von nicht mehr benötigten Resourcen
     # -> wird nach jedem Test ausgeführt
     def tearDown(self):
         pass
 
-    # Teste ob Impressum unter der URL aufrufbar ist und das richtige Template
-    # nutzt
+
+    # Teste ob Impressum unter der URL aufrufbar ist und das richtige Template nutzt
     def test_impressum(self):
         response = self.client.get('/impressum/')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'impressum.html')
 
-    # Teste ob Hilfe unter der URL aufrufbar ist und das richtige Template
-    # nutzt
+
+    # Teste ob Hilfe unter der URL aufrufbar ist und das richtige Template nutzt
     def test_hilfe(self):
         response = self.client.get('/hilfe/')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'hilfe.html')
 
-    # Teste ob Editor unter der URL aufrufbar ist und das richtige Template
-    # nutzt
+
+    # Teste ob Editor unter der URL aufrufbar ist und das richtige Template nutzt
     def test_editor(self):
         response = self.client.get('/editor/')
         self.assertEqual(response.status_code, 200)
