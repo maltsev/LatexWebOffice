@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
-import tempfile
+import os, tempfile
 from django.db import models
 from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
@@ -8,7 +7,6 @@ from app.models.file.file import File
 
 
 class BinaryFileManager(models.Manager):
-
     def createFromRequestFile(self, **kwargs):
         isFilepath = 'filepath' in kwargs and bool(kwargs['filepath'])
         requestFile = 'requestFile' in kwargs and kwargs['requestFile']
@@ -25,6 +23,7 @@ class BinaryFileManager(models.Manager):
 
         return self.create(**kwargs)
 
+
     def createFromFile(self, **kwargs):
         isFilepath = 'filepath' in kwargs and bool(kwargs['filepath'])
         file = 'file' in kwargs and kwargs['file']
@@ -39,6 +38,7 @@ class BinaryFileManager(models.Manager):
             del kwargs['file']
 
         return self.create(**kwargs)
+
 
 
 class BinaryFile(File):

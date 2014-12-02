@@ -15,6 +15,5 @@
 """
 from app.common.constants import ERROR_MESSAGES
 
-
 def error_messages(request):
-    return {'ERROR_MESSAGES': ERROR_MESSAGES}
+    return {'ERROR_MESSAGES':ERROR_MESSAGES}

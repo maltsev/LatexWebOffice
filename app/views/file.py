@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mo 01 Dez 2014 14:39:51 CET
+* Last Modified : Sat 29 Nov 2014 07:18:39 PM CET
 
 * Author :  christian
 
@@ -24,44 +24,34 @@ from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.models.file.pdf import PDF
 from app.common import util
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
+from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE 
 from django.conf import settings
-import mimetypes
-import os
-import io
-import tempfile
+import mimetypes, os, io, tempfile
 from django.db import transaction
 
 # erstellt eine neue .tex Datei in der Datenbank ohne Textinhalt
 # benötigt: id:folderid name:filename
 # liefert HTTP Response (Json); response: id=fileid, name=filename
-
-
 def createTexFile(request, user, folderid, texname):
-    # Überprüfe ob der Ordner existiert, und der Benutzer die entsprechenden
-    # Rechte besitzt
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
-        folderid, user, request)
+    # Überprüfe ob der Ordner existiert, und der Benutzer die entsprechenden Rechte besitzt
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
     if not rights:
         return failurereturn
 
     file_folder = Folder.objects.get(id=folderid)
 
     # Teste ob eine .tex Datei mit dem selben Namen schon existiert
-    unique, failurereturn = util.checkIfFileOrFolderIsUnique(
-        texname, File, file_folder, request)
+    unique, failurereturn = util.checkIfFileOrFolderIsUnique(texname, File, file_folder, request)
     if not unique:
         return failurereturn
 
     # Teste, ob der Dateiname kein leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
     # oder ungültige Sonderzeichen enthält
-    emptystring, failurereturn = util.checkObjectForInvalidString(
-        texname, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(texname, request)
     if not emptystring:
         return failurereturn
     try:
-        texobj = TexFile.objects.create(
-            name=texname, folder=Folder.objects.get(id=folderid), source_code='')
+        texobj = TexFile.objects.create(name=texname, folder=Folder.objects.get(id=folderid), source_code='')
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['FILENOTCREATED'], request)
 
@@ -72,16 +62,13 @@ def createTexFile(request, user, folderid, texname):
 # benötigt: id:fileid, content:filecontenttostring
 # liefert: HTTP Response (Json)
 def updateFile(request, user, fileid, filecontenttostring):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch
-    # existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(
-        fileid, user, request)
+    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         return failurereturn
 
     # wenn es sich bei der Datei nicht um ein PlainTextFile Model aus der Datenbank handelt
-    # kann die Datei nicht bearbeitet werden, d.h. es wurde eine Binaryfile
-    # übergeben
+    # kann die Datei nicht bearbeitet werden, d.h. es wurde eine Binaryfile übergeben
     if not PlainTextFile.objects.filter(id=fileid).exists():
         return util.jsonErrorResponse(ERROR_MESSAGES['NOPLAINTEXTFILE'], request)
 
@@ -99,10 +86,8 @@ def updateFile(request, user, fileid, filecontenttostring):
 # benötigt: id:fileid
 # liefert: HTTP Response (Json)
 def deleteFile(request, user, fileid):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch
-    # existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(
-        fileid, user, request)
+    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         return failurereturn
 
@@ -119,17 +104,13 @@ def deleteFile(request, user, fileid):
 # benötigt: id:fileid, name:newfilename
 # liefert: HTTP Response (Json)
 def renameFile(request, user, fileid, newfilename):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch
-    # existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(
-        fileid, user, request)
+    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         return failurereturn
 
-    # Teste, ob der filename keine leeres Wort ist (Nur Leerzeichen sind nicht
-    # erlaubt)
-    emptystring, failurereturn = util.checkObjectForInvalidString(
-        newfilename, request)
+    # Teste, ob der filename keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
+    emptystring, failurereturn = util.checkObjectForInvalidString(newfilename, request)
     if not emptystring:
         return failurereturn
 
@@ -137,8 +118,7 @@ def renameFile(request, user, fileid, newfilename):
     fileobj = File.objects.get(id=fileid)
 
     # Teste ob eine Datei mit dem selben Namen schon existiert
-    unique, failurereturn = util.checkIfFileOrFolderIsUnique(
-        newfilename, File, fileobj.folder, request)
+    unique, failurereturn = util.checkIfFileOrFolderIsUnique(newfilename, File, fileobj.folder, request)
     if not unique:
         return failurereturn
 
@@ -153,17 +133,13 @@ def renameFile(request, user, fileid, newfilename):
 # benötigt: id: fileid, folderid: newfolderid
 # liefert HTTP Response (Json)
 def moveFile(request, user, fileid, newfolderid):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch
-    # existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(
-        fileid, user, request)
+    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         return failurereturn
 
-    # überprüfe, ob die Datei mit der id fileid existiert und newfolderid dem
-    # User gehört
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
-        newfolderid, user, request)
+    # überprüfe, ob die Datei mit der id fileid existiert und newfolderid dem User gehört
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(newfolderid, user, request)
     fileobj = File.objects.get(id=fileid)
     if not rights:
         return failurereturn
@@ -173,8 +149,7 @@ def moveFile(request, user, fileid, newfolderid):
     fileobj = File.objects.get(id=fileid)
 
     # Teste ob eine Datei mit dem selben Namen schon existiert
-    unique, failurereturn = util.checkIfFileOrFolderIsUnique(
-        fileobj.name, File, folderobj, request)
+    unique, failurereturn = util.checkIfFileOrFolderIsUnique(fileobj.name, File, folderobj, request)
     if not unique:
         return failurereturn
 
@@ -191,43 +166,43 @@ def moveFile(request, user, fileid, newfolderid):
 # liefert: HTTP Response (Json)
 def uploadFiles(request, user, folderid):
 
-    errors = []
-    success = []
+    errors=[]
+    success=[]
+    
 
+    
     # Teste ob der Ordner existiert und der User rechte auf dem Ordner hat
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
-        folderid, user, request)
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
     if not rights:
         return failurereturn
-    folder = Folder.objects.get(id=folderid)
-
+    folder=Folder.objects.get(id=folderid)
+    
     # Teste ob auch Dateien gesendet wurden
     if not request.FILES and not request.FILES.getlist('files'):
-        return util.jsonErrorResponse(ERROR_MESSAGES['NOTALLPOSTPARAMETERS'], request)
-
+       return util.jsonErrorResponse(ERROR_MESSAGES['NOTALLPOSTPARAMETERS'],request)
+    
     # Hole dateien aus dem request
-    files = request.FILES.getlist('files')
+    files=request.FILES.getlist('files')
+
 
     # Gehe die Dateien einzeln durch, bei Erfolg, setze id und name auf die success Liste
     # Bei Fehler, setzte mit name und Grund auf die errors Liste
     for f in files:
-        rsp, response = util.uploadFile(f, folder, request)
+        rsp,response=util.uploadFile(f,folder,request)
         if not rsp:
-            errors.append({'name': f.name, 'reason': response})
+            errors.append({'name':f.name,'reason':response})
         else:
             success.append(response)
 
-    return util.jsonResponse({'success': success, 'failure': errors}, True, request)
+    return util.jsonResponse({'success':success,'failure':errors},True,request)
 
 
 # liefert eine vom Client angeforderte Datei als Filestream
 # benötigt: id:fileid
 # liefert: filestream
 def downloadFile(request, user, fileid):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch
-    # existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(
-        fileid, user, request)
+    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         raise Http404
 
@@ -236,8 +211,7 @@ def downloadFile(request, user, fileid):
         downloadfile = PlainTextFile.objects.get(id=fileid)
         # hole den source code der PlainText Datei
         downloadfile_source_code = downloadfile.source_code
-        # erstelle die PlainText Datei als in-memory stream und schreibe den
-        # source_code rein
+        # erstelle die PlainText Datei als in-memory stream und schreibe den source_code rein
         downloadfileIO = io.StringIO()
         downloadfile_size = downloadfileIO.write(downloadfile_source_code)
         response = HttpResponse(downloadfileIO.getvalue())
@@ -249,8 +223,7 @@ def downloadFile(request, user, fileid):
         # Form .../latexweboffice/userid/projectid/fileid
 
         downloadfile = BinaryFile.objects.get(id=fileid)
-        downloadfile_projectid = BinaryFile.objects.get(
-            id=fileid).folder.getProject().id
+        downloadfile_projectid = BinaryFile.objects.get(id=fileid).folder.getProject().id
         downloadfile_path = os.path.join(settings.FILEDATA_URL, str(user.id), str(downloadfile_projectid),
                                          str(downloadfile.id))
         downloadfile_size = str(os.stat(downloadfile_path).st_size)
@@ -279,18 +252,15 @@ def downloadFile(request, user, fileid):
 # benötigt: id:fileid
 # liefert: HTTP Response (Json) --> fileid, filename, folderid, foldername
 def fileInfo(request, user, fileid):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch
-    # existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(
-        fileid, user, request)
+    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         return failurereturn
 
     fileobj = File.objects.get(id=fileid)
     folder = Folder.objects.get(id=fileobj.folder.id)
 
-    dictionary = {'fileid': fileobj.id, 'filename': fileobj.name,
-                  'folderid': folder.id, 'foldername': folder.name}
+    dictionary = {'fileid': fileobj.id, 'filename': fileobj.name, 'folderid': folder.id, 'foldername': folder.name}
 
     return util.jsonResponse(dictionary, True, request)
 
