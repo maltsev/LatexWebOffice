@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Di 02 Dez 2014 17:19:25 CET
+* Last Modified : Di 02 Dez 2014 17:38:04 CET
 
 * Author :  christian
 
@@ -327,6 +327,8 @@ def latexCompile(request, user, fileid):
             pdffilename = os.path.join(
                 tmpdirname, texfileobj.name)[:-3] + 'pdf'
             if os.path.isfile(pdffilename):
+                if BinaryFile.objects.filter(name='out.pdf',folder=texfileobj.folder).exists():
+                    BinaryFile.objects.get(name='out.pdf',folder=texfileobj.folder).delete()
                 pdffile = BinaryFile.objects.createFromFile(
                     name='out.pdf', folder=texfileobj.folder, file=open(pdffilename, 'rb'))
                 return util.jsonResponse({'id': pdffile.id, 'name': 'output.pdf'}, True, request)
