@@ -15,7 +15,7 @@
 * Backlog entry : TEK1, 3ED9, DOK8
 
 """
-from django.contrib.auth.decorators import login_required
+
 from django.http import HttpResponse, Http404
 from app.models.folder import Folder
 from app.models.project import Project
@@ -25,11 +25,8 @@ from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.common import util
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
-from django.conf import settings
 import mimetypes, os, io, tempfile, zipfile
 from django.db import transaction
-from django.shortcuts import render_to_response
-from django.template import RequestContext
 
 
 # erzeugt ein neues Projekt für den Benutzer mit einer leeren main.tex Datei
@@ -130,8 +127,6 @@ def importZip(request, user, folderid):
     # wenn der Ordner oder Dateiname gültig ist
 
     # speichere die Datei/den Ordner in der Datenbank
-
-
 
     return util.jsonResponse({}, True, request)
 

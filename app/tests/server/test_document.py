@@ -16,31 +16,17 @@
 
 """
 
-from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from app.common import util
-from app.models.folder import Folder
-from app.models.project import Project
-from app.models.file.file import File
-from app.models.file.texfile import TexFile
-from app.models.file.plaintextfile import PlainTextFile
-from app.models.file.binaryfile import BinaryFile
-from django.conf import settings
-import os, json
+from app.tests.server.viewtestcase import ViewTestCase
 
 
-class DocumentsTestClass(TestCase):
+class DocumentsTestClass(ViewTestCase):
     # Initialiserung der benötigten Objecte
     # -> wird vor jedem Test ausgeführt
     def setUp(self):
-        # erstelle user1
-        self._user1 = User.objects.create_user(
-            username='user1@test.de', password='123456')
-        self._user1._unhashedpw = '123456'
-
-        # logge user1 ein
-        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
+        self.setUpSingleUser()
 
 
     # Freigabe von nicht mehr benötigten Resourcen
