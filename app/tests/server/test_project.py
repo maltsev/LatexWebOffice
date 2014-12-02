@@ -16,8 +16,7 @@
 
 """
 
-from django.test import TestCase, Client
-from django.contrib.auth.models import User
+
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from app.common import util
 from app.models.folder import Folder
@@ -26,59 +25,17 @@ from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
-from django.conf import settings
-import os
+from app.tests.server.viewtestcase import ViewTestCase
 
 
-class ProjectTestClass(TestCase):
+class ProjectTestClass(ViewTestCase):
 
     # Initialiserung der benötigten Objekte
     # -> wird vor jedem Test ausgeführt
     def setUp(self):
-        # erstelle user1
-        self._user1 = User.objects.create_user(
-            username='user1@test.de', password='123456')
-        self._user1._unhashedpw = '123456'
-
-        # erstelle user2
-        self._user2 = User.objects.create_user(
-            'user2@test.de', password='test123')
-        self._user2._unhashedpw = 'test123'
-
-        # erstelle user3
-        self._user3 = User.objects.create_user(
-            'user3@test.de', password='test1234')
-        self._user3._unhashedpw = 'test1234'
-        self.client=Client()
-
-        # logge user1 ein
-        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
-
-        # erstelle die root Ordner für die einzelnen Projekte
-        user1_project1_root = Folder(name='user1_project1')
-        user1_project1_root.save()
-        user1_project2_root = Folder(name='user1_project2')
-        user1_project2_root.save()
-        user2_project1_root = Folder(name='user2_project1')
-        user2_project1_root.save()
-        user2_project2_root = Folder(name='user2_project2')
-        user2_project2_root.save()
-
-        # erstelle zwei Projekte als user1
-        self._user1_project1 = Project.objects.create(name='user1_project1', author=self._user1,
-                                                      rootFolder=user1_project1_root)
-        self._user1_project1.save()
-        self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1,
-                                                      rootFolder=user1_project2_root)
-        self._user1_project2.save()
-
-        # erstelle zwei Projekte als user2
-        self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2,
-                                                      rootFolder=user2_project1_root)
-        self._user2_project1.save()
-        self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2,
-                                                      rootFolder=user2_project2_root)
-        self._user2_project2.save()
+        self.setUpUserAndProjects()
+        self.setUpFolders()
+        self.setUpValues()
 
 
     # Freigabe von nicht mehr benötigten Resourcen
@@ -127,16 +84,15 @@ class ProjectTestClass(TestCase):
         # überprüfe, ob die erstellten Projekte in der Datenbank vorhanden sind
         # user1_project3
         self.assertTrue(Project.objects.get(id=user1_project3_id))
-        # überprüfe ob für dieses Projekt der root Ordner in der Datenbank angelegt wurde
-        self.assertTrue(Project.objects.get(id=user1_project3_id).rootFolder)
-        # TODO
-        # überprüfe ob die main.tex Datei in der Datenbank vorhanden ist
         # user1_project4
         self.assertTrue(Project.objects.get(id=user1_project4_id))
-        # überprüfe ob für dieses Projekt der root Ordner in der Datenbank angelegt wurde
+        # überprüfe ob für diese Projekte der root Ordner in der Datenbank angelegt wurde
+        self.assertTrue(Project.objects.get(id=user1_project3_id).rootFolder)
         self.assertTrue(Project.objects.get(id=user1_project4_id).rootFolder)
-        # TODO
-        # überprüfe ob die main.tex Datei in der Datenbank vorhanden ist
+
+        # überprüfe, ob die main.tex Dateien in der Datenbank vorhanden sind
+        self.assertTrue(Project.objects.get(id=user1_project3_id).rootFolder.getMainTex())
+        self.assertTrue(Project.objects.get(id=user1_project4_id).rootFolder.getMainTex())
 
         # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein Projekt, dessen Name nur aus Leerzeichen besteht
@@ -180,7 +136,30 @@ class ProjectTestClass(TestCase):
 
     # Teste Löschen eines Projektes
     def test_projectRm(self):
-        pass
+        # Sende Anfrage zum Löschen eines vorhandenen Projektes
+        response = util.documentPoster(self, command='projectrm', idpara=self._user1_project1.id)
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        util.validateJsonSuccessResponse(self, response.content, {})
+
+        # es sollte keine Ordner des Projektes mehr in der Datenbank existieren
+        self.assertFalse(Folder.objects.filter(id=self._user1_project1_folder1.id))
+        self.assertFalse(Folder.objects.filter(id=self._user1_project1_folder2_subfolder1.id))
+
+        # Sende Anfrage zum Löschen eines nicht vorhandenen Projektes
+        response = util.documentPoster(self, command='projectrm', idpara=self._invalidid)
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['PROJECTNOTEXIST'])
+
+        # Sende Anfrage zum Löschen eines Projektes von user2 (als user1)
+        response = util.documentPoster(self, command='projectrm', idpara=self._user2_project1.id)
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
 
 
     # Teste Auflisten aller Projekte:

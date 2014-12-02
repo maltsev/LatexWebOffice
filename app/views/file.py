@@ -216,22 +216,14 @@ def downloadFile(request, user, fileid):
         downloadfile_size = downloadfileIO.write(downloadfile_source_code)
         response = HttpResponse(downloadfileIO.getvalue())
         downloadfileIO.close()
-
     # sonst wurde eine Binärdatei angefordert
     else:
-        # Pfad zur Binärdatei
-        # Form .../latexweboffice/userid/projectid/fileid
-
         downloadfile = BinaryFile.objects.get(id=fileid)
-        downloadfile_projectid = BinaryFile.objects.get(id=fileid).folder.getProject().id
-        downloadfile_path = os.path.join(settings.FILEDATA_URL, str(user.id), str(downloadfile_projectid),
-                                         str(downloadfile.id))
-        downloadfile_size = str(os.stat(downloadfile_path).st_size)
+        downloadfile_content = downloadfile.getContent()
+        downloadfile_size = util.getFileSize(downloadfile_content)
 
         # lese die Datei ein
-        file_dl = open(downloadfile_path, 'r')
-        response = HttpResponse(file_dl.read())
-        file_dl.close()
+        response = HttpResponse(downloadfile_content)
 
     ctype, encoding = mimetypes.guess_type(downloadfile.name)
 

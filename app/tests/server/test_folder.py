@@ -16,8 +16,6 @@
 
 """
 
-from django.test import TestCase, Client
-from django.contrib.auth.models import User
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from app.common import util
 from app.models.folder import Folder
@@ -26,85 +24,17 @@ from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
-from django.conf import settings
-import os
+from app.tests.server.viewtestcase import ViewTestCase
 
 
-class FolderTestClass(TestCase):
+class FolderTestClass(ViewTestCase):
     # Initialiserung der benötigten Objekte
     # -> wird vor jedem Test ausgeführt
     def setUp(self):
-        # erstelle user1
-        self._user1 = User.objects.create_user(
-            username='user1@test.de', password='123456')
-        self._user1._unhashedpw = '123456'
-        self._user1_invalidid = 10000
-
-        # erstelle user2
-        self._user2 = User.objects.create_user(
-            'user2@test.de', password='test123')
-        self._user2._unhashedpw = 'test123'
-
-        # logge user1 ein
-        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
-
-        # erstelle die root Ordner für die einzelnen Projekte
-        self._user1_project1_root = Folder(name='user1_project1')
-        self._user1_project1_root.save()
-        self._user1_project2_root = Folder(name='user1_project2')
-        self._user1_project2_root.save()
-        self._user2_project1_root = Folder(name='user2_project1')
-        self._user2_project1_root.save()
-
-        # erstelle ein Projekt als user1
-        self._user1_project1 = Project.objects.create(name='user1_project1', author=self._user1,
-                                                      rootFolder=self._user1_project1_root)
-        self._user1_project1.save()
-        self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1,
-                                                      rootFolder=self._user1_project2_root)
-        self._user1_project2.save()
-
-        # erstelle ein Projekt als user2
-        self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2,
-                                                      rootFolder=self._user2_project1_root)
-        self._user2_project1.save()
-
-        # erstelle zwei Order für user1, die dem Projekt user1_project1 zugewiesen werden
-        # erstelle einen Unterordner in _user1_project1_folder2
-        self._user1_project1_folder1 = Folder(name='user1_project1_folder1', parent=self._user1_project1_root,
-                                              root=self._user1_project1_root)
-        self._user1_project1_folder1.save()
-        self._user1_project1_folder2 = Folder(name='user1_project1_folder2', parent=self._user1_project1_root,
-                                              root=self._user1_project1_root)
-        self._user1_project1_folder2.save()
-        self._user1_project1_folder2_subfolder1 = Folder(name='user1_project1_folder2_subfolder1',
-                                                         parent=self._user1_project1_folder2,
-                                                         root=self._user1_project1_root)
-        self._user1_project1_folder2_subfolder1.save()
-
-        # erstelle einen Order für user2, die dem Projekt user2_project1 zugewiesen werden
-        # erstelle einen Unterordner in _user2_project1_folder1
-        self._user2_project1_folder1 = Folder(name='user2_project1_folder1', parent=self._user2_project1_root,
-                                              root=self._user2_project1_root)
-        self._user2_project1_folder1.save()
-        self._user2_project1_folder1_subfolder1 = Folder(name='user2_project1_folder1_subfolder1',
-                                                         parent=self._user2_project1_folder1,
-                                                         root=self._user2_project1_root)
-        self._user2_project1_folder1_subfolder1.save()
-
-        self._user1_dir = os.path.join(settings.FILEDATA_URL, str(self._user1.id))
-        self._user1_project1_dir = os.path.join(self._user1_dir, str(self._user1_project1.id))
-        if not os.path.isdir(self._user1_project1_dir):
-            os.makedirs(self._user1_project1_dir)
-
-        # Erstelle eine Binärdatei für user1 in user1_project1_folder2_subfolder1
-        self._user1_binary1 = BinaryFile(name='test.bin', folder=self._user1_project1_folder2_subfolder1)
-        self._user1_binary1.save()
-        self._user1_binary1_str = 'user1_binary1'
-        file_path = os.path.join(self._user1_project1_dir, str(self._user1_binary1.id))
-        user1_binfile1 = open(file_path, 'w')
-        self._user1_binary1_size = user1_binfile1.write(self._user1_binary1_str)
-        user1_binfile1.close()
+        self.setUpUserAndProjects()
+        self.setUpFolders()
+        self.setUpFiles()
+        self.setUpValues()
 
 
     # Freigabe von nicht mehr benötigten Resourcen
@@ -184,7 +114,7 @@ class FolderTestClass(TestCase):
         self.assertTrue(File.objects.filter(id=oldfileid).exists())
 
         # Teste, dass man keinen Rootfolder löschen kann
-        response = util.documentPoster(self, command='rmdir', idpara=self._user1_project1_root.id)
+        response = util.documentPoster(self, command='rmdir', idpara=self._user1_project1.rootFolder.id)
         dictionary = util.jsonDecoder(response.content)
         serveranswer = dictionary['response']
         self.assertEqual(dictionary['status'], FAILURE)
@@ -271,7 +201,7 @@ class FolderTestClass(TestCase):
         # Teste, dass es eine Fehlermeldung gibt, falls die Datei in einen Ordner verschoben wird,
         # die dem User nicht gehört
         response = util.documentPoster(self, command='movedir', idpara=self._user1_project1_folder2.id,
-                                       idpara2=self._user2_project1_root)
+                                       idpara2=self._user2_project1.rootFolder.id)
         self.assertEqual(util.jsonDecoder(response.content)['status'], FAILURE)
 
         # Teste, ob Fehlermeldung bei falscher fileid
@@ -295,7 +225,8 @@ class FolderTestClass(TestCase):
         self._user1_project1_folder2_subfolder1.name=self._user1_project1_folder2.name
         self._user1_project1_folder2_subfolder1.save()
         # Versuche subfolder in den gleichen Ordner wie parentfolder zu verschieben
-        response = util.documentPoster(self, command='movedir', idpara=self._user1_project1_folder2_subfolder1.id, idpara2=self._user1_project1_folder2.id)
+        response = util.documentPoster(self, command='movedir', idpara=self._user1_project1_folder2_subfolder1.id,
+                                       idpara2=self._user1_project1_folder2.id)
         dictionary = util.jsonDecoder(response.content)
         self.assertEqual(dictionary['response'],ERROR_MESSAGES['FOLDERNAMEEXISTS'])
 
@@ -316,7 +247,7 @@ class FolderTestClass(TestCase):
         #util.validateJsonSuccessResponse(self, response.content, jsonstr)
 
         # Anfrage mit user1 auf Ordner von user2
-        response = util.documentPoster(self, command='listfiles', idpara=self._user2_project1_root.id)
+        response = util.documentPoster(self, command='listfiles', idpara=self._user2_project1.rootFolder.id)
 
         # überprüfe die Antwort des Servers
         # sollte failure als status liefern
@@ -324,7 +255,7 @@ class FolderTestClass(TestCase):
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
 
         # Anfrage auf nicht existierenden Ordner
-        response = util.documentPoster(self, command='listfiles', idpara=self._user1_invalidid)
+        response = util.documentPoster(self, command='listfiles', idpara=self._invalidid)
 
         # überprüfe die Antwort des Servers
         # sollte failure als status liefern

@@ -199,7 +199,7 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content
         pass  # TODO
     return self.client.post('/documents/', dictionary)
 
-def uploadFile(f,folder,request):
+def uploadFile(f,folder,request, importzip=False):
 
     mime,encoding=mimetypes.guess_type(f.name)
 
@@ -240,7 +240,7 @@ def uploadFile(f,folder,request):
 # Erstellt eine zip Datei des übergebenen Ordners inklusive aller Unterordner und zugehöriger Dateien
 # folderpath ist der Pfad zum Ordner, aus dem die .zip Datei erstellt werden soll, Beispiel: /home/user/test
 # zip_file_path ist der Pfad zur .zip Datei, Beispiel: /home/user/test.zip
-def createZipFromFolder(folderpath, zip_file_path):
+def createZipFromFolder(folderpath, zip_file_path, compression=False):
     zip_file = zipfile.ZipFile(zip_file_path, 'w', compression=zipfile.ZIP_DEFLATED)
 
     for folderpath, foldernames, files in os.walk(os.path.join(folderpath)):
@@ -255,3 +255,13 @@ def extractZipToFolder(folderpath, zip_file_path):
     zip_file = zipfile.ZipFile(zip_file_path, 'r')
     zip_file.extractall(folderpath)
     zip_file.close()
+
+
+# liefert die Dateigröße eines file objects in Bytes
+# funktioniert auch für StringIO
+def getFileSize(pyfile):
+    old_file_position = pyfile.tell()
+    pyfile.seek(0, os.SEEK_END)
+    size = pyfile.tell()
+    pyfile.seek(old_file_position, os.SEEK_SET)
+    return size
