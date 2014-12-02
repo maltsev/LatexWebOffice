@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Sat 29 Nov 2014 07:00:25 PM CET
+* Last Modified : Di 02 Dez 2014 15:30:11 CET
 
 * Author :  christian
 
@@ -111,7 +111,7 @@ class FileTestClass(TestCase):
         self._user1_binfile2 = open(self._file_path2, 'w')
         self._user1_binary2_size = self._user1_binfile2.write(self._user1_binary2_str)
         self._user1_binfile2.close()
-        
+
         # Erstelle eine BildDatei für user1 in user1_project1_folder2_subfolder2
         self._user1_binary3 = BinaryFile(name='test2.jpg', folder=self._user1_project1_folder2_subfolder1)
         self._user1_binary3.save()
@@ -397,7 +397,7 @@ class FileTestClass(TestCase):
                 }
 
         response=self.client.post('/documents/',dic)
-    
+
         # überprüfe die Antwort des Servers
         # sollte success als status liefern
         # response sollte von folgender Form sein:
@@ -407,10 +407,10 @@ class FileTestClass(TestCase):
 
 
         serveranswer=(util.jsonDecoder(response.content)['response'])
-        
+
         # Es sollte eig. immer 'success' ausgegeben werden, da auch 'success' kommen sollte, selbst wenn keine einzige Datei akezeptiert wurde
         self.assertEqual(util.jsonDecoder(response.content)['status'],'success')
-        
+
         # Es sollten genau 2 Dateien vom Server akzeptiert werden: test2.tex und test3.jpg
         self.assertEqual(len(serveranswer['success']),2)
         # Eine Datei sollte nicht akzeptiert werden
@@ -522,5 +522,4 @@ class FileTestClass(TestCase):
 
         # Teste Fehlerhafte Datei
         response=util.documentPoster(self,command='compile',idpara=self._user1_tex2.id)
-        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['COMPILATIONERROR'])
-
+        self.assertContains(response, 'Fatal error occurred, no output PDF file produced!')
