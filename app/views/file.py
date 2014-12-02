@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Di 02 Dez 2014 15:30:29 CET
+* Last Modified : Di 02 Dez 2014 17:19:25 CET
 
 * Author :  christian
 
@@ -284,32 +284,56 @@ def latexCompile(request, user, fileid):
     texfileobj = TexFile.objects.get(id=fileid)
     projectobj = texfileobj.folder.getProject()
 
-    folder=projectobj.rootFolder
-    try:
+    projectDictionaryFiles = util.getProjectFilesFromProjectObject(projectobj)
 
-        path=folder.dumpRootFolder()
+    with tempfile.TemporaryDirectory() as tmpdirname:
+            tocompilefilename = ''
 
-        import subprocess as sub
-        cmd = ["pdflatex", "-halt-on-error",
-                "-interaction=batchmode", "%s" % texfileobj.getTempPath()]
-        p = sub.Popen(
-            cmd, stdout=sub.PIPE, stderr=sub.PIPE, cwd=path)
-        output, errors = p.communicate()
-        p.wait()
+            def createFiles(hier, parent, tocompilefilename=''):
+                foldername = os.path.join(parent, hier['name'])
+                os.mkdir(foldername)
 
-        pdffilename = os.path.join(
-            path, texfileobj.name)[:-3] + 'pdf'
-        if os.path.isfile(pdffilename):
-            pdffile = BinaryFile.objects.createFromFile(
-                name=pdffilename, folder=texfileobj.folder, file=open(pdffilename, 'rb'))
-            return util.jsonResponse({'id': pdffile.id, 'name': 'output.pdf'}, True, request)
-        elif os.path.isfile(pdffilename[:-3]+'log'):
-            flog=open(pdffilename[:-3]+'log')
-            log=flog.read()
-            return util.jsonErrorResponse(log,request)
-    finally:
-        import shutil
-        shutil.rmtree(folder.getTempPath())
+                for f in hier['files']:
+                    filename = os.path.join(foldername, f['name'])
+
+                    if str(f['id']) == fileid:
+                        tocompilefilename = filename
+
+                    if TexFile.objects.filter(id=f['id']).exists():
+                        fo = open(filename, 'w')
+                        fo.write(TexFile.objects.get(id=f['id']).source_code)
+                        fo.close()
+                    else:
+                        fo = open(filename, 'wb')
+                        # fo.write(BinaryFile.objects.get(id=f['id']).getContent().read())
+                        fo.close()
+
+                for d in hier['folders']:
+                    tocompilefilename = createFiles(
+                        d, foldername, tocompilefilename)
+
+                return tocompilefilename
+
+            tocompilefilename = createFiles(
+                projectDictionaryFiles, tmpdirname, tocompilefilename)
+            import subprocess as sub
+            cmd = ["pdflatex", "-halt-on-error",
+                   "-interaction=batchmode", "%s" % tocompilefilename]
+            p = sub.Popen(
+                cmd, stdout=sub.PIPE, stderr=sub.PIPE, cwd=tmpdirname)
+            output, errors = p.communicate()
+            p.wait()
+
+            pdffilename = os.path.join(
+                tmpdirname, texfileobj.name)[:-3] + 'pdf'
+            if os.path.isfile(pdffilename):
+                pdffile = BinaryFile.objects.createFromFile(
+                    name='out.pdf', folder=texfileobj.folder, file=open(pdffilename, 'rb'))
+                return util.jsonResponse({'id': pdffile.id, 'name': 'output.pdf'}, True, request)
+            elif os.path.isfile(pdffilename[:-3]+'log'):
+                flog=open(pdffilename[:-3]+'log')
+                log=flog.read()
+                return util.jsonErrorResponse(log,request)
 
     # rueckgabe=Sende Dateien an Ingo's Methode
 
