@@ -35,7 +35,7 @@ class TexFileAdmin(admin.ModelAdmin):
     list_display = ('name', 'folder', 'createTime', 'lastModifiedTime')
     list_filter = ('folder',)
 
-
 @admin.register(models.file.File)
 class FileAdmin(admin.ModelAdmin):
-    list_display = ('name', 'folder')
+    list_display = ('name','folder')
+

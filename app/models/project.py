@@ -40,11 +40,9 @@ class Project(models.Model):
 def projectPostDelete(instance, **kwargs):
     instance.rootFolder.delete()
 
-
 @receiver(pre_save, sender=Project)
 def projectPreSave(instance, **kwargs):
     if not hasattr(instance, 'rootFolder') or not instance.rootFolder:
-        randomFolderName = ''.join(
-            random.choice(string.ascii_lowercase + string.digits) for _ in range(32))
+        randomFolderName = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(32))
         rootFolder = Folder.objects.create(name=randomFolderName)
         instance.rootFolder = rootFolder

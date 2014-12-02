@@ -23,7 +23,6 @@ from app.models.file.file import File
 
 
 class BinaryFileManager(models.Manager):
-
     def createFromRequestFile(self, **kwargs):
         isFilepath = 'filepath' in kwargs and bool(kwargs['filepath'])
         requestFile = 'requestFile' in kwargs and kwargs['requestFile']
@@ -61,6 +60,7 @@ class BinaryFileManager(models.Manager):
             newFile.close()
 
         return filepath
+
 
 
 

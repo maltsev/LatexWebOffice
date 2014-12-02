@@ -14,7 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='folder',
             name='parent',
-            field=models.ForeignKey(
-                null=True, related_name='children', to='app.Folder', blank=True),
+            field=models.ForeignKey(null=True, related_name='children', to='app.Folder', blank=True),
         ),
     ]
