@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Mi 03 Dez 2014 10:54:59 CET
+* Last Modified : Mi 03 Dez 2014 13:37:51 CET
 
 * Author :  christian
 
@@ -258,6 +258,18 @@ class ProjectTestClass(ViewTestCase):
         # Lösche alle erstellten temporären Dateien und Verzeichnisse
         if os.path.isdir(tmpfolder):
             shutil.rmtree(tmpfolder)
+
+        #Teste, dass das Projekt existiert
+        self.assertTrue(Project.objects.filter(author=self._user1,name=self._newprojectname1).exists())
+        projobj=Project.objects.get(author=self._user1,name=self._newprojectname1)
+
+        # Teste, dass eine main tex Datei existiert und diese den richtigen
+        # Inhalt hat
+        self.assertTrue(PlainTextFile.objects.filter(name='main.tex',folder=projobj.rootFolder).exists())
+        maintexobj=PlainTextFile.objects.get(name='main.tex',folder=projobj.rootFolder)
+        self.assertEqual(maintexobj.source_code,self._new_code1)
+
+
 
 
     # Teste das Exportieren eines Projektes als .zip Datei

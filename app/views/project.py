@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mi 03 Dez 2014 12:37:20 CET
+* Last Modified : Mi 03 Dez 2014 13:39:43 CET
 
 * Author :  christian
 
@@ -129,19 +129,19 @@ def importZip(request, user):
 
     projectobj=Project.objects.create(name=fileName,author=user)
 
-    # objdictionary = []
+    # Lösche main.tex die vom Projekt angelegt wurde
+    projectobj.rootFolder.getMainTex().delete()
+
+    print(File.objects.filter(folder=projectobj.rootFolder).exists())
+
 
     projdict={}
 
     parent=None
     folder=projectobj.rootFolder
-    rootdepth=len(extract_path.split(os.sep))
 
     for root, dirs, files in os.walk(extract_path):
         path=root.split('/')[rootdepth:]
-        #print('foldername',util.getFolderName(root))
-        #print('parent',path[:-1])
-        #print('parent2',os.path.join('',*path))
         if path:
             if path[:-1]:
                 parent=projdict[os.path.join('',*path[:-1])]
@@ -149,17 +149,11 @@ def importZip(request, user):
                 parent=projectobj.rootFolder
             folder=Folder.objects.create(name=util.getFolderName(root),parent=parent,root=projectobj.rootFolder)
             projdict[os.path.join('',*path)]=folder
-#        print('files',root,files)
+        for f in files:
+            fileobj=open(os.path.join(root,f),'rb')
+            result,msg=util.uploadFile(fileobj,folder,request,True)
+            fileobj.close()
 
-
-#    print(util.getProjectFilesFromProjectObject(projectobj))
-
-
-    #for root, dirs, files in os.walk(extract_path):
-    #    objdictionary.append(Folder(name=folder_name))
-    #    for file in files:
-    #        filename = os.path.join(root, file)
-    #        if os.path.isfile(filename):
 
     # lösche die temporären Dateien und Ordner
     if os.path.isdir(tmpfolder):
