@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Sat 29 Nov 2014 04:17:09 PM CET
+* Last Modified : Mi 03 Dez 2014 12:51:40 CET
 
 * Author :  christian
 
@@ -218,31 +218,34 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content
 
 
 # Hilfsmethode für hochgeladene Dateien
-def uploadFile(f, folder, request):
-    mime, encoding = mimetypes.guess_type(f.name)
+def uploadFile(f, folder, request,fromZip=False):
+    head, name = os.path.split(f.name)
+    mime, encoding = mimetypes.guess_type(name)
 
     # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
-    illegalstring, failurereturn = checkObjectForInvalidString(f.name, request)
+    illegalstring, failurereturn = checkObjectForInvalidString(name, request)
     if not illegalstring:
         return False, ERROR_MESSAGES['INVALIDNAME']
 
 
     # Überprüfe auf doppelte Dateien unter Nichtbeachtung Groß- und Kleinschreibung
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert
-    unique, failurereturn = checkIfFileOrFolderIsUnique(f.name, File, folder, request)
+    unique, failurereturn = checkIfFileOrFolderIsUnique(name, File, folder, request)
     if not unique:
         return False, ERROR_MESSAGES['INVALIDNAME']
 
 
     # Überprüfe auf verbotene Dateiendungen
     if mime in ALLOWEDMIMETYPES['binary']:
-        binfile = BinaryFile.objects.createFromRequestFile(name=f.name, requestFile=f, folder=folder)
-        binfile.save()
+        if not fromZip:
+            binfile = BinaryFile.objects.createFromRequestFile(name=name, requestFile=f, folder=folder)
+        else:
+            binfile=BinaryFile.objects.createFromFile(name=name,filepath=f.name,folder=folder)
         return True, {'name': binfile.name, 'id': binfile.id}
     elif mime in ALLOWEDMIMETYPES['text']:
         if mime == 'text/x-tex':
             try:
-                texfile = TexFile(name=f.name, source_code=f.read().decode('utf-8'), folder=folder)
+                texfile = TexFile(name=name, source_code=f.read().decode('utf-8'), folder=folder)
                 # Überprüfe, ob Datenbank Datei speichern kann
                 texfile.save()
                 return True, {'name': texfile.name, 'id': texfile.id}
@@ -250,9 +253,8 @@ def uploadFile(f, folder, request):
                 return jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
         else:
             try:
-                plainfile = PlainTextFile(name=f.name, source_code=f.read().decode('utf-8'))
+                plainfile = PlainTextFile.objects.create(name=name, source_code=f.read().decode('utf-8'))
                 # Überprüfe, ob Datenbank Datei speichern kann
-                plainfile.save()
                 return True, {'name': plainfile.name, 'id': plainfile.id}
             except:
                 return jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
