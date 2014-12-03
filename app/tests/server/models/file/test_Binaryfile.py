@@ -29,7 +29,7 @@ class BinaryFileTestCase(ModelTestCase):
 
     def test_getContent(self):
         sourceCode = 'Straße, ändern, tést'
-        _, filepath = tempfile.mkstemp()
+        tmpfile, filepath = tempfile.mkstemp()
         file = open(filepath, 'wb')
         file.write(bytearray(sourceCode, 'utf-8'))
         file.close()
@@ -39,6 +39,7 @@ class BinaryFileTestCase(ModelTestCase):
         binaryFile = binaryFileModel.getContent()
         self.assertEqual(sourceCode, binaryFile.readline().decode('utf-8'))
         binaryFile.close()
+        os.close(tmpfile)
         binaryFileModel.delete()
 
         self.assertFalse(os.path.isfile(filepath))
