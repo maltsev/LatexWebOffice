@@ -24,5 +24,8 @@ class PlainTextFileTestCase(ModelTestCase):
 
     def test_getContent(self):
         sourceCode = 'Straße, ändern, tést'
-        plainTextFile = PlainTextFile.objects.create(name='readme.txt', source_code=sourceCode, folder=self.rootFolder_dir1)
-        self.assertEqual(sourceCode, plainTextFile.getContent().getvalue())
+        plainTextFileModel = PlainTextFile.objects.create(name='readme.txt', source_code=sourceCode, folder=self.rootFolder_dir1)
+        plainTextFile = plainTextFileModel.getContent()
+        self.assertEqual(sourceCode, plainTextFile.getvalue())
+
+        plainTextFile.close()

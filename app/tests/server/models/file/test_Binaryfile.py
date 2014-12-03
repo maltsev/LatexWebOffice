@@ -34,20 +34,28 @@ class BinaryFileTestCase(ModelTestCase):
         file.write(bytearray(sourceCode, 'utf-8'))
         file.close()
 
-        binaryFile = BinaryFile.objects.create(name='readme.txt', filepath=filepath, folder=self.rootFolder_dir1)
-        self.assertEqual(sourceCode, binaryFile.getContent().readline().decode('utf-8'))
-        binaryFile.delete()
+        binaryFileModel = BinaryFile.objects.create(name='readme.txt', filepath=filepath,
+                                                    folder=self.rootFolder_dir1)
+        binaryFile = binaryFileModel.getContent()
+        self.assertEqual(sourceCode, binaryFile.readline().decode('utf-8'))
+        binaryFile.close()
+        binaryFileModel.delete()
 
         self.assertFalse(os.path.isfile(filepath))
 
 
     def test_createFromFile(self):
         file = open(self.testBinaryFilepath, 'rb')
-        binaryFile = BinaryFile.objects.createFromFile(name='icon.png', folder=self.rootFolder_dir1, file=file)
+        binaryFileModel = BinaryFile.objects.createFromFile(name='icon.png',
+                                                            folder=self.rootFolder_dir1,
+                                                            file=file)
 
         file.seek(0)
-        self.assertEqual(file.read(), binaryFile.getContent().read())
-        binaryFile.delete()
+        binaryFile = binaryFileModel.getContent()
+        self.assertEqual(file.read(), binaryFile.read())
+        file.close()
+        binaryFile.close()
+        binaryFileModel.delete()
 
 
     def test_createFromRequestFile(self):
@@ -58,10 +66,20 @@ class BinaryFileTestCase(ModelTestCase):
             def chunks(self):
                 return [line for line in self.file]
 
+            def close(self):
+                if self.file:
+                    self.file.close()
+
 
         requestFileStub = RequestFileStub(self.testBinaryFilepath)
-        binaryFile = BinaryFile.objects.createFromRequestFile(name='icon.png', folder=self.rootFolder_dir1, requestFile=requestFileStub)
+        binaryFileModel = BinaryFile.objects.createFromRequestFile(name='icon.png',
+                                                                   folder=self.rootFolder_dir1,
+                                                                   requestFile=requestFileStub)
+        requestFileStub.close()
 
         file = open(self.testBinaryFilepath, 'rb')
-        self.assertEqual(file.read(), binaryFile.getContent().read())
-        binaryFile.delete()
+        binaryFile = binaryFileModel.getContent()
+        self.assertEqual(file.read(), binaryFile.read())
+        file.close()
+        binaryFile.close()
+        binaryFileModel.delete()
