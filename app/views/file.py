@@ -26,7 +26,7 @@ from app.models.file.pdf import PDF
 from app.common import util
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from django.conf import settings
-import mimetypes, os, io, tempfile
+import mimetypes, os, io, tempfile, logging
 from django.db import transaction
 
 # erstellt eine neue .tex Datei in der Datenbank ohne Textinhalt
@@ -208,10 +208,20 @@ def uploadFiles(request, user, folderid):
 # benötigt: id:fileid
 # liefert: filestream
 def downloadFile(request, user, fileid):
+    # setze das logging level auf ERROR
+    # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben wird
+    logger = logging.getLogger('django.request')
+    previous_level = logger.getEffectiveLevel()
+    logger.setLevel(logging.ERROR)
+
     # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
     rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         raise Http404
+
+    # setze das logging level wieder auf den ursprünglichen Wert
+    logger.setLevel(previous_level)
+
 
     if PlainTextFile.objects.filter(id=fileid).exists():
         # hole das Dateiobjekt

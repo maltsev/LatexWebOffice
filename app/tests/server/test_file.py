@@ -344,10 +344,8 @@ class FileTestClass(ViewTestCase):
 
     # Teste download von Dateien auf dem Server zum Client
     def test_downloadfile(self):
-        file = open(self._user1_binfile1_filepath, 'rb')
-        bin = BinaryFile.objects.createFromFile(name='testxy.bin', folder=self._user1_project1.rootFolder, file=file)
         # Sende Anfrage zum Downloaden der test.bin Datei
-        response = util.documentPoster(self, command='downloadfile', idpara=bin.id)
+        response = util.documentPoster(self, command='downloadfile', idpara=self._user1_binary1.id)
 
         # überprüfe die Antwort des Servers
         # der Content-Type sollte 'application/octet-stream' sein
@@ -357,10 +355,10 @@ class FileTestClass(ViewTestCase):
         #self.assertEqual(response['Content-Length'], str(util.getFileSize(ori_file)))
         ori_file.close()
         # Content-Disposition sollte 'attachment; filename=b'test.bin'' sein
-        #self.assertEqual(response['Content-Disposition'], 'attachment; filename=b\'test1.bin\'')
+        self.assertEqual(response['Content-Disposition'], ('attachment; filename=b\''
+                                                           + self._user1_binary1.name + '\''))
         # der Inhalt der heruntergeladenen Datei und der Datei auf dem Server sollte übereinstimmen
-        # TODO fix
-        #self.assertEqual(self._user1_binary1_str, smart_str(response.content))
+        self.assertEqual(self._user1_binary1_str, smart_str(response.content))
 
         # Sende Anfrage zum Downloaden der main.tex Datei
         response = util.documentPoster(self, command='downloadfile', idpara=self._user1_tex1.id)
@@ -378,7 +376,8 @@ class FileTestClass(ViewTestCase):
         #self.assertEqual(response['Content-Length'], str(util.getFileSize(ori_file)))
         ori_file.close()
         # Content-Disposition sollte 'attachment; filename=b'test.bin'' sein
-        self.assertEqual(response['Content-Disposition'], 'attachment; filename=b\'main.tex\'')
+        self.assertEqual(response['Content-Disposition'], ('attachment; filename=b\''
+                                                           + self._user1_tex1.name + '\''))
 
         # Sende Anfrage zum Download einer Datei als user1 mit der fileid einer .tex Datei die user2 gehört
         response = util.documentPoster(self, command='downloadfile', idpara=self._user2_tex1.id)

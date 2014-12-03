@@ -25,8 +25,9 @@ from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.common import util
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
-import mimetypes, os, io, tempfile, zipfile, shutil
+import mimetypes, os, io, tempfile, zipfile, shutil, logging
 from django.db import transaction
+
 
 
 # erzeugt ein neues Projekt für den Benutzer mit einer leeren main.tex Datei
@@ -171,10 +172,19 @@ def importZip(request, user):
 # benötigt: id:projectid
 # liefert: filestream (404 im Fehlerfall)
 def exportZip(request, user, projectid):
+    # setze das logging level auf ERROR
+    # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben wird
+    logger = logging.getLogger('django.request')
+    previous_level = logger.getEffectiveLevel()
+    logger.setLevel(logging.ERROR)
+
     # Überprüfe ob das Projekt, und der Benutzer die entsprechenden Rechte besitzt
     rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(projectid, user, request)
     if not rights:
         raise Http404
+
+    # setze das logging level wieder auf den ursprünglichen Wert
+    logger.setLevel(previous_level)
 
     # hole das Projekt Objekt
     projectobj = Project.objects.get(id=projectid)
