@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mi 03 Dez 2014 13:39:43 CET
+* Last Modified : Mi 03 Dez 2014 14:14:50 CET
 
 * Author :  christian
 
@@ -132,16 +132,20 @@ def importZip(request, user):
     # Lösche main.tex die vom Projekt angelegt wurde
     projectobj.rootFolder.getMainTex().delete()
 
-    print(File.objects.filter(folder=projectobj.rootFolder).exists())
 
+    # objdictionary = []
 
     projdict={}
 
     parent=None
     folder=projectobj.rootFolder
+    rootdepth=len(extract_path.split(os.sep))
 
     for root, dirs, files in os.walk(extract_path):
         path=root.split('/')[rootdepth:]
+        #print('foldername',util.getFolderName(root))
+        #print('parent',path[:-1])
+        #print('parent2',os.path.join('',*path))
         if path:
             if path[:-1]:
                 parent=projdict[os.path.join('',*path[:-1])]
@@ -155,7 +159,8 @@ def importZip(request, user):
             fileobj.close()
 
 
-    # lösche die temporären Dateien und Ordner
+
+
     if os.path.isdir(tmpfolder):
         shutil.rmtree(tmpfolder)
 

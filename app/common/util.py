@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Mi 03 Dez 2014 13:38:27 CET
+* Last Modified : Mi 03 Dez 2014 14:14:31 CET
 
 * Author :  christian
 
@@ -245,7 +245,7 @@ def uploadFile(f, folder, request,fromZip=False):
     elif mime in ALLOWEDMIMETYPES['text']:
         if mime==mimetypes.types_map['.tex']:
             try:
-                texfile=TexFile(name=f.name,source_code=f.read().decode('utf-8'),folder=folder)
+                texfile=TexFile(name=name,source_code=f.read().decode('utf-8'),folder=folder)
                 # Überprüfe, ob Datenbank Datei speichern kann TODO
                 texfile.save()
                 return True,{'name':texfile.name,'id':texfile.id}
@@ -257,7 +257,7 @@ def uploadFile(f, folder, request,fromZip=False):
                 # Überprüfe, ob Datenbank Datei speichern kann
                 return True, {'name': plainfile.name, 'id': plainfile.id}
             except:
-                return jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+                return False,jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
     else:  #Unerlaubtes Mimetype
         return False, ERROR_MESSAGES['ILLEGALFILETYPE']
 
