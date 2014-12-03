@@ -27,6 +27,7 @@ from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.tests.server.viewtestcase import ViewTestCase
+import os, tempfile, mimetypes
 
 
 class FileTestClass(ViewTestCase):
@@ -322,6 +323,11 @@ class FileTestClass(ViewTestCase):
         # wenn keine einzige Datei akezeptiert wurde
         self.assertEqual(util.jsonDecoder(response.content)['status'], 'success')
 
+        serveranswer=(util.jsonDecoder(response.content)['response'])
+        
+        # Es sollte eig. immer 'success' ausgegeben werden, da auch 'success' kommen sollte, selbst wenn keine einzige Datei akezeptiert wurde
+        self.assertEqual(util.jsonDecoder(response.content)['status'],'success')
+
         # Es sollten genau 2 Dateien vom Server akzeptiert werden: test2.tex und test3.jpg
         self.assertEqual(len(serveranswer['success']), 2)
         # Eine Datei sollte nicht akzeptiert werden
@@ -352,7 +358,7 @@ class FileTestClass(ViewTestCase):
         self.assertEqual(response['Content-Type'], 'application/octet-stream')
         # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
         ori_file = self._user1_binary1.getContent()
-        #self.assertEqual(response['Content-Length'], str(util.getFileSize(ori_file)))
+        self.assertEqual(response['Content-Length'], str(util.getFileSize(ori_file)))
         ori_file.close()
         # Content-Disposition sollte 'attachment; filename=b'test.bin'' sein
         self.assertEqual(response['Content-Disposition'], ('attachment; filename=b\''
@@ -366,15 +372,13 @@ class FileTestClass(ViewTestCase):
         # überprüfe die Antwort des Servers
         # der Inhalt der heruntergeladenen Datei und der Datei auf dem Server sollte übereinstimmen
         self.assertEqual(self._user1_tex1.source_code, smart_str(response.content))
-        # der Content-Type sollte in response enthalten sein
-        # Prüfung auf Content-Type gibt je nach OS unterschiedliche Werte zurück
-        # Windows: application/x-tex
-        # Linux: text/x-tex
-        self.assertIn('Content-Type', response)
+        # der Content-Type sollte .tex entsprechen
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.tex'])
         # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
         ori_file = self._user1_tex1.getContent()
-        #self.assertEqual(response['Content-Length'], str(util.getFileSize(ori_file)))
+        self.assertEqual(response['Content-Length'], str(util.getFileSize(ori_file)))
         ori_file.close()
+
         # Content-Disposition sollte 'attachment; filename=b'test.bin'' sein
         self.assertEqual(response['Content-Disposition'], ('attachment; filename=b\''
                                                            + self._user1_tex1.name + '\''))

@@ -243,12 +243,12 @@ def uploadFile(f, folder, request,fromZip=False):
             binfile=BinaryFile.objects.createFromFile(name=name,filepath=f.name,folder=folder)
         return True, {'name': binfile.name, 'id': binfile.id}
     elif mime in ALLOWEDMIMETYPES['text']:
-        if mime == 'text/x-tex':
+        if mime==mimetypes.types_map['.tex']:
             try:
-                texfile = TexFile(name=name, source_code=f.read().decode('utf-8'), folder=folder)
-                # Überprüfe, ob Datenbank Datei speichern kann
+                texfile=TexFile(name=f.name,source_code=f.read().decode('utf-8'),folder=folder)
+                # Überprüfe, ob Datenbank Datei speichern kann TODO
                 texfile.save()
-                return True, {'name': texfile.name, 'id': texfile.id}
+                return True,{'name':texfile.name,'id':texfile.id}
             except:
                 return jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
         else:
