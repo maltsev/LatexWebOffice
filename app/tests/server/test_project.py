@@ -26,7 +26,7 @@ from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.tests.server.viewtestcase import ViewTestCase
-import tempfile, zipfile, shutil, os
+import tempfile, zipfile, shutil, os, mimetypes
 
 
 class ProjectTestClass(ViewTestCase):
@@ -284,7 +284,7 @@ class ProjectTestClass(ViewTestCase):
 
         # überprüfe die Antwort des Servers
         # Content-Type sollte application/zip sein
-        self.assertEqual(response['Content-Type'], 'application/zip')
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.zip'])
         # Content-Length sollte mit gesendet worden sein
         self.assertIn('Content-Length', response)
 

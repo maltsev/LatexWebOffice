@@ -356,6 +356,7 @@ def latexCompile(request, user, fileid):
         elif os.path.isfile(pdffilename[:-3] + 'log'):
             flog = open(pdffilename[:-3] + 'log')
             log = flog.read()
+            flog.close()
             return util.jsonErrorResponse(log, request)
 
     # rueckgabe=Sende Dateien an Ingo's Methode
