@@ -15,6 +15,7 @@
 
 """
 import os
+import shutil
 from django.core.exceptions import ObjectDoesNotExist
 from core import settings
 from app.models.folder import Folder
@@ -38,6 +39,9 @@ class FolderTestCase(ModelTestCase):
                                                                 folder=self.root_dir1_dir1_dir1, source_code='file1')
         self.root_dir1_dir1_dir1_file2 = TexFile.objects.create(name='root_dir1_dir1_dir1_file2',
                                                                 folder=self.root_dir1_dir1_dir1, source_code='file2')
+
+    def tearDown(self):
+        shutil.rmtree(self.root.getTempPath())
 
 
     def test_getRoot(self):
