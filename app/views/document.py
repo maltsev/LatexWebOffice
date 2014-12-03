@@ -46,7 +46,7 @@ def execute(request):
             'projectcreate': {'command': project.projectCreate, 'parameters': (globalparas['name'],)},
             'projectrm': {'command': project.projectRm, 'parameters': (globalparas['id'],)},
             'listprojects': {'command': project.listProjects, 'parameters': ()},
-            'importzip': {'command': project.importZip, 'parameters': (globalparas['id'],)},
+            'importzip': {'command': project.importZip, 'parameters': ()},
             'exportzip': {'command': project.exportZip, 'parameters': (globalparas['id'],)},
             'shareproject': {'command': project.shareProject, 'parameters': (globalparas['id'], globalparas['name'])},
             'createtex': {'command': file.createTexFile, 'parameters': (globalparas['id'], globalparas['name'])},
@@ -89,10 +89,6 @@ def execute(request):
             else:
                 args.append(request.POST[para['name']])
 
-        # versuche den übergebenen Befehl auszuführen
-        # try: TODO FIX THIS TRY MESS
+        # führe den übergebenen Befehl aus
         return c['command'](request, user, *args)
-        # except:
-        #    print('Fehler')
-        #    to_json['response']=str(sys.exc_info()[0])
     raise Http404

@@ -29,6 +29,7 @@ import json, zipfile, os, shutil, tempfile
 import mimetypes
 
 
+# dekodiert ein JSON
 def jsonDecoder(responseContent):
     return json.loads(str(responseContent, encoding='utf-8'))
 
@@ -69,6 +70,8 @@ def checkIfDirExistsAndUserHasRights(folderid, user, request):
         return True, None
 
 
+# Hilfsmethode um zu überprüfen, ob einer User die Rechte hat eine Datei zu bearbeiten und ob diese Datei existiert
+# benötigt: fileid, user, httprequest
 def checkIfFileExistsAndUserHasRights(fileid, user, request):
     if not File.objects.filter(id=fileid).exists():
         return False, jsonErrorResponse(ERROR_MESSAGES['FILENOTEXIST'], request)
@@ -78,14 +81,20 @@ def checkIfFileExistsAndUserHasRights(fileid, user, request):
         return True, None
 
 
-def validateJsonFailureResponse(self, responsecontent, errormsg):
-    return _validateServerJsonResponse(self, responsecontent, FAILURE, errormsg)
+# Hilfsmethode um zu überprüfen, ob einer User die Rechte hat ein Projekt zu bearbeiten und ob dieses Projekt existiert
+# benötigt: projectid, user, httprequest
+def checkIfProjectExistsAndUserHasRights(projectid, user, request):
+    if not Project.objects.filter(id=projectid).exists():
+        return False, jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'], request)
+    elif not Project.objects.get(id=projectid).author == user:
+        return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
+    else:
+        return True, None
 
 
-def validateJsonSuccessResponse(self, responsecontent, response):
-    return _validateServerJsonResponse(self, responsecontent, SUCCESS, response)
-
-
+# Hilfsmethode für Django Unit Tests
+# prüft ob ein JSON korrekt zurückgeliefert wurde (vgl. jsonResponse(response, status, request) )
+# benötigt: self, response.content, status, response (Antwort des Servers)
 def _validateServerJsonResponse(self, responsecontent, status, response):
     # dekodiere den JSON response als dictionary
     dictionary = jsonDecoder(responsecontent)
@@ -101,7 +110,22 @@ def _validateServerJsonResponse(self, responsecontent, status, response):
     self.assertEqual(dictionary['response'], response)
 
 
-# Vorraussetzung: das Objekt existiert in der Datenbank
+# prüft ob ein 'failure' status als JSON zurückgeliefert wurde
+# ruft _validateServerJsonResponse auf mit Status 'failure'
+def validateJsonFailureResponse(self, responsecontent, errormsg):
+    return _validateServerJsonResponse(self, responsecontent, FAILURE, errormsg)
+
+
+# prüft ob ein 'success' status als JSON zurückgeliefert wurde
+# ruft _validateServerJsonResponse auf mit Status 'sucess'
+def validateJsonSuccessResponse(self, responsecontent, response):
+    return _validateServerJsonResponse(self, responsecontent, SUCCESS, response)
+
+
+# prüft ob eine Datei oder ein Ordner bereits mit gleichem Namen existiert
+# Groß- und Kleinschreibung wird dabei nicht beachtet
+# Beispiel: 'user1_project1' und 'USER1_Project1' werden als identisch betrachtet
+# Vorraussetzung beim Aufruf: das Objekt existiert in der Datenbank
 def checkIfFileOrFolderIsUnique(newname, modelClass, folder, request):
     if modelClass == File:
         if File.objects.filter(name__iexact=newname.lower, folder=folder).exists():
@@ -112,15 +136,8 @@ def checkIfFileOrFolderIsUnique(newname, modelClass, folder, request):
     return True, None
 
 
-def checkIfProjectExistsAndUserHasRights(projectid, user, request):
-    if not Project.objects.filter(id=projectid).exists():
-        return False, jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'], request)
-    elif not Project.objects.get(id=projectid).author == user:
-        return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
-    else:
-        return True, None
-
-
+# prüft, ob ein Name ungültige Zeichen enthält
+# vgl. INVALIDCHARS in /common/constants.py
 def checkObjectForInvalidString(name, request):
     if name.isspace():
         return False, jsonErrorResponse(ERROR_MESSAGES['BLANKNAME'], request)
@@ -143,8 +160,7 @@ def _getFoldersAndFiles(folderobj, data={}, printing=False, ident=''):
             print('     ', f.id)
         fileslist.append({'name': f.name, 'id': f.id})
 
-
-    #Füge rekursiv die Unterordner hinzu
+    # Füge rekursiv die Unterordner hinzu
     folders = Folder.objects.filter(parent=folderobj)
 
     for folder in folders:
@@ -155,10 +171,15 @@ def _getFoldersAndFiles(folderobj, data={}, printing=False, ident=''):
     return data
 
 
-def getProjectFilesFromProjectObject(projectobj,printing=False):
+def getProjectFilesFromProjectObject(projectobj, printing=False):
     rootfolder = projectobj.rootFolder
 
     return _getFoldersAndFiles(rootfolder, printing=printing)
+
+
+# liefert die Ordner- und Dateistruktur eines gegebenen Ordner Objektes als JSON
+def getFolderAndFileStructureAsDict(folderobj):
+    return _getFoldersAndFilesJson(folderobj, data={})
 
 
 def _getFoldersAndFilesJson(folderobj, data={}):
@@ -180,68 +201,69 @@ def _getFoldersAndFilesJson(folderobj, data={}):
     return data
 
 
-def getFolderAndFileStructureAsDict(folderobj):
-    return _getFoldersAndFilesJson(folderobj, data={})
-
-
-# Helper Methode um leichter die verschiedenen commands durchzutesten.
+# Hilfsmethode um leichter die verschiedenen commands durchzutesten.
 def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content=None, name=None, files=None):
     dictionary = {'command': command}
-    if idpara!=None:
+    if idpara != None:
         dictionary['id'] = idpara
-    if idpara2!=None:
+    if idpara2 != None:
         dictionary['folderid'] = idpara2
-    if content!=None:
+    if content != None:
         dictionary['content'] = content
-    if name!=None:
+    if name != None:
         dictionary['name'] = name
-    if files!=None:
+    if files != None:
         pass  # TODO
     return self.client.post('/documents/', dictionary)
 
-def uploadFile(f,folder,request, importzip=False):
 
-    mime,encoding=mimetypes.guess_type(f.name)
+# Hilfsmethode für hochgeladene Dateien
+def uploadFile(f, folder, request):
+    mime, encoding = mimetypes.guess_type(f.name)
 
-    
     # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
     illegalstring, failurereturn = checkObjectForInvalidString(f.name, request)
     if not illegalstring:
-        return False,ERROR_MESSAGES['INVALIDNAME']
+        return False, ERROR_MESSAGES['INVALIDNAME']
 
 
-    #Überprüfe auf doppelte Dateien unter Nichtbeachtung Groß- und Kleinschreibung
+    # Überprüfe auf doppelte Dateien unter Nichtbeachtung Groß- und Kleinschreibung
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert
-    unique, failurereturn = checkIfFileOrFolderIsUnique(f.name, File, folder , request)
+    unique, failurereturn = checkIfFileOrFolderIsUnique(f.name, File, folder, request)
     if not unique:
         return False, ERROR_MESSAGES['INVALIDNAME']
 
 
     # Überprüfe auf verbotene Dateiendungen
     if mime in ALLOWEDMIMETYPES['binary']:
-        binfile = BinaryFile.objects.createFromRequestFile(name=f.name,requestFile=f,folder=folder)
+        binfile = BinaryFile.objects.createFromRequestFile(name=f.name, requestFile=f, folder=folder)
         binfile.save()
-        return True, {'name':binfile.name,'id':binfile.id}
+        return True, {'name': binfile.name, 'id': binfile.id}
     elif mime in ALLOWEDMIMETYPES['text']:
-        if mime=='text/x-tex':
-            texfile=TexFile(name=f.name,source_code=f.read().decode('utf-8'),folder=folder)
-            # Überprüfe, ob Datenbank Datei speichern kann TODO
-            texfile.save()
-            return True,{'name':texfile.name,'id':texfile.id}
+        if mime == 'text/x-tex':
+            try:
+                texfile = TexFile(name=f.name, source_code=f.read().decode('utf-8'), folder=folder)
+                # Überprüfe, ob Datenbank Datei speichern kann
+                texfile.save()
+                return True, {'name': texfile.name, 'id': texfile.id}
+            except:
+                return jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
         else:
-            plainfile=PlainTextFile(name=f.name,source_code=f.read().decode('utf-8'))
-            # Überprüfe, ob Datenbank Datei speichern kann TODO
-            plainfile.save()
-            return True,{'name':plainfile.name,'id':plainfile.id}
-    else: #Unerlaubtes Mimetype
+            try:
+                plainfile = PlainTextFile(name=f.name, source_code=f.read().decode('utf-8'))
+                # Überprüfe, ob Datenbank Datei speichern kann
+                plainfile.save()
+                return True, {'name': plainfile.name, 'id': plainfile.id}
+            except:
+                return jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+    else:  #Unerlaubtes Mimetype
         return False, ERROR_MESSAGES['ILLEGALFILETYPE']
 
 
 # Erstellt eine zip Datei des übergebenen Ordners inklusive aller Unterordner und zugehöriger Dateien
 # folderpath ist der Pfad zum Ordner, aus dem die .zip Datei erstellt werden soll, Beispiel: /home/user/test
 # zip_file_path ist der Pfad zur .zip Datei, Beispiel: /home/user/test.zip
-def createZipFromFolder(folderpath, zip_file_path, compression=False):
-
+def createZipFromFolder(folderpath, zip_file_path):
     relroot = os.path.abspath(folderpath)
     with zipfile.ZipFile(zip_file_path, "w") as zip:
         for root, dirs, files in os.walk(folderpath):
@@ -249,7 +271,7 @@ def createZipFromFolder(folderpath, zip_file_path, compression=False):
             zip.write(root, os.path.relpath(root, relroot))
             for file in files:
                 filename = os.path.join(root, file)
-                if os.path.isfile(filename): # regular files only
+                if os.path.isfile(filename):  # regular files only
                     arcname = os.path.join(os.path.relpath(root, relroot), file)
                     zip.write(filename, arcname)
 
@@ -269,3 +291,9 @@ def getFileSize(pyfile):
     size = pyfile.tell()
     pyfile.seek(old_file_position, os.SEEK_SET)
     return size
+
+
+# gibt den Ordnernamen eines Ordnerpfades zurück
+def getFolderName(folderpath):
+    path, folder_name = os.path.split(folderpath)
+    return folder_name
