@@ -1,10 +1,10 @@
-""" 
+"""
 
 * Purpose : Verwaltung von Project Models
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fri 28 Nov 2014 10:32:47 PM CET
+* Last Modified : Mi 03 Dez 2014 12:37:20 CET
 
 * Author :  christian
 
@@ -99,11 +99,14 @@ def importZip(request, user):
     files = request.FILES.getlist('files')
 
     # Erstelle ein temp Verzeichnis, in welches die .zip Datei entpackt werden soll
-    tmpfolder = tempfile.mkstemp()
+    tmpfolder = tempfile.mkdtemp()
+
+    zip_file_name=files[0].name
 
     # speichere die .zip Datei im tmp Verzeichnis
+#    print(tmpfolder,files[0].name)
     zip_file_path = os.path.join(tmpfolder, files[0].name)
-    zip_file = open(zip_file_path, 'rb')
+    zip_file = open(zip_file_path, 'wb')
     zip_file.write(files[0].read())
     zip_file.close()
 
@@ -119,7 +122,37 @@ def importZip(request, user):
     # entpacke die .zip Datei in .../tmpfolder/extracted
     util.extractZipToFolder(extract_path, zip_file_path)
 
+    fileName, fileExtension=os.path.splitext(zip_file_name)
+    if Project.objects.filter(name__iexact=fileName.lower(),author=user).exists():
+        Project.objects.get(name__iexact=fileName.lower(),author=user).delete()
+
+    projectobj=Project.objects.create(name=fileName,author=user)
+
     # objdictionary = []
+
+    projdict={}
+
+    parent=None
+    folder=projectobj.rootFolder
+    rootdepth=len(extract_path.split(os.sep))
+
+    for root, dirs, files in os.walk(extract_path):
+        path=root.split('/')[rootdepth:]
+        #print('foldername',util.getFolderName(root))
+        #print('parent',path[:-1])
+        #print('parent2',os.path.join('',*path))
+        if path:
+            if path[:-1]:
+                parent=projdict[os.path.join('',*path[:-1])]
+            else:
+                parent=projectobj.rootFolder
+            folder=Folder.objects.create(name=util.getFolderName(root),parent=parent,root=projectobj.rootFolder)
+            projdict[os.path.join('',*path)]=folder
+#        print('files',root,files)
+
+
+#    print(util.getProjectFilesFromProjectObject(projectobj))
+
 
     #for root, dirs, files in os.walk(extract_path):
     #    objdictionary.append(Folder(name=folder_name))

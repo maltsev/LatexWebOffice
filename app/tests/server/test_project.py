@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Mi 26 Nov 2014 14:58:13 CET
+* Last Modified : Mi 03 Dez 2014 10:54:59 CET
 
 * Author :  christian
 
@@ -251,9 +251,9 @@ class ProjectTestClass(ViewTestCase):
                 'command':'importzip',
                 'files':[zip]
         }
-        zip.close()
 
-        #response=self.client.post('/documents/', dic)
+        response=self.client.post('/documents/', request)
+        zip.close()
 
         # Lösche alle erstellten temporären Dateien und Verzeichnisse
         if os.path.isdir(tmpfolder):
