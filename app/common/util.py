@@ -202,7 +202,6 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content
 def uploadFile(f,folder,request):
 
     mime,encoding=mimetypes.guess_type(f.name)
-
     
     # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
     illegalstring, failurereturn = checkObjectForInvalidString(f.name, request)
@@ -223,7 +222,7 @@ def uploadFile(f,folder,request):
         binfile.save()
         return True, {'name':binfile.name,'id':binfile.id}
     elif mime in ALLOWEDMIMETYPES['text']:
-        if mime=='text/x-tex':
+        if mime==mimetypes.types_map['.tex']:
             texfile=TexFile(name=f.name,source_code=f.read().decode('utf-8'),folder=folder)
             # Überprüfe, ob Datenbank Datei speichern kann TODO
             texfile.save()

@@ -17,6 +17,8 @@
 
 """
 
+import mimetypes
+
 # Fehlermeldungen, welche von den verschiedenen Methoden zur Rückgabe genutzt werden
 ERROR_MESSAGES = {
     'EMAILALREADYEXISTS': 'E-Mail-Adresse ist bereits registriert.',
@@ -43,7 +45,7 @@ ERROR_MESSAGES = {
     'UNKOWNERROR': 'Unbekannter Fehler',
     'BLANKNAME': 'Leere Namen sind nicht erlaubt',
     'DATABASEERROR': 'Datenbankfehler',
-    'COMPILATIONERROR' : 'Fehler beim Kompilieren' ,
+    'COMPILATIONERROR': 'Fehler beim Kompilieren',
     'PROJECTNOTEXIST': 'Projekt nicht gefunden',
     'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
@@ -51,26 +53,17 @@ ERROR_MESSAGES = {
 }
 
 ALLOWEDMIMETYPES = {
-        'text':{
-            'text/x-tex':{
-                'tex',
-                },
+    'text': {
+        mimetypes.types_map['.tex']
+    },
+    'binary': {
+        mimetypes.types_map['.png'],
+        mimetypes.types_map['.jpeg'],
+        mimetypes.types_map['.jpg'],
+    }
 
-                
-            },
-        'binary':{
-            'image/png':{
-                'png',
-                },
-            'image/jpeg':{
-                'jpg',
-                },
-            'image/jpg':{
-                'jpg',
-                }
-        }
-        }
-       
+}
+
 
 # Ungültige Zeichen für Dateien und Ordner
 INVALIDCHARS = '<>;|"\/?*'

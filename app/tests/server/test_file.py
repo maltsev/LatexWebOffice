@@ -28,7 +28,7 @@ from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
-import os, tempfile
+import os, tempfile, mimetypes
 
 
 class FileTestClass(TestCase):
@@ -410,7 +410,7 @@ class FileTestClass(TestCase):
         
         # Es sollte eig. immer 'success' ausgegeben werden, da auch 'success' kommen sollte, selbst wenn keine einzige Datei akezeptiert wurde
         self.assertEqual(util.jsonDecoder(response.content)['status'],'success')
-        
+
         # Es sollten genau 2 Dateien vom Server akzeptiert werden: test2.tex und test3.jpg
         self.assertEqual(len(serveranswer['success']),2)
         # Eine Datei sollte nicht akzeptiert werden
@@ -455,7 +455,7 @@ class FileTestClass(TestCase):
         # Prüfung auf Content-Type gibt je nach OS unterschiedliche Werte zurück
         # Windows: application/x-tex
         # Linux: text/x-tex
-        self.assertIn('Content-Type', response)
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.tex'])
         # Content-Length sollte 'self._user1_tex1_size' sein (Dateigröße in bytes)
         # self.assertEqual(response['Content-Length'], str(self._user1_tex1_size))
         # Content-Disposition sollte 'attachment; filename=b'test.bin'' sein
