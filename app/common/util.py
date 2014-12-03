@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Mi 03 Dez 2014 12:51:40 CET
+* Last Modified : Mi 03 Dez 2014 13:38:27 CET
 
 * Author :  christian
 
@@ -232,7 +232,7 @@ def uploadFile(f, folder, request,fromZip=False):
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert
     unique, failurereturn = checkIfFileOrFolderIsUnique(name, File, folder, request)
     if not unique:
-        return False, ERROR_MESSAGES['INVALIDNAME']
+        return False, ERROR_MESSAGES['FILENAMEEXISTS']
 
 
     # Überprüfe auf verbotene Dateiendungen
