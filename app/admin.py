@@ -5,7 +5,7 @@
 
 * Creation Date : 22-11-2014
 
-* Last Modified : 1 Dec 2014 22:13:00 CET
+* Last Modified : 2 Dec 2014 21:31:00 CET
 
 * Author :  maltsev
 
@@ -20,22 +20,44 @@ from app import models
 
 @admin.register(models.folder.Folder)
 class FolderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'createTime', 'parent', 'root')
+    list_display = ('relativePath', 'createTime', 'parent', 'root')
     list_filter = ('parent', 'root')
+
+    def relativePath(self, obj):
+        return str(obj)
+    relativePath.short_description = 'Path'
 
 
 @admin.register(models.project.Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'createTime', 'rootFolder')
+    list_display = ('name', 'author', 'createTime')
     list_filter = ('author',)
+    exclude = ('rootFolder',)
+
+
+class FileAdmin(admin.ModelAdmin):
+    list_display = ('relativePath', 'createTime', 'lastModifiedTime')
+    list_filter = ('folder',)
+
+    def relativePath(self, obj):
+        return str(obj)
+    relativePath.short_description = 'Path'
 
 
 @admin.register(models.texfile.TexFile)
-class TexFileAdmin(admin.ModelAdmin):
-    list_display = ('name', 'folder', 'createTime', 'lastModifiedTime')
-    list_filter = ('folder',)
+class TexFileAdmin(FileAdmin):
+    pass
 
-@admin.register(models.file.File)
-class FileAdmin(admin.ModelAdmin):
-    list_display = ('name','folder')
 
+@admin.register(models.image.Image)
+class ImageAdmin(FileAdmin):
+    pass
+
+
+@admin.register(models.binaryfile.BinaryFile)
+class BinaryFileAdmin(FileAdmin):
+    pass
+
+@admin.register(models.plaintextfile.PlainTextFile)
+class PlainTextFileAdmin(FileAdmin):
+    pass
