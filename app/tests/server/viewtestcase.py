@@ -103,8 +103,7 @@ class ViewTestCase(TestCase):
 
         # Erstelle eine Binärdatei für user1 in user1_project1_folder2_subfolder1
         self._user1_binary1_str = 'user1_binary1-test1.bin'
-        user1_binfile1 = io.BytesIO()
-        user1_binfile1.write(bytes(self._user1_binary1_str, 'utf-8'))
+        user1_binfile1 = io.BytesIO(bytes(self._user1_binary1_str, 'utf-8'))
         self._user1_binary1 = BinaryFile.objects.createFromFile(name='test1.bin',
                                                                 folder=self._user1_project1_folder2_subfolder1,
                                                                 file=user1_binfile1)
@@ -112,8 +111,7 @@ class ViewTestCase(TestCase):
 
         # Erstelle eine weitere Binärdatei für user1 in user1_project1_folder2_subfolder1
         self._user1_binary2_str = 'user1_binary2-test2.bin'
-        user1_binfile2 = io.BytesIO()
-        user1_binfile2.write(bytes(self._user1_binary1_str, 'utf-8'))
+        user1_binfile2 = io.BytesIO(bytes(self._user1_binary1_str, 'utf-8'))
         self._user1_binary2 = BinaryFile.objects.createFromFile(name='test2.bin',
                                                                 folder=self._user1_project1_folder2_subfolder1,
                                                                 file=user1_binfile2)
@@ -121,8 +119,7 @@ class ViewTestCase(TestCase):
 
         # Erstelle eine BildDatei für user1 in user1_project1_folder2_subfolder2
         self._user1_binary3_str = 'user1_binary3-test3.jpg'
-        user1_binfile3 = io.BytesIO()
-        user1_binfile3.write(bytes(self._user1_binary3_str, 'utf-8'))
+        user1_binfile3 = io.BytesIO(bytes(self._user1_binary3_str, 'utf-8'))
         self._user1_binary3 = BinaryFile.objects.createFromFile(name='test3.jpg',
                                                                 folder=self._user1_project1_folder2_subfolder1,
                                                                 file=user1_binfile3)
