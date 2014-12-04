@@ -74,7 +74,7 @@ def compile(texid):
     # '-outdir=FOO' Verzeichnis für die Ausgabe-Dateien
     # '-bibtex' bbl-Dateien werden über bibtex erzeugt, sofern notwendig
     # '-pdf' pdf-Datei wird über pdflatex aus der angegebenen tex-Datei erzeugt
-    rc = subprocess.Popen(["latexmk","-f","-interaction=nonstopmode","-outdir="+out_dir_pth,"-bibtex","-pdf",tex_pth],
+    rc = subprocess.Popen([latexmk_path(),"-f","-interaction=nonstopmode","-outdir="+out_dir_pth,"-bibtex","-pdf",tex_pth],
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE)
     rc.wait()
@@ -172,3 +172,11 @@ def get_Errors(log_path):
         errors.append(ERROR_MESSAGES['COMPILATIONERROR'])
     
     return errors
+
+#
+# Liefert den Dateipfad zum Latexmk-Script.
+#
+# @return den Dateipfad zum Latexmk-Script
+#
+def latexmk_path():
+    return os.path.join(BASE_DIR,"app","common","latexmk.pl")
