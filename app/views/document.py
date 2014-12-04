@@ -1,4 +1,4 @@
-""" 
+"""
 
 * Purpose : Dokument- und Projektverwaltung Schnittstelle
 
@@ -81,7 +81,7 @@ def execute(request):
         for para in paras:
             # wenn der Parameter nicht gefunden wurde oder ein Parameter, welcher eine id angeben sollte
             # Zeichen enthält, die keine Zahlen sind, gib Fehlermeldung zurück
-            if request.POST.get(para['name'])==None:
+            if request.POST.get(para['name'])==None or request.POST.get(para['name'])=='':
                 return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)
             elif para['type'] == int and (not request.POST.get(para['name']).isdigit()):
                 return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)
@@ -91,4 +91,4 @@ def execute(request):
 
         # führe den übergebenen Befehl aus
         return c['command'](request, user, *args)
-    raise Http404
+    return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format('unkown'),request)
