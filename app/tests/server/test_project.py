@@ -112,6 +112,17 @@ class ProjectTestClass(ViewTestCase):
             self, response.content, ERROR_MESSAGES['BLANKNAME'])
 
         # --------------------------------------------------------------------------------------------------------------
+        # erzeuge ein Projekt, dessen Name nur ein leerer String ist
+        response = util.documentPoster(
+            self, command='projectcreate', name='')
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # Fehlermeldung sollte ERROR_MESSAGES['BLANKNAME'] sein
+        util.validateJsonFailureResponse(
+            self, response.content, ERROR_MESSAGES['BLANKNAME'])
+
+        # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein Projekt, dessen Name ungültige Sonderzeichen enthält
         response = util.documentPoster(
             self, command='projectcreate', name='<>\\')
