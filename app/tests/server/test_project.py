@@ -105,9 +105,6 @@ class ProjectTestClass(ViewTestCase):
         response = util.documentPoster(
             self, command='projectcreate', name='    ')
 
-        # dekodiere den JSON response als dictionary
-        dictionary = util.jsonDecoder(response.content)
-
         # überprüfe die Antwort des Servers
         # status sollte failure sein
         # Fehlermeldung sollte ERROR_MESSAGES['BLANKNAME'] sein
@@ -119,9 +116,6 @@ class ProjectTestClass(ViewTestCase):
         response = util.documentPoster(
             self, command='projectcreate', name='<>\\')
 
-        # dekodiere den JSON response als dictionary
-        dictionary = util.jsonDecoder(response.content)
-
         # status sollte failure sein
         # Fehlermeldung sollte ERROR_MESSAGES['INVALIDNAME'] sein
         util.validateJsonFailureResponse(
@@ -131,9 +125,6 @@ class ProjectTestClass(ViewTestCase):
         # erzeuge ein weiteres Projekt mit einem bereits existierenden Namen
         response = util.documentPoster(
             self, command='projectcreate', name='USER1_project4')
-
-        # dekodiere den JSON response als dictionary
-        dictionary = util.jsonDecoder(response.content)
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
