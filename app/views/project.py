@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Do 04 Dez 2014 10:46:22 CET
+* Last Modified : Do 04 Dez 2014 14:57:05 CET
 
 * Author :  christian
 
@@ -16,17 +16,19 @@
 
 """
 
-from django.http import HttpResponse, Http404
-from app.models.folder import Folder
-from app.models.project import Project
-from app.common import util
-from app.common.constants import ERROR_MESSAGES
 import mimetypes
 import os
 import tempfile
 import zipfile
 import shutil
 import logging
+
+from django.http import HttpResponse, Http404
+
+from app.models.folder import Folder
+from app.models.project import Project
+from app.common import util
+from app.common.constants import ERROR_MESSAGES
 
 
 # erzeugt ein neues Projekt für den Benutzer mit einer leeren main.tex Datei
@@ -36,8 +38,7 @@ import logging
 def projectCreate(request, user, projectname):
     # Teste, ob der Projektname kein leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
     # oder ungültige Sonderzeichen enthält
-    emptystring, failurereturn = util.checkObjectForInvalidString(
-        projectname, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(projectname, request)
     if not emptystring:
         return failurereturn
 
@@ -110,8 +111,7 @@ def importZip(request, user):
     zip_file_name = files[0].name
 
     # speichere die .zip Datei im tmp Verzeichnis
-#    print(tmpfolder,files[0].name)
-    zip_file_path = os.path.join(tmpfolder, files[0].name)
+    zip_file_path = os.path.join(tmpfolder, zip_file_name)
     zip_file = open(zip_file_path, 'wb')
     zip_file.write(files[0].read())
     zip_file.close()
@@ -128,12 +128,19 @@ def importZip(request, user):
     # entpacke die .zip Datei in .../tmpfolder/extracted
     util.extractZipToFolder(extract_path, zip_file_path)
 
-    fileName, fileExtension = os.path.splitext(zip_file_name)
-    if Project.objects.filter(name__iexact=fileName.lower(), author=user).exists():
-        Project.objects.get(
-            name__iexact=fileName.lower(), author=user).delete()
+    # benutze den Namen der zip Datei (ohne Dateiendung) als Projektnamen
+    project_name, fileExtension = os.path.splitext(zip_file_name)
 
-    projectobj = Project.objects.create(name=fileName, author=user)
+    # prüfe ob ein Projekt mit dem gleichen Namen bereits existiert
+    # Groß- und Kleinschreibung wird hierbei nicht beachtet
+    # wenn es existiert, dann lösche dies
+    # Achtung: Projekt wird ohne weitere Abfrage komplett gelöscht
+    # Es ist Aufgabe des Clients, vorher eine Abfrage anzuzeigen
+    if Project.objects.filter(name__iexact=project_name.lower(), author=user).exists():
+        Project.objects.get(name__iexact=project_name.lower(), author=user).delete()
+
+    # Erstelle das neue Projekt
+    projectobj = Project.objects.create(name=project_name, author=user)
 
     # Lösche main.tex die vom Projekt angelegt wurde
     projectobj.rootFolder.getMainTex().delete()
@@ -145,9 +152,13 @@ def importZip(request, user):
 
     parent = None
     folder = projectobj.rootFolder
+
     # Tiefe des Verzeichnis, wo der die zip entpackt wurde
     rootdepth = len(extract_path.split(os.sep))
 
+    # durchlaufe alle Ordner/Unterordner in extracted
+    # und erstelle die jeweiligen Objekte in der Datenbank
+    # Dateien werden über die util.uploadfiles() Methode erstellt
     for root, dirs, files in os.walk(extract_path):
         # relativer Pfad des derzeitigen Verzeichnis
         path = root.split('/')[rootdepth:]
@@ -160,6 +171,8 @@ def importZip(request, user):
                 parent = projdict[os.path.join('', *path[:-1])]
             else:
                 parent = projectobj.rootFolder
+            folder = Folder.objects.create(name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
+            projdict[os.path.join('', *path)] = folder
             # speichere Ordner
             folder = Folder.objects.create(
                 name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
@@ -169,6 +182,7 @@ def importZip(request, user):
             result, msg = util.uploadFile(fileobj, folder, request, True)
             fileobj.close()
 
+    # lösche alle temporären Dateien und Ordner
     if os.path.isdir(tmpfolder):
         shutil.rmtree(tmpfolder)
 

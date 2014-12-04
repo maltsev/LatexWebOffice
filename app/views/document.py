@@ -1,10 +1,10 @@
-""" 
+"""
 
 * Purpose : Dokument- und Projektverwaltung Schnittstelle
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fri 28 Nov 2014 10:07:41 PM CET
+* Last Modified : Do 04 Dez 2014 14:56:39 CET
 
 * Author :  mattis
 
@@ -91,4 +91,4 @@ def execute(request):
 
         # führe den übergebenen Befehl aus
         return c['command'](request, user, *args)
-    raise Http404
+    return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format('unkown'),request)
