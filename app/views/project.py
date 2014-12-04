@@ -242,7 +242,7 @@ def exportZip(request, user, projectid):
         response['Content-Encoding'] = encoding
 
     filename_header = 'filename=%s' % (
-        projectobj.name + '.zip').encode('utf-8')
+        projectobj.name + '.zip')
 
     response['Content-Disposition'] = 'attachment; ' + filename_header
 
