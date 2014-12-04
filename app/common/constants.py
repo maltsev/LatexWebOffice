@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Do 04 Dec 2014 12:27:34 PM CET
+* Last Modified : Do 04 Dez 2014 15:27:57 CET
 
 * Author :  christian
 
@@ -30,7 +30,7 @@ ERROR_MESSAGES = {
     'LOGINORREGFAILED': 'Anmeldung nach Registrierung fehlgeschlagen.',
     'INVALIDCHARACTERINFIRSTNAME': 'Vorname enthält ungültiges Zeichen.',
     'NOSPACESINPASSWORDS': 'Passwort darf keine Leerzeichen enthalten.',
-    'NOTALLPOSTPARAMETERS': 'You suck',
+    'NOTALLPOSTPARAMETERS': 'Es wurden nicht alle benötigten POST Parameter übermittelt',
     'PROJECTNOTCREATED': 'Fehler beim Erstellen des Projektes',
     'COMMANDNOTFOUND': 'Befehl nicht gefunden',
     'MISSINGPARAMETER': 'Fehlender Parameter: {0}',
