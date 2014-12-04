@@ -123,6 +123,7 @@ function loadFile(id) {
 			// Datei erfolgreich geladen
 			editor.setValue(data, 0);
 			editor.getSelection().selectTo(0, 0);
+			changesSaved = true;
 			// TODO: Editor-Funktionen entsperren
 		}
 	});
@@ -217,7 +218,7 @@ function compile(id) {
 				});
 			else
 				// Dokument anzeigen
-				postRedirect('/documents/', {'command': 'downloadfile', 'id': id});
+				postRedirect('/documents/', {'command': 'downloadfile', 'id': data.response.id});
 		}
 	});
 }
