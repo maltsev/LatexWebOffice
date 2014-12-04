@@ -90,6 +90,7 @@ function createProject(e) {
 				displayProjects();
 		}
 	});
+	$('#projektName').val('');
 }
 
 // zeigt die Dateien eines Projektes an
