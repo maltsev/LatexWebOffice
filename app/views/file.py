@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Do 04 Dez 2014 13:14:46 CET
+* Last Modified : Do 04 Dez 2014 13:38:33 CET
 
 * Author :  christian
 
@@ -24,7 +24,7 @@ from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.models.file.pdf import PDF
 from app.common import util
-from app import common
+from app.common.compile import compile as comp
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from django.conf import settings
 import mimetypes, os, io, tempfile, logging
@@ -303,7 +303,7 @@ def latexCompile(request, user, fileid):
         return failurereturn
 
     # rueckgabe=Sende Dateien an Ingo's Methode
-    errors,success=common.compile.compile(fileid)
+    errors,success=comp(fileid)
     if errors:
         return util.jsonErrorResponse(json.dumps(errors),request)
     if success:
