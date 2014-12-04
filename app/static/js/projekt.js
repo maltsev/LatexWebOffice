@@ -123,6 +123,7 @@ function displayProjectFiles(id, name) {
 				});
 			else {
 				var fileList = '<h1>Dateien für ' + htmlEscape(name) + '</h1>';
+				fileList += folderList(data.response, '');
 				$('#dateien').html(fileList);
 			}
 		}
@@ -130,6 +131,23 @@ function displayProjectFiles(id, name) {
 }
 
 // HTML-Liste der Dateien
-function folderList(object) {
-	
+function folderList(object, path) {
+	var html = '';
+
+	// Dateien auflisten
+	// TODO: Endungserkennung ist scheiße
+	$.each(object.files, function(index, value) {
+		if (value.name.indexOf('.tex', value.name.length - 4) !== -1)
+			html += '<a href="/editor/?id=' + value.id + '">' + path + '/' + value.name + 
+					'</a><br />';
+		else
+			html += path + '/' + value.name + '<br />';
+	});
+
+	// Ordner auflisten
+	$.each(object.folders, function(index, value) {
+		html += folderList(value, path + '/' + value.name);
+	});
+
+	return(html);
 }
