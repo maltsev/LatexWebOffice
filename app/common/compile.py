@@ -4,7 +4,7 @@
 
 * Creation Date : 27-11-2014
 
-* Last Modified : Mo 01 Dec 2014 04:57:31 CET
+* Last Modified : Do 04 Dec 2014 12:25:31 CET
 
 * Author : ingo
 
@@ -83,7 +83,7 @@ def compile(texid):
     args += " -pdf"
     
     # wechselt in das Verzeichnis der tex-Datei
-    os.chdir(tex_dir_pth)
+    os.chdir(root_pth)
     # kompiliert die tex-Datei gemäß der gesetzten Argumente
     rc = subprocess.Popen(["latexmk","-f","-interaction=nonstopmode","-outdir="+out_dir_pth,"-bibtex","-pdf",tex_pth],
                           stdout=subprocess.PIPE,
