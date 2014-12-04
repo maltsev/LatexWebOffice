@@ -43,8 +43,8 @@ function displayProjects() {
 				var projectList = '<h1>Projekte</h1>';
 				$.each(data.response, function(index, value) {
 					projectList += '<a onclick="displayProjectFiles(' + value.id + ', \'' + 
-							htmlEscape(value.name) + '\'); return(false);">' +  value.name + 
-							'</a><br />';
+							htmlEscape(value.name) + '\')">' +  value.name + 
+							'</a> (<a onclick="deleteProject(' + value.id + ')">löschen</a>)<br />';
 				});
 				projectList += '<form id="projektErstellenForm"><input type="text" ' + 
 						'id="projektName" /><input type="submit" value="Projekt erstellen" ' + 
@@ -91,6 +91,44 @@ function createProject(e) {
 		}
 	});
 	$('#projektName').val('');
+}
+
+// Projekt löschen
+function deleteProject(id) {
+	jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'projectrm',
+			'id': id
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			// Fehler beim Speichern
+			console.log({
+				'error': 'Fehler beim Löschen des Projektes',
+				'details': errorThrown,
+				'id': id,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success')
+				// Server-seitiger Fehler
+				console.log({
+					'error': 'Fehler beim Löschen des Projektes',
+					'details': data.response,
+					'id': id,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			else
+				displayProjects();
+		}
+	});
 }
 
 // zeigt die Dateien eines Projektes an
