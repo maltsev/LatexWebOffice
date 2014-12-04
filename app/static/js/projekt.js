@@ -87,6 +87,8 @@ function createProject() {
 				displayProjects();
 		}
 	});
+
+	return(false);
 }
 
 // zeigt die Dateien eines Projektes an
