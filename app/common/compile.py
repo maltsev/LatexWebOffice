@@ -66,25 +66,14 @@ def compile(texid):
     # ----------------------------------------------------------------------------------------------------
     #                                             KOMPILIERUNG                                            
     # ----------------------------------------------------------------------------------------------------
-    # Parameter zur Kompilierung
-    args = ""
-    # führt die Kompilieren auch unter auftretenden Fehlern so möglich durch
-    args += " -f"
-    # go-Mode
-    args += " -g"
-    # unterbindet die Unterbrechung des Kompiliervorgangs für eine manuelle Eingabeaufforderung
-    # (falls eines der ausführenden Programm einen Fehler festgestellt hat)
-    args += " -interaction=nonstopmode"
-    # Verzeichnis für die Ausgabe-Dateien
-    args += " -outdir="+'\"'+out_dir_pth+'\"'
-    # bbl-Dateien werden über bibtex erzeugt, sofern notwendig
-    args += " -bibtex"
-    # pdf-Datei wird über pdflatex aus der angegebenen tex-Datei erzeugt
-    args += " -pdf"
-    
     # wechselt in das Verzeichnis der tex-Datei
     os.chdir(root_pth)
-    # kompiliert die tex-Datei gemäß der gesetzten Argumente
+    # kompiliert die tex-Datei gemäß der gesetzten Argumente:
+    # '-f' führt die Kompilieren auch unter auftretenden Fehlern so möglich durch
+    # '-interaction=nonstopmode' unterbindet die Unterbrechung des Kompiliervorgangs für eine manuelle Eingabeaufforderung (falls eines der ausführenden Programm einen Fehler festgestellt hat)
+    # '-outdir=FOO' Verzeichnis für die Ausgabe-Dateien
+    # '-bibtex' bbl-Dateien werden über bibtex erzeugt, sofern notwendig
+    # '-pdf' pdf-Datei wird über pdflatex aus der angegebenen tex-Datei erzeugt
     rc = subprocess.Popen(["latexmk","-f","-interaction=nonstopmode","-outdir="+out_dir_pth,"-bibtex","-pdf",tex_pth],
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE)
