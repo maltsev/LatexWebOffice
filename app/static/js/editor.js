@@ -86,8 +86,7 @@ function autoBraceCompletion(e) {
  */
 function backToProject() {
 	// TODO: auf das richtige Projekt verweisen?
-	// FIXME: Adresse für die Projektverwaltung eingeben
-	window.location.replace('/');
+	window.location.replace('/projekt/');
 }
 
 /**
