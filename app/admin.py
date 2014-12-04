@@ -14,14 +14,23 @@
 * Backlog entry :
 
 """
+from django import forms
 from django.contrib import admin
 from app import models
 
+
+class FolderForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(forms.ModelForm, self).__init__(*args, **kwargs)
+
+        self.fields['parent'].required = True
+        self.fields['root'].required = True
 
 @admin.register(models.folder.Folder)
 class FolderAdmin(admin.ModelAdmin):
     list_display = ('relativePath', 'createTime', 'parent', 'root')
     list_filter = ('parent', 'root')
+    form = FolderForm
 
     def relativePath(self, obj):
         return str(obj)
