@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Di 02 Dez 2014 17:38:04 CET
+* Last Modified : Do 04 Dez 2014 13:38:33 CET
 
 * Author :  christian
 
@@ -24,10 +24,12 @@ from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.models.file.pdf import PDF
 from app.common import util
+from app.common.compile import compile as comp
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from django.conf import settings
 import mimetypes, os, io, tempfile, logging
 from django.db import transaction
+import json
 
 # erstellt eine neue .tex Datei in der Datenbank ohne Textinhalt
 # benötigt: id:folderid name:texname
@@ -300,67 +302,12 @@ def latexCompile(request, user, fileid):
     if not rights:
         return failurereturn
 
-    # Zum Projekt der Tex-Datei dazugehörende Dateien abrufen
-    texfileobj = TexFile.objects.get(id=fileid)
-    projectobj = texfileobj.folder.getProject()
-
-    projectDictionaryFiles = util.getProjectFilesFromProjectObject(projectobj)
-
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        tocompilefilename = ''
-
-        def createFiles(hier, parent, tocompilefilename=''):
-            foldername = os.path.join(parent, hier['name'])
-            os.mkdir(foldername)
-
-            for f in hier['files']:
-                filename = os.path.join(foldername, f['name'])
-
-                if str(f['id']) == fileid:
-                    tocompilefilename = filename
-
-                if TexFile.objects.filter(id=f['id']).exists():
-                    fo = open(filename, 'w')
-                    fo.write(TexFile.objects.get(id=f['id']).source_code)
-                    fo.close()
-                else:
-                    fo = open(filename, 'wb')
-                    # fo.write(BinaryFile.objects.get(id=f['id']).getContent().read())
-                    fo.close()
-
-            for d in hier['folders']:
-                tocompilefilename = createFiles(
-                    d, foldername, tocompilefilename)
-
-            return tocompilefilename
-
-        tocompilefilename = createFiles(
-            projectDictionaryFiles, tmpdirname, tocompilefilename)
-        import subprocess as sub
-
-        cmd = ["pdflatex", "-halt-on-error",
-               "-interaction=batchmode", "%s" % tocompilefilename]
-        p = sub.Popen(
-            cmd, stdout=sub.PIPE, stderr=sub.PIPE, cwd=tmpdirname)
-        output, errors = p.communicate()
-        p.wait()
-
-        pdffilename = os.path.join(
-            tmpdirname, texfileobj.name)[:-3] + 'pdf'
-        if os.path.isfile(pdffilename):
-            if BinaryFile.objects.filter(name='out.pdf', folder=texfileobj.folder).exists():
-                BinaryFile.objects.get(name='out.pdf', folder=texfileobj.folder).delete()
-            pdffile = BinaryFile.objects.createFromFile(
-                name='out.pdf', folder=texfileobj.folder, file=open(pdffilename, 'rb'))
-            return util.jsonResponse({'id': pdffile.id, 'name': 'output.pdf'}, True, request)
-        elif os.path.isfile(pdffilename[:-3] + 'log'):
-            flog = open(pdffilename[:-3] + 'log')
-            log = flog.read()
-            flog.close()
-            return util.jsonErrorResponse(log, request)
-
     # rueckgabe=Sende Dateien an Ingo's Methode
-
+    errors,success=comp(fileid)
+    if errors:
+        return util.jsonErrorResponse(json.dumps(errors),request)
+    if success:
+        return util.jsonResponse(success,True,request)
     # Sonst Fehlermeldung an Client
 
     return util.jsonErrorResponse(ERROR_MESSAGES['COMPILATIONERROR'], request)

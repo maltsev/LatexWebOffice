@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Sat 29 Nov 2014 03:24:34 PM CET
+* Last Modified : Do 04 Dec 2014 12:27:34 PM CET
 
 * Author :  christian
 
@@ -46,6 +46,9 @@ ERROR_MESSAGES = {
     'BLANKNAME': 'Leere Namen sind nicht erlaubt',
     'DATABASEERROR': 'Datenbankfehler',
     'COMPILATIONERROR': 'Fehler beim Kompilieren',
+    'COMPILATIONERROR_CITATIONUNDEFINED' : 'Zitierung undefiniert',
+    'COMPILATIONERROR_FILENOTFOUND' : 'Datei nicht gefunden',
+    'COMPILATIONERROR_SYNTAXERROR' : 'Syntax-Fehler',
     'PROJECTNOTEXIST': 'Projekt nicht gefunden',
     'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
