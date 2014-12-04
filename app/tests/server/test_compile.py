@@ -140,14 +140,13 @@ class CompilerTestClass(TestCase):
         # erzeugt eine tex-Datei, welche eine Bild-Datei gültig referenziert
         # (verwendet app/static/img/logo.png als echte Bild-Datei, da leere Bild-Dateien nicht kompilierbar sind)
         self.file_tex_img = TexFile(name="img.tex",folder=self.root)
-        #self.file_tex_img.source_code = '\\documentclass{article} \\usepackage{graphicx} \\begin{document} \\includegraphics{'+os.path.join(BASE_DIR,"app","static","img","logo")+'} \\end{document}'
         self.file_tex_img.source_code = '\\documentclass{article} \\usepackage{graphicx} \\begin{document} \\includegraphics{subfolder/image} \\end{document}'
         self.file_tex_img.save()
         
         # kompiliert die, die Bild-Datei referenzierende, tex-Datei
         errors,pdf = compile.compile(self.file_tex_img.id)
         
-        # es sollten keine Fehlermeldungen aufgetreten und eine pdf-Datei erzeugt worden sein
+        # es sollten keine Fehlermeldungen auftreten und eine pdf-Datei erzeugt worden sein
         self.assertTrue(errors==None)
         self.assertTrue(pdf!=None)
         
@@ -211,3 +210,28 @@ class CompilerTestClass(TestCase):
         # TODO
         #self.assertTrue(errors!=None)
         self.assertTrue(pdf!=None)
+        
+    #
+    # Testet das Kompilieren einer tex-Datei mit Referenz auf eine Datei, welche in der Verzeichnishierarchie unterhalb des angegebenen relativen Pfades liegt.
+    #
+    def test_compile_deep_tex(self):
+        
+        # ----------------------------------------------------------------------------------------------------
+        #                                      GÜLTIGE BILD-REFERENZIERUNG                                    
+        # ----------------------------------------------------------------------------------------------------
+        
+        # erzeugt eine Bild-Datei im subfolder-Verzeichnis
+        image_name = "image.png"
+        shutil.copyfile(os.path.join(BASE_DIR,"app","static","img","logo.png"),os.path.join(self.subfolder_path,image_name))
+        
+        # erzeugt eine tex-Datei, welche die Bild-Datei lediglich über ihren Namen (nicht aber über den relativen Pfad) referenziert
+        self.file_tex_dp = TexFile(name="deep.tex",folder=self.root)
+        self.file_tex_dp.source_code = '\\documentclass{article} \\usepackage{graphicx} \\begin{document} \\includegraphics{image} \\end{document}'
+        self.file_tex_dp.save()
+        
+        # kompiliert die referenzierende tex-Datei
+        errors,pdf = compile.compile(self.file_tex_dp.id)
+        
+        # es sollte eine Fehlermeldung aufgetreten und keine pdf-Datei erzeugt worden sein
+        self.assertTrue(errors!=None)
+        self.assertTrue(pdf==None)
