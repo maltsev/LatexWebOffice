@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Do 04 Dez 2014 10:46:22 CET
+* Last Modified : Do 04 Dez 2014 14:57:05 CET
 
 * Author :  christian
 
@@ -38,8 +38,7 @@ from app.common.constants import ERROR_MESSAGES
 def projectCreate(request, user, projectname):
     # Teste, ob der Projektname kein leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
     # oder ungültige Sonderzeichen enthält
-    emptystring, failurereturn = util.checkObjectForInvalidString(
-        projectname, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(projectname, request)
     if not emptystring:
         return failurereturn
 
