@@ -5,7 +5,7 @@
 
 * Creation Date : 21-11-2014
 
-* Last Modified : 2 Dec 2014 21:31:00 CET
+* Last Modified : 4 Dec 2014 13:17:00 CET
 
 * Author :  maltsev
 
@@ -56,7 +56,7 @@ class Folder(models.Model):
         if self.parent:
             folderPath = os.path.join(self.parent.getTempPath(), self.name)
         else:
-            folderPath = os.path.join(settings.BASE_DIR, 'media', 'projects', str(self.pk) + '_' + str(self.name))
+            folderPath = os.path.join(settings.BASE_DIR, 'media', 'projects', "{}_{}".format(self.pk, self.name))
 
         if not os.path.exists(folderPath):
             os.makedirs(folderPath)
