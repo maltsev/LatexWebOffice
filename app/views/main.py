@@ -26,7 +26,6 @@ def index(request):
 def impressum(request):
     return render(request, 'impressum.html')
 
-
 def hilfe(request):
     return render(request, 'hilfe.html')
 

@@ -1,7 +1,7 @@
 /*
 @author: Thore Thießen, Timo Dümke
 @creation: 21.11.2014 - sprint-nr: 2
-@last-change: 01.12.2014 - sprint-nr: 2
+@last-change: 04.12.2014 - sprint-nr: 2
 */
 
 /// ID der im Editor geöffneten Datei
