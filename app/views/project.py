@@ -16,17 +16,20 @@
 
 """
 
+import mimetypes
+import os
+import tempfile
+import zipfile
+import shutil
+import logging
+
 from django.http import HttpResponse, Http404
+
 from app.models.folder import Folder
 from app.models.project import Project
-from app.models.file.file import File
-from app.models.file.texfile import TexFile
-from app.models.file.plaintextfile import PlainTextFile
-from app.models.file.binaryfile import BinaryFile
 from app.common import util
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
-import mimetypes, os, io, tempfile, zipfile, shutil, logging
-from django.db import transaction
+from app.common.constants import ERROR_MESSAGES
+
 
 
 
@@ -102,11 +105,10 @@ def importZip(request, user):
     # Erstelle ein temp Verzeichnis, in welches die .zip Datei entpackt werden soll
     tmpfolder = tempfile.mkdtemp()
 
-    zip_file_name=files[0].name
+    zip_file_name = files[0].name
 
     # speichere die .zip Datei im tmp Verzeichnis
-#    print(tmpfolder,files[0].name)
-    zip_file_path = os.path.join(tmpfolder, files[0].name)
+    zip_file_path = os.path.join(tmpfolder, zip_file_name)
     zip_file = open(zip_file_path, 'wb')
     zip_file.write(files[0].read())
     zip_file.close()
@@ -123,44 +125,47 @@ def importZip(request, user):
     # entpacke die .zip Datei in .../tmpfolder/extracted
     util.extractZipToFolder(extract_path, zip_file_path)
 
-    fileName, fileExtension=os.path.splitext(zip_file_name)
-    if Project.objects.filter(name__iexact=fileName.lower(),author=user).exists():
-        Project.objects.get(name__iexact=fileName.lower(),author=user).delete()
+    # benutze den Namen der zip Datei (ohne Dateiendung) als Projektnamen
+    project_name, fileExtension = os.path.splitext(zip_file_name)
 
-    projectobj=Project.objects.create(name=fileName,author=user)
+    # prüfe ob ein Projekt mit dem gleichen Namen bereits existiert
+    # Groß- und Kleinschreibung wird hierbei nicht beachtet
+    # wenn es existiert, dann lösche dies
+    # Achtung: Projekt wird ohne weitere Abfrage komplett gelöscht
+    # Es ist Aufgabe des Clients, vorher eine Abfrage anzuzeigen
+    if Project.objects.filter(name__iexact=project_name.lower(), author=user).exists():
+        Project.objects.get(name__iexact=project_name.lower(), author=user).delete()
+
+    # Erstelle das neue Projekt
+    projectobj = Project.objects.create(name=project_name, author=user)
 
     # Lösche main.tex die vom Projekt angelegt wurde
     projectobj.rootFolder.getMainTex().delete()
 
+    projdict = {}
 
-    # objdictionary = []
+    parent = None
+    folder = projectobj.rootFolder
+    rootdepth = len(extract_path.split(os.sep))
 
-    projdict={}
-
-    parent=None
-    folder=projectobj.rootFolder
-    rootdepth=len(extract_path.split(os.sep))
-
+    # durchlaufe alle Ordner/Unterordner in extracted
+    # und erstelle die jeweiligen Objekte in der Datenbank
+    # Dateien werden über die util.uploadfiles() Methode erstellt
     for root, dirs, files in os.walk(extract_path):
-        path=root.split('/')[rootdepth:]
-        #print('foldername',util.getFolderName(root))
-        #print('parent',path[:-1])
-        #print('parent2',os.path.join('',*path))
+        path = root.split('/')[rootdepth:]
         if path:
             if path[:-1]:
-                parent=projdict[os.path.join('',*path[:-1])]
+                parent = projdict[os.path.join('', *path[:-1])]
             else:
-                parent=projectobj.rootFolder
-            folder=Folder.objects.create(name=util.getFolderName(root),parent=parent,root=projectobj.rootFolder)
-            projdict[os.path.join('',*path)]=folder
+                parent = projectobj.rootFolder
+            folder = Folder.objects.create(name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
+            projdict[os.path.join('', *path)] = folder
         for f in files:
-            fileobj=open(os.path.join(root,f),'rb')
-            result,msg=util.uploadFile(fileobj,folder,request,True)
+            fileobj = open(os.path.join(root, f), 'rb')
+            result, msg = util.uploadFile(fileobj, folder, request, True)
             fileobj.close()
 
-
-
-
+    # lösche alle temporären Dateien und Ordner
     if os.path.isdir(tmpfolder):
         shutil.rmtree(tmpfolder)
 

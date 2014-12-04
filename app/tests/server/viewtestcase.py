@@ -13,16 +13,17 @@
 * Backlog entry :
 
 """
+import io
+import tempfile
+import os
+
 from django.test import TestCase
 from django.contrib.auth.models import User
-from app.common import util
+
 from app.models.folder import Folder
 from app.models.project import Project
-from app.models.file.file import File
 from app.models.file.texfile import TexFile
-from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
-import io, tempfile, os
 
 
 class ViewTestCase(TestCase):
@@ -152,7 +153,7 @@ class ViewTestCase(TestCase):
 
     # setzt einige Variablen, die in den Tests verwendet werden können
     def setUpValues(self):
-        self._new_code1 = 'user1_tex1\n\nnew text added'
+        self._new_code1 = 'user1_tex1 new text added'
         self._newtex_name1 = 'newmain.tex'
         self._newbinary_name1 = 'newtest.bin'
         self._invalidid = 100000000
