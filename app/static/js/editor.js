@@ -218,7 +218,10 @@ function compile(id) {
 				});
 			else
 				// Dokument anzeigen
-				postRedirect('/documents/', {'command': 'downloadfile', 'id': data.response.id});
+				internalPostRedirect('/documents/', {
+					'command': 'downloadfile', 
+					'id': data.response.id
+				});
 		}
 	});
 }

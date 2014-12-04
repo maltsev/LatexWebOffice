@@ -23,12 +23,19 @@ function htmlEscape(string) {
  * @param url URL der Seite
  * @param data Daten
  */
-function postRedirect(url, data) {
+function internalPostRedirect(url, data) {
 	var formHtml = '<form action="' + url + '" method="post">';
+
+	// CSRF Token
+	formHtml += '<input type="hidden" name="csrfmiddlewaretoken" value="' + 
+			htmlEscape($.cookie('csrftoken')) + '" />';
+
+	// Daten
 	$.each(data, function(index, value) {
 		formHtml += '<input type="hidden" name="' + htmlEscape(index) + '" value="' + 
 				htmlEscape(value) + '" />';
 	});
+
 	var form = $(formHtml);
 	$('body').append(form);
 	form.submit();
