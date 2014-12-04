@@ -40,7 +40,6 @@ class CompilerTestClass(TestCase):
         
         # erstellt einen neuen Benutzer
         self.user = User.objects.create_user(username='user@test.de',password='123456')
-        self.user_path = os.path.join(settings.FILEDATA_URL,str(self.user.id))
         
         # loggt den erzeugten Benutzer ein
         self.client.login(username=self.user.username,password='123456')
@@ -50,10 +49,7 @@ class CompilerTestClass(TestCase):
         # ----------------------------------------------------------------------------------------------------
         
         # erstellt ein neues Projekt für den erzeugten Benutzer
-        self.project      = Project.objects.create(name='project',author=self.user)
-        self.project_path = os.path.join(self.user_path,str(self.project.id))
-        if not os.path.isdir(self.project_path):
-            os.makedirs(self.project_path)
+        self.project = Project.objects.create(name='project',author=self.user)
         
         self.root = self.project.rootFolder
         
