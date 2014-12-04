@@ -10,11 +10,15 @@
     <link rel="stylesheet" href="/static/css/bootstrap-theme.min.css">
     <link rel="stylesheet" href="/static/css/styles.css">
 
+    <!-- jQuery JavaScript-Bibliothek -->
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/jquery.cookie.js"></script>
     <script src="/static/js/jquery.geturlparam.js"></script>
+
+    <!-- WebShim HTML5 Polyfill -->
     <script src="/static/js/webshim/polyfiller.js"></script>
     <script>webshim.setOptions({basePath: '/static/js/webshim/shims/'}); webshim.polyfill('forms');</script>
+
     <script src="/static/js/general.js"></script>
     {% block header %}{% endblock %}
 </head>
@@ -28,15 +32,13 @@
         	<a href="/registration/"><div class="whitebutton">REGISTRIEREN</div></a>
 	        <a href="/login/"><div class="greenbutton">ANMELDEN</div></a>
         {% endif %}
-	
 	</div>
 	<div id="menueleiste">
 	<!-- loading embedded menu -->
 	{% if user.is_authenticated %}
 {% block menu %}
 <ul id="hauptmenue">
-<li><a href="/editor/">Editor</a></li>
-<li>Projektverwaltung</li>
+<li><a href="/projekt/">Projektverwaltung</a></li>
 <li>Literaturverzeichnis</li>
 <li>Dokumentvorlagen</li>
 <li>Eigenes Profil</li>
@@ -50,7 +52,6 @@
 		<ul id="fusszeile_menue">
 			<li><a href="/impressum/">Impressum</a></li>
 			<li><a href="">Hilfe</a></li>
-
 		</ul>
 	</div>
     </div>
