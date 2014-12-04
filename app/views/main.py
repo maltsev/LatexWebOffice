@@ -33,3 +33,7 @@ def hilfe(request):
 
 def editor(request):
     return render(request, 'editor.html')
+
+@login_required
+def projekt(request):
+    return render(request, 'projekt.html')
