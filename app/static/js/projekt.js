@@ -43,18 +43,21 @@ function displayProjects() {
 				var projectList = '<h1>Projekte</h1>';
 				$.each(data.response, function(index, value) {
 					projectList += '<a onclick="displayProjectFiles(' + value.id + ', \'' + 
-							htmlEscape(value.name) + '\')">' +  value.name + '</a><br />';
+							htmlEscape(value.name) + '\'); return(false);">' +  value.name + 
+							'</a><br />';
 				});
-				projectList += '<form onsubmit="createProject()"><input type="text" ' + 
+				projectList += '<form id="projektErstellenForm"><input type="text" ' + 
 						'id="projektName" /><input type="submit" value="Projekt erstellen" ' + 
 						'/></form>';
 				$('#projekte').html(projectList);
+				$('#projektErstellenForm').submit(createProject);
 			}
 		}
 	});
 }
 
-function createProject() {
+function createProject(e) {
+	e.preventDefault();
 	jQuery.ajax('/documents/', {
 		'type': 'POST',
 		'data': {
@@ -87,8 +90,6 @@ function createProject() {
 				displayProjects();
 		}
 	});
-
-	return(false);
 }
 
 // zeigt die Dateien eines Projektes an
