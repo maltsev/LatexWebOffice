@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Di 02 Dez 2014 17:47:16 CET
+* Last Modified : Do 04 Dez 2014 13:16:55 CET
 
 * Author :  christian
 
@@ -324,7 +324,7 @@ class FileTestClass(ViewTestCase):
         self.assertEqual(util.jsonDecoder(response.content)['status'], 'success')
 
         serveranswer=(util.jsonDecoder(response.content)['response'])
-        
+
         # Es sollte eig. immer 'success' ausgegeben werden, da auch 'success' kommen sollte, selbst wenn keine einzige Datei akezeptiert wurde
         self.assertEqual(util.jsonDecoder(response.content)['status'],'success')
 
@@ -444,4 +444,7 @@ class FileTestClass(ViewTestCase):
 
         # Teste Fehlerhafte Datei
         response = util.documentPoster(self, command='compile', idpara=self._user1_tex2.id)
-        self.assertContains(response, 'Fatal error occurred, no output PDF file produced!')
+
+        dictionary=util.jsonDecoder(response.content)
+        self.assertEqual(dictionary['status'],FAILURE)
+
