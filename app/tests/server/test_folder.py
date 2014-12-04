@@ -75,10 +75,10 @@ class FolderTestClass(ViewTestCase):
         response = util.documentPoster(self, command='createdir', idpara=folder1.id, name='root')
         dictionary = util.jsonDecoder(response.content)
         self.assertTrue(Folder.objects.filter(id=dictionary['response']['id']).exists())
-        #Teste, ob ein Verzeichnis zwei gleichnamige Unterverzeichnisse haben kann
+        # Teste, ob ein Verzeichnis zwei gleichnamige Unterverzeichnisse haben kann
         response = util.documentPoster(self, command='createdir', idpara=folder1.id, name='root')
         dictionary = util.jsonDecoder(response.content)
-        self.assertEqual(dictionary['response'],ERROR_MESSAGES['FOLDERNAMEEXISTS'])
+        self.assertEqual(dictionary['response'], ERROR_MESSAGES['FOLDERNAMEEXISTS'])
 
         #Teste, wie es sich mit falschen Angaben verhält
 
@@ -105,7 +105,7 @@ class FolderTestClass(ViewTestCase):
         self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
         oldrootfolderid = self._user1_project1.rootFolder.id
         oldtodeletefolder = self._user1_project1_folder2
-        oldsubdeletefolder=self._user1_project1_folder2_subfolder1
+        oldsubdeletefolder = self._user1_project1_folder2_subfolder1
         oldfileid = self._user1_binary1.id
         # Stelle sicher, dass zu diesem Zeitpunkt der rootordner von project1 noch existiert
         self.assertTrue(Folder.objects.filter(id=oldrootfolderid).exists())
@@ -120,20 +120,19 @@ class FolderTestClass(ViewTestCase):
         self.assertEqual(dictionary['status'], FAILURE)
 
         # Teste, dass man sonstige Ordner löschen kann
-        response=util.documentPoster(self,command='rmdir',idpara=self._user1_project1_folder2.id)
+        response = util.documentPoster(self, command='rmdir', idpara=self._user1_project1_folder2.id)
 
         self.assertFalse(Folder.objects.filter(id=oldtodeletefolder.id).exists())
 
         # Unterverzeichnisse und Dateien sollten dabei auch gelöscht werden! 
         self.assertFalse(Folder.objects.filter(id=oldsubdeletefolder.id).exists())
-        
+
         # Files von Unterverzeichnissen ebenso
         self.assertFalse(File.objects.filter(id=oldfileid).exists())
 
-        #Teste, dass ein User nur Ordner löschen kann, auf die er Rechte hat
-        response=util.documentPoster(self,command='rmdir',idpara=self._user2_project1_folder1.id)
-        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['NOTENOUGHRIGHTS'])
-
+        # Teste, dass ein User nur Ordner löschen kann, auf die er Rechte hat
+        response = util.documentPoster(self, command='rmdir', idpara=self._user2_project1_folder1.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
 
 
     # Teste das Unbenennen von Ordnern
@@ -156,9 +155,10 @@ class FolderTestClass(ViewTestCase):
 
         # Teste, ob ein Unterverzeichnis den gleichen Namen haben kann, wie ein anderes Unterverzeichnis
         # im gleichen Elternverzeichnis
-        response = util.documentPoster(self, command='renamedir', idpara=self._user1_project1_folder2.id, name='newname')
+        response = util.documentPoster(self, command='renamedir', idpara=self._user1_project1_folder2.id,
+                                       name='newname')
         dictionary = util.jsonDecoder(response.content)
-        self.assertEqual(dictionary['response'],ERROR_MESSAGES['FOLDERNAMEEXISTS'])
+        self.assertEqual(dictionary['response'], ERROR_MESSAGES['FOLDERNAMEEXISTS'])
 
         # Teste, ob ein anderer User das Projekt eines anderen unbenennen kann
         response = util.documentPoster(self, command='renamedir', idpara=self._user2_project1.id, name='ROFL')
@@ -169,9 +169,8 @@ class FolderTestClass(ViewTestCase):
         self.assertEqual(ERROR_MESSAGES['NOTENOUGHRIGHTS'], serveranswer)
 
         # Teste, ob ein Verzeichnis einen leeren Namen haben kann
-        response=util.documentPoster(self,command='renamedir',idpara=self._user1_project1_folder2.id,name='?/')
-        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['INVALIDNAME'])
-
+        response = util.documentPoster(self, command='renamedir', idpara=self._user1_project1_folder2.id, name='?/')
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['INVALIDNAME'])
 
 
     # Teste das Verschieben eines Ordners
@@ -209,42 +208,47 @@ class FolderTestClass(ViewTestCase):
         self.assertEqual(util.jsonDecoder(response.content)['status'], FAILURE)
 
         # Teste, ob Fehlermeldung, falls ein Ordner verschoben wird, auf dem der User keine Rechte hat
-        response=util.documentPoster(self,command='movedir',idpara=self._user2_project1_folder1.id,idpara2=self._user1_project1_folder1.id)
-        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+        response = util.documentPoster(self, command='movedir', idpara=self._user2_project1_folder1.id,
+                                       idpara2=self._user1_project1_folder1.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
 
-        #Teste, ob Fehlermeldung, falls ein Ordner in einen Ordner verschoben wird, auf die der User keine Rechte hat
-        response=util.documentPoster(self,command='movedir',idpara=self._user1_project1_folder1.id,idpara2=self._user2_project1_folder1.id)
-        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+        # Teste, ob Fehlermeldung, falls ein Ordner in einen Ordner verschoben wird, auf die der User keine Rechte hat
+        response = util.documentPoster(self, command='movedir', idpara=self._user1_project1_folder1.id,
+                                       idpara2=self._user2_project1_folder1.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
 
-    
-    # Teste, dass beim Verschieben eines Ordners nach überprüft wird, ob es einen gleichnamigen Unterordner im neuen Parentordner schon gibt 
+
+    # Teste, dass beim Verschieben eines Ordners nach überprüft wird, ob es einen gleichnamigen Unterordner
+    # im neuen Parentordner schon gibt
     def test_moveDir2(self):
-        
         # Teste, ob Fehlermeldung, falls es einen gleichnamigen Unterordner im Ordner schon gibt
         # Benenne subfolder so um, dass er den gleichen Namen, wie parentfolder
-        self._user1_project1_folder2_subfolder1.name=self._user1_project1_folder2.name
+        self._user1_project1_folder2_subfolder1.name = self._user1_project1_folder2.name
         self._user1_project1_folder2_subfolder1.save()
         # Versuche subfolder in den gleichen Ordner wie parentfolder zu verschieben
         response = util.documentPoster(self, command='movedir', idpara=self._user1_project1_folder2_subfolder1.id,
                                        idpara2=self._user1_project1_folder2.id)
         dictionary = util.jsonDecoder(response.content)
-        self.assertEqual(dictionary['response'],ERROR_MESSAGES['FOLDERNAMEEXISTS'])
+        self.assertEqual(dictionary['response'], ERROR_MESSAGES['FOLDERNAMEEXISTS'])
 
 
     # Teste das Auflisten der Datei- und Ordnerstruktur eines Ordners
     def test_listfiles(self):
         # Anfrage der Struktur von _user1_project1_folder2 (Aufbau siehe SetUp Methode)
-        response = util.documentPoster(self, command='listfiles', idpara=self._user1_project1_folder2.id)
+        response = util.documentPoster(self, command='listfiles', idpara=self._user1_project1.rootFolder.id)
 
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
 
+        # TODO
         # überprüfe die Antwort des Servers
         # sollte success als status liefern
         self.assertEqual(dictionary['status'], SUCCESS)
-        # TODO
         # anfrage sollte Ordner/Dateistruktur als Json liefern
-        #util.validateJsonSuccessResponse(self, response.content, jsonstr)
+        jsondict = {
+
+        }
+        # util.validateJsonSuccessResponse(self, response.content, jsondict)
 
         # Anfrage mit user1 auf Ordner von user2
         response = util.documentPoster(self, command='listfiles', idpara=self._user2_project1.rootFolder.id)

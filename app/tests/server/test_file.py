@@ -27,9 +27,11 @@ from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.tests.server.viewtestcase import ViewTestCase
+import os, tempfile, mimetypes
 
 
 class FileTestClass(ViewTestCase):
+
     # Initialiserung der benötigten Objekte
     # -> wird vor jedem Test ausgeführt
     def setUp(self):
@@ -68,7 +70,6 @@ class FileTestClass(ViewTestCase):
         # sollte failure als status liefern
         # sollte ERROR_MESSAGES['FILENAMEEXISTS'] als Fehlermeldung liefern
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENAMEEXISTS'])
-
 
         # Sende Anfrage zum erstellen der Datei als user1 mit der folderid die user2 gehört
         response = util.documentPoster(self, command='createtex', idpara=self._user2_project1_folder1.id,
@@ -141,9 +142,8 @@ class FileTestClass(ViewTestCase):
 
         # Sende Anfrage zum ändern der Datei als user1 mit einer fileid.
         # Die Datei soll nun nur noch einen leeren String beinhalten
-        response = util.documentPoster(self,command='updatefile',idpara=self._user1_tex1.id,content='')
-        util.validateJsonSuccessResponse(self,response.content,{})
-
+        response = util.documentPoster(self, command='updatefile', idpara=self._user1_tex1.id, content='')
+        util.validateJsonSuccessResponse(self, response.content, {})
 
 
     # Teste das Löschen einer Datei
@@ -298,48 +298,54 @@ class FileTestClass(ViewTestCase):
 
     # Teste upload lokaler Dateien auf den Server
     def test_uploadfiles(self):
-        dic={
-                'command':'uploadfiles',
-                'id':self._user1_project1.rootFolder.id,
-                'files':[
-                    open(self._user1_binfile1_filepath, 'rb'),
-                    open(self._user1_binfile2_filepath, 'rb'),
-                    open(self._user1_binfile3_filepath, 'rb')
-                ]
+        dic = {
+            'command': 'uploadfiles',
+            'id': self._user1_project1.rootFolder.id,
+            'files': [
+                open(self._user1_binfile1_filepath, 'rb'),
+                open(self._user1_binfile2_filepath, 'rb'),
+                open(self._user1_binfile3_filepath, 'rb')
+            ]
         }
 
-        response=self.client.post('/documents/',dic)
+        response = self.client.post('/documents/', dic)
 
         # überprüfe die Antwort des Servers
         # sollte success als status liefern
         # response sollte von folgender Form sein:
-        dictionary={'failure': [{'name': '5', 'reason': 'Dateityp ist nicht erlaubt'}],
-                'success': [{'id': 8, 'name': 'test2.tex'},{'id':9,'name':'test3.jpg'}]
-            }
+        dictionary = {'failure': [{'name': '5', 'reason': 'Dateityp ist nicht erlaubt'}],
+                      'success': [{'id': 8, 'name': 'test2.tex'}, {'id': 9, 'name': 'test3.jpg'}]
+        }
 
+        serveranswer = (util.jsonDecoder(response.content)['response'])
+
+        # Es sollte eig. immer 'success' ausgegeben werden, da auch 'success' kommen sollte, selbst
+        # wenn keine einzige Datei akezeptiert wurde
+        self.assertEqual(util.jsonDecoder(response.content)['status'], 'success')
 
         serveranswer=(util.jsonDecoder(response.content)['response'])
-
+        
         # Es sollte eig. immer 'success' ausgegeben werden, da auch 'success' kommen sollte, selbst wenn keine einzige Datei akezeptiert wurde
         self.assertEqual(util.jsonDecoder(response.content)['status'],'success')
 
         # Es sollten genau 2 Dateien vom Server akzeptiert werden: test2.tex und test3.jpg
-        self.assertEqual(len(serveranswer['success']),2)
+        self.assertEqual(len(serveranswer['success']), 2)
         # Eine Datei sollte nicht akzeptiert werden
-        self.assertEqual(len(serveranswer['failure']),1)
+        self.assertEqual(len(serveranswer['failure']), 1)
         # Der Fehler sollte sein, dass der Dateityp nicht erlaubt ist
-        self.assertEqual(serveranswer['failure'][0]['reason'],ERROR_MESSAGES['ILLEGALFILETYPE'])
+        self.assertEqual(serveranswer['failure'][0]['reason'], ERROR_MESSAGES['ILLEGALFILETYPE'])
 
-        # Teste, ob Fehlermeldung, falls versucht wird, Dateien in einen Ordner hochzuladen, auf dem der User keine Rchte hat
-        dic['id']=self._user2_project1_folder1.id
-        response=self.client.post('/documents/',dic)
-        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+        # Teste, ob Fehlermeldung, falls versucht wird, Dateien in einen Ordner hochzuladen,
+        # auf dem der User keine Rechte hat
+        dic['id'] = self._user2_project1_folder1.id
+        response = self.client.post('/documents/', dic)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
 
         # Falls keine Dateien versendet wurden, sollte ebenfalls eine Fehlermeldung zurückgegeben werden
-        dic['files']=None
-        dic['id']=self._user1_project1.rootFolder.id
-        response=self.client.post('/documents/',dic)
-        util.validateJsonFailureResponse(self,response.content,ERROR_MESSAGES['NOTALLPOSTPARAMETERS'])
+        dic['files'] = None
+        dic['id'] = self._user1_project1.rootFolder.id
+        response = self.client.post('/documents/', dic)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTALLPOSTPARAMETERS'])
 
 
     # Teste download von Dateien auf dem Server zum Client
@@ -351,12 +357,14 @@ class FileTestClass(ViewTestCase):
         # der Content-Type sollte 'application/octet-stream' sein
         self.assertEqual(response['Content-Type'], 'application/octet-stream')
         # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
-        self.assertAlmostEqual(response['Content-Length'], str(util.getFileSize(self._user1_binary1.getContent())))
+        ori_file = self._user1_binary1.getContent()
+        self.assertEqual(response['Content-Length'], str(util.getFileSize(ori_file)))
+        ori_file.close()
         # Content-Disposition sollte 'attachment; filename=b'test.bin'' sein
-        self.assertEqual(response['Content-Disposition'], 'attachment; filename=b\'test1.bin\'')
+        self.assertEqual(response['Content-Disposition'], ('attachment; filename=b\''
+                                                           + self._user1_binary1.name + '\''))
         # der Inhalt der heruntergeladenen Datei und der Datei auf dem Server sollte übereinstimmen
-        # TODO fix
-        #self.assertEqual(self._user1_binary1_str, smart_str(response.content))
+        self.assertEqual(self._user1_binary1_str, smart_str(response.content))
 
         # Sende Anfrage zum Downloaden der main.tex Datei
         response = util.documentPoster(self, command='downloadfile', idpara=self._user1_tex1.id)
@@ -364,15 +372,16 @@ class FileTestClass(ViewTestCase):
         # überprüfe die Antwort des Servers
         # der Inhalt der heruntergeladenen Datei und der Datei auf dem Server sollte übereinstimmen
         self.assertEqual(self._user1_tex1.source_code, smart_str(response.content))
-        # der Content-Type sollte in response enthalten sein
-        # Prüfung auf Content-Type gibt je nach OS unterschiedliche Werte zurück
-        # Windows: application/x-tex
-        # Linux: text/x-tex
-        self.assertIn('Content-Type', response)
+        # der Content-Type sollte .tex entsprechen
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.tex'])
         # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
-        self.assertAlmostEqual(response['Content-Length'], str(util.getFileSize(self._user1_tex1.getContent())))
+        ori_file = self._user1_tex1.getContent()
+        self.assertEqual(response['Content-Length'], str(util.getFileSize(ori_file)))
+        ori_file.close()
+
         # Content-Disposition sollte 'attachment; filename=b'test.bin'' sein
-        self.assertEqual(response['Content-Disposition'], 'attachment; filename=b\'main.tex\'')
+        self.assertEqual(response['Content-Disposition'], ('attachment; filename=b\''
+                                                           + self._user1_tex1.name + '\''))
 
         # Sende Anfrage zum Download einer Datei als user1 mit der fileid einer .tex Datei die user2 gehört
         response = util.documentPoster(self, command='downloadfile', idpara=self._user2_tex1.id)
@@ -428,11 +437,11 @@ class FileTestClass(ViewTestCase):
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
 
-        self.assertEqual(dictionary['status'],SUCCESS)
-        serveranswer=dictionary['response']
-        self.assertIn('id',serveranswer)
-        self.assertIn('name',serveranswer)
+        self.assertEqual(dictionary['status'], SUCCESS)
+        serveranswer = dictionary['response']
+        self.assertIn('id', serveranswer)
+        self.assertIn('name', serveranswer)
 
         # Teste Fehlerhafte Datei
-        response=util.documentPoster(self,command='compile',idpara=self._user1_tex2.id)
+        response = util.documentPoster(self, command='compile', idpara=self._user1_tex2.id)
         self.assertContains(response, 'Fatal error occurred, no output PDF file produced!')

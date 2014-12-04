@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Sat 29 Nov 2014 03:24:34 PM CET
+* Last Modified : Do 04 Dec 2014 12:27:34 PM CET
 
 * Author :  christian
 
@@ -16,6 +16,8 @@
 * Backlog entry : -
 
 """
+
+import mimetypes
 
 # Fehlermeldungen, welche von den verschiedenen Methoden zur Rückgabe genutzt werden
 ERROR_MESSAGES = {
@@ -43,7 +45,10 @@ ERROR_MESSAGES = {
     'UNKOWNERROR': 'Unbekannter Fehler',
     'BLANKNAME': 'Leere Namen sind nicht erlaubt',
     'DATABASEERROR': 'Datenbankfehler',
-    'COMPILATIONERROR' : 'Fehler beim Kompilieren' ,
+    'COMPILATIONERROR': 'Fehler beim Kompilieren',
+    'COMPILATIONERROR_CITATIONUNDEFINED' : 'Zitierung undefiniert',
+    'COMPILATIONERROR_FILENOTFOUND' : 'Datei nicht gefunden',
+    'COMPILATIONERROR_SYNTAXERROR' : 'Syntax-Fehler',
     'PROJECTNOTEXIST': 'Projekt nicht gefunden',
     'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
@@ -51,26 +56,17 @@ ERROR_MESSAGES = {
 }
 
 ALLOWEDMIMETYPES = {
-        'text':{
-            'text/x-tex':{
-                'tex',
-                },
+    'text': {
+        mimetypes.types_map['.tex']
+    },
+    'binary': {
+        mimetypes.types_map['.png'],
+        mimetypes.types_map['.jpeg'],
+        mimetypes.types_map['.jpg'],
+    }
 
-                
-            },
-        'binary':{
-            'image/png':{
-                'png',
-                },
-            'image/jpeg':{
-                'jpg',
-                },
-            'image/jpg':{
-                'jpg',
-                }
-        }
-        }
-       
+}
+
 
 # Ungültige Zeichen für Dateien und Ordner
 INVALIDCHARS = '<>;|"\/?*'

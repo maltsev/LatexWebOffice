@@ -26,11 +26,11 @@ from app.models.file.pdf import PDF
 from app.common import util
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from django.conf import settings
-import mimetypes, os, io, tempfile
+import mimetypes, os, io, tempfile, logging
 from django.db import transaction
 
 # erstellt eine neue .tex Datei in der Datenbank ohne Textinhalt
-# benötigt: id:folderid name:filename
+# benötigt: id:folderid name:texname
 # liefert HTTP Response (Json); response: id=fileid, name=filename
 def createTexFile(request, user, folderid, texname):
     # Überprüfe ob der Ordner existiert, und der Benutzer die entsprechenden Rechte besitzt
@@ -38,10 +38,11 @@ def createTexFile(request, user, folderid, texname):
     if not rights:
         return failurereturn
 
-    file_folder = Folder.objects.get(id=folderid)
+    # hole das Ordner Objekt
+    folderobj = Folder.objects.get(id=folderid)
 
-    # Teste ob eine .tex Datei mit dem selben Namen schon existiert
-    unique, failurereturn = util.checkIfFileOrFolderIsUnique(texname, File, file_folder, request)
+    # Teste ob eine .tex Datei mit dem selben Namen in diesem Ordner schon existiert
+    unique, failurereturn = util.checkIfFileOrFolderIsUnique(texname, File, folderobj, request)
     if not unique:
         return failurereturn
 
@@ -50,15 +51,16 @@ def createTexFile(request, user, folderid, texname):
     emptystring, failurereturn = util.checkObjectForInvalidString(texname, request)
     if not emptystring:
         return failurereturn
+
+    # versuche die tex Datei zu erstellen
     try:
         texobj = TexFile.objects.create(name=texname, folder=Folder.objects.get(id=folderid), source_code='')
+        return util.jsonResponse({'id': texobj.id, 'name': texobj.name}, True, request)
     except:
-        return util.jsonErrorResponse(ERROR_MESSAGES['FILENOTCREATED'], request)
-
-    return util.jsonResponse({'id': texobj.id, 'name': texobj.name}, True, request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
-# aktualisiert eine geänderte Datei eines Projektes in der Datenbank
+# aktualisiert eine geänderte Datei eines Projektes in der Datenbank (akzeptiert nur PlainTextFiles)
 # benötigt: id:fileid, content:filecontenttostring
 # liefert: HTTP Response (Json)
 def updateFile(request, user, fileid, filecontenttostring):
@@ -75,11 +77,13 @@ def updateFile(request, user, fileid, filecontenttostring):
     # lese die PlainTextFile Datei ein
     plaintextobj = PlainTextFile.objects.get(id=fileid)
 
-    # ersetze den source code in der Datenbank durch den übergebenen String
-    plaintextobj.source_code = filecontenttostring
-    plaintextobj.save()
-
-    return util.jsonResponse({}, True, request)
+    # versuche den source code in der Datenbank durch den übergebenen String zu ersetzen
+    try:
+        plaintextobj.source_code = filecontenttostring
+        plaintextobj.save()
+        return util.jsonResponse({}, True, request)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
 # löscht eine vom Client angegebene Datei eines Projektes
@@ -94,10 +98,12 @@ def deleteFile(request, user, fileid):
     # hole das file object
     fileobj = File.objects.get(id=fileid)
 
-    # lösche die Datei
-    fileobj.delete()
-
-    return util.jsonResponse({}, True, request)
+    # versuche die Datei zu löschen
+    try:
+        fileobj.delete()
+        return util.jsonResponse({}, True, request)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
 # benennt eine vom Client angegebene Datei um
@@ -122,11 +128,13 @@ def renameFile(request, user, fileid, newfilename):
     if not unique:
         return failurereturn
 
-    # setze den neuen Dateinamen und speichere das Objekt
-    fileobj.name = newfilename
-    fileobj.save()
-
-    return util.jsonResponse({}, True, request)
+    # versuche den neuen Dateinamen zu setzen
+    try:
+        fileobj.name = newfilename
+        fileobj.save()
+        return util.jsonResponse({}, True, request)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
 # verschiebt eine Datei in einen anderen Ordner
@@ -140,7 +148,6 @@ def moveFile(request, user, fileid, newfolderid):
 
     # überprüfe, ob die Datei mit der id fileid existiert und newfolderid dem User gehört
     rights, failurereturn = util.checkIfDirExistsAndUserHasRights(newfolderid, user, request)
-    fileobj = File.objects.get(id=fileid)
     if not rights:
         return failurereturn
 
@@ -153,11 +160,13 @@ def moveFile(request, user, fileid, newfolderid):
     if not unique:
         return failurereturn
 
-    # setze den neuen Ordner des folderobj und speichere die Änderung
-    fileobj.folder = folderobj
-    fileobj.save()
-
-    return util.jsonResponse({}, True, request)
+    # versuche den neuen Ordner des fileobj zu setzen
+    try:
+        fileobj.folder = folderobj
+        fileobj.save()
+        return util.jsonResponse({}, True, request)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
 # speichert vom Client gesendete Dateien im entsprechenden Projektordner
@@ -165,76 +174,92 @@ def moveFile(request, user, fileid, newfolderid):
 # benötigt: id:projectid, folderid:folderid
 # liefert: HTTP Response (Json)
 def uploadFiles(request, user, folderid):
-
-    errors=[]
-    success=[]
-
-
+    # dictionary für die Rückgabe von erfolgreich gespeicherten Dateien bzw. fehlgeschlagenen
+    # es wird jeweils der name zurückgegeben (bei Erfolg zusätzlich die fileid, bei Fehlschlag der Grund)
+    errors = []
+    success = []
 
     # Teste ob der Ordner existiert und der User rechte auf dem Ordner hat
     rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
     if not rights:
         return failurereturn
-    folder=Folder.objects.get(id=folderid)
+    folder = Folder.objects.get(id=folderid)
 
     # Teste ob auch Dateien gesendet wurden
     if not request.FILES and not request.FILES.getlist('files'):
-       return util.jsonErrorResponse(ERROR_MESSAGES['NOTALLPOSTPARAMETERS'],request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['NOTALLPOSTPARAMETERS'], request)
 
     # Hole dateien aus dem request
-    files=request.FILES.getlist('files')
-
+    files = request.FILES.getlist('files')
 
     # Gehe die Dateien einzeln durch, bei Erfolg, setze id und name auf die success Liste
     # Bei Fehler, setzte mit name und Grund auf die errors Liste
     for f in files:
-        rsp,response=util.uploadFile(f,folder,request)
+        rsp, response = util.uploadFile(f, folder, request)
         if not rsp:
-            errors.append({'name':f.name,'reason':response})
+            errors.append({'name': f.name, 'reason': response})
         else:
             success.append(response)
 
-    return util.jsonResponse({'success':success,'failure':errors},True,request)
+    return util.jsonResponse({'success': success, 'failure': errors}, True, request)
 
 
 # liefert eine vom Client angeforderte Datei als Filestream
 # benötigt: id:fileid
 # liefert: filestream
 def downloadFile(request, user, fileid):
+    # setze das logging level auf ERROR
+    # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben wird
+    logger = logging.getLogger('django.request')
+    previous_level = logger.getEffectiveLevel()
+    logger.setLevel(logging.ERROR)
+
     # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
     rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         raise Http404
 
-    # wenn eine PlainText Datei angefordert wurde
+    # setze das logging level wieder auf den ursprünglichen Wert
+    logger.setLevel(previous_level)
+
+
     if PlainTextFile.objects.filter(id=fileid).exists():
-        downloadfile = PlainTextFile.objects.get(id=fileid)
-        # hole den source code der PlainText Datei
-        downloadfile_source_code = downloadfile.source_code
-        # erstelle die PlainText Datei als in-memory stream und schreibe den source_code rein
-        downloadfileIO = io.StringIO()
-        downloadfile_size = downloadfileIO.write(downloadfile_source_code)
-        response = HttpResponse(downloadfileIO.getvalue())
-        downloadfileIO.close()
-    # sonst wurde eine Binärdatei angefordert
+        # hole das Dateiobjekt
+        downloadfileobj = PlainTextFile.objects.get(id=fileid)
+        # hole den Inhalt des Dateiobjektes
+        downloadfileobj_content = downloadfileobj.getContent()
+
+        # ermittle die Dateigröße
+        downloadfileobj_size = util.getFileSize(downloadfileobj_content)
+
+        # setze den Inhalt der Datei in response
+        response = HttpResponse(downloadfileobj_content.getvalue())
     else:
-        downloadfile = BinaryFile.objects.get(id=fileid)
-        downloadfile_content = downloadfile.getContent()
-        downloadfile_size = util.getFileSize(downloadfile_content)
+        # hole das Dateiobjekt
+        downloadfileobj = BinaryFile.objects.get(id=fileid)
 
-        # lese die Datei ein
-        response = HttpResponse(downloadfile_content)
+        # hole den Inhalt des Dateiobjektes
+        downloadfileobj_content = open(downloadfileobj.filepath, 'rb')
 
-    ctype, encoding = mimetypes.guess_type(downloadfile.name)
+        # ermittle die Dateigröße
+        downloadfileobj_size = util.getFileSize(downloadfileobj_content)
+        # setze den Inhalt der Datei in response
+        response = HttpResponse(downloadfileobj_content.read())
 
+    downloadfileobj_content.close()
+
+    # versuche den Mimetype herauszufinden
+    ctype, encoding = mimetypes.guess_type(downloadfileobj.name)
+
+    # wenn kein Mimetype erkannt wurde, setze den Standard Typ
     if ctype is None:
         ctype = 'application/octet-stream'
     response['Content-Type'] = ctype
-    response['Content-Length'] = downloadfile_size
+    response['Content-Length'] = downloadfileobj_size
     if encoding is not None:
         response['Content-Encoding'] = encoding
 
-    filename_header = 'filename=%s' % downloadfile.name.encode('utf-8')
+    filename_header = 'filename=%s' % downloadfileobj.name.encode('utf-8')
 
     response['Content-Disposition'] = 'attachment; ' + filename_header
 
@@ -249,10 +274,13 @@ def fileInfo(request, user, fileid):
     if not rights:
         return failurereturn
 
+    # hole das Datei und Ordner Objekt
     fileobj = File.objects.get(id=fileid)
-    folder = Folder.objects.get(id=fileobj.folder.id)
+    folderobj = Folder.objects.get(id=fileobj.folder.id)
 
-    dictionary = {'fileid': fileobj.id, 'filename': fileobj.name, 'folderid': folder.id, 'foldername': folder.name}
+    # Sende die id und den Namen der Datei sowie des Ordners als JSON response
+    dictionary = {'fileid': fileobj.id, 'filename': fileobj.name, 'folderid': folderobj.id,
+                  'foldername': folderobj.name}
 
     return util.jsonResponse(dictionary, True, request)
 
@@ -279,55 +307,57 @@ def latexCompile(request, user, fileid):
     projectDictionaryFiles = util.getProjectFilesFromProjectObject(projectobj)
 
     with tempfile.TemporaryDirectory() as tmpdirname:
-            tocompilefilename = ''
+        tocompilefilename = ''
 
-            def createFiles(hier, parent, tocompilefilename=''):
-                foldername = os.path.join(parent, hier['name'])
-                os.mkdir(foldername)
+        def createFiles(hier, parent, tocompilefilename=''):
+            foldername = os.path.join(parent, hier['name'])
+            os.mkdir(foldername)
 
-                for f in hier['files']:
-                    filename = os.path.join(foldername, f['name'])
+            for f in hier['files']:
+                filename = os.path.join(foldername, f['name'])
 
-                    if str(f['id']) == fileid:
-                        tocompilefilename = filename
+                if str(f['id']) == fileid:
+                    tocompilefilename = filename
 
-                    if TexFile.objects.filter(id=f['id']).exists():
-                        fo = open(filename, 'w')
-                        fo.write(TexFile.objects.get(id=f['id']).source_code)
-                        fo.close()
-                    else:
-                        fo = open(filename, 'wb')
-                        # fo.write(BinaryFile.objects.get(id=f['id']).getContent().read())
-                        fo.close()
+                if TexFile.objects.filter(id=f['id']).exists():
+                    fo = open(filename, 'w')
+                    fo.write(TexFile.objects.get(id=f['id']).source_code)
+                    fo.close()
+                else:
+                    fo = open(filename, 'wb')
+                    # fo.write(BinaryFile.objects.get(id=f['id']).getContent().read())
+                    fo.close()
 
-                for d in hier['folders']:
-                    tocompilefilename = createFiles(
-                        d, foldername, tocompilefilename)
+            for d in hier['folders']:
+                tocompilefilename = createFiles(
+                    d, foldername, tocompilefilename)
 
-                return tocompilefilename
+            return tocompilefilename
 
-            tocompilefilename = createFiles(
-                projectDictionaryFiles, tmpdirname, tocompilefilename)
-            import subprocess as sub
-            cmd = ["pdflatex", "-halt-on-error",
-                   "-interaction=batchmode", "%s" % tocompilefilename]
-            p = sub.Popen(
-                cmd, stdout=sub.PIPE, stderr=sub.PIPE, cwd=tmpdirname)
-            output, errors = p.communicate()
-            p.wait()
+        tocompilefilename = createFiles(
+            projectDictionaryFiles, tmpdirname, tocompilefilename)
+        import subprocess as sub
 
-            pdffilename = os.path.join(
-                tmpdirname, texfileobj.name)[:-3] + 'pdf'
-            if os.path.isfile(pdffilename):
-                if BinaryFile.objects.filter(name='out.pdf',folder=texfileobj.folder).exists():
-                    BinaryFile.objects.get(name='out.pdf',folder=texfileobj.folder).delete()
-                pdffile = BinaryFile.objects.createFromFile(
-                    name='out.pdf', folder=texfileobj.folder, file=open(pdffilename, 'rb'))
-                return util.jsonResponse({'id': pdffile.id, 'name': 'output.pdf'}, True, request)
-            elif os.path.isfile(pdffilename[:-3]+'log'):
-                flog=open(pdffilename[:-3]+'log')
-                log=flog.read()
-                return util.jsonErrorResponse(log,request)
+        cmd = ["pdflatex", "-halt-on-error",
+               "-interaction=batchmode", "%s" % tocompilefilename]
+        p = sub.Popen(
+            cmd, stdout=sub.PIPE, stderr=sub.PIPE, cwd=tmpdirname)
+        output, errors = p.communicate()
+        p.wait()
+
+        pdffilename = os.path.join(
+            tmpdirname, texfileobj.name)[:-3] + 'pdf'
+        if os.path.isfile(pdffilename):
+            if BinaryFile.objects.filter(name='out.pdf', folder=texfileobj.folder).exists():
+                BinaryFile.objects.get(name='out.pdf', folder=texfileobj.folder).delete()
+            pdffile = BinaryFile.objects.createFromFile(
+                name='out.pdf', folder=texfileobj.folder, file=open(pdffilename, 'rb'))
+            return util.jsonResponse({'id': pdffile.id, 'name': 'output.pdf'}, True, request)
+        elif os.path.isfile(pdffilename[:-3] + 'log'):
+            flog = open(pdffilename[:-3] + 'log')
+            log = flog.read()
+            flog.close()
+            return util.jsonErrorResponse(log, request)
 
     # rueckgabe=Sende Dateien an Ingo's Methode
 

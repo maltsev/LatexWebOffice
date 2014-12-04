@@ -5,7 +5,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : 1 Dec 2014 22:13:00 CET
+* Last Modified : 2 Dec 2014 21:31:00 CET
 
 * Author :  maltsev
 
@@ -15,7 +15,6 @@
 
 """
 import io
-import hashlib
 import os
 from django.db import models
 
@@ -51,4 +50,4 @@ class File(models.Model):
 
 
     def __str__(self):
-        return self.name
+        return "{}{}".format(self.folder, self.name)

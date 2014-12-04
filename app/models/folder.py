@@ -5,7 +5,7 @@
 
 * Creation Date : 21-11-2014
 
-* Last Modified : 1 Dec 2014 22:13:00 CET
+* Last Modified : 2 Dec 2014 21:31:00 CET
 
 * Author :  maltsev
 
@@ -105,8 +105,10 @@ class Folder(models.Model):
 
 
     def __str__(self):
-        return self.name
-
+        if self.isRoot():
+            return "{}/".format(self.getProject())
+        else:
+            return "{}{}/".format(self.parent, self.name)
 
 
 @receiver(post_save, sender=Folder)

@@ -29,8 +29,13 @@ class PDFTestCase(ModelTestCase):
 
     def test_createFromFile(self):
         file = open(self.testBinaryFilepath, 'rb')
-        pdfFile = PDF.objects.createFromFile(name='icon.png', folder=self.rootFolder_dir1, file=file)
+        pdfFileModel = PDF.objects.createFromFile(name='icon.png', folder=self.rootFolder_dir1, file=file)
 
         file.seek(0)
-        self.assertEqual(file.read(), pdfFile.getContent().read())
-        pdfFile.delete()
+
+        pdfFile = pdfFileModel.getContent()
+        self.assertEqual(file.read(), pdfFile.read())
+
+        pdfFile.close()
+        file.close()
+        pdfFileModel.delete()

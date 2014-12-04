@@ -1,10 +1,10 @@
-""" 
+"""
 
 * Purpose : Verwaltung von Project Models
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fri 28 Nov 2014 10:32:47 PM CET
+* Last Modified : Do 04 Dez 2014 10:46:22 CET
 
 * Author :  christian
 
@@ -19,14 +19,14 @@
 from django.http import HttpResponse, Http404
 from app.models.folder import Folder
 from app.models.project import Project
-from app.models.file.file import File
-from app.models.file.texfile import TexFile
-from app.models.file.plaintextfile import PlainTextFile
-from app.models.file.binaryfile import BinaryFile
 from app.common import util
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
-import mimetypes, os, io, tempfile, zipfile
-from django.db import transaction
+from app.common.constants import ERROR_MESSAGES
+import mimetypes
+import os
+import tempfile
+import zipfile
+import shutil
+import logging
 
 
 # erzeugt ein neues Projekt für den Benutzer mit einer leeren main.tex Datei
@@ -36,19 +36,20 @@ from django.db import transaction
 def projectCreate(request, user, projectname):
     # Teste, ob der Projektname kein leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
     # oder ungültige Sonderzeichen enthält
-    emptystring, failurereturn = util.checkObjectForInvalidString(projectname, request)
+    emptystring, failurereturn = util.checkObjectForInvalidString(
+        projectname, request)
     if not emptystring:
         return failurereturn
 
-    # überprüfe ob ein Projekt mit dem Namen projectname bereits für diese Benutzer existiert
-    if Project.objects.filter(name=projectname, author=user).exists():
+    # überprüfe ob ein Projekt mit dem Namen projectname bereits für diese
+    # Benutzer existiert
+    if Project.objects.filter(name__iexact=projectname.lower(), author=user).exists():
         return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
     else:
         try:
-            with transaction.atomic():
-                newproject = Project.objects.create(name=projectname, author=user)
+            newproject = Project.objects.create(name=projectname, author=user)
         except:
-            return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTCREATED'], request)
+            return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
     return util.jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
 
@@ -57,18 +58,20 @@ def projectCreate(request, user, projectname):
 # benötigt: id:projectid
 # liefert: HTTP Response (Json)
 def projectRm(request, user, projectid):
-    # überprüfe ob das Projekt existiert und der user die Rechte zum Löschen hat
-    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(projectid, user, request)
+    # überprüfe ob das Projekt existiert und der user die Rechte zum Löschen
+    # hat
+    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(
+        projectid, user, request)
     # sonst gib eine Fehlermeldung zurück
     if not rights:
         return failurereturn
 
     # hole das zu löschende Projekt
-    projectdel = Project.objects.get(id=projectid)
+    projectobj = Project.objects.get(id=projectid)
 
     # versuche das Projekt zu löschen
     try:
-        projectdel.delete()
+        projectobj.delete()
         return util.jsonResponse({}, True, request)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
@@ -84,87 +87,138 @@ def listProjects(request, user):
     if availableprojects is None:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
     else:
-        json_return = [util.projectToJson(project) for project in availableprojects]
+        json_return = [util.projectToJson(project)
+                       for project in availableprojects]
 
     return util.jsonResponse(json_return, True, request)
 
 
 # importiert ein Projekt aus einer vom Client übergebenen zip Datei
-# benötigt: id:folderid
 # liefert: HTTP Response (Json)
-def importZip(request, user, folderid):
-    # Teste ob der Ordner existiert und der User rechte auf dem Ordner hat
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
-    if not rights:
-        return failurereturn
-    folder=Folder.objects.get(id=folderid)
-
+def importZip(request, user):
     # Teste ob auch Dateien gesendet wurden
     if not request.FILES and not request.FILES.getlist('files'):
-       return util.jsonErrorResponse(ERROR_MESSAGES['NOTALLPOSTPARAMETERS'],request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['NOTALLPOSTPARAMETERS'], request)
 
     # Hole dateien aus dem request
-    files=request.FILES.getlist('files')
+    files = request.FILES.getlist('files')
 
-    # Erstelle ein temp Verzeichnis, in welches die .zip Datei entpackt werden soll
-    _, tmp = tempfile.mkstemp()
+    # Erstelle ein temp Verzeichnis, in welches die .zip Datei entpackt werden
+    # soll
+    tmpfolder = tempfile.mkdtemp()
+
+    zip_file_name = files[0].name
 
     # speichere die .zip Datei im tmp Verzeichnis
-    zip_file_path = os.path.join(tmp, files[0].name)
-    zip_file = open(zip_file_path, 'rb')
+#    print(tmpfolder,files[0].name)
+    zip_file_path = os.path.join(tmpfolder, files[0].name)
+    zip_file = open(zip_file_path, 'wb')
     zip_file.write(files[0].read())
     zip_file.close()
 
     # überprüfe ob es sich um eine gültige .zip Datei handelt
     if not zipfile.is_zipfile(zip_file_path):
         return util.jsonErrorResponse(ERROR_MESSAGES['ILLEGALFILETYPE'], request)
-    # entpacke die .zip Datei in .../tmp/extracted
-    extract_path = os.path.join(tmp, 'extracted')
+
+    extract_path = os.path.join(tmpfolder, 'extracted')
+    # erstelle einen Unterorder 'extracted'
+    if not os.path.isdir(extract_path):
+        os.mkdir(extract_path)
+
+    # entpacke die .zip Datei in .../tmpfolder/extracted
     util.extractZipToFolder(extract_path, zip_file_path)
 
-    # durchlaufe alle Dateien und Ordner in extracted
+    fileName, fileExtension = os.path.splitext(zip_file_name)
+    if Project.objects.filter(name__iexact=fileName.lower(), author=user).exists():
+        Project.objects.get(
+            name__iexact=fileName.lower(), author=user).delete()
 
-    # wenn der Ordner oder Dateiname gültig ist
+    projectobj = Project.objects.create(name=fileName, author=user)
 
-    # speichere die Datei/den Ordner in der Datenbank
+    # Lösche main.tex die vom Projekt angelegt wurde
+    projectobj.rootFolder.getMainTex().delete()
+
+    # dictionary in der als keyword der Pfad und als value ein Folder objekt gespeichert werden soll.
+    # Dies soll dafür sorgen, dass wir später ohne probleme das
+    # Elternverzeichnis eines Verzeichnis herausfinden können
+    projdict = {}
+
+    parent = None
+    folder = projectobj.rootFolder
+    # Tiefe des Verzeichnis, wo der die zip entpackt wurde
+    rootdepth = len(extract_path.split(os.sep))
+
+    for root, dirs, files in os.walk(extract_path):
+        # relativer Pfad des derzeitigen Verzeichnis
+        path = root.split('/')[rootdepth:]
+        # falls path true ist, ist root nicht das root Verzeichnis, wo die zip
+        # entpackt wurde
+        if path:
+            # path is also ein subsubfolder und wir müssen den subfolder als
+            # parent setzen
+            if path[:-1]:
+                parent = projdict[os.path.join('', *path[:-1])]
+            else:
+                parent = projectobj.rootFolder
+            # speichere Ordner
+            folder = Folder.objects.create(
+                name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
+            projdict[os.path.join('', *path)] = folder
+        for f in files:  # füge die Dateien dem Ordner hinzu
+            fileobj = open(os.path.join(root, f), 'rb')
+            result, msg = util.uploadFile(fileobj, folder, request, True)
+            fileobj.close()
+
+    if os.path.isdir(tmpfolder):
+        shutil.rmtree(tmpfolder)
 
     return util.jsonResponse({}, True, request)
 
 
 # liefert ein vom Client angefordertes Projekt in Form einer zip Datei als Filestream
-# benötigt: id:folderid
-# liefert: filestream
-def exportZip(request, user, folderid):
-    # Überprüfe ob der Ordner existiert, und der Benutzer die entsprechenden Rechte besitzt
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
+# benötigt: id:projectid
+# liefert: filestream (404 im Fehlerfall)
+def exportZip(request, user, projectid):
+    # setze das logging level auf ERROR
+    # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben
+    # wird
+    logger = logging.getLogger('django.request')
+    previous_level = logger.getEffectiveLevel()
+    logger.setLevel(logging.ERROR)
+
+    # Überprüfe ob das Projekt, und der Benutzer die entsprechenden Rechte
+    # besitzt
+    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(
+        projectid, user, request)
     if not rights:
         raise Http404
 
-    # hole das Ordner Objekt
-    folderobj = Folder.objects.get(id=folderid)
+    # setze das logging level wieder auf den ursprünglichen Wert
+    logger.setLevel(previous_level)
 
-    # erstelle ein temp Verzeichnis mit alle Dateien und Unterordnern des gegegeben Ordners
-    _, tmp = tempfile.mkstemp()
+    # hole das Projekt Objekt
+    projectobj = Project.objects.get(id=projectid)
 
-    # TODO alle Unterordner und Dateien des Ordners in das tmp Verzeichnis kopieren
+    # erstelle ein temp Verzeichnis mit einer Kopie des Projektes
+    project_tmp_path = projectobj.rootFolder.dumpRootFolder()
 
-    # Unterorder im tmp Verzeichnis, das zur zip Datei hinzugefügt werden soll
-    tmp_folder = os.path.join(tmp, folderobj.name)
+    # tmp Verzeichnis in dem die zip Datei gespeichert wird
+    zip_tmp_path = tempfile.mkdtemp()
+    zip_file_path = os.path.join(zip_tmp_path, projectobj.name + '.zip')
 
     # erstelle die .zip Datei
-    util.createZipFromFolder(tmp_folder, os.path.join(tmp, folderobj.name + '.zip'))
+    util.createZipFromFolder(project_tmp_path, zip_file_path)
 
     # lese die erstellte .zip Datei ein
-    file_dl_path = os.path.join(tmp_folder, folderobj.name, '.zip')
-    file_dl = open(file_dl_path, 'rb')
-
+    file_dl = open(zip_file_path, 'rb')
     response = HttpResponse(file_dl.read())
-
     file_dl.close()
 
-    file_dl_size = str(os.stat(file_dl_path).st_size)
+    # lese die Dateigröße der zip Datei ein
+    file_dl_size = str(os.stat(zip_file_path).st_size)
 
-    ctype, encoding = mimetypes.guess_type(folderobj.name + '.zip')
+    # setze den mimetype
+    ctype, encoding = mimetypes.guess_type(zip_file_path)
 
     if ctype is None:
         ctype = 'application/octet-stream'
@@ -173,12 +227,16 @@ def exportZip(request, user, folderid):
     if encoding is not None:
         response['Content-Encoding'] = encoding
 
-    filename_header = 'filename=%s' % (folderobj.name + '.zip').encode('utf-8')
+    filename_header = 'filename=%s' % (
+        projectobj.name + '.zip').encode('utf-8')
 
     response['Content-Disposition'] = 'attachment; ' + filename_header
 
-    return response
+    # lösche die temporären Dateien und Ordner
+    if os.path.isdir(zip_tmp_path):
+        shutil.rmtree(zip_tmp_path)
 
+    return response
 
 
 # gibt ein Projekt für einen anderen Benutzer zum Bearbeiten frei
