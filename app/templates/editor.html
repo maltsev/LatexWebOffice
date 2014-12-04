@@ -1,7 +1,7 @@
 <!--
-@author: Franziska Everinghoff
+@author: Franziska Everinghoff, Timo Dümke
 @creation: 20.11.2014 - sprint-nr: 2
-@last-change: 29.11.2014 - sprint-nr: 2
+@last-change: 04.12.2014 - sprint-nr: 2
 -->
 
 {% extends "_wrapper.html" %}
@@ -9,6 +9,7 @@
 <!-- Header -->
 {% block header %}
 <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+<!-- Einbindung der Funktionalität vom ACE Editor -->
 <script src="/static/js/ace/ace.js"></script>
 <script src="/static/js/ace/ext-language_tools.js"></script>
 <script src="/static/js/editor.js"></script>
@@ -16,7 +17,6 @@
 
 <!-- Inhalt -->
 {% block content %}
-<!-- TODO: Prüfung der Authentifizierung -->
 <div id="inhalt">
 	<table id="editor_table1" style="width: 100%">
 		<!-- Menüleiste 1 mit Drop-Down-Menü: Bearbeiten, Vorlagen, Assistent, Bibliographie, Ansicht, 
@@ -76,6 +76,7 @@
 		<!-- Ende Menüleiste 2 mit Symbolen -->
 	</table>
 <div>
+<!-- verwendeter Editor: ACE Editor -->
 <div id="editor"></div>
 </div>
 {% endblock %}

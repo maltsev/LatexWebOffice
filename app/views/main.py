@@ -30,7 +30,7 @@ def impressum(request):
 def hilfe(request):
     return render(request, 'hilfe.html')
 
-
+@login_required
 def editor(request):
     return render(request, 'editor.html')
 
