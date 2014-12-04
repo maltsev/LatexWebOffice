@@ -165,9 +165,10 @@ def get_Errors(log_path):
             errors.append(ERROR_MESSAGES['COMPILATIONERROR_FILENOTFOUND'])
         if "warning" in line :
             errors.append(ERROR_MESSAGES['COMPILATIONERROR_CITATIONUNDEFINED'])
-        # TODO
-        else :
-            errors.append(ERROR_MESSAGES['COMPILATIONERROR'])
+            
     log.close()
+    
+    if len(errors)==0 :
+        errors.append(ERROR_MESSAGES['COMPILATIONERROR'])
     
     return errors
