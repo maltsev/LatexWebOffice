@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Mi 03 Dez 2014 14:14:31 CET
+* Last Modified : Do 04 Dez 2014 14:02:16 CET
 
 * Author :  christian
 
@@ -213,7 +213,7 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content
     if name != None:
         dictionary['name'] = name
     if files != None:
-        pass  # TODO
+        dictionary['files']=files
     return self.client.post('/documents/', dictionary)
 
 
@@ -246,7 +246,6 @@ def uploadFile(f, folder, request,fromZip=False):
         if mime==mimetypes.types_map['.tex']:
             try:
                 texfile=TexFile(name=name,source_code=f.read().decode('utf-8'),folder=folder)
-                # Überprüfe, ob Datenbank Datei speichern kann TODO
                 texfile.save()
                 return True,{'name':texfile.name,'id':texfile.id}
             except:
@@ -254,7 +253,6 @@ def uploadFile(f, folder, request,fromZip=False):
         else:
             try:
                 plainfile = PlainTextFile.objects.create(name=name, source_code=f.read().decode('utf-8'))
-                # Überprüfe, ob Datenbank Datei speichern kann
                 return True, {'name': plainfile.name, 'id': plainfile.id}
             except:
                 return False,jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
