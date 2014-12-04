@@ -5,7 +5,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : 2 Dec 2014 21:31:00 CET
+* Last Modified : 4 Dec 2014 13:17:00 CET
 
 * Author :  maltsev
 
@@ -40,6 +40,8 @@ class Project(models.Model):
 def projectPostDelete(instance, **kwargs):
     instance.rootFolder.delete()
 
+##
+# Automatische Erzeugung des Rootverzeichnises
 @receiver(pre_save, sender=Project)
 def projectPreSave(instance, **kwargs):
     if not hasattr(instance, 'rootFolder') or not instance.rootFolder:

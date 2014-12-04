@@ -5,7 +5,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : 2 Dec 2014 21:31:00 CET
+* Last Modified : 4 Dec 2014 13:17:00 CET
 
 * Author :  maltsev
 
@@ -31,7 +31,9 @@ class File(models.Model):
     def getContent(self):
         return io.StringIO()
 
-
+    ##
+    # Abbildet die Datei auf der Festplatte und gibt den temporären Verzeichnispfad zurück
+    # @return String
     def getTempPath(self):
         fileContentObj = self.getContent()
         if hasattr(fileContentObj, 'getvalue') and callable(fileContentObj.getvalue):

@@ -31,27 +31,37 @@ class Folder(models.Model):
     parent = models.ForeignKey("self", blank=True, null=True, related_name='children') # Darf leer sein nur bei RootFolder
     root = models.ForeignKey("self", blank=True, null=True, related_name='rootFolder') # Darf leer sein nur bei RootFolder
 
-
+    ##
+    # Prüft ob das Verzeichnis ein Rootverzeichnis ist
     def isRoot(self):
         return not self.root or self.root is self
 
-
+    ##
+    # Gibt das Rooverzeichnis zurück
+    # @return app.models.folder.Folder
     def getRoot(self):
         if self.isRoot():
             return self
         return self.root
 
-
+    ##
+    # Gibt das Projekt zurück
+    # @return app.models.project.Project
     def getProject(self):
         return self.getRoot().project_set.get()
 
-
+    ##
+    # Gibt die MainTexDatei zurück
+    # @return app.models.file.texfile.TexFile
     def getMainTex(self):
         rootFolder = self.getRoot()
         file = rootFolder.file_set.filter(name='main.tex').get()
         return TexFile.objects.get(pk=file.pk)
 
-
+    ##
+    # Abbildet das Vezeichnis auf der Festplatte und gibt
+    # den temporären Verzeichnispfad zurück
+    # @return String
     def getTempPath(self):
         if self.parent:
             folderPath = os.path.join(self.parent.getTempPath(), self.name)
@@ -63,7 +73,10 @@ class Folder(models.Model):
 
         return folderPath
 
-
+    ##
+    # Abbildet ganzes Rootverzeichnis (mit allen Dateien und Verzeichnisen)
+    # auf der Festplatte und gibt den temporären Vezeichnispfad zurück
+    # @return String
     def dumpRootFolder(self):
         root = self.getRoot()
         for fileOrFolder in self.getFilesAndFoldersRecursively():
@@ -71,8 +84,14 @@ class Folder(models.Model):
 
         return root.getTempPath()
 
-
+    ##
+    # Gibt alle innere Dateien und Verzeichnise des Verzeichnises zurück
+    # @return eine Liste mit app.models.file.File und app.models.folder.Folder
     def getFilesAndFolders(self):
+        # Wir können alle Dateien mit File.objects.filter(..).all() bekommen.
+        # Aber dann werden diese Dateien als app.models.file.File sein.
+        # Deshalb bekommen wir jeden Dateityp einzeln.
+
         excludeFileIds = []
 
         texFiles = list(TexFile.objects.filter(folder=self).exclude(pk__in=excludeFileIds).all())
@@ -93,7 +112,9 @@ class Folder(models.Model):
 
         return texFiles + plainTextFiles + imageFiles + pdfFiles + folders + files
 
-
+    ##
+    # Gibt rekursiv alle innere Dateien und Verzeichnise des Verzeichnises zurück
+    # @return eine Liste mit app.models.file.File und app.models.folder.Folder
     def getFilesAndFoldersRecursively(self):
         filesAndFolders = self.getFilesAndFolders()
         for fileOrFolder in filesAndFolders:
@@ -109,6 +130,7 @@ class Folder(models.Model):
             return "{}/".format(self.getProject())
         else:
             return "{}{}/".format(self.parent, self.name)
+
 
 
 @receiver(post_save, sender=Folder)

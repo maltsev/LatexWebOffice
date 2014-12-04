@@ -5,7 +5,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : 1 Dec 2014 22:13:00 CET
+* Last Modified : 4 Dec 2014 13:17:00 CET
 
 * Author :  maltsev
 
@@ -23,6 +23,9 @@ from app.models.file.file import File
 
 
 class BinaryFileManager(models.Manager):
+    ##
+    # BinaryFile Erzeugung von request.FILES
+    # https://docs.djangoproject.com/en/dev/topics/http/file-uploads/
     def createFromRequestFile(self, **kwargs):
         isFilepath = 'filepath' in kwargs and bool(kwargs['filepath'])
         requestFile = 'requestFile' in kwargs and kwargs['requestFile']
@@ -36,7 +39,8 @@ class BinaryFileManager(models.Manager):
 
         return self.create(**kwargs)
 
-
+    ##
+    # BinaryFile Erzeugung von Python File
     def createFromFile(self, **kwargs):
         isFilepath = 'filepath' in kwargs and bool(kwargs['filepath'])
         file = 'file' in kwargs and kwargs['file']
