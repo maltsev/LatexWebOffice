@@ -139,7 +139,7 @@ def checkIfFileOrFolderIsUnique(newname, modelClass, folder, request):
 # prüft, ob ein Name ungültige Zeichen enthält
 # vgl. INVALIDCHARS in /common/constants.py
 def checkObjectForInvalidString(name, request):
-    if name.isspace():
+    if name == '' or name.isspace():
         return False, jsonErrorResponse(ERROR_MESSAGES['BLANKNAME'], request)
     if any(invalid in name for invalid in INVALIDCHARS):
         return False, jsonErrorResponse(ERROR_MESSAGES['INVALIDNAME'], request)
