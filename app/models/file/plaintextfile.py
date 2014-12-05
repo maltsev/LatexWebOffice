@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 
-* Purpose :  Modell (app/models/file/)
+* Purpose : Textdatei Modell (app/models/file/plaintextfile.py)
 
 * Creation Date : 26-11-2014
 

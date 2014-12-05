@@ -1,50 +1,64 @@
 /*
 @author: Thore Thießen, Timo Dümke
 @creation: 21.11.2014 - sprint-nr: 2
-@last-change: 25.11.2014 - sprint-nr: 2
+@last-change: 04.12.2014 - sprint-nr: 2
 */
 
-// Editor
+/// ID der im Editor geöffneten Datei
+var id;
+
+/// Editor
 var editor;
 
+/// Änderungen im Editor gespeichert?
+var changesSaved = true;
+
 /**
- * Lädt den ACE-Editor, sobald das Dokument vollständig geladen wurde.
+ * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
  */
 $(document).ready(function() {
-var langTools = ace.require("ace/ext/language_tools");
-	editor = ace.edit('editor');
-	 var Completer = {
-        getCompletions: function(editor, session, pos, prefix, callback) {
-            if (prefix.length === 0) { callback(null, []); return }
-            $.getJSON(
-                "http://rhymebrain.com/talk?function=getRhymes&word=" + prefix,
-                function(wordList) {
-                    // wordList like [{"word":"flow","freq":24,"score":300,"flags":"bc","syllables":"1"}]
-                    callback(null, wordList.map(function(ea) {
-                        return {name: ea.word, value: ea.word, score: ea.score, meta: "rhyme"}
-                    }));
-                })
-        }
-    }
-    langTools.addCompleter(Completer);
+	// Datei-ID abfragen
+	id = parseInt($(document).getUrlParam('id'), 10);
+	if (isNaN(id))
+		// ungültige ID
+		backToProject();
+	else {
+		// ACE-Editor laden
+		editor = ace.edit('editor');
+		editor.setTheme('ace/theme/clouds');
+		editor.getSession().setMode('ace/mode/latex');
+		editor.setOptions({'enableBasicAutocompletion': true});
 
-	// Clouds-Theme
-	editor.setTheme('ace/theme/clouds');
+		// automatisches Setzen von Klammern
+		editor.on('change', autoBraceCompletion);
 
-	// Latex-Modus
-	editor.getSession().setMode('ace/mode/latex');
-	// TODO: ACE-BasicAutoCompletion?
-	editor.setOptions({
-    enableBasicAutocompletion: true
+		// TODO: automatische Vervollständigung von Blöcken (\begin{…} … \end{…})
+
+		// Speicheraufforderung bei ungespeicherten Änderungen
+		editor.on('change', function() {
+			changesSaved = false;
+		});
+		$(window).bind('beforeunload', function() {
+			if (!changesSaved)
+				return('Ungespeicherte Änderungen, wollen Sie den Editor wirklich verlassen?');
+		});
+
+		// Button für das Speichern belegen
+		$('#save').click(function() {
+			saveFile(id);
+		});
+
+		// Button für das Kompilieren belegen
+		$('#compile').click(function() {
+			compile(id);
+		});
+
+		// Dokument laden
+		loadFile(id);
+	}
 });
-	// automatisches Setzen von Klammern
-	editor.on('change', autoBraceCompletion);
 
-	
-	// TODO: automatische Vervollständigung von Blöcken (\begin{…} … \end{…})
-});
-
-// Klammern, welche automatisch geschlossen werden sollen
+/// Klammern, welche automatisch geschlossen werden sollen
 var braces = {
 	'{': '}',
 	'[': ']'
@@ -68,6 +82,14 @@ function autoBraceCompletion(e) {
 }
 
 /**
+ * Leitet den Benutzer zurück zur Projektverwaltung.
+ */
+function backToProject() {
+	// TODO: auf das richtige Projekt verweisen?
+	window.location.replace('/projekt/');
+}
+
+/**
  * Lädt eine Datei in den Editor.
  * @param id ID der Datei
  */
@@ -85,23 +107,22 @@ function loadFile(id) {
 			'X-CSRFToken': $.cookie('csrftoken')
 		},
 		'dataType': 'text',
-		'complete': function(response, status) {
-			if (status == 'success') {
-				// Datei in den Editor laden
-				editor.setValue(response.responseText, 0);
-			} else {
-				// Fehler bei der Anfrage
-				// TODO: Client umleiten?
-
-				// DEBUG
-				console.log({
-					'error': 'Fehler beim Laden der Datei',
-					'id': id,
-					'statusCode': response.status,
-					'statusText': response.statusText
-				});
-			}
-
+		'error': function(response, textStatus, errorThrown) {
+			// Fehler bei der Anfrage
+			console.log({
+				'error': 'Fehler beim Laden der Datei',
+				'details': errorThrown,
+				'id': id,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+			backToProject();
+		},
+		'success': function(data, textStatus, response) {
+			// Datei erfolgreich geladen
+			editor.setValue(data, 0);
+			editor.getSelection().selectTo(0, 0);
+			changesSaved = true;
 			// TODO: Editor-Funktionen entsperren
 		}
 	});
@@ -112,5 +133,94 @@ function loadFile(id) {
  * @param id ID der Datei
  */
 function saveFile(id) {
-	// TODO: implementieren
+	// TODO: Editor-Funktionen sperren
+
+	// Dokument schicken
+	jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'updatefile',
+			'id': id,
+			'content': editor.getValue()
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			// Fehler beim Speichern
+			console.log({
+				'error': 'Fehler beim Speichern der Datei',
+				'details': errorThrown,
+				'id': id,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+			// TODO: Editor-Funktionen entsperren
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success')
+				// Server-seitiger Fehler
+				console.log({
+					'error': 'Fehler beim Speichern der Datei',
+					'details': data.response,
+					'id': id,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			else
+				changesSaved = true;
+
+			// TODO: Editor-Funktionen entsperren
+		}
+	});
+}
+
+/**
+ * Kompiliert eine Datei und zeigt die PDF an.
+ * @param id ID der Datei
+ */
+function compile(id) {
+	// TODO: parallele Anzeige TEX/PDF implementieren
+	// TODO: Editor-Funktionen sperren?
+
+	// Dokument kompilieren
+	jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'compile',
+			'id': id
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			// Fehler beim Aufruf
+			console.log({
+				'error': 'Fehler beim Kompilieren',
+				'details': errorThrown,
+				'id': id,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success')
+				// Server-seitiger Fehler
+				console.log({
+					'error': 'Fehler beim Kompilieren',
+					'details': data.response,
+					'id': id,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			else
+				// Dokument anzeigen
+				internalPostRedirect('/documents/', {
+					'command': 'downloadfile', 
+					'id': data.response.id
+				});
+		}
+	});
 }

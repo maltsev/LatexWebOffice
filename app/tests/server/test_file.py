@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Do 04 Dez 2014 13:16:55 CET
+* Last Modified : Do 04 Dez 2014 14:54:26 CET
 
 * Author :  christian
 
@@ -361,8 +361,8 @@ class FileTestClass(ViewTestCase):
         self.assertEqual(response['Content-Length'], str(util.getFileSize(ori_file)))
         ori_file.close()
         # Content-Disposition sollte 'attachment; filename=b'test.bin'' sein
-        self.assertEqual(response['Content-Disposition'], ('attachment; filename=b\''
-                                                           + self._user1_binary1.name + '\''))
+        self.assertEqual(response['Content-Disposition'], ('attachment; filename='
+                                                           + self._user1_binary1.name))
         # der Inhalt der heruntergeladenen Datei und der Datei auf dem Server sollte übereinstimmen
         self.assertEqual(self._user1_binary1_str, smart_str(response.content))
 
@@ -380,8 +380,8 @@ class FileTestClass(ViewTestCase):
         ori_file.close()
 
         # Content-Disposition sollte 'attachment; filename=b'test.bin'' sein
-        self.assertEqual(response['Content-Disposition'], ('attachment; filename=b\''
-                                                           + self._user1_tex1.name + '\''))
+        self.assertEqual(response['Content-Disposition'], ('attachment; filename='
+                                                           + self._user1_tex1.name))
 
         # Sende Anfrage zum Download einer Datei als user1 mit der fileid einer .tex Datei die user2 gehört
         response = util.documentPoster(self, command='downloadfile', idpara=self._user2_tex1.id)

@@ -19,11 +19,7 @@
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from app.common import util
 from app.models.folder import Folder
-from app.models.project import Project
 from app.models.file.file import File
-from app.models.file.texfile import TexFile
-from app.models.file.plaintextfile import PlainTextFile
-from app.models.file.binaryfile import BinaryFile
 from app.tests.server.viewtestcase import ViewTestCase
 
 
@@ -80,16 +76,16 @@ class FolderTestClass(ViewTestCase):
         dictionary = util.jsonDecoder(response.content)
         self.assertEqual(dictionary['response'], ERROR_MESSAGES['FOLDERNAMEEXISTS'])
 
-        #Teste, wie es sich mit falschen Angaben verhält
+        # Teste, wie es sich mit falschen Angaben verhält
 
-        #Teste ob user1 in einem Project vom user2 ein Verzeichnis erstellen kann
+        # Teste ob user1 in einem Project vom user2 ein Verzeichnis erstellen kann
         response = util.documentPoster(self, command='createdir', idpara=self._user2_project1.id, name='IDONOTEXISTDIR')
         dictionary = util.jsonDecoder(response.content)
         self.assertEqual(dictionary['status'], FAILURE)
-        #Teste, dass die richtige Fehlermeldung zurückgegeben wird
+        # Teste, dass die richtige Fehlermeldung zurückgegeben wird
         dictionaryresponse = dictionary['response']
         self.assertEqual(dictionaryresponse, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
-        #Teste, dass das Verzeichnis auch nicht erstellt wurde
+        # Teste, dass das Verzeichnis auch nicht erstellt wurde
         self.assertFalse(Folder.objects.filter(name='IDONOTEXISTDIR').exists())
 
         #Teste auf leeren Verzeichnisnamen
@@ -234,21 +230,93 @@ class FolderTestClass(ViewTestCase):
 
     # Teste das Auflisten der Datei- und Ordnerstruktur eines Ordners
     def test_listfiles(self):
-        # Anfrage der Struktur von _user1_project1_folder2 (Aufbau siehe SetUp Methode)
+        # logge user2 ein
+        self.client.logout()
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+
+        # Anfrage der Struktur von _user2_project1 (Aufbau siehe SetUp Methode)
+        response = util.documentPoster(self, command='listfiles', idpara=self._user2_project1.rootFolder.id)
+
+        # dekodiere den JSON response als dictionary
+        dictionary = util.jsonDecoder(response.content)
+
+        # überprüfe die Antwort des Servers
+        # sollte success als status liefern
+        self.assertEqual(dictionary['status'], SUCCESS)
+
+        # anfrage sollte folgende Ordner/Dateistruktur als Json liefern
+        jsondict1 = {
+            'id': self._user2_project1.rootFolder.id,
+            'name': self._user2_project1.rootFolder.name,
+            'files': [
+                {'id': self._user2_project1.rootFolder.getMainTex().id,
+                 'name': self._user2_project1.rootFolder.getMainTex().name}
+            ],
+            'folders': [{
+                            'id': self._user2_project1_folder1.id,
+                            'name': self._user2_project1_folder1.name,
+                            'folders': [
+                                {'id': self._user2_project1_folder1_subfolder1.id,
+                                 'name': self._user2_project1_folder1_subfolder1.name,
+                                 'files': [],
+                                 'folders': []},
+                            ],
+                            'files': [],
+                        }]
+        }
+        self.assertEqual(dictionary['response'], jsondict1)
+
+        # logge user1 ein
+        self.client.logout()
+        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
+
+        # Sende Anfrage der Struktur von _user1_project1
         response = util.documentPoster(self, command='listfiles', idpara=self._user1_project1.rootFolder.id)
 
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
 
-        # TODO
-        # überprüfe die Antwort des Servers
-        # sollte success als status liefern
-        self.assertEqual(dictionary['status'], SUCCESS)
-        # anfrage sollte Ordner/Dateistruktur als Json liefern
-        jsondict = {
-
+        # anfrage sollte folgende Ordner/Dateistruktur als Json liefern
+        jsondict2 = {
+            'id': self._user1_project1.rootFolder.id,
+            'name': self._user1_project1.rootFolder.name,
+            'files': [
+                {'id': self._user1_project1.rootFolder.getMainTex().id,
+                 'name': self._user1_project1.rootFolder.getMainTex().name},
+                {'id': self._user1_tex2.id,
+                 'name': self._user1_tex2.name}
+            ],
+            'folders': [
+                {
+                    'id': self._user1_project1_folder1.id,
+                    'name': self._user1_project1_folder1.name,
+                    'folders': [],
+                    'files': [
+                        {'id': self._user1_tex3.id,
+                         'name': self._user1_tex3.name}
+                    ]
+                },
+                {
+                    'id': self._user1_project1_folder2.id,
+                    'name': self._user1_project1_folder2.name,
+                    'folders': [
+                        {'id': self._user1_project1_folder2_subfolder1.id,
+                         'name': self._user1_project1_folder2_subfolder1.name,
+                         'files': [
+                             {'id': self._user1_binary1.id,
+                              'name': self._user1_binary1.name},
+                             {'id': self._user1_binary2.id,
+                              'name': self._user1_binary2.name},
+                             {'id': self._user1_binary3.id,
+                              'name': self._user1_binary3.name}
+                         ],
+                         'folders': []},
+                    ],
+                    'files': [],
+                }
+            ]
         }
-        # util.validateJsonSuccessResponse(self, response.content, jsondict)
+        self.assertEqual(dictionary['response'], jsondict2)
 
         # Anfrage mit user1 auf Ordner von user2
         response = util.documentPoster(self, command='listfiles', idpara=self._user2_project1.rootFolder.id)

@@ -26,10 +26,13 @@ def index(request):
 def impressum(request):
     return render(request, 'impressum.html')
 
-
 def hilfe(request):
     return render(request, 'hilfe.html')
 
-
+@login_required
 def editor(request):
     return render(request, 'editor.html')
+
+@login_required
+def projekt(request):
+    return render(request, 'projekt.html')

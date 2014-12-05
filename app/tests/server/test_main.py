@@ -4,11 +4,11 @@
 
 * Creation Date : 25-11-2014
 
-* Last Modified : Tue 25 Nov 2014 01:01:50 PM CET
+* Last Modified : Do 04 Dez 2014 15:23:33 CET
 
 * Author :  mattis
 
-* Coauthors : 
+* Coauthors :
 
 * Sprintnumber : 2
 
@@ -52,5 +52,4 @@ class MainTestClass(TestCase):
     # Teste ob Editor unter der URL aufrufbar ist und das richtige Template nutzt
     def test_editor(self):
         response = self.client.get('/editor/')
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'editor.html')
+        self.assertEqual(response.status_code, 302)#redirect zur loginseite

@@ -261,7 +261,7 @@ def downloadFile(request, user, fileid):
     if encoding is not None:
         response['Content-Encoding'] = encoding
 
-    filename_header = 'filename=%s' % downloadfileobj.name.encode('utf-8')
+    filename_header = 'filename=%s' % downloadfileobj.name
 
     response['Content-Disposition'] = 'attachment; ' + filename_header
 
