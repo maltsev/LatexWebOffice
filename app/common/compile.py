@@ -4,7 +4,7 @@
 
 * Creation Date : 27-11-2014
 
-* Last Modified : Do 04 Dec 2014 12:25:31 CET
+* Last Modified : Fr 05 Dec 2014 06:58:37 CET
 
 * Author : ingo
 
@@ -123,11 +123,11 @@ def compile(texid):
         if os.path.exists(log_path) :
             # durchsucht die erzeugte log-Datei und gibt deren entsprechende Fehlermeldungen zurück
             errors = get_Errors(log_path)
-            
+        
         # ... und keine log-Datei erzeugt wurde
         else :
             # gibt eine allgemeine Fehlermeldung mit dem return code des Kompilierprozesses zurück
-            errors.append(ERROR_MESSAGES['COMPILATIONERROR']+': return code '+str(rc))
+            errors.append(ERROR_MESSAGES['COMPILATIONERROR']+': return code '+str(rc.returncode))
         
     # ----------------------------------------------------------------------------------------------------
     
@@ -151,23 +151,61 @@ def get_Errors(log_path):
     errors = []
     
     log = open(log_path,"r")
+    
     # durchläuft sämtliche Zeilen der log-Datei
     for l in log :
         
         line = str.lower(l)
         
-        # Emergency Stop
-        if "! emergency stop" in line :
-            # TODO
-            errors.append(ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR'])
-        # FileNotFound-Error
-        if "file" in line and "not found" in line :
-            errors.append(ERROR_MESSAGES['COMPILATIONERROR_FILENOTFOUND'])
-        if "warning" in line :
+        # ----------------------------------------------------------------------------------------------------
+        #                                         FILE NOT FOUND ERROR                                        
+        # ----------------------------------------------------------------------------------------------------
+        # bestimmt die Index-Position von 'file' in der aktuell betrachteten Zeile
+        index_file = line.find('file')
+        # falls 'file' in der aktuell betrachteten Zeile enthalten ist
+        if 'latex' in line and index_file!=-1 :
+            # bestimmt die Index-Position von 'not found' in der aktuell betrachteten Zeile
+            index_notf = line.find('not found')
+            # falls 'not found' in der aktuell betrachteten Zeile enthalten ist
+            if index_notf!=-1 :
+                # extrahiert den Namen der fehlenden Datei aus der aktuell betrachteten Zeile
+                filename = line[index_file+len('file')+2 : index_notf-2]
+                error    = ERROR_MESSAGES['COMPILATIONERROR_FILENOTFOUND']+': Die Datei \''+filename+'\' konnte nicht gefunden werden.'
+                # bestimmt die Index-Position von 'line' in der aktuell betrachteten Zeile
+                index_line = line.find('line')
+                # falls 'line' in der aktuell betrachteten Zeile enthalten ist
+                if index_line!=-1 :
+                    # extrahiert die Zeilennummer für die fehlende Datei aus der aktuell betrachteten Zeile
+                    line_no = line[index_line+len('line')+1 : len(line)-2]
+                    error  += ' (Zeile '+line_no+')'
+                # fügt die ermittelte Fehlermeldung hinzu
+                errors.append(error)
+        
+        # ----------------------------------------------------------------------------------------------------
+        #                                             SYNTAX ERROR                                            
+        # ----------------------------------------------------------------------------------------------------
+        if 'job aborted' in line :
+            if 'no legal \end found' in line :
+                errors.append(ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR']+': Es konnte kein gültiges \end gefunden werden.')
+        # undefiniertes Steuerzeichen
+        if 'undefined control sequence' in line :
+            error = ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR']+': Undefiniertes Steuerzeichen.'
+            # extrahiert die Zeilennummer für das undefinierte Steuerzeichen aus der nächsten log-Zeile
+            nxt_line = str(log.readline())
+            line_no = nxt_line[2:nxt_line.find(' ')]
+            error  += ' (Zeile '+line_no+')'
+            # fügt die ermittelte Fehlermeldung hinzu
+            errors.append(error)
+        
+        # ----------------------------------------------------------------------------------------------------
+        #                                          CITATION UNDEFINED                                         
+        # ----------------------------------------------------------------------------------------------------
+        if "citation" in line :
             errors.append(ERROR_MESSAGES['COMPILATIONERROR_CITATIONUNDEFINED'])
             
     log.close()
     
+    # bei unbehandelten Fehlern wird eine allgemeine Kompilierungsfehlermeldung zurückgegeben
     if len(errors)==0 :
         errors.append(ERROR_MESSAGES['COMPILATIONERROR'])
     
