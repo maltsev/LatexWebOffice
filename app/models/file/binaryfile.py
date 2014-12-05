@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 
-* Purpose : BinaryFile Modell (app/models/file/binaryfile.py)
+* Purpose : Binärdatei Modell (app/models/file/binaryfile.py)
 
 * Creation Date : 26-11-2014
 

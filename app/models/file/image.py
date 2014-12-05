@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 
-* Purpose :  Modell (app/models/file/)
+* Purpose : Bild Modell (app/models/file/image.py)
 
 * Creation Date : 26-11-2014
 

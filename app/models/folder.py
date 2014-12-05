@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 
-* Purpose :  Modell (app/models/file/)
+* Purpose : Verzeichnis Modell (app/models/folder.py)
 
 * Creation Date : 21-11-2014
 

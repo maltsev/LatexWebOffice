@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 
-* Purpose :  Modell (app/models/file/)
+* Purpose : PDF-Datei Modell (app/models/file/pdf.py)
 
 * Creation Date : 26-11-2014
 
