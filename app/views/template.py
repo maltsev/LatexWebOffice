@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mi 10 Dez 2014 11:17:56 CET
+* Last Modified : Mi 10 Dez 2014 11:50:36 CET
 
 * Author :  mattis
 
@@ -33,8 +33,10 @@ import io
 # Beispiel response: {}
 def template2Project(request, user, vorlageid, projektname):
 
-    #TODO Überprüfe, ob Vorlage existiert und der User darauf Rechte hat
-
+    # Überprüfe, ob Vorlage existiert und der User darauf Rechte hat
+    emptystring, failurereturn = util.checkIfTemplateExistsAndUserHasRights(vorlageid,user,request)
+    if not emptystring:
+        return failurereturn
     pass
 
 # liefert: HTTP Response (Json)

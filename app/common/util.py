@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Do 04 Dez 2014 14:02:16 CET
+* Last Modified : Mi 10 Dez 2014 11:48:41 CET
 
 * Author :  christian
 
@@ -21,6 +21,7 @@ from django.http import HttpResponse
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES
 from app.models.folder import Folder
 from app.models.project import Project
+from app.models.projecttemplate import ProjectTemplate
 from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
@@ -87,6 +88,17 @@ def checkIfProjectExistsAndUserHasRights(projectid, user, request):
     if not Project.objects.filter(id=projectid).exists():
         return False, jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'], request)
     elif not Project.objects.get(id=projectid).author == user:
+        return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
+    else:
+        return True, None
+
+# Hilfsmethode um zu überprüfen, ob einer User die Rechte hat eine Vorlage
+# abzurufen und diese Vorlage existiert
+# benötigt: projectid, user, httprequest
+def checkIfTemplateExistsAndUserHasRights(templateid, user, request):
+    if not ProjectTemplate.objects.filter(id=templateid).exists():
+        return False, jsonErrorResponse(ERROR_MESSAGES['TEMPLATENOTEXIST'], request)
+    elif not ProjectTemplate.objects.get(id=templateid).author == user:
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
         return True, None
