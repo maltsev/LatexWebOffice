@@ -1,6 +1,6 @@
 """
 
-* Purpose : Test des Oroject Views und zugehöriger Methoden (app/views/project.py)
+* Purpose : Test des Project Views und zugehöriger Methoden (app/views/project.py)
 
 * Creation Date : 26-11-2014
 
@@ -10,7 +10,7 @@
 
 * Coauthors : mattis
 
-* Sprintnumber : 2
+* Sprintnumber : 2, 3
 
 * Backlog entry : -
 
@@ -43,8 +43,7 @@ class ProjectTestClass(ViewTestCase):
     # Freigabe von nicht mehr benötigten Resourcen
     # -> wird nach jedem Test ausgeführt
     def tearDown(self):
-        #self.tearDownFiles()
-        pass
+        self.tearDownFiles()
 
     # Teste Erstellen eines Projektes:
     # - ein Benutzer erstellt zwei neue Projekte -> success

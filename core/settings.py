@@ -9,8 +9,12 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os, sys
+import os
+import sys
+
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
+
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
@@ -27,7 +31,7 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-TEMPLATE_CONTEXT_PROCESSORS+=('app.contextprocessors.settingsprocessor.error_messages',)
+TEMPLATE_CONTEXT_PROCESSORS += ('app.contextprocessors.settingsprocessor.error_messages',)
 
 # Application definition
 
@@ -68,16 +72,16 @@ DATABASES = {
 LOGGING = {
     'version': 1,
     'handlers': {
-        'console':{
-            'level':'DEBUG',
-            'class':'logging.StreamHandler',
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
         },
     },
     'loggers': {
         'django.request': {
-            'handlers':['console'],
+            'handlers': ['console'],
             'propagate': True,
-            'level':'DEBUG',
+            'level': 'DEBUG',
         }
     },
 }
@@ -101,7 +105,6 @@ LOGIN_URL = '/login/'
 
 STATIC_URL = '/static/'
 
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 FILE_ROOT = os.path.join(MEDIA_ROOT, 'files')
@@ -109,7 +112,7 @@ PROJECT_ROOT = os.path.join(MEDIA_ROOT, 'projects')
 
 # Einstellungen für die Django Tests
 if 'test' in sys.argv:
-    MEDIA_ROOT = os.path.join('media', 'test')
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media', 'test')
     FILE_ROOT = os.path.join(MEDIA_ROOT, 'files')
     PROJECT_ROOT = os.path.join(MEDIA_ROOT, 'projects')
 
