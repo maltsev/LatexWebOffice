@@ -72,8 +72,7 @@ class FolderTestCase(ModelTestCase):
 
 
     def test_getTempFilepath(self):
-        rootDirpath = os.path.join(settings.BASE_DIR, settings.MEDIA_ROOT,
-                                   'projects', str(self.root.pk) + '_' + self.root.name)
+        rootDirpath = os.path.join(settings.PROJECT_ROOT, str(self.root.pk) + '_' + self.root.name)
 
         self.assertEquals(rootDirpath, self.root.getTempPath())
         self.assertTrue(os.path.exists(rootDirpath))
@@ -83,7 +82,7 @@ class FolderTestCase(ModelTestCase):
             fileOrFolderPath = fileOrFolder.getTempPath()
             self.assertTrue(os.path.exists(fileOrFolderPath))
 
-    def test_dumpRootFolder(self):
+    def test_dumpFolder(self):
         filesAndFolders = [
             ['main.tex'], ['root_file1'], ['root_dir1'], ['root_dir2'],
             ['root_dir1', 'root_dir1_file1'], ['root_dir1', 'root_dir1_dir1'],
@@ -92,7 +91,7 @@ class FolderTestCase(ModelTestCase):
             ['root_dir1', 'root_dir1_dir1', 'root_dir1_dir1_dir1', 'root_dir1_dir1_dir1_file2']
         ]
 
-        self.assertEqual(self.root.getTempPath(), self.root.dumpRootFolder())
+        self.assertEqual(self.root.getTempPath(), self.root.dumpFolder())
         for fileOrFolder in filesAndFolders:
             pathParts = [self.root.getTempPath()] + fileOrFolder
             path = os.path.join(*pathParts)

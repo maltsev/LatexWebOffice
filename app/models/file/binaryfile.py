@@ -53,7 +53,7 @@ class BinaryFileManager(models.Manager):
 
     def __createBinaryFile(self, content):
         filename = hashlib.md5(content).hexdigest()
-        filepath = os.path.join(settings.BASE_DIR, settings.MEDIA_ROOT, 'files', filename)
+        filepath = os.path.join(settings.FILE_ROOT, filename)
         if not os.path.exists(filepath):
             fileDirPath = os.path.dirname(filepath)
             if not os.path.exists(fileDirPath):

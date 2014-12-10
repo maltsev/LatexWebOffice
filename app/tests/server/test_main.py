@@ -20,13 +20,14 @@ from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 import json
+from app.tests.server.viewtestcase import ViewTestCase
 
 
-class MainTestClass(TestCase):
+class MainTestClass(ViewTestCase):
     # Initialiserung der benötigten Objekte
     # -> wird vor jedem Test ausgeführt
     def setUp(self):
-        pass
+        self.setUpSingleUser()
 
 
     # Freigabe von nicht mehr benötigten Resourcen
@@ -35,21 +36,32 @@ class MainTestClass(TestCase):
         pass
 
 
-    # Teste ob Impressum unter der URL aufrufbar ist und das richtige Template nutzt
+    # Test der Impressum Seite
     def test_impressum(self):
+        # Teste ob Impressum unter der URL aufrufbar ist und das richtige Template nutzt
         response = self.client.get('/impressum/')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'impressum.html')
 
 
-    # Teste ob Hilfe unter der URL aufrufbar ist und das richtige Template nutzt
+    # Test der Hilfe Seite
     def test_hilfe(self):
+        # Teste ob Hilfe unter der URL aufrufbar ist und das richtige Template nutzt
         response = self.client.get('/hilfe/')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'hilfe.html')
 
 
-    # Teste ob Editor unter der URL aufrufbar ist und das richtige Template nutzt
+    # Test der Editor Seite
     def test_editor(self):
+        # Teste ob Editor unter der URL aufrufbar ist und das richtige Template nutzt
         response = self.client.get('/editor/')
-        self.assertEqual(response.status_code, 302)#redirect zur loginseite
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'editor.html')
+
+        # Teste ob Editor zur login Seite weiterleitet, sofern kein Benutzer eingeloggt ist
+        # logge user1 aus
+        self.client.logout()
+        response = self.client.get('/editor/')
+        #redirect zur loginseite
+        self.assertEqual(response.status_code, 302)

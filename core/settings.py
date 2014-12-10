@@ -103,10 +103,16 @@ STATIC_URL = '/static/'
 
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+FILE_ROOT = os.path.join(MEDIA_ROOT, 'files')
+PROJECT_ROOT = os.path.join(MEDIA_ROOT, 'projects')
 
 # Einstellungen für die Django Tests
 if 'test' in sys.argv:
+    MEDIA_ROOT = os.path.join('media', 'test')
+    FILE_ROOT = os.path.join(MEDIA_ROOT, 'files')
+    PROJECT_ROOT = os.path.join(MEDIA_ROOT, 'projects')
+
     PASSWORD_HASHERS = (
         'django.contrib.auth.hashers.MD5PasswordHasher',
     )
