@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mi 10 Dez 2014 11:50:36 CET
+* Last Modified : Mi 10 Dez 2014 13:27:20 CET
 
 * Author :  mattis
 
@@ -15,47 +15,35 @@
 * Backlog entry :  DO14
 
 """
-from app.models.folder import Folder
 from app.models.project import Project
-from app.models.file.file import File
-from app.models.file.texfile import TexFile
-from app.models.file.plaintextfile import PlainTextFile
-from app.models.file.binaryfile import BinaryFile
+from app.models.projecttemplate import ProjectTemplate
 from app.common import util
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
-from django.conf import settings
-from django.db import transaction
-import mimetypes
-import os
-import io
+from app.common.constants import ERROR_MESSAGES
 
 # liefert HTTP Response (Json)
 # Beispiel response: {}
-def template2Project(request, user, vorlageid, projektname):
+
+
+def template2Project(request, user, vorlageid, projectname):
 
     # Überprüfe, ob Vorlage existiert und der User darauf Rechte hat
-    emptystring, failurereturn = util.checkIfTemplateExistsAndUserHasRights(vorlageid,user,request)
+    emptystring, failurereturn = util.checkIfTemplateExistsAndUserHasRights(
+        vorlageid, user, request)
     if not emptystring:
         return failurereturn
-    pass
 
-# liefert: HTTP Response (Json)
-# Beispiel response: {type: 'folder', name: 'folder1', id=1, content: {type :
-
-
-def listFiles(request, user, folderid):
-    # Überprüfe ob der user auf den Ordner zugreifen darf und dieser auch
-    # existiert
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
-        folderid, user, request)
-    if not rights:
+    # Überprüfe, ob der Projektname leer oder aus ungültigen Zeichen besteht
+    emptystring, failurereturn = util.checkObjectForInvalidString(
+        projectname, request)
+    if not emptystring:
         return failurereturn
 
-    # hole das Ordner Objekt
-    current_folderobj = Folder.objects.get(id=folderid)
+    # Überprüfe, ob es den Projektnamen schon gibt
+    if Project.objects.filter(name__iexact=projectname.lower(), author=user).exists():
+        return util.jsonErrorResponse(ERROR_MESSAGES['TEMPLATEALREADYEXISTS'].format(projectname), request)
 
-    # erstelle die Ordner- und Dateistruktur als JSON
-    folderandfiles_structure = util.getFolderAndFileStructureAsDict(
-        current_folderobj)
+    # Erstelle Projekt aus der Vorlage
+    template = ProjectTemplate.objects.get(id=vorlageid)
+    project = Project.objects.createFromProjectTemplate(template)
 
-    return util.jsonResponse(folderandfiles_structure, True, request)
+    return util.jsonResponse({'id': project.id, 'name': project.name}, True, request)
