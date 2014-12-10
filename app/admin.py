@@ -37,11 +37,17 @@ class FolderAdmin(admin.ModelAdmin):
     relativePath.short_description = 'Path'
 
 
-@admin.register(models.project.Project)
-class ProjectAdmin(admin.ModelAdmin):
+
+@admin.register(models.projecttemplate.ProjectTemplate)
+class ProjectTemplateAdmin(admin.ModelAdmin):
     list_display = ('name', 'author', 'createTime')
     list_filter = ('author',)
     exclude = ('rootFolder',)
+
+
+@admin.register(models.project.Project)
+class ProjectAdmin(ProjectTemplateAdmin):
+    pass
 
 
 class FileAdmin(admin.ModelAdmin):

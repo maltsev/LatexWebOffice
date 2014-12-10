@@ -18,11 +18,13 @@ import os
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.exceptions import ObjectDoesNotExist
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.image import Image
 from app.models.file.pdf import PDF
 from app.models.file.file import File
+import app
 from core import settings
 
 class Folder(models.Model):
@@ -48,7 +50,12 @@ class Folder(models.Model):
     # Gibt das Projekt zurück
     # @return app.models.project.Project
     def getProject(self):
-        return self.getRoot().project_set.get()
+        projectTemplate = self.getRoot().projecttemplate
+        try:
+            return app.models.project.Project.objects.get(pk=projectTemplate.pk)
+        except (ObjectDoesNotExist):
+            return projectTemplate
+
 
     ##
     # Gibt die MainTexDatei zurück

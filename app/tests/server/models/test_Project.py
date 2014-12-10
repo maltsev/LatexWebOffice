@@ -19,6 +19,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from app.models.folder import Folder
 from app.models.project import Project
+from app.models.projecttemplate import ProjectTemplate
 from app.models.file.file import File
 from app.tests.server.models.modeltestcase import ModelTestCase
 
@@ -26,6 +27,9 @@ class ProjectTestCase(ModelTestCase):
     def setUp(self):
         self.setUpProject()
 
+    def test_getProject(self):
+        self.assertEqual(self.project, self.rootFolder.getProject())
+        self.assertEqual(self.project, self.rootFolder_dir1.getProject())
 
     def test_cascadeDeleteRootFolder(self):
         self.rootFolder.delete()
@@ -41,6 +45,7 @@ class ProjectTestCase(ModelTestCase):
         self.assertEqual('test src', self.project.rootFolder.getMainTex().source_code)
 
     def checkCascadeDelete(self):
+        self.assertRaises(ObjectDoesNotExist, ProjectTemplate.objects.get, pk=self.project.pk)
         self.assertRaises(ObjectDoesNotExist, Project.objects.get, pk=self.project.pk)
         self.assertRaises(ObjectDoesNotExist, Folder.objects.get, pk=self.rootFolder.pk)
         self.assertRaises(ObjectDoesNotExist, Folder.objects.get, pk=self.rootFolder_dir1.pk)
