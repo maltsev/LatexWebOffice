@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Do 04 Dez 2014 14:56:39 CET
+* Last Modified : Mi 10 Dez 2014 11:17:46 CET
 
 * Author :  mattis
 
@@ -12,16 +12,14 @@
 
 * Sprintnumber : 2
 
-* Backlog entry : TEK1, 3ED9, DOK8
+* Backlog entry : TEK1, 3ED9, DOK8, DO14
 
 """
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from app.common import util
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
-from django.conf import settings
-from app.views import file, folder, project
-from django.http import HttpResponse, Http404
+from app.common.constants import ERROR_MESSAGES
+from app.views import file, folder, project, template
 
 
 # Schnittstellenfunktion
@@ -63,6 +61,7 @@ def execute(request):
             'renamedir': {'command': folder.renameDir, 'parameters': (globalparas['id'], globalparas['name'])},
             'movedir': {'command': folder.moveDir, 'parameters': (globalparas['id'], globalparas['folderid'])},
             'listfiles': {'command': folder.listFiles, 'parameters': (globalparas['id'],)},
+            'template2project': {'command': template.template2Project, 'parameters': (globalparas['id'], globalparas['name'])},
         }
 
         # wenn der Schlüssel nicht gefunden wurde
@@ -81,7 +80,7 @@ def execute(request):
         for para in paras:
             # wenn der Parameter nicht gefunden wurde oder ein Parameter, welcher eine id angeben sollte
             # Zeichen enthält, die keine Zahlen sind, gib Fehlermeldung zurück
-            if request.POST.get(para['name'])==None:
+            if request.POST.get(para['name']) is None:
                 return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)
             elif para['type'] == int and (not request.POST.get(para['name']).isdigit()):
                 return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para), request)
@@ -91,4 +90,4 @@ def execute(request):
 
         # führe den übergebenen Befehl aus
         return c['command'](request, user, *args)
-    return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format('unkown'),request)
+    return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format('unkown'), request)
