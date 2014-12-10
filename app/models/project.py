@@ -23,11 +23,24 @@ from django.dispatch import receiver
 from app.models.folder import Folder
 
 
+
+
+class ProjectManager(models.Manager):
+    def createFromProject(self, **kwargs):
+        pass
+
+
+    def createFromProjectTemplate(self, **kwargs):
+        pass
+
+
+
 class Project(models.Model):
     name = models.CharField(max_length=255)
     author = models.ForeignKey(User)
     createTime = models.DateTimeField(auto_now_add=True)
     rootFolder = models.ForeignKey(Folder)
+    objects = ProjectManager()
 
     class Meta:
         unique_together = ('name', 'author')
