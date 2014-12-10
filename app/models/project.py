@@ -14,13 +14,20 @@
 * Backlog entry :
 
 """
+from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from app.models import projecttemplate
 
 
+class ProjectManager(models.Manager):
+    def createFromProjectTemplate(self, **kwargs):
+        pass
+
+
+
 class Project(projecttemplate.ProjectTemplate):
-    pass
+    objects = ProjectManager()
 
 
 ##
