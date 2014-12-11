@@ -75,6 +75,7 @@ def compile(texid):
     # '-bibtex' bbl-Dateien werden über bibtex erzeugt, sofern notwendig
     # '-pdf' pdf-Datei wird über pdflatex aus der angegebenen tex-Datei erzeugt
     rc = subprocess.call([latexmk_path(),"-f","-interaction=nonstopmode","-outdir="+out_dir_pth,"-bibtex","-pdf",tex_pth],
+                          shell=True,
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE)
     
@@ -131,7 +132,7 @@ def compile(texid):
     # ----------------------------------------------------------------------------------------------------
     
     # entfernt das temporäre root-Verzeichnis und sämtliche Unterordner
-    #shutil.rmtree(root_pth)
+    shutil.rmtree(root_pth)
     
     # Rückgabe
     # 1. Liste mit während des Kompilieren aufgetretenen Fehlermeldungen oder None, falls keine Fehler aufgetreten
