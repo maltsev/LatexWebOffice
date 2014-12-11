@@ -97,7 +97,7 @@ def compile(texid):
             if len(pdf_src)==1 :
                 PDF.objects.get(id=pdf_src[0].id).delete()
         
-        pdf_file = open(pdf_pth,'rb')
+        pdf_file = open(pdf_pth,'r+b')
         try:
             # erzeugt das PDF-Model aus der pdf-Datei
             pdf = PDF.objects.createFromFile(name=pdf_nme,folder=tex_dir,file=pdf_file)
@@ -152,7 +152,7 @@ def get_Errors(log_path):
     
     errors = []
     
-    log = open(log_path,"r")
+    log = open(log_path,"r+")
     
     try:
         # durchläuft sämtliche Zeilen der log-Datei
