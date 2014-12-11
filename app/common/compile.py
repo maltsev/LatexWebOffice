@@ -217,4 +217,4 @@ def get_Errors(log_path):
 # @return den Dateipfad zum Latexmk-Script
 #
 def latexmk_path():
-    return os.path.join(BASE_DIR,"app","common","latexmk")
+    return os.path.join(BASE_DIR,"app","common","latexmk.pl")

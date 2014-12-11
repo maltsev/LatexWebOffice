@@ -8,7 +8,7 @@
 
 * Author :  christian
 
-* Coauthors : mattis
+* Coauthors : mattis, ingo
 
 * Sprintnumber : 2
 
@@ -27,6 +27,7 @@ from app.common import util
 from app.common.compile import compile as comp
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 import mimetypes, os, io, tempfile, logging
 from django.db import transaction
 import json
@@ -270,6 +271,7 @@ def downloadFile(request, user, fileid):
 
 # benötigt: id:fileid
 # liefert: HTTP Response (Json) --> fileid, filename, folderid, foldername
+## liefert: HTTP Response (Json) --> fileid, filename, mimetype, folderid, foldername, projectid, projectname, owner, createTime, lastModifiedTime, size
 def fileInfo(request, user, fileid):
     # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
     rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
@@ -277,12 +279,27 @@ def fileInfo(request, user, fileid):
         return failurereturn
 
     # hole das Datei und Ordner Objekt
-    fileobj = File.objects.get(id=fileid)
-    folderobj = Folder.objects.get(id=fileobj.folder.id)
+    fileobj    = File.objects.get(id=fileid)
+    folderobj  = Folder.objects.get(id=fileobj.folder.id)
+    # @coauthor ingo
+    projectobj = folderobj.getProject()
+    # ermittelt den Mimetype der Datei
+    if isinstance(fileobj,BinaryFile) :
+        MimeTypes.read(fileobj)
 
     # Sende die id und den Namen der Datei sowie des Ordners als JSON response
-    dictionary = {'fileid': fileobj.id, 'filename': fileobj.name, 'folderid': folderobj.id,
-                  'foldername': folderobj.name}
+    dictionary = {'fileid': fileobj.id,
+                  'filename': fileobj.name,
+                  #'mimetype':,
+                  'folderid': folderobj.id,
+                  'foldername': folderobj.name,
+                  'projectid': projectobj.id,
+                  'projectname': projectobj.name,
+                  #'owner': json.dumps(projectobj.author,cls=DjangoJSONEncoder),
+                  'createTime': json.dumps(fileobj.createTime,cls=DjangoJSONEncoder),
+                  'lastModifiedTime': json.dumps(fileobj.lastModifiedTime,cls=DjangoJSONEncoder)
+                  #'size':
+                  }
 
     return util.jsonResponse(dictionary, True, request)
 
