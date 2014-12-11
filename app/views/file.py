@@ -285,7 +285,7 @@ def fileInfo(request, user, fileid):
     projectobj = folderobj.getProject()
     # ermittelt den Mimetype der Datei
     if isinstance(fileobj,BinaryFile) :
-        MimeTypes.read(fileobj)
+        MimeTypes.guess_type(fileobj)
 
     # Sende die id und den Namen der Datei sowie des Ordners als JSON response
     dictionary = {'fileid': fileobj.id,

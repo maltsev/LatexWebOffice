@@ -84,7 +84,7 @@ def compile(texid):
     pdf_data = None
     
     # Name der Ziel-pdf-Datei
-    pdf_nme  = tex_nme[:-3]+"pdf"
+    pdf_nme = tex_nme[:-3]+"pdf"
     # Pfad der Ziel-pdf-Datei
     pdf_pth = os.path.join(out_dir_pth,pdf_nme)
     
@@ -93,13 +93,16 @@ def compile(texid):
         
         # löscht die etwaig bestehende pdf-Version der tex-Datei aus der Datenbank
         pdf_src = PDF.objects.filter(name=pdf_nme,folder=tex_dir)
-        if pdf_src!=None :
+        if pdf_src!=[] :
             if len(pdf_src)==1 :
                 PDF.objects.get(id=pdf_src[0].id).delete()
         
         pdf_file = open(pdf_pth,'rb')
-        # erzeugt das PDF-Model aus der pdf-Datei
-        pdf = PDF.objects.createFromFile(name=pdf_nme,folder=tex_dir,file=pdf_file)
+        try:
+            # erzeugt das PDF-Model aus der pdf-Datei
+            pdf = PDF.objects.createFromFile(name=pdf_nme,folder=tex_dir,file=pdf_file)
+        finally:
+            pdf_file.close()
         
         # Rückgabewert
         pdf_data = {'id':pdf.id,'name':pdf.name}
