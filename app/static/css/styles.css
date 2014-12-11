@@ -4,7 +4,9 @@ height: 100%;
 font-family: Verdana, Helvetica, Arial;
 }
 #projektuebersicht{
-width: 90%;
+width: 100%;
+border: 1px solid grey;
+min-height: 300px;
 background: white;
 }
 #editor{
