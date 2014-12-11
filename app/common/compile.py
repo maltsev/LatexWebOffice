@@ -15,7 +15,7 @@
 * Backlog entry : TEK1
 
 """
-import ntpath, os, re, shutil, subprocess, tempfile, time
+import ntpath, os, re, shutil, subprocess, sys, tempfile, time
 from app.common.constants import ERROR_MESSAGES
 from app.models.file.file import File
 from app.models.file.pdf import PDF
@@ -74,10 +74,9 @@ def compile(texid):
     # '-outdir=FOO' Verzeichnis für die Ausgabe-Dateien
     # '-bibtex' bbl-Dateien werden über bibtex erzeugt, sofern notwendig
     # '-pdf' pdf-Datei wird über pdflatex aus der angegebenen tex-Datei erzeugt
-    rc = subprocess.call([latexmk_path(),"-f","-interaction=nonstopmode","-outdir="+out_dir_pth,"-bibtex","-pdf",tex_pth],
+    rc = subprocess.call(["perl",latexmk_path(),"-f","-interaction=nonstopmode","-outdir="+out_dir_pth,"-bibtex","-pdf",tex_pth],
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE)
-    #rc.wait()
     
     # ----------------------------------------------------------------------------------------------------
     #                                        RÜCKGABEWERT PDF-DATEN                                       
@@ -85,7 +84,7 @@ def compile(texid):
     pdf_data = None
     
     # Name der Ziel-pdf-Datei
-    pdf_nme  = tex_nme[:-3]+"pdf"
+    pdf_nme = tex_nme[:-3]+"pdf"
     # Pfad der Ziel-pdf-Datei
     pdf_pth = os.path.join(out_dir_pth,pdf_nme)
     
@@ -94,13 +93,16 @@ def compile(texid):
         
         # löscht die etwaig bestehende pdf-Version der tex-Datei aus der Datenbank
         pdf_src = PDF.objects.filter(name=pdf_nme,folder=tex_dir)
-        if pdf_src!=None :
+        if pdf_src!=[] :
             if len(pdf_src)==1 :
                 PDF.objects.get(id=pdf_src[0].id).delete()
         
-        pdf_file = open(pdf_pth,'rb')
-        # erzeugt das PDF-Model aus der pdf-Datei
-        pdf = PDF.objects.createFromFile(name=pdf_nme,folder=tex_dir,file=pdf_file)
+        pdf_file = open(pdf_pth,'r+b')
+        try:
+            # erzeugt das PDF-Model aus der pdf-Datei
+            pdf = PDF.objects.createFromFile(name=pdf_nme,folder=tex_dir,file=pdf_file)
+        finally:
+            pdf_file.close()
         
         # Rückgabewert
         pdf_data = {'id':pdf.id,'name':pdf.name}
@@ -150,60 +152,61 @@ def get_Errors(log_path):
     
     errors = []
     
-    log = open(log_path,"r")
+    log = open(log_path,"r+")
     
-    # durchläuft sämtliche Zeilen der log-Datei
-    for l in log :
-        
-        line = str.lower(l)
-        
-        # ----------------------------------------------------------------------------------------------------
-        #                                         FILE NOT FOUND ERROR                                        
-        # ----------------------------------------------------------------------------------------------------
-        # bestimmt die Index-Position von 'file' in der aktuell betrachteten Zeile
-        index_file = line.find('file')
-        # falls 'file' in der aktuell betrachteten Zeile enthalten ist
-        if 'latex' in line and index_file!=-1 :
-            # bestimmt die Index-Position von 'not found' in der aktuell betrachteten Zeile
-            index_notf = line.find('not found')
-            # falls 'not found' in der aktuell betrachteten Zeile enthalten ist
-            if index_notf!=-1 :
-                # extrahiert den Namen der fehlenden Datei aus der aktuell betrachteten Zeile
-                filename = line[index_file+len('file')+2 : index_notf-2]
-                error    = ERROR_MESSAGES['COMPILATIONERROR_FILENOTFOUND']+': Die Datei \''+filename+'\' konnte nicht gefunden werden.'
-                # bestimmt die Index-Position von 'line' in der aktuell betrachteten Zeile
-                index_line = line.find('line')
-                # falls 'line' in der aktuell betrachteten Zeile enthalten ist
-                if index_line!=-1 :
-                    # extrahiert die Zeilennummer für die fehlende Datei aus der aktuell betrachteten Zeile
-                    line_no = line[index_line+len('line')+1 : len(line)-2]
-                    error  += ' (Zeile '+line_no+')'
+    try:
+        # durchläuft sämtliche Zeilen der log-Datei
+        for l in log :
+            
+            line = str.lower(l)
+            
+            # ----------------------------------------------------------------------------------------------------
+            #                                         FILE NOT FOUND ERROR                                        
+            # ----------------------------------------------------------------------------------------------------
+            # bestimmt die Index-Position von 'file' in der aktuell betrachteten Zeile
+            index_file = line.find('file')
+            # falls 'file' in der aktuell betrachteten Zeile enthalten ist
+            if 'latex' in line and index_file!=-1 :
+                # bestimmt die Index-Position von 'not found' in der aktuell betrachteten Zeile
+                index_notf = line.find('not found')
+                # falls 'not found' in der aktuell betrachteten Zeile enthalten ist
+                if index_notf!=-1 :
+                    # extrahiert den Namen der fehlenden Datei aus der aktuell betrachteten Zeile
+                    filename = line[index_file+len('file')+2 : index_notf-2]
+                    error    = ERROR_MESSAGES['COMPILATIONERROR_FILENOTFOUND']+': Die Datei \''+filename+'\' konnte nicht gefunden werden.'
+                    # bestimmt die Index-Position von 'line' in der aktuell betrachteten Zeile
+                    index_line = line.find('line')
+                    # falls 'line' in der aktuell betrachteten Zeile enthalten ist
+                    if index_line!=-1 :
+                        # extrahiert die Zeilennummer für die fehlende Datei aus der aktuell betrachteten Zeile
+                        line_no = line[index_line+len('line')+1 : len(line)-2]
+                        error  += ' (Zeile '+line_no+')'
+                    # fügt die ermittelte Fehlermeldung hinzu
+                    errors.append(error)
+            
+            # ----------------------------------------------------------------------------------------------------
+            #                                             SYNTAX ERROR                                            
+            # ----------------------------------------------------------------------------------------------------
+            if 'job aborted' in line :
+                if 'no legal \end found' in line :
+                    errors.append(ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR']+': Es konnte kein gültiges \end gefunden werden.')
+            # undefiniertes Steuerzeichen
+            if 'undefined control sequence' in line :
+                error = ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR']+': Undefiniertes Steuerzeichen.'
+                # extrahiert die Zeilennummer für das undefinierte Steuerzeichen aus der nächsten log-Zeile
+                nxt_line = str(log.readline())
+                line_no = nxt_line[2:nxt_line.find(' ')]
+                error  += ' (Zeile '+line_no+')'
                 # fügt die ermittelte Fehlermeldung hinzu
                 errors.append(error)
-        
-        # ----------------------------------------------------------------------------------------------------
-        #                                             SYNTAX ERROR                                            
-        # ----------------------------------------------------------------------------------------------------
-        if 'job aborted' in line :
-            if 'no legal \end found' in line :
-                errors.append(ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR']+': Es konnte kein gültiges \end gefunden werden.')
-        # undefiniertes Steuerzeichen
-        if 'undefined control sequence' in line :
-            error = ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR']+': Undefiniertes Steuerzeichen.'
-            # extrahiert die Zeilennummer für das undefinierte Steuerzeichen aus der nächsten log-Zeile
-            nxt_line = str(log.readline())
-            line_no = nxt_line[2:nxt_line.find(' ')]
-            error  += ' (Zeile '+line_no+')'
-            # fügt die ermittelte Fehlermeldung hinzu
-            errors.append(error)
-        
-        # ----------------------------------------------------------------------------------------------------
-        #                                          CITATION UNDEFINED                                         
-        # ----------------------------------------------------------------------------------------------------
-        if "citation" in line :
-            errors.append(ERROR_MESSAGES['COMPILATIONERROR_CITATIONUNDEFINED'])
             
-    log.close()
+            # ----------------------------------------------------------------------------------------------------
+            #                                          CITATION UNDEFINED                                         
+            # ----------------------------------------------------------------------------------------------------
+            if "citation" in line :
+                errors.append(ERROR_MESSAGES['COMPILATIONERROR_CITATIONUNDEFINED'])
+    finally:
+        log.close()
     
     # bei unbehandelten Fehlern wird eine allgemeine Kompilierungsfehlermeldung zurückgegeben
     if len(errors)==0 :
