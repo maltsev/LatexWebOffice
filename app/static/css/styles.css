@@ -3,6 +3,10 @@ margin: 0;
 height: 100%;
 font-family: Verdana, Helvetica, Arial;
 }
+#projektuebersicht{
+width: 90%;
+background: white;
+}
 #editor{
 border: 1px solid grey;
 width: 100%;
