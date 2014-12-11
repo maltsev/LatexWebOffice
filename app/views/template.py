@@ -1,16 +1,16 @@
 """
 
-* Purpose : Verwaltung von Folder Models
+* Purpose : Schnittstelle für Vorlagen
 
-* Creation Date : 19-11-2014
+* Creation Date : 09-12-2014
 
-* Last Modified : Mi 10 Dez 2014 13:27:20 CET
+* Last Modified : Do 11 Dez 2014 12:08:19 CET
 
 * Author :  mattis
 
 * Coauthors :
 
-* Sprintnumber : 2
+* Sprintnumber : 3
 
 * Backlog entry :  DO14
 
@@ -40,10 +40,37 @@ def template2Project(request, user, vorlageid, projectname):
 
     # Überprüfe, ob es den Projektnamen schon gibt
     if Project.objects.filter(name__iexact=projectname.lower(), author=user).exists():
-        return util.jsonErrorResponse(ERROR_MESSAGES['TEMPLATEALREADYEXISTS'].format(projectname), request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
 
     # Erstelle Projekt aus der Vorlage
     template = ProjectTemplate.objects.get(id=vorlageid)
-    project = Project.objects.createFromProjectTemplate(template)
+    project = Project.objects.createFromProjectTemplate(
+        template=template, name=projectname)
 
     return util.jsonResponse({'id': project.id, 'name': project.name}, True, request)
+
+
+def project2Template(request, user, projectid, templatename):
+
+    # Überprüfe, ob Projekt existiert und der User darauf Rechte hat
+    emptystring, failurereturn = util.checkIfProjectExistsAndUserHasRights(
+        projectid, user, request)
+    if not emptystring:
+        return failurereturn
+
+    # Überprüfe, ob der Projektname leer oder aus ungültigen Zeichen besteht
+    emptystring, failurereturn = util.checkObjectForInvalidString(
+        templatename, request)
+    if not emptystring:
+        return failurereturn
+
+    # Überprüfe, ob es den Vorlagenamen schon gibt
+    if ProjectTemplate.objects.filter(name__iexact=templatename.lower(), author=user).exists():
+        return util.jsonErrorResponse(ERROR_MESSAGES['TEMPLATEALREADYEXISTS'].format(templatename), request)
+
+    # Erstelle template aus dem Project
+    project = Project.objects.get(id=projectid)
+    template = ProjectTemplate.objects.createFromProject(
+        project=project, name=templatename)
+
+    return util.jsonResponse({'id': template.id, 'name': template.name}, True, request)
