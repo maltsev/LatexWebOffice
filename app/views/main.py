@@ -35,6 +35,4 @@ def editor(request):
 
 @login_required
 def projekt(request):
-    return render(request, 'dateien.html')
-	@login_required
-	
+    return render(request, 'dateien.html')	
