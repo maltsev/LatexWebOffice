@@ -4,7 +4,7 @@
 
 * Creation Date : 09-12-2014
 
-* Last Modified : Fr 12 Dez 2014 14:41:07 CET
+* Last Modified : Fr 12 Dez 2014 15:41:43 CET
 
 * Author :  mattis
 
@@ -50,3 +50,19 @@ def project2Template(request, user, projectid, templatename):
         project=project, name=templatename)
 
     return util.jsonResponse({'id': template.id, 'name': template.name}, True, request)
+
+# liefert eine Übersicht aller Vorlagen eines Benutzers
+# benötigt: nichts
+# liefert: HTTP Response (Json)
+# Beispiel response:
+def listTemplates(request, user):
+    availableprojects = ProjectTemplate.objects.filter(author=user).exclude(project__isnull=False)
+
+    if availableprojects is None:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+    else:
+        json_return = [util.projectToJson(template)
+                       for template in availableprojects]
+
+    return util.jsonResponse(json_return, True, request)
+

@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 12 Dez 2014 14:40:06 CET
+* Last Modified : Fr 12 Dez 2014 15:32:30 CET
 
 * Author :  mattis
 
@@ -72,6 +72,7 @@ def execute(request):
             'listfiles': {'command': folder.listFiles, 'parameters': [{'para': globalparas['id'], 'type':Folder}]},
             'template2project': {'command': template.template2Project, 'parameters': [{'para': globalparas['id'], 'type':ProjectTemplate}, {'para': globalparas['name'], 'stringcheck':True}]},
             'project2template': {'command': template.project2Template, 'parameters': [{'para': globalparas['id'], 'type':Project}, {'para': globalparas['name'], 'stringcheck':True}]},
+            'listtemplates': {'command': template.listTemplates, 'parameters': []},
         }
 
         # wenn der Schlüssel nicht gefunden wurde
