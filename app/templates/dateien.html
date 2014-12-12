@@ -7,6 +7,12 @@
 <!-- embedding file: _wrapper.html -->
 {% extends "_wrapper.html" %}
 
+{% block header %}
+<link rel="stylesheet" href="/static/css/listselector.css">
+<script src="/static/js/listselector.js"></script>
+<script src="/static/js/dateien.js"></script>
+{% endblock %}
+
 <!-- content to embed in wrapper.html as content -->
 {% block content %}
 <div id="inhalt">
@@ -17,12 +23,7 @@
 	<div id="projekt_menueleiste">
 	Hier kommt die Menüleiste hin
 	</div>
-	<div id="projektuebersicht">
-	<ul>
-		<li>Projekt a</li>
-		<li>Projekt b</li>
-		<li>Projekt c</li>
-	</ul>
+	<div id="dateien">
 	
 	</div>
 	
