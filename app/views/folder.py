@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 12 Dez 2014 13:19:23 CET
+* Last Modified : Fr 12 Dez 2014 14:25:06 CET
 
 * Author :  mattis
 
@@ -37,11 +37,6 @@ def createDir(request, user, parentdirid=0, directoryname=""):
     if not emptystring:
         return failurereturn
 '''
-    # Teste ob der übergeordnete Ordner existiert und der user die entsprechenden Zugriffsrechte hat
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(parentdirid, user, request)
-    if not rights:
-        return failurereturn
-
     # hole das übergeordnete Ordner Objekt
     parentdirobj = Folder.objects.get(id=parentdirid)
 
@@ -64,11 +59,6 @@ def createDir(request, user, parentdirid=0, directoryname=""):
 # benötigt: id:folderid
 # liefert: HTTP Response (Json)
 def rmDir(request, user, folderid):
-    # Teste ob der Ordner existiert und der user die entsprechenden Zugriffsrechte hat
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
-    if not rights:
-        return failurereturn
-
     # hole das Ordner Objekt
     folderobj = Folder.objects.get(id=folderid)
 
@@ -88,11 +78,6 @@ def rmDir(request, user, folderid):
 # benötigt: id:folderid, name:newdirectoryname
 # liefert: HTTP Response (Json)
 def renameDir(request, user, folderid, newdirectoryname):
-    # Teste ob der Ordner existiert und der user die entsprechenden Zugriffsrechte hat
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
-    if not rights:
-        return failurereturn
-
     # hole das Ordner Objekt
     folder = Folder.objects.get(id=folderid)
 
@@ -115,11 +100,6 @@ def renameDir(request, user, folderid, newdirectoryname):
 # benötigt: id: folderid, folderid: newfolderid
 # liefert HTTP Response (Json)
 def moveDir(request, user, folderid, newfolderid):
-    # Überprüfe ob der zu verschiebende Ordner existiert, und der Benutzer die entsprechenden Rechte besitzt
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
-    if not rights:
-        return failurereturn
-
     # Überprüfe ob Ziel Ordner existiert, und der Benutzer die entsprechenden Rechte besitzt
     rights, failurereturn = util.checkIfDirExistsAndUserHasRights(newfolderid, user, request)
     if not rights:
@@ -152,11 +132,6 @@ def moveDir(request, user, folderid, newfolderid):
 # liefert: HTTP Response (Json)
 # Beispiel response: {type: 'folder', name: 'folder1', id=1, content: {type :
 def listFiles(request, user, folderid):
-    # Überprüfe ob der user auf den Ordner zugreifen darf und dieser auch existiert
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
-    if not rights:
-        return failurereturn
-
     # hole das Ordner Objekt
     current_folderobj = Folder.objects.get(id=folderid)
 

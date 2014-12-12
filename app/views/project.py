@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 12 Dez 2014 13:57:24 CET
+* Last Modified : Fr 12 Dez 2014 14:37:44 CET
 
 * Author :  christian
 
@@ -53,13 +53,6 @@ def projectCreate(request, user, projectname):
 # benötigt: id:projectid
 # liefert: HTTP Response (Json)
 def projectRm(request, user, projectid):
-    # überprüfe ob das Projekt existiert und der user die Rechte zum Löschen
-    # hat
-    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(
-        projectid, user, request)
-    # sonst gib eine Fehlermeldung zurück
-    if not rights:
-        return failurereturn
     # hole das zu löschende Projekt
     projectobj = Project.objects.get(id=projectid)
 
