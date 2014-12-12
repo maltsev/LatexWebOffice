@@ -1,0 +1,96 @@
+\documentclass{beamer}
+%bla
+\usepackage[utf8]{inputenc}
+\usepackage{default}
+\usetheme{Warsaw}
+\begin{document}
+
+  \begin{frame}
+    \frametitle{Allgemein}
+    \begin{block}{Tests verteilt auf Kategorien}
+     \begin{itemize}
+      \item Allgemein
+      \item Projekte  
+      \item Dateien 
+      \item Ordner
+     \end{itemize}
+
+    \end{block}
+    
+    \begin{block}{Tests}
+    \begin{itemize}
+     \item Jeder einzelner ``command'' getestet
+     \item Fokus auf Sicherheit
+     \item Relativ umfangreiche Tests ($\approx1500$ Zeilen nur für Tests)
+     \begin{itemize}
+      \item Nicht alles abgedeckt
+     \end{itemize}
+     \item Wenig Seiteneffekte
+    \end{itemize}
+    \end{block}
+
+  \end{frame}
+
+  
+  \begin{frame}
+   \frametitle{Gemeinsamkeiten der Tests}
+   \begin{block}{Abgefangen in der Execute-Verteilmethode}
+    \begin{itemize}
+     \item Nicht eingeloggt
+     \item Kein POST request
+     \item Zahl wurde erwartet, aber Zeichenkette bekommen
+     \item Es wurden nicht alle erwarteten Parameter eines 'commands' übergeben
+    \end{itemize}
+   \end{block}
+   \begin{block}{In den einzelnen Methoden}
+    \begin{itemize}
+     \item Erfolgsmeldung bei einer richtigen Eingabe
+     \item Überprüfen, ob der User die benötigten Rechte für eine bestimmte Operation hat
+     \begin{itemize}
+      \item Durch allgemeine Hilfsmethoden erleichtert
+      \item Schwierig, Rechte für beliebige Operationen in einer einzigen Methode zu kontrollieren
+     \end{itemize}
+    \end{itemize}
+   \end{block}
+  \end{frame}
+  
+    \begin{frame}
+    \frametitle{Sicherheit}
+    \begin{block}{Was wurde getestet}
+    \begin{itemize}
+     \item Kein User darf Projekte, die ihm nicht gehören, auslesen oder verändern 
+     \begin{itemize}
+      \item Immer die gleiche Fehlermeldung 'NOTENOUGHRIGHTS'
+      \item Keine Änderung in der Datenbank
+      \begin{itemize}
+       \item Nicht konsequent getestet
+      \end{itemize}
+     \end{itemize}
+    \end{itemize}
+    \end{block}
+  \end{frame}
+  
+  
+  \begin{frame}
+   \frametitle{Beispiel Projectcreate}
+   \begin{block}{Gewünschtes Verhalten}
+    \begin{itemize}
+     \item Projekt wird bei Angabe eines Namens (nicht leer, usw) erstellt
+     \begin{itemize}
+      \item Es existiert ein (root) Verzeichnis, welches zu dem Projekt gehört
+      \item eine main.tex Datei in diesem Verzeichnis
+     \end{itemize}
+     \item Projekt wird nicht erstellt, 
+     \begin{itemize}
+     \item falls ein Projekt mit gleichen Namen vom gleichen User bereits existiert
+     \item falls der gewünschte Name vom Projekt leer oder ungültige Zeichen enthält
+     \end{itemize}
+     \item Das Projekt gehört am Ende wirklich dem richtigen User
+     \item Richtige Antwort vom Server an Client für jeden Fall
+    \end{itemize}
+   \end{block}
+  \end{frame}
+
+
+% etc
+\end{document}

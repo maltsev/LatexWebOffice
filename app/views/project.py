@@ -176,9 +176,9 @@ def importZip(request, user):
 
 
 # liefert ein vom Client angefordertes Projekt in Form einer zip Datei als Filestream
-# benötigt: id:projectid
+# benötigt: id:folderid
 # liefert: filestream (404 im Fehlerfall)
-def exportZip(request, user, projectid):
+def exportZip(request, user, folderid):
     # setze das logging level auf ERROR
     # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben
     # wird
@@ -188,26 +188,30 @@ def exportZip(request, user, projectid):
 
     # Überprüfe ob das Projekt, und der Benutzer die entsprechenden Rechte
     # besitzt
-    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(
-        projectid, user, request)
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
+        folderid, user, request)
     if not rights:
         raise Http404
 
     # setze das logging level wieder auf den ursprünglichen Wert
     logger.setLevel(previous_level)
 
-    # hole das Projekt Objekt
-    projectobj = Project.objects.get(id=projectid)
+    folderobj = Folder.objects.get(id=folderid)
 
-    # erstelle ein temp Verzeichnis mit einer Kopie des Projektes
-    project_tmp_path = projectobj.rootFolder.dumpRootFolder()
+    # erstelle ein temp Verzeichnis mit einer Kopie des Ordners
+    folder_tmp_path = folderobj.dumpFolder()
+
+    if folderobj.isRoot():
+        zip_file_name = folderobj.getProject().name + '.zip'
+    else:
+        zip_file_name = folderobj.name + '.zip'
 
     # tmp Verzeichnis in dem die zip Datei gespeichert wird
     zip_tmp_path = tempfile.mkdtemp()
-    zip_file_path = os.path.join(zip_tmp_path, projectobj.name + '.zip')
+    zip_file_path = os.path.join(zip_tmp_path, zip_file_name)
 
     # erstelle die .zip Datei
-    util.createZipFromFolder(project_tmp_path, zip_file_path)
+    util.createZipFromFolder(folder_tmp_path, zip_file_path)
 
     # lese die erstellte .zip Datei ein
     file_dl = open(zip_file_path, 'rb')
@@ -227,14 +231,15 @@ def exportZip(request, user, projectid):
     if encoding is not None:
         response['Content-Encoding'] = encoding
 
-    filename_header = 'filename=%s' % (
-        projectobj.name + '.zip')
+    filename_header = 'filename=%s' % zip_file_name
 
     response['Content-Disposition'] = 'attachment; ' + filename_header
 
     # lösche die temporären Dateien und Ordner
     if os.path.isdir(zip_tmp_path):
         shutil.rmtree(zip_tmp_path)
+    if os.path.isdir(folder_tmp_path):
+        shutil.rmtree(folder_tmp_path)
 
     return response
 

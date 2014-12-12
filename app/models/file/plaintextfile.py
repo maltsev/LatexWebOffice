@@ -15,7 +15,12 @@
 
 """
 import io
+import os
+
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+
 from app.models.file import file
 
 
@@ -36,3 +41,20 @@ class PlainTextFile(file.File):
         output = io.StringIO()
         output.write(self.source_code)
         return output
+
+    def getSize(self):
+        plaintextfile = self.getContent()
+
+        old_file_position = plaintextfile.tell()
+        plaintextfile.seek(0, os.SEEK_END)
+        plaintextfilesize = plaintextfile.tell()
+        plaintextfile.seek(old_file_position, os.SEEK_SET)
+        plaintextfile.close()
+
+        return plaintextfilesize
+
+
+@receiver(pre_save, sender=PlainTextFile)
+def plainTextFilePreSave(instance, **kwargs):
+    instance.mimeType = 'text/plain'
+    instance.size = instance.getSize()

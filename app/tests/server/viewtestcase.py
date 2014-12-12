@@ -8,7 +8,7 @@
 
 * Author :  maltsev
 
-* Sprintnumber : 2
+* Sprintnumber : 2, 3
 
 * Backlog entry :
 
@@ -16,10 +16,12 @@
 import io
 import tempfile
 import os
+import shutil
 
 from django.test import TestCase
 from django.contrib.auth.models import User
 
+from core import settings
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.texfile import TexFile
@@ -173,9 +175,7 @@ class ViewTestCase(TestCase):
         if os.path.isdir(self._tmp_filepath):
             os.rmdir(self._tmp_filepath)
 
-    # ruft die delete Methode der binaryfiles auf, damit die Dateien außerhalb
-    # der Datenbank auch gelöscht werden
+    # löscht den Ordner für die test Dateien
     def tearDownFiles(self):
-        self._user1_binary1.delete()
-        self._user1_binary2.delete()
-        self._user1_binary3.delete()
+        if os.path.isdir(settings.MEDIA_ROOT):
+            shutil.rmtree(settings.MEDIA_ROOT)
