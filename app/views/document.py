@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 12 Dez 2014 14:02:22 CET
+* Last Modified : Fr 12 Dez 2014 14:40:06 CET
 
 * Author :  mattis
 
@@ -54,15 +54,15 @@ def execute(request):
             'projectrm': {'command': project.projectRm, 'parameters': [{'para': globalparas['id'], 'type':Project}]},
             'listprojects': {'command': project.listProjects, 'parameters': []},
             'importzip': {'command': project.importZip, 'parameters': []},
-            'exportzip': {'command': project.exportZip, 'parameters': [{'para': globalparas['id'], 'type':Project}]},
+            'exportzip': {'command': project.exportZip, 'parameters': [{'para': globalparas['id']}]},
             'shareproject': {'command': project.shareProject, 'parameters': [{'para': globalparas['id'], 'type':Project}, {'para': globalparas['name'], 'stringcheck':True}]},
-            'createtex': {'command': file.createTexFile, 'parameters': [{'para': globalparas['id'], 'type':File}, {'para': globalparas['name'], 'stringcheck':True}]},
+            'createtex': {'command': file.createTexFile, 'parameters': [{'para': globalparas['id'], 'type':Folder}, {'para': globalparas['name'], 'stringcheck':True}]},
             'updatefile': {'command': file.updateFile, 'parameters': [{'para': globalparas['id'], 'type':File}, {'para': globalparas['content']}]},
             'deletefile': {'command': file.deleteFile, 'parameters': [{'para': globalparas['id'], 'type':File}]},
             'renamefile': {'command': file.renameFile, 'parameters': [{'para': globalparas['id'], 'type':File}, {'para': globalparas['name'], 'stringcheck':True}]},
             'movefile': {'command': file.moveFile, 'parameters': [{'para': globalparas['id'], 'type':File}, {'para': globalparas['folderid'], 'type':Folder}]},
-            'uploadfiles': {'command': file.uploadFiles, 'parameters': [{'para': globalparas['id'], 'type':File}]},
-            'downloadfile': {'command': file.downloadFile, 'parameters': [{'para': globalparas['id'], 'type':File}]},
+            'uploadfiles': {'command': file.uploadFiles, 'parameters': [{'para': globalparas['id'], 'type':Folder}]},
+            'downloadfile': {'command': file.downloadFile, 'parameters': [{'para': globalparas['id']}]},
             'fileinfo': {'command': file.fileInfo, 'parameters': [{'para': globalparas['id'], 'type':File}]},
             'compile': {'command': file.latexCompile, 'parameters': [{'para': globalparas['id'], 'type':File}]},
             'createdir': {'command': folder.createDir, 'parameters': [{'para': globalparas['id'], 'type':Folder}, {'para': globalparas['name'], 'stringcheck':True}]},
@@ -88,7 +88,6 @@ def execute(request):
 
         # durchlaufe alle Parameter des Befehls
         for para in paras:
-            print(para)
 
             # wenn der Parameter nicht gefunden wurde oder ein Parameter, welcher eine id angeben sollte
             # Zeichen enthält, die keine Zahlen sind, gib Fehlermeldung zurück
@@ -106,20 +105,31 @@ def execute(request):
                     request.POST.get(para['para']['name']), request)
                 if not failstring:
                     return failurereturn
-            if para.get('para'):
-                print('blub')
-                print(para['para']['name'])
 
             # Teste, dass der User rechte auf das Objekt mit der angegebenen id
             # hat und diese existiert
-            if para['para']['type']==int and para['type']:
-                print('ich war hier')
+            if para.get('type') and para['para']['type']==int:
                 objType=para.get('type')
                 objId=request.POST.get(para['para']['name'])
                 if objType==Project:
                     rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(objId, user, request)
                     if not rights:
                         return failurereturn
+                elif objType==Folder:
+                    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(objId,user,request)
+                    if not rights:
+                        return failurereturn
+                elif objType==File:
+                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId,user,request)
+                    if not rights:
+                        return failurereturn
+                elif objType==ProjectTemplate:
+                    # Überprüfe, ob Vorlage existiert und der User darauf Rechte hat
+                    emptystring, failurereturn = util.checkIfTemplateExistsAndUserHasRights(objId, user, request)
+                    if not emptystring:
+                        return failurereturn
+
+
 
 
 

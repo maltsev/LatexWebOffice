@@ -4,7 +4,7 @@
 
 * Creation Date : 09-12-2014
 
-* Last Modified : Fr 12 Dez 2014 14:02:24 CET
+* Last Modified : Fr 12 Dez 2014 14:41:07 CET
 
 * Author :  mattis
 
@@ -26,18 +26,6 @@ from app.common.constants import ERROR_MESSAGES
 
 def template2Project(request, user, vorlageid, projectname):
 
-    # Überprüfe, ob Vorlage existiert und der User darauf Rechte hat
-    emptystring, failurereturn = util.checkIfTemplateExistsAndUserHasRights(
-        vorlageid, user, request)
-    if not emptystring:
-        return failurereturn
-
-    # Überprüfe, ob der Projektname leer oder aus ungültigen Zeichen besteht
-    emptystring, failurereturn = util.checkObjectForInvalidString(
-        projectname, request)
-    if not emptystring:
-        return failurereturn
-
     # Überprüfe, ob es den Projektnamen schon gibt
     if Project.objects.filter(name__iexact=projectname.lower(), author=user).exists():
         return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
@@ -51,18 +39,6 @@ def template2Project(request, user, vorlageid, projectname):
 
 
 def project2Template(request, user, projectid, templatename):
-
-    # Überprüfe, ob Projekt existiert und der User darauf Rechte hat
-    emptystring, failurereturn = util.checkIfProjectExistsAndUserHasRights(
-        projectid, user, request)
-    if not emptystring:
-        return failurereturn
-
-    # Überprüfe, ob der Projektname leer oder aus ungültigen Zeichen besteht
-    emptystring, failurereturn = util.checkObjectForInvalidString(
-        templatename, request)
-    if not emptystring:
-        return failurereturn
 
     # Überprüfe, ob es den Vorlagenamen schon gibt
     if ProjectTemplate.objects.filter(name__iexact=templatename.lower(), author=user).exists():

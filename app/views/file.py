@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 12 Dez 2014 13:18:02 CET
+* Last Modified : Fr 12 Dez 2014 14:36:23 CET
 
 * Author :  christian
 
@@ -35,11 +35,6 @@ import json
 # benötigt: id:folderid name:texname
 # liefert HTTP Response (Json); response: id=fileid, name=filename
 def createTexFile(request, user, folderid, texname):
-    # Überprüfe ob der Ordner existiert, und der Benutzer die entsprechenden Rechte besitzt
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
-    if not rights:
-        return failurereturn
-
     # hole das Ordner Objekt
     folderobj = Folder.objects.get(id=folderid)
 
@@ -60,11 +55,6 @@ def createTexFile(request, user, folderid, texname):
 # benötigt: id:fileid, content:filecontenttostring
 # liefert: HTTP Response (Json)
 def updateFile(request, user, fileid, filecontenttostring):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
-    if not rights:
-        return failurereturn
-
     # wenn es sich bei der Datei nicht um ein PlainTextFile Model aus der Datenbank handelt
     # kann die Datei nicht bearbeitet werden, d.h. es wurde eine Binaryfile übergeben
     if not PlainTextFile.objects.filter(id=fileid).exists():
@@ -86,11 +76,6 @@ def updateFile(request, user, fileid, filecontenttostring):
 # benötigt: id:fileid
 # liefert: HTTP Response (Json)
 def deleteFile(request, user, fileid):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
-    if not rights:
-        return failurereturn
-
     # hole das file object
     fileobj = File.objects.get(id=fileid)
 
@@ -106,11 +91,6 @@ def deleteFile(request, user, fileid):
 # benötigt: id:fileid, name:newfilename
 # liefert: HTTP Response (Json)
 def renameFile(request, user, fileid, newfilename):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
-    if not rights:
-        return failurereturn
-
     # hole das file object
     fileobj = File.objects.get(id=fileid)
 
@@ -132,16 +112,6 @@ def renameFile(request, user, fileid, newfilename):
 # benötigt: id: fileid, folderid: newfolderid
 # liefert HTTP Response (Json)
 def moveFile(request, user, fileid, newfolderid):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
-    if not rights:
-        return failurereturn
-
-    # überprüfe, ob die Datei mit der id fileid existiert und newfolderid dem User gehört
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(newfolderid, user, request)
-    if not rights:
-        return failurereturn
-
     # hole das folder und file object
     folderobj = Folder.objects.get(id=newfolderid)
     fileobj = File.objects.get(id=fileid)
@@ -170,10 +140,6 @@ def uploadFiles(request, user, folderid):
     errors = []
     success = []
 
-    # Teste ob der Ordner existiert und der User rechte auf dem Ordner hat
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
-    if not rights:
-        return failurereturn
     folder = Folder.objects.get(id=folderid)
 
     # Teste ob auch Dateien gesendet wurden
@@ -260,11 +226,6 @@ def downloadFile(request, user, fileid):
 # benötigt: id:fileid
 # liefert: HTTP Response (Json) --> fileid, filename, folderid, foldername
 def fileInfo(request, user, fileid):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
-    if not rights:
-        return failurereturn
-
     # hole das Datei und Ordner Objekt
     fileobj = File.objects.get(id=fileid)
     folderobj = Folder.objects.get(id=fileobj.folder.id)
@@ -280,17 +241,6 @@ def fileInfo(request, user, fileid):
 # benötigt: id:fileid
 # liefert: HTTP Response (Json)
 def latexCompile(request, user, fileid):
-    # - Überprüfe, ob es diese Tex-Datei überhaupt gibt und der User die nötigen Rechte auf die Datei hat
-
-    # Aktualisiere Tex Datei in der Datenbank
-
-    # Zum Projekt der Tex-Datei dazugehörende Dateien abrufen
-    # - Überprüfe, ob es diese Tex-Datei überhaupt gibt und der User die nötigen Rechte auf die Datei hat
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(
-        fileid, user, request)
-    if not rights:
-        return failurereturn
-
     # rueckgabe=Sende Dateien an Ingo's Methode
     errors,success=comp(fileid)
     if errors:
