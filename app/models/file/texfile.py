@@ -20,17 +20,7 @@ from django.dispatch import receiver
 import os
 
 class TexFile(PlainTextFile):
-
-    def getSize(self):
-        texfile = self.getContent()
-
-        old_file_position = texfile.tell()
-        texfile.seek(0, os.SEEK_END)
-        texfilesize = texfile.tell()
-        texfile.seek(old_file_position, os.SEEK_SET)
-        texfile.close()
-
-        return texfilesize
+    pass
 
 @receiver(pre_save, sender=TexFile)
 def texFilePreSave(instance, **kwargs):

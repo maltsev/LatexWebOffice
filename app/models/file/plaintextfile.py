@@ -19,6 +19,7 @@ from django.db import models
 from app.models.file.file import File
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+import os
 
 
 class PlainTextFile(File):
@@ -29,6 +30,18 @@ class PlainTextFile(File):
         output.write(self.source_code)
         return output
 
+    def getSize(self):
+        plaintextfile = self.getContent()
+
+        old_file_position = plaintextfile.tell()
+        plaintextfile.seek(0, os.SEEK_END)
+        plaintextfilesize = plaintextfile.tell()
+        plaintextfile.seek(old_file_position, os.SEEK_SET)
+        plaintextfile.close()
+
+        return plaintextfilesize
+
 @receiver(pre_save, sender=PlainTextFile)
 def plainTextFilePreSave(instance, **kwargs):
     instance.mimeType = 'text/plain'
+    instance.size = instance.getSize()
