@@ -10,5 +10,6 @@ urlpatterns = patterns('app.views',
     url(r'^hilfe/', 'main.hilfe'),
     url(r'^editor/', 'main.editor'),
     url(r'^documents/', 'document.execute'),
-    url(r'^projekt/', 'main.projekt')
+    url(r'^projekt/', 'main.projekt'),
+    url(r'^dateien/', 'main.dateien')
 )
