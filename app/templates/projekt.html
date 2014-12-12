@@ -9,6 +9,7 @@
 <!-- Header -->
 {% block header %}
 <link rel="stylesheet" href="/static/css/listselector.css">
+<link rel="stylesheet" href="/static/css/menuleiste.css">
 <script src="/static/js/listselector.js"></script>
 <script src="/static/js/projekt.js"></script>
 {% endblock %}
@@ -17,7 +18,36 @@
 {% block content %}
 <div id="inhalt">
 <h1>Projektübersicht</h1>
-<div>FIXME: Menüleiste einbinden</div>
+<!-- <div>FIXME: Menüleiste einbinden</div> -->
+<div id="menu">
+    <ul>
+      <li class="topmenu">
+        <a href="">DropDown</a>
+        <ul>
+          <li class="submenu"><a href="">Funktion 1</a></li>
+          <li class="submenu"><a href="">Funktion 2</a></li>
+        </ul>
+      </li>
+      <li class="topmenu">
+        <a href="">Projekt Öffnen</a>
+      </li>
+      <li class="topmenu">
+        <a href="">Projekt Erstellen</a>
+      </li>
+      <li class="topmenu">
+        <a href="">Projekt Löschen</a>
+      </li>
+      <li class="topmenu">
+        <a href="">Projekt Exp.</a>
+      </li>
+      <li class="topmenu">
+        <a href="">Projekt Imp.</a>
+      </li>
+      <li class="topmenu">
+        <a href="">Projekt Freigeben</a>
+      </li>
+    </ul>
+  </div>
 <div id="projekte"></div>
 </div>
 {% endblock %}
