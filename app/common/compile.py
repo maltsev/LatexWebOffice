@@ -74,9 +74,10 @@ def compile(texid):
     # '-outdir=FOO' Verzeichnis für die Ausgabe-Dateien
     # '-bibtex' bbl-Dateien werden über bibtex erzeugt, sofern notwendig
     # '-pdf' pdf-Datei wird über pdflatex aus der angegebenen tex-Datei erzeugt
-    rc = subprocess.call(["perl",latexmk_path(),"-f","-interaction=nonstopmode","-outdir="+out_dir_pth,"-bibtex","-pdf",tex_pth],
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE)
+    p = subprocess.Popen(["perl",latexmk_path(),"-f","-interaction=nonstopmode","-outdir="+out_dir_pth,"-bibtex","-pdf",tex_pth],
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    p.wait()
     
     # ----------------------------------------------------------------------------------------------------
     #                                        RÜCKGABEWERT PDF-DATEN                                       
@@ -113,7 +114,7 @@ def compile(texid):
     errors = None
     
     # wenn beim Kompilier-Prozess ein Fehler aufgetreten ist ...
-    if rc!=0 :
+    if p.returncode!=0 :
         
         # Fehlermeldungen
         errors = []
@@ -129,7 +130,7 @@ def compile(texid):
         # ... und keine log-Datei erzeugt wurde
         else :
             # gibt eine allgemeine Fehlermeldung mit dem return code des Kompilierprozesses zurück
-            errors.append(ERROR_MESSAGES['COMPILATIONERROR']+': return code '+str(rc))
+            errors.append(ERROR_MESSAGES['COMPILATIONERROR']+': return code '+str(p))
         
     # ----------------------------------------------------------------------------------------------------
     
