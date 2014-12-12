@@ -34,7 +34,7 @@ class BinaryFileManager(models.Manager):
             for chunk in requestFile.chunks():
                 content = content + chunk
 
-            kwargs['filepath'] = self.__createBinaryFile(content)
+            kwargs['filepath'], kwargs['size'] = self.__createBinaryFile(content)
             del kwargs['requestFile']
 
         return self.create(**kwargs)
@@ -45,7 +45,7 @@ class BinaryFileManager(models.Manager):
         isFilepath = 'filepath' in kwargs and bool(kwargs['filepath'])
         file = 'file' in kwargs and kwargs['file']
         if file and not isFilepath:
-            kwargs['filepath'] = self.__createBinaryFile(file.read())
+            kwargs['filepath'], kwargs['size'] = self.__createBinaryFile(file.read())
             del kwargs['file']
 
         return self.create(**kwargs)
@@ -63,7 +63,7 @@ class BinaryFileManager(models.Manager):
             newFile.write(content)
             newFile.close()
 
-        return filepath
+        return filepath, os.path.getsize(filepath)
 
 
 

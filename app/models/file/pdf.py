@@ -15,7 +15,13 @@
 
 """
 from app.models.file import binaryfile
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 
 class PDF(binaryfile.BinaryFile):
     objects = binaryfile.BinaryFileManager()
+
+@receiver(pre_save, sender=PDF)
+def pdfPreSave(instance, **kwargs):
+    instance.mimeType = 'application/pdf'

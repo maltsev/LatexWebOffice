@@ -23,6 +23,8 @@ class File(models.Model):
     createTime = models.DateTimeField(auto_now_add=True)
     lastModifiedTime = models.DateTimeField(auto_now=True)
     folder = models.ForeignKey("Folder")
+    mimeType = models.CharField(max_length=255, default='application/octet-stream')
+    size = models.IntegerField(default=0) #TODO
 
     class Meta:
         unique_together = ('name', 'folder')

@@ -174,8 +174,16 @@ class ProjectTestClass(ViewTestCase):
         # status sollte success sein
         # teste, ob in response die beiden erstellten Projekte von user1 richtig aufgelistet werden
         # und keine Projekte von user2 aufgelistet werden
-        dictionary = [{'id': self._user1_project1.id, 'name': self._user1_project1.name},
-                      {'id': self._user1_project2.id, 'name': self._user1_project2.name}]
+        dictionary = [{'id': self._user1_project1.id,
+                       'name': self._user1_project1.name,
+                       'author': self._user1_project1.author.username,
+                       'createtime': util.datetimeToString(self._user1_project1.createTime),
+                       'rootfolderid': self._user1_project1.rootFolder.id},
+                      {'id': self._user1_project2.id,
+                       'name': self._user1_project2.name,
+                       'author': self._user1_project2.author.username,
+                       'createtime': util.datetimeToString(self._user1_project2.createTime),
+                       'rootfolderid': self._user1_project2.rootFolder.id}]
         util.validateJsonSuccessResponse(self, response.content, dictionary)
 
         # logout von user1
@@ -193,8 +201,16 @@ class ProjectTestClass(ViewTestCase):
         # status sollte success sein
         # teste, ob in response die beiden erstellten Projekte von user 2 richtig aufgelistet werden
         # und keine Projekte von user1 aufgelistet werden
-        dictionary = [{'id': self._user2_project1.id, 'name': self._user2_project1.name},
-                      {'id': self._user2_project2.id, 'name': self._user2_project2.name}]
+        dictionary = [{'id': self._user2_project1.id,
+                       'name': self._user2_project1.name,
+                       'author': self._user2_project1.author.username,
+                       'createtime': util.datetimeToString(self._user2_project1.createTime),
+                       'rootfolderid': self._user2_project1.rootFolder.id},
+                      {'id': self._user2_project2.id,
+                       'name': self._user2_project2.name,
+                       'author': self._user2_project2.author.username,
+                       'createtime': util.datetimeToString(self._user2_project2.createTime),
+                       'rootfolderid': self._user2_project2.rootFolder.id}]
         util.validateJsonSuccessResponse(self, response.content, dictionary)
 
         # logout von user2
@@ -319,8 +335,19 @@ class ProjectTestClass(ViewTestCase):
         with open(maintex_path, 'r') as maintex:
             self.assertEqual(maintex.read(), self._user1_tex1.source_code)
 
-        # überprüfe ob der Inhalt der binary1 Datei mit der Datenbank übereinstimmt
+        # überprüfe ob binary1 vorhanden ist
         binary1_path = os.path.join(folder2_subfolder1_path, self._user1_binary1.name)
+        self.assertTrue(os.path.isfile(binary1_path))
+
+        # überprüfe ob binary2 vorhanden ist
+        binary2_path = os.path.join(folder2_subfolder1_path, self._user1_binary2.name)
+        self.assertTrue(os.path.isfile(binary2_path))
+
+        # überprüfe ob binary3 vorhanden ist
+        binary3_path = os.path.join(folder2_subfolder1_path, self._user1_binary3.name)
+        self.assertTrue(os.path.isfile(binary3_path))
+
+        # überprüfe ob der Inhalt der binary1 Datei mit der Datenbank übereinstimmt
         with self._user1_binary1.getContent() as binfilecontent:
             tmp_binary1 = open(binary1_path, 'rb')
             self.assertEqual(tmp_binary1.read(), binfilecontent.read())
@@ -330,11 +357,64 @@ class ProjectTestClass(ViewTestCase):
         if os.path.isdir(tmpfolder):
             shutil.rmtree(tmpfolder)
 
-        # TODO
-        # sende Anfrage zum exportieren eines Ordners
-        # response = util.documentPoster(self, command='exportzip', idpara=self._user1_project1_folder2.id)
+        # --------------------------------------------------------------------------------------------------------------
 
-        # sende Anfrage zum exportieren eines Projektes mit einer ungültigen
+        # sende Anfrage zum exportieren eines Ordners
+        response = util.documentPoster(self, command='exportzip', idpara=self._user1_project1_folder2.id)
+
+                # überprüfe die Antwort des Servers
+        # Content-Type sollte application/zip sein
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.zip'])
+        # Content-Length sollte mit gesendet worden sein
+        self.assertIn('Content-Length', response)
+
+        # erstelle temp Ordner
+        tmpfolder = tempfile.mkdtemp()
+        tmpfolder_extracted = os.path.join(tmpfolder, 'extracted')
+        if not os.path.isdir(tmpfolder_extracted):
+            os.mkdir(tmpfolder_extracted)
+
+        # Pfad zur temporären zip Datei
+        tmp_zip_file = os.path.join(tmpfolder, (self._user1_project1.name + 'zip'))
+        # Schreibe den Inhalt der empfangenen Datei in die temp zip Datei
+        with open(tmp_zip_file, 'a+b') as f:
+            f.write(response.content)
+
+        # überprüfe, ob es eine gültige zip Datei ist (magic number)
+        self.assertTrue(zipfile.is_zipfile(tmp_zip_file))
+
+        # entpacke die heruntergeladene Datei
+        util.extractZipToFolder(tmpfolder_extracted, tmp_zip_file)
+
+        # überprüfe ob der folder2_subfolder1 vorhanden ist
+        folder2_subfolder1_path = os.path.join(tmpfolder_extracted, self._user1_project1_folder2_subfolder1.name)
+        self.assertTrue(os.path.isdir(folder2_subfolder1_path))
+
+        # überprüfe ob binary1 vorhanden ist
+        binary1_path = os.path.join(folder2_subfolder1_path, self._user1_binary1.name)
+        self.assertTrue(os.path.isfile(binary1_path))
+
+        # überprüfe ob binary2 vorhanden ist
+        binary2_path = os.path.join(folder2_subfolder1_path, self._user1_binary2.name)
+        self.assertTrue(os.path.isfile(binary2_path))
+
+        # überprüfe ob binary3 vorhanden ist
+        binary3_path = os.path.join(folder2_subfolder1_path, self._user1_binary3.name)
+        self.assertTrue(os.path.isfile(binary3_path))
+
+        # überprüfe ob der Inhalt der binary1 Datei mit der Datenbank übereinstimmt
+        with self._user1_binary1.getContent() as binfilecontent:
+            tmp_binary1 = open(binary1_path, 'rb')
+            self.assertEqual(tmp_binary1.read(), binfilecontent.read())
+            tmp_binary1.close()
+
+        # Lösche die temporäre zip Datei und das temp Verzeichnis
+        if os.path.isdir(tmpfolder):
+            shutil.rmtree(tmpfolder)
+
+        # --------------------------------------------------------------------------------------------------------------
+
+        # sende Anfrage zum exportieren eines Ordners mit einer ungültigen
         # projectid
         response = util.documentPoster(self, command='exportzip', idpara=self._invalidid)
 
@@ -342,7 +422,9 @@ class ProjectTestClass(ViewTestCase):
         # sollte status code 404 liefern
         self.assertEqual(response.status_code, 404)
 
-        # sende Anfrage zum exportieren eines Projektes mit einer projectid,
+        # --------------------------------------------------------------------------------------------------------------
+
+        # sende Anfrage zum exportieren eines Projektes mit einer rootfolderID,
         # die user2 gehört (als user1)
         response = util.documentPoster(self, command='exportzip', idpara=self._user2_project1.rootFolder.id)
 

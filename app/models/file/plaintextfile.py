@@ -17,6 +17,8 @@
 import io
 from django.db import models
 from app.models.file.file import File
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 
 class PlainTextFile(File):
@@ -26,3 +28,7 @@ class PlainTextFile(File):
         output = io.StringIO()
         output.write(self.source_code)
         return output
+
+@receiver(pre_save, sender=PlainTextFile)
+def plainTextFilePreSave(instance, **kwargs):
+    instance.mimeType = 'text/plain'

@@ -15,7 +15,24 @@
 
 """
 from app.models.file.plaintextfile import PlainTextFile
-
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+import os
 
 class TexFile(PlainTextFile):
-    pass
+
+    def getSize(self):
+        texfile = self.getContent()
+
+        old_file_position = texfile.tell()
+        texfile.seek(0, os.SEEK_END)
+        texfilesize = texfile.tell()
+        texfile.seek(old_file_position, os.SEEK_SET)
+        texfile.close()
+
+        return texfilesize
+
+@receiver(pre_save, sender=TexFile)
+def texFilePreSave(instance, **kwargs):
+    instance.mimeType = 'text/x-tex'
+    instance.size = instance.getSize()

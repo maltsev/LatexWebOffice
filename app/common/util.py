@@ -27,6 +27,7 @@ from app.models.file.binaryfile import BinaryFile
 from app.models.file.plaintextfile import PlainTextFile
 import json, zipfile, os, shutil, tempfile
 import mimetypes
+import datetime
 
 
 # dekodiert ein JSON
@@ -56,7 +57,11 @@ def jsonErrorResponse(errormsg, request):
 
 # liefert die ID und den Namen eines Projektes als dictionary
 def projectToJson(project):
-    return dict(id=project.id, name=project.name)
+    return dict(id=project.id,
+                name=project.name,
+                author=project.author.username,
+                createtime=datetimeToString(project.createTime),
+                rootfolderid=project.rootFolder.id)
 
 
 # Hilfsmethode um zu überprüfen, ob einer User die Rechte hat einen Ordner zu bearbeiten und ob dieser Ordner existiert
@@ -297,3 +302,8 @@ def getFileSize(pyfile):
 def getFolderName(folderpath):
     path, folder_name = os.path.split(folderpath)
     return folder_name
+
+# gibt Zeit-Datum Objekt als String zurück
+# Format YYYY-MM-DD HH:MM:SS
+def datetimeToString(date_time):
+    date_time.strftime('%Y-%m-%d %H:%M:%S')
