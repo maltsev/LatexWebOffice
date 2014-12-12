@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fri 12 Dec 2014 09:29:38 AM CET
+* Last Modified : Fri 12 Dec 2014 07:34:28 PM CET
 
 * Author :  christian
 
@@ -323,4 +323,4 @@ def getFolderName(folderpath):
 # gibt Zeit-Datum Objekt als String zurück
 # Format YYYY-MM-DD HH:MM:SS
 def datetimeToString(date_time):
-    date_time.strftime('%Y-%m-%d %H:%M:%S')
+    return date_time.strftime('%Y-%m-%d %H:%M:%S')
