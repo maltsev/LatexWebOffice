@@ -47,15 +47,8 @@ jQuery.ajax('/documents/', {
 			else {
 			// vorhandene Dateiliste entfernen
 			filelistHandler.clearData();
-			for (var i = 0; i < data.response.length; ++i){
-					if (i < data.response.length - 1){
-						filelistHandler.addData(data.response[i], [], false);
-						}
-					else{
-						filelistHandler.addData(data.response[i]);
-						}
+			alert(data.response[2]);
 			
-			}
 			
 		}
 		}
