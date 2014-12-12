@@ -15,6 +15,7 @@
 
 """
 import os
+from copy import deepcopy
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -27,11 +28,43 @@ from app.models.file.file import File
 import app
 from core import settings
 
+
+
+class FolderManager(models.Manager):
+    def copy(self, fromFolder, toFolder):
+        toRootFolder = toFolder.getRoot()
+
+        for fileOrFolder in fromFolder.getFilesAndFolders():
+            if isinstance(fileOrFolder, File):
+                file = fileOrFolder
+
+                try:
+                    existingFile = File.objects.get(name=file.name, folder=toFolder)
+                    existingFile.delete()
+                except ObjectDoesNotExist:
+                    pass
+
+                file.__class__.objects.clone(file, folder=toFolder)
+
+            else:
+                fromSubFolder = fileOrFolder
+                toSubFolder = Folder.objects.get(pk=fromSubFolder.pk) # Clone
+                toSubFolder.pk = None
+                toSubFolder.parent = toFolder
+                toSubFolder.root = toRootFolder
+                toSubFolder.save()
+
+                self.copy(fromSubFolder, toSubFolder)
+
+
+
+
 class Folder(models.Model):
     name = models.CharField(max_length=255)
     createTime = models.DateTimeField(auto_now_add=True)
     parent = models.ForeignKey("self", blank=True, null=True, related_name='children') # Darf leer sein nur bei RootFolder
     root = models.ForeignKey("self", blank=True, null=True, related_name='rootFolder') # Darf leer sein nur bei RootFolder
+    objects = FolderManager()
 
     ##
     # Prüft ob das Verzeichnis ein Rootverzeichnis ist
@@ -53,7 +86,7 @@ class Folder(models.Model):
         projectTemplate = self.getRoot().projecttemplate
         try:
             return app.models.project.Project.objects.get(pk=projectTemplate.pk)
-        except (ObjectDoesNotExist):
+        except ObjectDoesNotExist:
             return projectTemplate
 
 
@@ -134,7 +167,10 @@ class Folder(models.Model):
 
     def __str__(self):
         if self.isRoot():
-            return "{}/".format(self.getProject())
+            try:
+                return "{}/".format(self.getProject())
+            except ObjectDoesNotExist:
+                return "{}/".format(self.name)
         else:
             return "{}{}/".format(self.parent, self.name)
 

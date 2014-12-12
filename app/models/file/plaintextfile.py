@@ -16,11 +16,21 @@
 """
 import io
 from django.db import models
-from app.models.file.file import File
+from app.models.file import file
 
 
-class PlainTextFile(File):
+class PlainTextFileManager(file.FileManager):
+    def clone(self, plainTextFileModel, **kwargs):
+        defaultArgs = {
+            'source_code': plainTextFileModel.source_code
+        }
+        args = dict(list(defaultArgs.items()) + list(kwargs.items()))
+        return file.FileManager.clone(self, plainTextFileModel, **args)
+
+
+class PlainTextFile(file.File):
     source_code = models.TextField(blank=True)
+    objects = PlainTextFileManager()
 
     def getContent(self):
         output = io.StringIO()

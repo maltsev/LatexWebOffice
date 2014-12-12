@@ -18,11 +18,25 @@ import io
 import os
 from django.db import models
 
+
+
+class FileManager(models.Manager):
+    def clone(self, fileModel, **kwargs):
+        defaultArgs = {
+            'name': fileModel.name,
+            'folder': fileModel.folder
+        }
+        args = dict(list(defaultArgs.items()) + list(kwargs.items()))
+        return fileModel.__class__.objects.create(**args)
+
+
+
 class File(models.Model):
     name = models.CharField(max_length=255) # Dateiname (z.B. readme.tex)
     createTime = models.DateTimeField(auto_now_add=True)
     lastModifiedTime = models.DateTimeField(auto_now=True)
     folder = models.ForeignKey("Folder")
+    objects = FileManager()
 
     class Meta:
         unique_together = ('name', 'folder')
