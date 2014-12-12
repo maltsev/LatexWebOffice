@@ -17,7 +17,13 @@
 
 """
 
+import json
+import zipfile
+import os
+import mimetypes
+
 from django.http import HttpResponse
+
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES
 from app.models.folder import Folder
 from app.models.project import Project
@@ -26,8 +32,7 @@ from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
 from app.models.file.plaintextfile import PlainTextFile
-import json, zipfile, os, shutil, tempfile
-import mimetypes
+
 
 
 # dekodiert ein JSON
@@ -57,7 +62,11 @@ def jsonErrorResponse(errormsg, request):
 
 # liefert die ID und den Namen eines Projektes als dictionary
 def projectToJson(project):
-    return dict(id=project.id, name=project.name)
+    return dict(id=project.id,
+                name=project.name,
+                author=project.author.username,
+                createtime=datetimeToString(project.createTime),
+                rootfolderid=project.rootFolder.id)
 
 
 # Hilfsmethode um zu überprüfen, ob einer User die Rechte hat einen Ordner zu bearbeiten und ob dieser Ordner existiert
@@ -225,12 +234,12 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content
     if name != None:
         dictionary['name'] = name
     if files != None:
-        dictionary['files']=files
+        dictionary['files'] = files
     return self.client.post('/documents/', dictionary)
 
 
 # Hilfsmethode für hochgeladene Dateien
-def uploadFile(f, folder, request,fromZip=False):
+def uploadFile(f, folder, request, fromZip=False):
     head, name = os.path.split(f.name)
     mime, encoding = mimetypes.guess_type(name)
 
@@ -252,14 +261,14 @@ def uploadFile(f, folder, request,fromZip=False):
         if not fromZip:
             binfile = BinaryFile.objects.createFromRequestFile(name=name, requestFile=f, folder=folder)
         else:
-            binfile=BinaryFile.objects.createFromFile(name=name,filepath=f.name,folder=folder)
+            binfile = BinaryFile.objects.createFromFile(name=name, filepath=f.name, folder=folder)
         return True, {'name': binfile.name, 'id': binfile.id}
     elif mime in ALLOWEDMIMETYPES['text']:
-        if mime==mimetypes.types_map['.tex']:
+        if mime == mimetypes.types_map['.tex']:
             try:
-                texfile=TexFile(name=name,source_code=f.read().decode('utf-8'),folder=folder)
+                texfile = TexFile(name=name, source_code=f.read().decode('utf-8'), folder=folder)
                 texfile.save()
-                return True,{'name':texfile.name,'id':texfile.id}
+                return True, {'name': texfile.name, 'id': texfile.id}
             except:
                 return jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
         else:
@@ -267,8 +276,8 @@ def uploadFile(f, folder, request,fromZip=False):
                 plainfile = PlainTextFile.objects.create(name=name, source_code=f.read().decode('utf-8'))
                 return True, {'name': plainfile.name, 'id': plainfile.id}
             except:
-                return False,jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
-    else:  #Unerlaubtes Mimetype
+                return False, jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+    else:  # Unerlaubtes Mimetype
         return False, ERROR_MESSAGES['ILLEGALFILETYPE']
 
 
@@ -309,3 +318,9 @@ def getFileSize(pyfile):
 def getFolderName(folderpath):
     path, folder_name = os.path.split(folderpath)
     return folder_name
+
+
+# gibt Zeit-Datum Objekt als String zurück
+# Format YYYY-MM-DD HH:MM:SS
+def datetimeToString(date_time):
+    date_time.strftime('%Y-%m-%d %H:%M:%S')

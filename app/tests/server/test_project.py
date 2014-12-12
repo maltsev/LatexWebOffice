@@ -1,6 +1,6 @@
 """
 
-* Purpose : Test des Oroject Views und zugehöriger Methoden (app/views/project.py)
+* Purpose : Test des Project Views und zugehöriger Methoden (app/views/project.py)
 
 * Creation Date : 26-11-2014
 
@@ -10,12 +10,17 @@
 
 * Coauthors : mattis
 
-* Sprintnumber : 2
+* Sprintnumber : 2, 3
 
 * Backlog entry : -
 
 """
 
+import tempfile
+import zipfile
+import shutil
+import os
+import mimetypes
 
 from app.common.constants import ERROR_MESSAGES, SUCCESS
 from app.common import util
@@ -23,27 +28,22 @@ from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.plaintextfile import PlainTextFile
 from app.tests.server.viewtestcase import ViewTestCase
-import tempfile
-import zipfile
-import shutil
-import os
-import mimetypes
 
 
 class ProjectTestClass(ViewTestCase):
-
     # Initialiserung der benötigten Objekte
     # -> wird vor jedem Test ausgeführt
 
     def setUp(self):
         self.setUpUserAndProjects()
         self.setUpFolders()
+        self.setUpFiles()
         self.setUpValues()
 
     # Freigabe von nicht mehr benötigten Resourcen
     # -> wird nach jedem Test ausgeführt
     def tearDown(self):
-        pass
+        self.tearDownFiles()
 
     # Teste Erstellen eines Projektes:
     # - ein Benutzer erstellt zwei neue Projekte -> success
@@ -51,8 +51,7 @@ class ProjectTestClass(ViewTestCase):
     # - ein Benutzer erstellt ein weiteres Projekt, wobei der Projektname bereits existiert -> Fehlermeldung
     def test_projectCreate(self):
         # Sende Anfrage zum Erstellen eines neuen Projektes
-        response = util.documentPoster(
-            self, command='projectcreate', name=self._newprojectname2)
+        response = util.documentPoster(self, command='projectcreate', name=self._newprojectname2)
 
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
@@ -71,8 +70,7 @@ class ProjectTestClass(ViewTestCase):
         user1_project3_id = dictionary['response']['id']
 
         # erzeuge ein weiteres Projekt
-        response = util.documentPoster(
-            self, command='projectcreate', name=self._newprojectname3)
+        response = util.documentPoster(self, command='projectcreate', name=self._newprojectname3)
 
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
@@ -95,49 +93,40 @@ class ProjectTestClass(ViewTestCase):
         self.assertTrue(Project.objects.get(id=user1_project4_id).rootFolder)
 
         # überprüfe, ob die main.tex Dateien in der Datenbank vorhanden sind
-        self.assertTrue(
-            Project.objects.get(id=user1_project3_id).rootFolder.getMainTex())
-        self.assertTrue(
-            Project.objects.get(id=user1_project4_id).rootFolder.getMainTex())
+        self.assertTrue(Project.objects.get(id=user1_project3_id).rootFolder.getMainTex())
+        self.assertTrue(Project.objects.get(id=user1_project4_id).rootFolder.getMainTex())
 
         # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein Projekt, dessen Name nur aus Leerzeichen besteht
-        response = util.documentPoster(
-            self, command='projectcreate', name='    ')
+        response = util.documentPoster(self, command='projectcreate', name='    ')
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
         # Fehlermeldung sollte ERROR_MESSAGES['BLANKNAME'] sein
-        util.validateJsonFailureResponse(
-            self, response.content, ERROR_MESSAGES['BLANKNAME'])
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['BLANKNAME'])
 
         # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein Projekt, dessen Name nur ein leerer String ist
-        response = util.documentPoster(
-            self, command='projectcreate', name='')
+        response = util.documentPoster(self, command='projectcreate', name='')
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
         # Fehlermeldung sollte ERROR_MESSAGES['BLANKNAME'] sein
-        util.validateJsonFailureResponse(
-            self, response.content, ERROR_MESSAGES['BLANKNAME'])
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['BLANKNAME'])
 
         # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein Projekt, dessen Name ungültige Sonderzeichen enthält
-        response = util.documentPoster(
-            self, command='projectcreate', name='<>\\')
+        response = util.documentPoster(self, command='projectcreate', name='<>\\')
 
         # status sollte failure sein
         # Fehlermeldung sollte ERROR_MESSAGES['INVALIDNAME'] sein
-        util.validateJsonFailureResponse(
-            self, response.content, ERROR_MESSAGES['INVALIDNAME'])
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['INVALIDNAME'])
 
         # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein weiteres Projekt mit einem bereits existierenden Namen
-        response = util.documentPoster(
-            self, command='projectcreate', name='USER1_project4')
+        response = util.documentPoster(self, command='projectcreate', name='USER1_project4')
 
-        # überprüfe die Antwort des Servers
+        # überprüfe die Antwort des Server
         # status sollte failure sein
         # Fehlermeldung sollte ERROR_MESSAGES['PROJECTALREADYEXISTS'] sein
         util.validateJsonFailureResponse(self, response.content,
@@ -146,38 +135,31 @@ class ProjectTestClass(ViewTestCase):
     # Teste Löschen eines Projektes
     def test_projectRm(self):
         # Sende Anfrage zum Löschen eines vorhandenen Projektes
-        response = util.documentPoster(
-            self, command='projectrm', idpara=self._user1_project1.id)
+        response = util.documentPoster(self, command='projectrm', idpara=self._user1_project1.id)
 
         # überprüfe die Antwort des Servers
         # status sollte success sein
         util.validateJsonSuccessResponse(self, response.content, {})
 
         # es sollte keine Ordner des Projektes mehr in der Datenbank existieren
-        self.assertFalse(
-            Folder.objects.filter(id=self._user1_project1_folder1.id))
-        self.assertFalse(
-            Folder.objects.filter(id=self._user1_project1_folder2_subfolder1.id))
+        self.assertFalse(Folder.objects.filter(id=self._user1_project1_folder1.id))
+        self.assertFalse(Folder.objects.filter(id=self._user1_project1_folder2_subfolder1.id))
 
         # Sende Anfrage zum Löschen eines nicht vorhandenen Projektes
-        response = util.documentPoster(
-            self, command='projectrm', idpara=self._invalidid)
+        response = util.documentPoster(self, command='projectrm', idpara=self._invalidid)
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
         # Fehlermeldung sollte ERROR_MESSAGES['PROJECTNOTEXIST'] sein
-        util.validateJsonFailureResponse(
-            self, response.content, ERROR_MESSAGES['PROJECTNOTEXIST'])
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['PROJECTNOTEXIST'])
 
         # Sende Anfrage zum Löschen eines Projektes von user2 (als user1)
-        response = util.documentPoster(
-            self, command='projectrm', idpara=self._user2_project1.id)
+        response = util.documentPoster(self, command='projectrm', idpara=self._user2_project1.id)
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
         # Fehlermeldung sollte ERROR_MESSAGES['NOTENOUGHRIGHTS'] sein
-        util.validateJsonFailureResponse(
-            self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
 
     # Teste Auflisten aller Projekte:
     # - user1 und user2 besitzen jeweils 2 Projekte, user3 keine
@@ -192,8 +174,16 @@ class ProjectTestClass(ViewTestCase):
         # status sollte success sein
         # teste, ob in response die beiden erstellten Projekte von user1 richtig aufgelistet werden
         # und keine Projekte von user2 aufgelistet werden
-        dictionary = [{'id': self._user1_project1.id, 'name': self._user1_project1.name},
-                      {'id': self._user1_project2.id, 'name': self._user1_project2.name}]
+        dictionary = [{'id': self._user1_project1.id,
+                       'name': self._user1_project1.name,
+                       'author': self._user1_project1.author.username,
+                       'createtime': util.datetimeToString(self._user1_project1.createTime),
+                       'rootfolderid': self._user1_project1.rootFolder.id},
+                      {'id': self._user1_project2.id,
+                       'name': self._user1_project2.name,
+                       'author': self._user1_project2.author.username,
+                       'createtime': util.datetimeToString(self._user1_project2.createTime),
+                       'rootfolderid': self._user1_project2.rootFolder.id}]
         util.validateJsonSuccessResponse(self, response.content, dictionary)
 
         # logout von user1
@@ -211,8 +201,16 @@ class ProjectTestClass(ViewTestCase):
         # status sollte success sein
         # teste, ob in response die beiden erstellten Projekte von user 2 richtig aufgelistet werden
         # und keine Projekte von user1 aufgelistet werden
-        dictionary = [{'id': self._user2_project1.id, 'name': self._user2_project1.name},
-                      {'id': self._user2_project2.id, 'name': self._user2_project2.name}]
+        dictionary = [{'id': self._user2_project1.id,
+                       'name': self._user2_project1.name,
+                       'author': self._user2_project1.author.username,
+                       'createtime': util.datetimeToString(self._user2_project1.createTime),
+                       'rootfolderid': self._user2_project1.rootFolder.id},
+                      {'id': self._user2_project2.id,
+                       'name': self._user2_project2.name,
+                       'author': self._user2_project2.author.username,
+                       'createtime': util.datetimeToString(self._user2_project2.createTime),
+                       'rootfolderid': self._user2_project2.rootFolder.id}]
         util.validateJsonSuccessResponse(self, response.content, dictionary)
 
         # logout von user2
@@ -220,8 +218,7 @@ class ProjectTestClass(ViewTestCase):
 
         # --------------------------------------------------------------------------------------------------------------
         # login von user3
-        self.client.login(
-            username=self._user3.username, password=self._user3._unhashedpw)
+        self.client.login(username=self._user3.username, password=self._user3._unhashedpw)
 
         # Sende Anfrage zum Auflisten aller Projekte von user3
         response = util.documentPoster(self, command='listprojects')
@@ -255,14 +252,12 @@ class ProjectTestClass(ViewTestCase):
         maintex.close()
 
         # erstelle eine Binärdatei im Unterordner 1
-        binfile = open(os.path.join(
-            tmpfolder_project, 'Ordner 1', 'Unterordner 1', 'binary1.bin'), 'wb')
+        binfile = open(os.path.join(tmpfolder_project, 'Ordner 1', 'Unterordner 1', 'binary1.bin'), 'wb')
         binfile.write(bytearray('binary_test_file_importzip', 'utf-8'))
         binfile.close()
 
         # erstelle eine zip Datei aus dem Projektordner
-        zip_file_path = os.path.join(
-            tmpfolder, (self._newprojectname1 + '.zip'))
+        zip_file_path = os.path.join(tmpfolder, (self._newprojectname1 + '.zip'))
         util.createZipFromFolder(tmpfolder_project, zip_file_path)
 
         # stelle sicher, dass die zip Datei gültig ist
@@ -283,34 +278,22 @@ class ProjectTestClass(ViewTestCase):
             shutil.rmtree(tmpfolder)
 
         # Teste, dass das Projekt existiert
-        self.assertTrue(Project.objects.filter(
-            author=self._user1, name=self._newprojectname1).exists())
-        projobj = Project.objects.get(
-            author=self._user1, name=self._newprojectname1)
+        self.assertTrue(Project.objects.filter(author=self._user1, name=self._newprojectname1).exists())
+        projobj = Project.objects.get(author=self._user1, name=self._newprojectname1)
 
         # Teste, dass eine main tex Datei existiert und diese den richtigen
         # Inhalt hat
-        self.assertTrue(PlainTextFile.objects.filter(
-            name='main.tex', folder=projobj.rootFolder).exists())
-        maintexobj = PlainTextFile.objects.get(
-            name='main.tex', folder=projobj.rootFolder)
+        self.assertTrue(PlainTextFile.objects.filter(name='main.tex', folder=projobj.rootFolder).exists())
+        maintexobj = PlainTextFile.objects.get(name='main.tex', folder=projobj.rootFolder)
         self.assertEqual(maintexobj.source_code, self._new_code1)
 
         # Teste, dass auch Unterordner angelegt wurden
-        self.assertTrue(
-            Folder.objects.filter(name='Unterordner 1', root=projobj.rootFolder).exists())
+        self.assertTrue(Folder.objects.filter(name='Unterordner 1', root=projobj.rootFolder).exists())
 
     # Teste das Exportieren eines Projektes als .zip Datei
     def test_exportzip(self):
-        # lese die main.tex Datei von user1_project1 ein und setze einen test
-        # String als source_code
-        maintexobj = self._user1_project1.rootFolder.getMainTex()
-        maintexobj.source_code = 'test_sourcecode for exportzip'
-        maintexobj.save()
-
-        # Sende Anfrag zum exportieren eines Projektes
-        response = util.documentPoster(
-            self, command='exportzip', idpara=self._user1_project1.id)
+        # Sende Anfrage zum exportieren eines Projektes
+        response = util.documentPoster(self, command='exportzip', idpara=self._user1_project1.rootFolder.id)
 
         # überprüfe die Antwort des Servers
         # Content-Type sollte application/zip sein
@@ -325,8 +308,7 @@ class ProjectTestClass(ViewTestCase):
             os.mkdir(tmpfolder_extracted)
 
         # Pfad zur temporären zip Datei
-        tmp_zip_file = os.path.join(
-            tmpfolder, (self._user1_project1.name + 'zip'))
+        tmp_zip_file = os.path.join(tmpfolder, (self._user1_project1.name + 'zip'))
         # Schreibe den Inhalt der empfangenen Datei in die temp zip Datei
         with open(tmp_zip_file, 'a+b') as f:
             f.write(response.content)
@@ -338,37 +320,113 @@ class ProjectTestClass(ViewTestCase):
         util.extractZipToFolder(tmpfolder_extracted, tmp_zip_file)
 
         # überprüfe ob der folder1 vorhanden ist
-        self.assertTrue(os.path.isdir(
-            os.path.join(tmpfolder_extracted, self._user1_project1_folder1.name)))
+        self.assertTrue(os.path.isdir(os.path.join(tmpfolder_extracted, self._user1_project1_folder1.name)))
         # überprüfe ob der folder2_subfolder1 vorhanden ist
-        self.assertTrue(os.path.isdir(os.path.join(tmpfolder_extracted, self._user1_project1_folder2.name,
-                                                   self._user1_project1_folder2_subfolder1.name)))
+        folder2_subfolder1_path = os.path.join(tmpfolder_extracted, self._user1_project1_folder2.name,
+                                               self._user1_project1_folder2_subfolder1.name)
+        self.assertTrue(os.path.isdir(folder2_subfolder1_path))
+
         # überprüfe ob die main.tex Datei vorhanden ist
-        maintex_path = os.path.join(tmpfolder_extracted, maintexobj.name)
+        maintex_path = os.path.join(tmpfolder_extracted, self._user1_tex1.name)
         self.assertTrue(os.path.isfile(maintex_path))
 
         # überprüfe, ob der Inhalt der main.tex Datei mit der Datenbank
         # übereinstimmt
         with open(maintex_path, 'r') as maintex:
-            self.assertEqual(maintex.read(), maintexobj.source_code)
+            self.assertEqual(maintex.read(), self._user1_tex1.source_code)
+
+        # überprüfe ob binary1 vorhanden ist
+        binary1_path = os.path.join(folder2_subfolder1_path, self._user1_binary1.name)
+        self.assertTrue(os.path.isfile(binary1_path))
+
+        # überprüfe ob binary2 vorhanden ist
+        binary2_path = os.path.join(folder2_subfolder1_path, self._user1_binary2.name)
+        self.assertTrue(os.path.isfile(binary2_path))
+
+        # überprüfe ob binary3 vorhanden ist
+        binary3_path = os.path.join(folder2_subfolder1_path, self._user1_binary3.name)
+        self.assertTrue(os.path.isfile(binary3_path))
+
+        # überprüfe ob der Inhalt der binary1 Datei mit der Datenbank übereinstimmt
+        with self._user1_binary1.getContent() as binfilecontent:
+            tmp_binary1 = open(binary1_path, 'rb')
+            self.assertEqual(tmp_binary1.read(), binfilecontent.read())
+            tmp_binary1.close()
 
         # Lösche die temporäre zip Datei und das temp Verzeichnis
-        # if os.path.isdir(tmpfolder):
-        #    shutil.rmtree(tmpfolder)
+        if os.path.isdir(tmpfolder):
+            shutil.rmtree(tmpfolder)
 
-        # sende Anfrage zum exportieren eines Projektes mit einer ungültigen
+        # --------------------------------------------------------------------------------------------------------------
+
+        # sende Anfrage zum exportieren eines Ordners
+        response = util.documentPoster(self, command='exportzip', idpara=self._user1_project1_folder2.id)
+
+                # überprüfe die Antwort des Servers
+        # Content-Type sollte application/zip sein
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.zip'])
+        # Content-Length sollte mit gesendet worden sein
+        self.assertIn('Content-Length', response)
+
+        # erstelle temp Ordner
+        tmpfolder = tempfile.mkdtemp()
+        tmpfolder_extracted = os.path.join(tmpfolder, 'extracted')
+        if not os.path.isdir(tmpfolder_extracted):
+            os.mkdir(tmpfolder_extracted)
+
+        # Pfad zur temporären zip Datei
+        tmp_zip_file = os.path.join(tmpfolder, (self._user1_project1.name + 'zip'))
+        # Schreibe den Inhalt der empfangenen Datei in die temp zip Datei
+        with open(tmp_zip_file, 'a+b') as f:
+            f.write(response.content)
+
+        # überprüfe, ob es eine gültige zip Datei ist (magic number)
+        self.assertTrue(zipfile.is_zipfile(tmp_zip_file))
+
+        # entpacke die heruntergeladene Datei
+        util.extractZipToFolder(tmpfolder_extracted, tmp_zip_file)
+
+        # überprüfe ob der folder2_subfolder1 vorhanden ist
+        folder2_subfolder1_path = os.path.join(tmpfolder_extracted, self._user1_project1_folder2_subfolder1.name)
+        self.assertTrue(os.path.isdir(folder2_subfolder1_path))
+
+        # überprüfe ob binary1 vorhanden ist
+        binary1_path = os.path.join(folder2_subfolder1_path, self._user1_binary1.name)
+        self.assertTrue(os.path.isfile(binary1_path))
+
+        # überprüfe ob binary2 vorhanden ist
+        binary2_path = os.path.join(folder2_subfolder1_path, self._user1_binary2.name)
+        self.assertTrue(os.path.isfile(binary2_path))
+
+        # überprüfe ob binary3 vorhanden ist
+        binary3_path = os.path.join(folder2_subfolder1_path, self._user1_binary3.name)
+        self.assertTrue(os.path.isfile(binary3_path))
+
+        # überprüfe ob der Inhalt der binary1 Datei mit der Datenbank übereinstimmt
+        with self._user1_binary1.getContent() as binfilecontent:
+            tmp_binary1 = open(binary1_path, 'rb')
+            self.assertEqual(tmp_binary1.read(), binfilecontent.read())
+            tmp_binary1.close()
+
+        # Lösche die temporäre zip Datei und das temp Verzeichnis
+        if os.path.isdir(tmpfolder):
+            shutil.rmtree(tmpfolder)
+
+        # --------------------------------------------------------------------------------------------------------------
+
+        # sende Anfrage zum exportieren eines Ordners mit einer ungültigen
         # projectid
-        response = util.documentPoster(
-            self, command='exportzip', idpara=self._invalidid)
+        response = util.documentPoster(self, command='exportzip', idpara=self._invalidid)
 
         # überprüfe die Antwort des Servers
         # sollte status code 404 liefern
         self.assertEqual(response.status_code, 404)
 
-        # sende Anfrage zum exportieren eines Projektes mit einer projectid,
+        # --------------------------------------------------------------------------------------------------------------
+
+        # sende Anfrage zum exportieren eines Projektes mit einer rootfolderID,
         # die user2 gehört (als user1)
-        response = util.documentPoster(
-            self, command='exportzip', idpara=self._user2_project1.id)
+        response = util.documentPoster(self, command='exportzip', idpara=self._user2_project1.rootFolder.id)
 
         # überprüfe die Antwort des Servers
         # sollte status code 404 liefern

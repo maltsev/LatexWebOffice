@@ -16,8 +16,8 @@
 """
 import io
 import os
-from django.db import models
 
+from django.db import models
 
 
 class FileManager(models.Manager):
@@ -30,12 +30,13 @@ class FileManager(models.Manager):
         return fileModel.__class__.objects.create(**args)
 
 
-
 class File(models.Model):
-    name = models.CharField(max_length=255) # Dateiname (z.B. readme.tex)
+    name = models.CharField(max_length=255)  # Dateiname (z.B. readme.tex)
     createTime = models.DateTimeField(auto_now_add=True)
     lastModifiedTime = models.DateTimeField(auto_now=True)
     folder = models.ForeignKey("Folder")
+    mimeType = models.CharField(max_length=255, default='application/octet-stream')
+    size = models.PositiveIntegerField(default=0)
     objects = FileManager()
 
     class Meta:
@@ -62,7 +63,6 @@ class File(models.Model):
             file.close()
 
         return fileTempPath
-
 
 
     def __str__(self):

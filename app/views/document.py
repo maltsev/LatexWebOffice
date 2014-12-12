@@ -44,7 +44,8 @@ def execute(request):
         user = request.user
 
         globalparas = {'id': {'name': 'id', 'type': int}, 'content': {'name': 'content', 'type': str},
-                       'folderid': {'name': 'folderid', 'type': int}, 'name': {'name': 'name', 'type': str}}
+                       'folderid': {'name': 'folderid', 'type': int}, 'name': {'name': 'name', 'type': str},
+                       'formatid': {'name': 'formatid', 'type': int}}
 
         # dictionary mit verfügbaren Befehlen und den entsprechenden Aktionen
         # die entsprechenden Methoden befinden sich in:

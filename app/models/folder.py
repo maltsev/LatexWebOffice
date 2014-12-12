@@ -15,19 +15,20 @@
 
 """
 import os
-from copy import deepcopy
+
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.exceptions import ObjectDoesNotExist
+
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.image import Image
 from app.models.file.pdf import PDF
 from app.models.file.file import File
 import app
+from app.models.file.binaryfile import BinaryFile
 from core import settings
-
 
 
 class FolderManager(models.Manager):
@@ -48,7 +49,7 @@ class FolderManager(models.Manager):
 
             else:
                 fromSubFolder = fileOrFolder
-                toSubFolder = Folder.objects.get(pk=fromSubFolder.pk) # Clone
+                toSubFolder = Folder.objects.get(pk=fromSubFolder.pk)  # Clone
                 toSubFolder.pk = None
                 toSubFolder.parent = toFolder
                 toSubFolder.root = toRootFolder
@@ -57,13 +58,13 @@ class FolderManager(models.Manager):
                 self.copy(fromSubFolder, toSubFolder)
 
 
-
-
 class Folder(models.Model):
     name = models.CharField(max_length=255)
     createTime = models.DateTimeField(auto_now_add=True)
-    parent = models.ForeignKey("self", blank=True, null=True, related_name='children') # Darf leer sein nur bei RootFolder
-    root = models.ForeignKey("self", blank=True, null=True, related_name='rootFolder') # Darf leer sein nur bei RootFolder
+    parent = models.ForeignKey("self", blank=True, null=True,
+                               related_name='children')  # Darf leer sein nur bei RootFolder
+    root = models.ForeignKey("self", blank=True, null=True,
+                             related_name='rootFolder')  # Darf leer sein nur bei RootFolder
     objects = FolderManager()
 
     ##
@@ -106,7 +107,7 @@ class Folder(models.Model):
         if self.parent:
             folderPath = os.path.join(self.parent.getTempPath(), self.name)
         else:
-            folderPath = os.path.join(settings.BASE_DIR, 'media', 'projects', "{}_{}".format(self.pk, self.name))
+            folderPath = os.path.join(settings.PROJECT_ROOT, "{}_{}".format(self.pk, self.name))
 
         if not os.path.exists(folderPath):
             os.makedirs(folderPath)
@@ -114,15 +115,14 @@ class Folder(models.Model):
         return folderPath
 
     ##
-    # Abbildet ganzes Rootverzeichnis (mit allen Dateien und Verzeichnisen)
-    # auf der Festplatte und gibt den temporären Vezeichnispfad zurück
+    # Bildet ein komplettes Verzeichnis auf der Festplatte ab
+    # und gibt den temporären Vezeichnispfad zurück
     # @return String
-    def dumpRootFolder(self):
-        root = self.getRoot()
+    def dumpFolder(self):
         for fileOrFolder in self.getFilesAndFoldersRecursively():
             fileOrFolder.getTempPath()
 
-        return root.getTempPath()
+        return self.getTempPath()
 
     ##
     # Gibt alle innere Dateien und Verzeichnise des Verzeichnises zurück
@@ -146,11 +146,14 @@ class Folder(models.Model):
         pdfFiles = list(PDF.objects.filter(folder=self).exclude(pk__in=excludeFileIds).all())
         excludeFileIds = excludeFileIds + [file.pk for file in pdfFiles]
 
+        binaryFiles = list(BinaryFile.objects.filter(folder=self).exclude(pk__in=excludeFileIds).all())
+        excludeFileIds = excludeFileIds + [file.pk for file in binaryFiles]
+
         files = list(File.objects.filter(folder=self).exclude(pk__in=excludeFileIds).all())
 
         folders = list(self.children.all())
 
-        return texFiles + plainTextFiles + imageFiles + pdfFiles + folders + files
+        return texFiles + plainTextFiles + imageFiles + pdfFiles + folders + binaryFiles + files
 
     ##
     # Gibt rekursiv alle innere Dateien und Verzeichnise des Verzeichnises zurück
@@ -158,7 +161,8 @@ class Folder(models.Model):
     def getFilesAndFoldersRecursively(self):
         filesAndFolders = self.getFilesAndFolders()
         for fileOrFolder in filesAndFolders:
-            if hasattr(fileOrFolder, 'getFilesAndFoldersRecursively') and callable(fileOrFolder.getFilesAndFoldersRecursively):
+            if hasattr(fileOrFolder, 'getFilesAndFoldersRecursively') \
+                    and callable(fileOrFolder.getFilesAndFoldersRecursively):
                 folder = fileOrFolder
                 filesAndFolders = filesAndFolders + folder.getFilesAndFoldersRecursively()
 
@@ -173,7 +177,6 @@ class Folder(models.Model):
                 return "{}/".format(self.name)
         else:
             return "{}{}/".format(self.parent, self.name)
-
 
 
 @receiver(post_save, sender=Folder)

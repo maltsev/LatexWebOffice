@@ -44,7 +44,7 @@ class BinaryFileManager(file.FileManager):
             for chunk in requestFile.chunks():
                 content = content + chunk
 
-            kwargs['filepath'] = self.__createBinaryFile(content)
+            kwargs['filepath'], kwargs['size'] = self.__createBinaryFile(content)
             del kwargs['requestFile']
 
         return self.create(**kwargs)
@@ -55,7 +55,7 @@ class BinaryFileManager(file.FileManager):
         isFilepath = 'filepath' in kwargs and bool(kwargs['filepath'])
         file = 'file' in kwargs and kwargs['file']
         if file and not isFilepath:
-            kwargs['filepath'] = self.__createBinaryFile(file.read())
+            kwargs['filepath'], kwargs['size'] = self.__createBinaryFile(file.read())
             del kwargs['file']
 
         return self.create(**kwargs)
@@ -63,7 +63,7 @@ class BinaryFileManager(file.FileManager):
 
     def __createBinaryFile(self, content):
         filename = hashlib.md5(content).hexdigest()
-        filepath = os.path.join(settings.BASE_DIR, settings.MEDIA_ROOT, 'files', filename)
+        filepath = os.path.join(settings.FILE_ROOT, filename)
         if not os.path.exists(filepath):
             fileDirPath = os.path.dirname(filepath)
             if not os.path.exists(fileDirPath):
@@ -73,7 +73,7 @@ class BinaryFileManager(file.FileManager):
             newFile.write(content)
             newFile.close()
 
-        return filepath
+        return filepath, os.path.getsize(filepath)
 
 
 
