@@ -1,10 +1,10 @@
-""" 
+"""
 
 * Purpose : Verwaltung von Folder Models
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Sat 29 Nov 2014 12:28:42 AM CET
+* Last Modified : Fr 12 Dez 2014 13:19:23 CET
 
 * Author :  mattis
 
@@ -31,12 +31,12 @@ import mimetypes, os, io
 # erstellt einen neuen Ordner im angegebenen Verzeichnis
 # benötigt: id:parentdirid, name:directoryname
 # liefert: HTTP Response (Json)
-def createDir(request, user, parentdirid, directoryname):
-    # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
+def createDir(request, user, parentdirid=0, directoryname=""):
+    '''# Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
     emptystring, failurereturn = util.checkObjectForInvalidString(directoryname, request)
     if not emptystring:
         return failurereturn
-
+'''
     # Teste ob der übergeordnete Ordner existiert und der user die entsprechenden Zugriffsrechte hat
     rights, failurereturn = util.checkIfDirExistsAndUserHasRights(parentdirid, user, request)
     if not rights:
@@ -96,10 +96,6 @@ def renameDir(request, user, folderid, newdirectoryname):
     # hole das Ordner Objekt
     folder = Folder.objects.get(id=folderid)
 
-    # Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = util.checkObjectForInvalidString(newdirectoryname, request)
-    if not emptystring:
-        return failurereturn
 
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert
     unique, failurereturn = util.checkIfFileOrFolderIsUnique(newdirectoryname, Folder, folder.parent, request)

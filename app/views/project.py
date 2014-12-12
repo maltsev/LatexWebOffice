@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Do 04 Dez 2014 14:57:05 CET
+* Last Modified : Fr 12 Dez 2014 13:57:24 CET
 
 * Author :  christian
 
@@ -36,12 +36,6 @@ from app.common.constants import ERROR_MESSAGES
 # liefert: HTTP Response (Json)
 # Beispiel response: {'name': 'user1_project1', 'id': 1}
 def projectCreate(request, user, projectname):
-    # Teste, ob der Projektname kein leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    # oder ungültige Sonderzeichen enthält
-    emptystring, failurereturn = util.checkObjectForInvalidString(projectname, request)
-    if not emptystring:
-        return failurereturn
-
     # überprüfe ob ein Projekt mit dem Namen projectname bereits für diese
     # Benutzer existiert
     if Project.objects.filter(name__iexact=projectname.lower(), author=user).exists():
@@ -66,7 +60,6 @@ def projectRm(request, user, projectid):
     # sonst gib eine Fehlermeldung zurück
     if not rights:
         return failurereturn
-
     # hole das zu löschende Projekt
     projectobj = Project.objects.get(id=projectid)
 

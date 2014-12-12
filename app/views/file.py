@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Do 04 Dez 2014 13:38:33 CET
+* Last Modified : Fr 12 Dez 2014 13:18:02 CET
 
 * Author :  christian
 
@@ -46,12 +46,6 @@ def createTexFile(request, user, folderid, texname):
     # Teste ob eine .tex Datei mit dem selben Namen in diesem Ordner schon existiert
     unique, failurereturn = util.checkIfFileOrFolderIsUnique(texname, File, folderobj, request)
     if not unique:
-        return failurereturn
-
-    # Teste, ob der Dateiname kein leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    # oder ungültige Sonderzeichen enthält
-    emptystring, failurereturn = util.checkObjectForInvalidString(texname, request)
-    if not emptystring:
         return failurereturn
 
     # versuche die tex Datei zu erstellen
@@ -115,11 +109,6 @@ def renameFile(request, user, fileid, newfilename):
     # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
     rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
-        return failurereturn
-
-    # Teste, ob der filename keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = util.checkObjectForInvalidString(newfilename, request)
-    if not emptystring:
         return failurereturn
 
     # hole das file object
