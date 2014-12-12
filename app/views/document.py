@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 12 Dez 2014 13:58:54 CET
+* Last Modified : Fr 12 Dez 2014 14:02:22 CET
 
 * Author :  mattis
 
@@ -71,7 +71,7 @@ def execute(request):
             'movedir': {'command': folder.moveDir, 'parameters': [{'para': globalparas['id'], 'type':Folder}, {'para': globalparas['folderid'], 'type':Folder}]},
             'listfiles': {'command': folder.listFiles, 'parameters': [{'para': globalparas['id'], 'type':Folder}]},
             'template2project': {'command': template.template2Project, 'parameters': [{'para': globalparas['id'], 'type':ProjectTemplate}, {'para': globalparas['name'], 'stringcheck':True}]},
-            'project2template': {'command': template.project2template, 'parameters': [{'para': globalparas['id'], 'type':Project}, {'para': globalparas['name'], 'stringcheck':True}]},
+            'project2template': {'command': template.project2Template, 'parameters': [{'para': globalparas['id'], 'type':Project}, {'para': globalparas['name'], 'stringcheck':True}]},
         }
 
         # wenn der Schlüssel nicht gefunden wurde
