@@ -1,7 +1,7 @@
 /*
 @author: Thore Thießen
 @creation: 11.12.2014 - sprint-nr: 3
-@last-change: 11.12.2014 - sprint-nr: 3
+@last-change: 12.12.2014 - sprint-nr: 3
 */
 
 /**
@@ -42,7 +42,7 @@ function ListSelector(containerId) {
 		this.render();
 	};
 
-	// Datensätze; [{object: {…}, children: [{…}, …], show: true/false}, …]
+	// Datensätze; [{object: {element1: …, …}, children: [{…}, …], show: true/false}, …]
 	var data = [];
 
 	/**
@@ -59,13 +59,13 @@ function ListSelector(containerId) {
 		if (path != null && $.isArray(path) && path.length > 0) {
 			var result;
 
-			if (path[0] < data.length)
+			if (path[0] % 1 === 0 && path[0] < data.length)
 				result = data[path[0]];
 			else
 				return(null);
 
 			for (var i = 1; i < path.length; ++i)
-				if (path[i] < result.children.length)
+				if (path[i] % 1 === 0 && path[i] < result.children.length)
 					result = result.children[path[i]];
 				else
 					return(null);
@@ -99,6 +99,7 @@ function ListSelector(containerId) {
 			// Objekt einfügen
 			var index = container.push({'object': object, 'children': [], 'show': show}) - 1;
 	
+			// ggf. DOM neu rendern
 			if (render)
 				this.render();
 	
@@ -172,6 +173,7 @@ function ListSelector(containerId) {
 				event.data.object.dClick(event.data.path);
 			});
 
+			// ggf. Unterelemente anzeigen
 			if (container[i].children.length > 0 && container[i].show)
 				renderElements(container[i].children, currPath, output, object);
 		}

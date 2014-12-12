@@ -1,7 +1,7 @@
 <!--
 @author: Thore Thießen
 @creation: 04.12.2014 - sprint-nr: 2
-@last-change: 11.12.2014 - sprint-nr: 3
+@last-change: 12.12.2014 - sprint-nr: 3
 -->
 
 {% extends "_wrapper.html" %}
@@ -10,30 +10,14 @@
 {% block header %}
 <link rel="stylesheet" href="/static/css/listselector.css">
 <script src="/static/js/listselector.js"></script>
+<script src="/static/js/projekt.js"></script>
 {% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
 <div id="inhalt">
-<script>
-$(document).ready(function() {
-	var list = new ListSelector('test');
-	list.setCaptions([
-		{'name': 'Projektname', 'element': 'name'},
-		{'name': 'Autor', 'element': 'author'},
-		{'name': 'Erstellungszeitpunkt', 'element': 'created'}
-	]);
-
-	list.addData({'name': 'TestProjekt', 'author': 'Benutzer', 'created': '10. Dezember 2014'});
-	list.addData({'name': 'Projekt 2', 'author': 'Administrator', 'created': '20. November 2014'}, [0], false);
-	list.addData({'name': 'Demo-Projekt', 'author': 'TestBenutzer', 'created': '15. November 2014'}, [0, 0]);
-	list.addData({'name': 'TestProjekt2', 'author': 'AndererBenutzer', 'created': '10. Dezember 2014'});
-
-	list.setDClickHandler(function(object) {
-		console.log(object);
-	});
-});
-</script>
-<div id="test"></div>
+<h1>Projektübersicht</h1>
+<div>FIXME: Menüleiste einbinden</div>
+<div id="projekte"></div>
 </div>
 {% endblock %}
