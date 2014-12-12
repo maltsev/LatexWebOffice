@@ -17,7 +17,7 @@
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from app.models import projecttemplate
+from app.models import projecttemplate, folder
 
 
 class ProjectManager(models.Manager):
@@ -25,7 +25,19 @@ class ProjectManager(models.Manager):
         raise NotImplementedError('createFromProject soll von ProjectTemplate angerufen werden')
 
     def createFromProjectTemplate(self, **kwargs):
-        pass
+        if 'template' not in kwargs:
+            raise AttributeError('ProjectTemplate ist nicht eingegeben')
+
+        projectTemplate = kwargs['template']
+
+        projectName = kwargs.get('name', projectTemplate.name)
+        projectAuthor = kwargs.get('author', projectTemplate.author)
+
+        project = self.create(name=projectName, author=projectAuthor)
+
+        folder.Folder.objects.copy(projectTemplate.rootFolder, project.rootFolder)
+
+        return project
 
 
 class Project(projecttemplate.ProjectTemplate):

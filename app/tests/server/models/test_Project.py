@@ -15,8 +15,6 @@
 
 """
 from django.core.exceptions import ObjectDoesNotExist
-from django.test import TestCase
-from django.contrib.auth.models import User
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.projecttemplate import ProjectTemplate
@@ -26,6 +24,14 @@ from app.tests.server.models.modeltestcase import ModelTestCase
 class ProjectTestCase(ModelTestCase):
     def setUp(self):
         self.setUpProject()
+
+    def test_reateFromProjectTemplate(self):
+        projectTemplate = ProjectTemplate.objects.get(pk=self.project.pk)
+        project = Project.objects.createFromProjectTemplate(template=projectTemplate, name="Testprojekt")
+
+        self.assertEqual("Testprojekt", project.name)
+        self.assertEqual(len(projectTemplate.rootFolder.getFilesAndFoldersRecursively()),
+                         len(project.rootFolder.getFilesAndFoldersRecursively()))
 
     def test_getProject(self):
         self.assertEqual(self.project, self.rootFolder.getProject())
