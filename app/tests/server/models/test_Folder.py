@@ -44,6 +44,17 @@ class FolderTestCase(ModelTestCase):
         shutil.rmtree(self.root.getTempPath())
 
 
+    def test_copy(self):
+        rootFilesAndFolders = self.root.getFilesAndFoldersRecursively()
+
+        newRoot = Folder.objects.create(name="newRoot")
+        Folder.objects.copy(self.root, newRoot)
+
+        newRootFilesAndFolders = newRoot.getFilesAndFoldersRecursively()
+
+        self.assertEqual(len(rootFilesAndFolders), len(newRootFilesAndFolders))
+
+
     def test_getRoot(self):
         self.assertEqual(self.root, self.root_dir1_dir1_dir1.getRoot())
         self.assertEqual(self.root, self.root.getRoot())

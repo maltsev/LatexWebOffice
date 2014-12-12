@@ -14,8 +14,8 @@
 * Backlog entry :
 
 """
-from app.models.file.plaintextfile import PlainTextFile
+from app.models.file import plaintextfile
 
 
-class TexFile(PlainTextFile):
-    pass
+class TexFile(plaintextfile.PlainTextFile):
+    objects = plaintextfile.PlainTextFileManager()

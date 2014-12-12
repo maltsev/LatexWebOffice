@@ -19,10 +19,20 @@ from django.db import models
 from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
 from core import settings
-from app.models.file.file import File
+from app.models.file import file
 
 
-class BinaryFileManager(models.Manager):
+class BinaryFileManager(file.FileManager):
+    def clone(self, binaryFileModel, **kwargs):
+        defaultArgs = {
+            'name': binaryFileModel.name,
+            'folder': binaryFileModel.folder,
+            'file': open(binaryFileModel.filepath, 'r')
+        }
+        args = dict(list(defaultArgs.items()) + list(kwargs.items()))
+        return binaryFileModel.__class__.objects.createFromFile(**args)
+
+
     ##
     # BinaryFile Erzeugung von request.FILES
     # https://docs.djangoproject.com/en/dev/topics/http/file-uploads/
@@ -68,7 +78,7 @@ class BinaryFileManager(models.Manager):
 
 
 
-class BinaryFile(File):
+class BinaryFile(file.File):
     filepath = models.CharField(max_length=255)
     objects = BinaryFileManager()
 

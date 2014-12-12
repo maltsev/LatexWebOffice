@@ -27,8 +27,23 @@ from app.models.folder import Folder
 
 class ProjectTemplateManager(models.Manager):
     def createFromProject(self, **kwargs):
-        pass
+        if 'project' not in kwargs:
+            raise AttributeError('Project ist nicht eingegeben')
 
+        project = kwargs['project']
+
+        projectTemplateName = kwargs.get('name', "{} (Vorlage)".format(project.name))
+        projectTemplateAuthor = kwargs.get('author', project.author)
+
+        projectTemplate = self.create(name=projectTemplateName, author=projectTemplateAuthor)
+
+        Folder.objects.copy(project.rootFolder, projectTemplate.rootFolder)
+
+        return projectTemplate
+
+
+    def createFromProjectTemplate(self, **kwargs):
+        raise NotImplementedError('createFromProjectTemplate soll von Project angerufen werden')
 
 
 class ProjectTemplate(models.Model):

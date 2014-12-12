@@ -21,9 +21,11 @@ from app.models import projecttemplate
 
 
 class ProjectManager(models.Manager):
+    def createFromProject(self, **kwargs):
+        raise NotImplementedError('createFromProject soll von ProjectTemplate angerufen werden')
+
     def createFromProjectTemplate(self, **kwargs):
         pass
-
 
 
 class Project(projecttemplate.ProjectTemplate):
