@@ -108,28 +108,43 @@ console.log("Pfad"+path);
 var sumOfFiles = 0;
 
 for (var c=0;c<parent.folders.length;c++){
+if (parent.folders[c] === response){
+break;
+}
 sumOfFiles += parent.folders[c].files.length;
 }
+
+if (sumOfFiles == 0){
+if (response.folders[a].files.length != 0){
+alert("Eltern"+parent.files.length);
+sumOfFiles =parent.files.length;
+}
+}
 //alert("SUmme"+(sumOfFiles-response.folders[a].files.length));
-path.push((sumOfFiles-response.folders[a].files.length));
-//console.log({"Name":(response.folders[a].name),"Path":''+path});
+path.push(sumOfFiles);
+console.log({"Namevorher":(response.folders[a].name),"Path":''+path});
 
 analyseFolders(response.folders[a],level+1,path,response,false);
 }
 else {
 //console.log("Keine Unterordner");
 var sumOfFiles = 0;
+
 for (var c=0;c<parent.folders.length;c++){
+if (parent.folders[c] === response){
+break;
+}
 sumOfFiles += parent.folders[c].files.length;
 }
 //alert("Files"+sumOfFiles);
-path.push(sumOfFiles-1);
-//console.log({'Name':response.folders[a].name,'Pfad':''+path.toString()});
+path.push(sumOfFiles);
+console.log({'Name':response.folders[a].name,'Pfad':''+path.toString()});
 
 for (var i = 0; i < response.folders[a].files.length; i++){
 	filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name},path,false);
 }
 //analyseFolders(response,level+1,[path,(parent.files.length-1)],parent,true);
+
 
 }
 }
