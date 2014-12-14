@@ -122,7 +122,7 @@ sumOfFiles =parent.files.length;
 }
 //alert("SUmme"+(sumOfFiles-response.folders[a].files.length));
 path.push(sumOfFiles);
-//console.log({"Namevorher":(response.folders[a].name),"Path":''+path});
+console.log({"Namevorher":(response.folders[a].name),"Path":''+path});
 
 analyseFolders(response.folders[a],level+1,path,response,false);
 }
@@ -136,9 +136,12 @@ break;
 }
 sumOfFiles += parent.folders[c].files.length;
 }
+if (response.files.length > 1){
+sumOfFiles += response.files.length-1;
+}
 //alert("Files"+sumOfFiles);
 path.push(sumOfFiles);
-//console.log({'Name':response.folders[a].name,'Pfad':''+path.toString()});
+console.log({'Name':response.folders[a].name,'Pfad':''+path.toString()});
 
 for (var i = 0; i < response.folders[a].files.length; i++){
 	filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name},path,false);
