@@ -31,7 +31,7 @@ filelistHandler.setCaptions([
 });
 
 function showFilelist(projectID){
-alert(projectID);
+//alert(projectID);
 jQuery.ajax('/documents/', {
 		'type': 'POST',
 		'data': {
@@ -65,7 +65,7 @@ jQuery.ajax('/documents/', {
 			else {
 			// vorhandene Dateiliste entfernen
 			filelistHandler.clearData();
-			console.log(data.response);
+			//console.log(data.response);
 			/**var files = data.response.files;
 			console.log(data.response);
 			console.log(data.response.folders);
@@ -104,7 +104,7 @@ if (level >  0){
 
 if (response.folders[a].folders.length != 0){ // Es gibt unterordner
 //alert("Bla");
-console.log("Pfad"+path);
+//console.log("Pfad"+path);
 var sumOfFiles = 0;
 
 for (var c=0;c<parent.folders.length;c++){
@@ -116,13 +116,13 @@ sumOfFiles += parent.folders[c].files.length;
 
 if (sumOfFiles == 0){
 if (response.folders[a].files.length != 0){
-alert("Eltern"+parent.files.length);
+//alert("Eltern"+parent.files.length);
 sumOfFiles =parent.files.length;
 }
 }
 //alert("SUmme"+(sumOfFiles-response.folders[a].files.length));
 path.push(sumOfFiles);
-console.log({"Namevorher":(response.folders[a].name),"Path":''+path});
+//console.log({"Namevorher":(response.folders[a].name),"Path":''+path});
 
 analyseFolders(response.folders[a],level+1,path,response,false);
 }
@@ -138,7 +138,7 @@ sumOfFiles += parent.folders[c].files.length;
 }
 //alert("Files"+sumOfFiles);
 path.push(sumOfFiles);
-console.log({'Name':response.folders[a].name,'Pfad':''+path.toString()});
+//console.log({'Name':response.folders[a].name,'Pfad':''+path.toString()});
 
 for (var i = 0; i < response.folders[a].files.length; i++){
 	filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name},path,false);
