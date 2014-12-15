@@ -440,7 +440,7 @@ class FileTestClass(ViewTestCase):
                         'foldername': folderobj.name,
                         'projectid': folderobj.getProject().id,
                         'projectname': folderobj.getProject().name,
-                        'createdate': util.datetimeToString(fileobj.createTime),
+                        'createtime': util.datetimeToString(fileobj.createTime),
                         'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
                         'size': fileobj.size,
                         'mimetype': fileobj.mimeType,

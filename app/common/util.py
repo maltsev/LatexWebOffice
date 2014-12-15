@@ -68,7 +68,7 @@ def projectToJson(project):
                 ownerid=project.author.id,
                 ownername=project.author.username,
                 createtime=datetimeToString(project.createTime),
-                rootfolderid=project.rootFolder.id)
+                rootid=project.rootFolder.id)
 
 
 # Hilfsmethode um zu überprüfen, ob einer User die Rechte hat einen Ordner zu bearbeiten und ob dieser Ordner existiert

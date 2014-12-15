@@ -32,11 +32,6 @@ import mimetypes, os, io
 # benötigt: id:parentdirid, name:directoryname
 # liefert: HTTP Response (Json)
 def createDir(request, user, parentdirid=0, directoryname=""):
-    '''# Teste, ob der Ordnername keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = util.checkObjectForInvalidString(directoryname, request)
-    if not emptystring:
-        return failurereturn
-'''
     # hole das übergeordnete Ordner Objekt
     parentdirobj = Folder.objects.get(id=parentdirid)
 
@@ -49,8 +44,8 @@ def createDir(request, user, parentdirid=0, directoryname=""):
     try:
         newfolder = Folder(name=directoryname, parent=parentdirobj, root=parentdirobj.getRoot())
         newfolder.save()
-        return util.jsonResponse({'id': newfolder.id, 'name': newfolder.name, 'parentfolderid': parentdirobj.id,
-                                  'parentfoldername': parentdirobj.name}, True, request)
+        return util.jsonResponse({'id': newfolder.id, 'name': newfolder.name, 'parentid': parentdirobj.id,
+                                  'parentname': parentdirobj.name}, True, request)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
 
@@ -121,8 +116,12 @@ def moveDir(request, user, folderid, newfolderid):
         # dessen root Verzeichnis wird auch das Rootverzeichnis vom folderobj (verschieben zwischen Projekten)
         folderobj.root = newparentfolderobj.getRoot()
         folderobj.save()
-        return util.jsonResponse({'id': folderobj.id, 'name': folderobj.name,
-                                  'parentid': folderobj.parent.id, 'rootid': folderobj.root.id}, True, request)
+        return util.jsonResponse({'id': folderobj.id,
+                                  'name': folderobj.name,
+                                  'parentid': folderobj.parent.id,
+                                  'parentname': folderobj.parent.name,
+                                  'rootid': folderobj.root.id},
+                                 True, request)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
 
