@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Do 04 Dez 2014 13:38:33 CET
+* Last Modified : Mo 15 Dez 2014 13:36:32 CET
 
 * Author :  christian
 
@@ -15,44 +15,32 @@
 * Backlog entry : TEK1, 3ED9, DOK8
 
 """
+import mimetypes
+import logging
+import json
+
 from django.http import HttpResponse, Http404
+
 from app.models.folder import Folder
-from app.models.project import Project
 from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
-from app.models.file.pdf import PDF
 from app.common import util
 from app.common.compile import compile as comp
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
-from django.conf import settings
-from django.core.serializers.json import DjangoJSONEncoder
-import mimetypes, os, io, tempfile, logging
-from django.db import transaction
-import json
+
+from app.common.constants import ERROR_MESSAGES
 
 # erstellt eine neue .tex Datei in der Datenbank ohne Textinhalt
 # benötigt: id:folderid name:texname
 # liefert HTTP Response (Json); response: id=fileid, name=filename
 def createTexFile(request, user, folderid, texname):
-    # Überprüfe ob der Ordner existiert, und der Benutzer die entsprechenden Rechte besitzt
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
-    if not rights:
-        return failurereturn
-
     # hole das Ordner Objekt
     folderobj = Folder.objects.get(id=folderid)
 
     # Teste ob eine .tex Datei mit dem selben Namen in diesem Ordner schon existiert
     unique, failurereturn = util.checkIfFileOrFolderIsUnique(texname, File, folderobj, request)
     if not unique:
-        return failurereturn
-
-    # Teste, ob der Dateiname kein leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    # oder ungültige Sonderzeichen enthält
-    emptystring, failurereturn = util.checkObjectForInvalidString(texname, request)
-    if not emptystring:
         return failurereturn
 
     # versuche die tex Datei zu erstellen
@@ -67,11 +55,6 @@ def createTexFile(request, user, folderid, texname):
 # benötigt: id:fileid, content:filecontenttostring
 # liefert: HTTP Response (Json)
 def updateFile(request, user, fileid, filecontenttostring):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
-    if not rights:
-        return failurereturn
-
     # wenn es sich bei der Datei nicht um ein PlainTextFile Model aus der Datenbank handelt
     # kann die Datei nicht bearbeitet werden, d.h. es wurde eine Binaryfile übergeben
     if not PlainTextFile.objects.filter(id=fileid).exists():
@@ -93,11 +76,6 @@ def updateFile(request, user, fileid, filecontenttostring):
 # benötigt: id:fileid
 # liefert: HTTP Response (Json)
 def deleteFile(request, user, fileid):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
-    if not rights:
-        return failurereturn
-
     # hole das file object
     fileobj = File.objects.get(id=fileid)
 
@@ -113,16 +91,6 @@ def deleteFile(request, user, fileid):
 # benötigt: id:fileid, name:newfilename
 # liefert: HTTP Response (Json)
 def renameFile(request, user, fileid, newfilename):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
-    if not rights:
-        return failurereturn
-
-    # Teste, ob der filename keine leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    emptystring, failurereturn = util.checkObjectForInvalidString(newfilename, request)
-    if not emptystring:
-        return failurereturn
-
     # hole das file object
     fileobj = File.objects.get(id=fileid)
 
@@ -135,7 +103,7 @@ def renameFile(request, user, fileid, newfilename):
     try:
         fileobj.name = newfilename
         fileobj.save()
-        return util.jsonResponse({}, True, request)
+        return util.jsonResponse({'id': fileobj.id, 'name': fileobj.name}, True, request)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
@@ -144,16 +112,6 @@ def renameFile(request, user, fileid, newfilename):
 # benötigt: id: fileid, folderid: newfolderid
 # liefert HTTP Response (Json)
 def moveFile(request, user, fileid, newfolderid):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
-    if not rights:
-        return failurereturn
-
-    # überprüfe, ob die Datei mit der id fileid existiert und newfolderid dem User gehört
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(newfolderid, user, request)
-    if not rights:
-        return failurereturn
-
     # hole das folder und file object
     folderobj = Folder.objects.get(id=newfolderid)
     fileobj = File.objects.get(id=fileid)
@@ -167,7 +125,11 @@ def moveFile(request, user, fileid, newfolderid):
     try:
         fileobj.folder = folderobj
         fileobj.save()
-        return util.jsonResponse({}, True, request)
+        return util.jsonResponse({'id': fileobj.id,
+                                  'name': fileobj.name,
+                                  'folderid': fileobj.folder.id,
+                                  'foldername': fileobj.folder.name,
+                                  'rootid': fileobj.folder.getRoot().id}, True, request)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
@@ -182,10 +144,6 @@ def uploadFiles(request, user, folderid):
     errors = []
     success = []
 
-    # Teste ob der Ordner existiert und der User rechte auf dem Ordner hat
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request)
-    if not rights:
-        return failurereturn
     folder = Folder.objects.get(id=folderid)
 
     # Teste ob auch Dateien gesendet wurden
@@ -224,7 +182,6 @@ def downloadFile(request, user, fileid):
 
     # setze das logging level wieder auf den ursprünglichen Wert
     logger.setLevel(previous_level)
-
 
     if PlainTextFile.objects.filter(id=fileid).exists():
         # hole das Dateiobjekt
@@ -270,8 +227,7 @@ def downloadFile(request, user, fileid):
 
 
 # benötigt: id:fileid
-# liefert: HTTP Response (Json) --> fileid, filename, folderid, foldername
-## liefert: HTTP Response (Json) --> fileid, filename, mimetype, folderid, foldername, projectid, projectname, owner, createTime, lastModifiedTime, size
+# liefert: HTTP Response (Json) --> fileid, filename, folderid, foldername, projectid, projectname, createtime, lastmodifiedtime, mimetype, size
 def fileInfo(request, user, fileid):
     # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
     rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
@@ -279,27 +235,27 @@ def fileInfo(request, user, fileid):
         return failurereturn
 
     # hole das Datei und Ordner Objekt
-    fileobj    = File.objects.get(id=fileid)
-    folderobj  = Folder.objects.get(id=fileobj.folder.id)
-    # @coauthor ingo
+    fileobj = File.objects.get(id=fileid)
+    folderobj = Folder.objects.get(id=fileobj.folder.id)
+    # ermittelt das Projekt der Datei
     projectobj = folderobj.getProject()
-    # ermittelt den Mimetype der Datei
-    if isinstance(fileobj,BinaryFile) :
-        MimeTypes.guess_type(fileobj)
+
+    # Sende die Datei-Informationen als JSON response
 
     # Sende die id und den Namen der Datei sowie des Ordners als JSON response
     dictionary = {'fileid': fileobj.id,
                   'filename': fileobj.name,
-                  #'mimetype':,
                   'folderid': folderobj.id,
                   'foldername': folderobj.name,
-                  'projectid': projectobj.id,
-                  'projectname': projectobj.name,
-                  #'owner': json.dumps(projectobj.author,cls=DjangoJSONEncoder),
-                  'createTime': json.dumps(fileobj.createTime,cls=DjangoJSONEncoder),
-                  'lastModifiedTime': json.dumps(fileobj.lastModifiedTime,cls=DjangoJSONEncoder)
-                  #'size':
-                  }
+                  'projectid': folderobj.getProject().id,
+                  'projectname': folderobj.getProject().name,
+                  'createdate': util.datetimeToString(fileobj.createTime),
+                  'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
+                  'size': fileobj.size,
+                  'mimetype': fileobj.mimeType,
+                  'ownerid': folderobj.getProject().author.id,
+                  'ownername': folderobj.getProject().author.username
+    }
 
     return util.jsonResponse(dictionary, True, request)
 
@@ -308,23 +264,12 @@ def fileInfo(request, user, fileid):
 # benötigt: id:fileid
 # liefert: HTTP Response (Json)
 def latexCompile(request, user, fileid):
-    # - Überprüfe, ob es diese Tex-Datei überhaupt gibt und der User die nötigen Rechte auf die Datei hat
-
-    # Aktualisiere Tex Datei in der Datenbank
-
-    # Zum Projekt der Tex-Datei dazugehörende Dateien abrufen
-    # - Überprüfe, ob es diese Tex-Datei überhaupt gibt und der User die nötigen Rechte auf die Datei hat
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(
-        fileid, user, request)
-    if not rights:
-        return failurereturn
-
     # rueckgabe=Sende Dateien an Ingo's Methode
-    errors,success=comp(fileid)
+    errors, success = comp(fileid)
     if errors:
-        return util.jsonErrorResponse(json.dumps(errors),request)
+        return util.jsonErrorResponse(json.dumps(errors), request)
     if success:
-        return util.jsonResponse(success,True,request)
+        return util.jsonResponse(success, True, request)
     # Sonst Fehlermeldung an Client
 
     return util.jsonErrorResponse(ERROR_MESSAGES['COMPILATIONERROR'], request)

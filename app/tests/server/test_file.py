@@ -4,11 +4,11 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Do 04 Dez 2014 14:54:26 CET
+* Last Modified : Sa 13 Dez 2014 14:50:08 CET
 
 * Author :  christian
 
-* Coauthors : mattis
+* Coauthors : mattis, ingo
 
 * Sprintnumber : 2
 
@@ -16,22 +16,22 @@
 
 """
 
+import mimetypes
+import filecmp
+import os
+
 from django.utils.encoding import smart_str
-from django.conf import settings
+
+from core import settings
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from app.common import util
-from app.models.folder import Folder
-from app.models.project import Project
-from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.tests.server.viewtestcase import ViewTestCase
-import os, tempfile, mimetypes
 
 
 class FileTestClass(ViewTestCase):
-
     # Initialiserung der benötigten Objekte
     # -> wird vor jedem Test ausgeführt
     def setUp(self):
@@ -39,32 +39,31 @@ class FileTestClass(ViewTestCase):
         self.setUpFolders()
         self.setUpFiles()
         self.setUpValues()
-        self.setUpHddFiles()
 
 
     # Freigabe von nicht mehr benötigten Resourcen
     # -> wird nach jedem Test ausgeführt
     def tearDown(self):
-        #self.tearDownFiles()
-        self.tearDownHddFiles()
+        # self.tearDownFiles()
+        pass
 
 
     # Teste das Erstellen einer neuen leeren .tex Datei
     def test_createtexfile(self):
         # Sende Anfrage zum erstellen einer neuen .tex Datei
-        response = util.documentPoster(self, command='createtex', idpara=self._user1_project1_folder1.id,
-                                       name='newmain.tex')
+        response = util.documentPoster(self, command='createtex', idpara=self._user1_project1.rootFolder.id,
+                                       name=self._newtex_name1)
 
         # überprüfe die Antwort des Servers
         # sollte success als status liefern
         # response sollte mit serveranswer übereinstimmen
-        texfileobj = TexFile.objects.get(name='newmain.tex')
+        texfileobj = TexFile.objects.get(name=self._newtex_name1)
         serveranswer = {'id': texfileobj.id, 'name': self._newtex_name1}
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
         # Sende Anfrage zum erstellen einer neuen .tex Datei mit einem Namen, der bereits im selben Ordner existiert
         response = util.documentPoster(self, command='createtex', idpara=self._user1_project1.rootFolder.id,
-                                       name='MAIN.tex')
+                                       name=self._newtex_name1.upper())
 
         # überprüfe die Antwort des Servers
         # sollte failure als status liefern
@@ -73,7 +72,7 @@ class FileTestClass(ViewTestCase):
 
         # Sende Anfrage zum erstellen der Datei als user1 mit der folderid die user2 gehört
         response = util.documentPoster(self, command='createtex', idpara=self._user2_project1_folder1.id,
-                                       name='newname')
+                                       name=self._newtex_name2)
 
         # überprüfe die Antwort des Servers
         # sollte failure als status liefern
@@ -81,7 +80,7 @@ class FileTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
 
         # Sende Anfrage zum erstellen der Datei als user1 mit einer folderid die nicht existiert
-        response = util.documentPoster(self, command='createtex', idpara=100000, name='newname')
+        response = util.documentPoster(self, command='createtex', idpara=100000, name=self._newtex_name2)
 
         # überprüfe die Antwort des Servers
         # sollte failure als status liefern
@@ -90,7 +89,7 @@ class FileTestClass(ViewTestCase):
 
         # Sende Anfrage zum erstellen der Datei als user1 mit einem ungültigen Namen
         response = util.documentPoster(self, command='createtex', idpara=self._user1_project1_folder1.id,
-                                       name='file1<>.tex')
+                                       name=self._name_invalid_chars)
 
         # überprüfe die Antwort des Servers
         # sollte failure als status liefern
@@ -195,7 +194,8 @@ class FileTestClass(ViewTestCase):
         # überprüfe die Antwort des Servers
         # sollte success als status liefern
         # response sollte leer sein
-        util.validateJsonSuccessResponse(self, response.content, {})
+        util.validateJsonSuccessResponse(self, response.content, {'id': self._user1_tex1.id,
+                                                                  'name': self._newtex_name1})
         # in der Datenbank sollte die Datei nun nicht mehr vorhanden sein
         usertexobj = PlainTextFile.objects.get(id=self._user1_tex1.id)
         self.assertEqual(usertexobj.name, self._newtex_name1)
@@ -207,7 +207,8 @@ class FileTestClass(ViewTestCase):
         # überprüfe die Antwort des Servers
         # sollte success als status liefern
         # response sollte leer sein
-        util.validateJsonSuccessResponse(self, response.content, {})
+        util.validateJsonSuccessResponse(self, response.content, {'id': self._user1_binary1.id,
+                                                                  'name': self._newbinary_name1})
         # in der Datenbank sollte die Datei nun nicht mehr vorhanden sein
         userbinobj = BinaryFile.objects.get(id=self._user1_binary1.id)
         self.assertEqual(userbinobj.name, self._newbinary_name1)
@@ -232,8 +233,8 @@ class FileTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENOTEXIST'])
 
         # Sende Anfrage zum erstellen einer neuen .tex Datei mit einem Namen, der bereits im selben Ordner existiert
-        response = util.documentPoster(self, command='renamefile', idpara=self._user1_tex2.id,
-                                       name=self._user1_tex3.name)
+        response = util.documentPoster(self, command='renamefile', idpara=self._user1_tex3.id,
+                                       name=self._user1_tex4.name.upper())
 
         # überprüfe die Antwort des Servers
         # sollte failure als status liefern
@@ -247,22 +248,36 @@ class FileTestClass(ViewTestCase):
         response = util.documentPoster(self, command='movefile', idpara=self._user1_tex1.id,
                                        idpara2=self._user1_project1_folder1.id)
 
+        serveranswer = {'id': self._user1_tex1.id,
+                        'name': self._user1_tex1.name,
+                        'folderid': self._user1_project1_folder1.id,
+                        'foldername': self._user1_project1_folder1.name,
+                        'rootid': self._user1_tex1.folder.getRoot().id}
+
         # überprüfe die Antwort des Servers
         # sollte success als status liefern
-        # response sollte leer sein
-        util.validateJsonSuccessResponse(self, response.content, {})
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+
         # die .tex Datei sollte nun in folder 2 sein
         usertexobj = PlainTextFile.objects.get(id=self._user1_tex1.id)
         self.assertEqual(usertexobj.folder, self._user1_project1_folder1)
 
-        # Sende Anfrage zum Verschieben der Binärdatei in den Unterorder folder1 des Projektes
+        # Sende Anfrage zum Verschieben der Binärdatei in den Unterorder folder2 des Projektes
         response = util.documentPoster(self, command='movefile', idpara=self._user1_binary1.id,
                                        idpara2=self._user1_project1_folder2.id)
 
+        serveranswer = {'id': self._user1_binary1.id,
+                        'name': self._user1_binary1.name,
+                        'folderid': self._user1_project1_folder2.id,
+                        'foldername': self._user1_project1_folder2.name,
+                        'rootid': self._user1_binary1.folder.getRoot().id}
+
         # überprüfe die Antwort des Servers
         # sollte success als status liefern
-        # response sollte leer sein
-        util.validateJsonSuccessResponse(self, response.content, {})
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
         # die Binärdatei sollte nun in folder 2 sein
         userbinobj = BinaryFile.objects.get(id=self._user1_binary1.id)
         self.assertEqual(userbinobj.folder, self._user1_project1_folder2)
@@ -287,7 +302,7 @@ class FileTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENOTEXIST'])
 
         # Sende Anfrage zum verschieben einer Datei mit einem Namen, der bereits im selben Ziel Ordner existiert
-        response = util.documentPoster(self, command='movefile', idpara=self._user1_tex3.id,
+        response = util.documentPoster(self, command='movefile', idpara=self._user1_tex4.id,
                                        idpara2=self._user1_project1.rootFolder.id)
 
         # überprüfe die Antwort des Servers
@@ -298,14 +313,14 @@ class FileTestClass(ViewTestCase):
 
     # Teste upload lokaler Dateien auf den Server
     def test_uploadfiles(self):
+        file1 = open(os.path.join(settings.TESTFILES_ROOT, 'test_bin.bin'), 'rb')
+        file2 = open(os.path.join(settings.TESTFILES_ROOT, 'test_tex_simple.tex'), 'rb')
+        file3 = open(os.path.join(settings.TESTFILES_ROOT, 'test_jpg.jpg'), 'rb')
+
         dic = {
             'command': 'uploadfiles',
-            'id': self._user1_project1.rootFolder.id,
-            'files': [
-                open(self._user1_binfile1_filepath, 'rb'),
-                open(self._user1_binfile2_filepath, 'rb'),
-                open(self._user1_binfile3_filepath, 'rb')
-            ]
+            'id': self._user1_project1_folder2.id,
+            'files': [file1, file2, file3]
         }
 
         response = self.client.post('/documents/', dic)
@@ -323,10 +338,10 @@ class FileTestClass(ViewTestCase):
         # wenn keine einzige Datei akezeptiert wurde
         self.assertEqual(util.jsonDecoder(response.content)['status'], 'success')
 
-        serveranswer=(util.jsonDecoder(response.content)['response'])
+        serveranswer = (util.jsonDecoder(response.content)['response'])
 
         # Es sollte eig. immer 'success' ausgegeben werden, da auch 'success' kommen sollte, selbst wenn keine einzige Datei akezeptiert wurde
-        self.assertEqual(util.jsonDecoder(response.content)['status'],'success')
+        self.assertEqual(util.jsonDecoder(response.content)['status'], 'success')
 
         # Es sollten genau 2 Dateien vom Server akzeptiert werden: test2.tex und test3.jpg
         self.assertEqual(len(serveranswer['success']), 2)
@@ -347,6 +362,10 @@ class FileTestClass(ViewTestCase):
         response = self.client.post('/documents/', dic)
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTALLPOSTPARAMETERS'])
 
+        file1.close()
+        file2.close()
+        file3.close()
+
 
     # Teste download von Dateien auf dem Server zum Client
     def test_downloadfile(self):
@@ -359,12 +378,20 @@ class FileTestClass(ViewTestCase):
         # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
         ori_file = self._user1_binary1.getContent()
         self.assertEqual(response['Content-Length'], str(util.getFileSize(ori_file)))
-        ori_file.close()
-        # Content-Disposition sollte 'attachment; filename=b'test.bin'' sein
+
+        # Content-Disposition sollte 'attachment; filename='test.bin'' sein
         self.assertEqual(response['Content-Disposition'], ('attachment; filename='
                                                            + self._user1_binary1.name))
+
+        tmp = open(os.path.join(settings.PROJECT_ROOT, 'tmp.tex'), 'a+b')
+        tmp.write(response.content)
+        file = open(self._user1_binary1.filepath, 'rb')
         # der Inhalt der heruntergeladenen Datei und der Datei auf dem Server sollte übereinstimmen
-        self.assertEqual(self._user1_binary1_str, smart_str(response.content))
+        self.assertTrue(filecmp.cmp(os.path.join(settings.PROJECT_ROOT, 'tmp.tex'), self._user1_binary1.filepath))
+        file.close()
+        tmp.close()
+
+        ori_file.close()
 
         # Sende Anfrage zum Downloaden der main.tex Datei
         response = util.documentPoster(self, command='downloadfile', idpara=self._user1_tex1.id)
@@ -404,30 +431,25 @@ class FileTestClass(ViewTestCase):
         # Sende Anfrage zu Dateiinformation der test.bin Datei
         response = util.documentPoster(self, command='fileinfo', idpara=self._user1_binary1.id)
 
-        # dekodiere den JSON response als dictionary
-        dictionary = util.jsonDecoder(response.content)
-
-        # lese die Antwort des Server ein
-        serveranswer = dictionary['response']
-
-        # status sollte 'success' sein
-        self.assertEqual(dictionary['status'], SUCCESS)
-
-        # Es sollten richtige Informationen zur Datei zurückgegeben worden sein
-        self.assertIn('fileid', serveranswer)
-        self.assertIn('filename', serveranswer)
-        self.assertIn('folderid', serveranswer)
-        self.assertIn('foldername', serveranswer)
-
         fileobj = self._user1_binary1  # Die Datei, über die Informationen angefordert wurde
         folderobj = self._user1_binary1.folder  # der Ordner, wo fileobj liegt
 
-        # Die zurückgegebenen Informationen sollten mit fileobj und folderobj übereinstimmen
-        self.assertEqual(serveranswer['fileid'], fileobj.id)
-        self.assertEqual(serveranswer['filename'], fileobj.name)
-        self.assertEqual(serveranswer['folderid'], folderobj.id)
-        self.assertEqual(serveranswer['foldername'], folderobj.name)
+        serveranswer = {'fileid': fileobj.id,
+                        'filename': fileobj.name,
+                        'folderid': folderobj.id,
+                        'foldername': folderobj.name,
+                        'projectid': folderobj.getProject().id,
+                        'projectname': folderobj.getProject().name,
+                        'createdate': util.datetimeToString(fileobj.createTime),
+                        'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
+                        'size': fileobj.size,
+                        'mimetype': fileobj.mimeType,
+                        'ownerid': folderobj.getProject().author.id,
+                        'ownername': folderobj.getProject().author.username
+        }
 
+        # Die zurückgegebenen Informationen sollten mit fileobj und folderobj übereinstimmen
+        self.assertDictEqual(serveranswer, util.jsonDecoder(response.content)['response'])
 
     # Teste das Komiplieren einer .tex Datei
     def test_latexCompile(self):
@@ -443,8 +465,8 @@ class FileTestClass(ViewTestCase):
         self.assertIn('name', serveranswer)
 
         # Teste Fehlerhafte Datei
-        response = util.documentPoster(self, command='compile', idpara=self._user1_tex2.id)
+        response = util.documentPoster(self, command='compile', idpara=self._user1_tex4.id)
 
-        dictionary=util.jsonDecoder(response.content)
-        self.assertEqual(dictionary['status'],FAILURE)
+        dictionary = util.jsonDecoder(response.content)
+        self.assertEqual(dictionary['status'], FAILURE)
 

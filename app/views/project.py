@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Do 04 Dez 2014 14:57:05 CET
+* Last Modified : Mo 15 Dez 2014 12:40:42 CET
 
 * Author :  christian
 
@@ -29,29 +29,33 @@ from app.models.folder import Folder
 from app.models.project import Project
 from app.common import util
 from app.common.constants import ERROR_MESSAGES
+from django.db import transaction
 
-
-# erzeugt ein neues Projekt für den Benutzer mit einer leeren main.tex Datei
-# benötigt: name:projectname
-# liefert: HTTP Response (Json)
-# Beispiel response: {'name': 'user1_project1', 'id': 1}
 def projectCreate(request, user, projectname):
-    # Teste, ob der Projektname kein leeres Wort ist (Nur Leerzeichen sind nicht erlaubt)
-    # oder ungültige Sonderzeichen enthält
-    emptystring, failurereturn = util.checkObjectForInvalidString(projectname, request)
-    if not emptystring:
-        return failurereturn
+    """Erstellt ein neues Projekt mit dem Namen 'projectname'
 
-    # überprüfe ob ein Projekt mit dem Namen projectname bereits für diese
-    # Benutzer existiert
+    Es wird ein neues Projekt in der Datenbank angelegt.
+    Durch das Projektmodell wird automatisch eine leere main.tex Datei im Hauptverzeichnis erstellt.
+    Als Antwort wird der Projektname und die ProjektID des erstellten Projektes geliefert.
+    Beispiel: 'response': {'name': 'user1_project1', 'id': 1}
+
+    :param request: vom Client gesendete Anfrage, wird unverändert zurückgesendet
+    :param user: eingeloggter user, für den die Anfrage ausgeführt werden soll
+    :param projectname: Name des neuen Projektes
+    :return: HTTP Response (JSON)
+    """
+
+    # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
     if Project.objects.filter(name__iexact=projectname.lower(), author=user).exists():
         return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
     else:
+        # versuche das Projekt in der Datenbank zu erstellen
         try:
             newproject = Project.objects.create(name=projectname, author=user)
         except:
             return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
+    # gib die Id und den Namen des erstellte Projektes zurück
     return util.jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
 
 
@@ -59,13 +63,12 @@ def projectCreate(request, user, projectname):
 # benötigt: id:projectid
 # liefert: HTTP Response (Json)
 def projectRm(request, user, projectid):
-    # überprüfe ob das Projekt existiert und der user die Rechte zum Löschen
-    # hat
-    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(
-        projectid, user, request)
-    # sonst gib eine Fehlermeldung zurück
-    if not rights:
-        return failurereturn
+    """
+    :param request:
+    :param user:
+    :param projectid:
+    :return:
+    """
 
     # hole das zu löschende Projekt
     projectobj = Project.objects.get(id=projectid)
@@ -76,6 +79,22 @@ def projectRm(request, user, projectid):
         return util.jsonResponse({}, True, request)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+
+
+def projectRename(request, user, projectid, newprojectname):
+    # hole das Projekt, welches umbenannt werden soll
+    projectobj = Project.objects.get(id=projectid)
+        # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
+    if Project.objects.filter(name__iexact=newprojectname.lower(), author=user).exists():
+        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(newprojectname), request)
+    else:
+        # versuche das Projekt umzubenennen
+        try:
+            projectobj.name = newprojectname
+            projectobj.save()
+            return util.jsonResponse({'id': projectobj.id, 'name': projectobj.name}, True, request)
+        except:
+            return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
 # liefert eine Übersicht aller Projekte eines Benutzers
@@ -159,40 +178,48 @@ def importZip(request, user):
     # durchlaufe alle Ordner/Unterordner in extracted
     # und erstelle die jeweiligen Objekte in der Datenbank
     # Dateien werden über die util.uploadfiles() Methode erstellt
-    for root, dirs, files in os.walk(extract_path):
-        # relativer Pfad des derzeitigen Verzeichnis
-        path = root.split('/')[rootdepth:]
-        # falls path true ist, ist root nicht das root Verzeichnis, wo die zip
-        # entpackt wurde
-        if path:
-            # path is also ein subsubfolder und wir müssen den subfolder als
-            # parent setzen
-            if path[:-1]:
-                parent = projdict[os.path.join('', *path[:-1])]
-            else:
-                parent = projectobj.rootFolder
-            folder = Folder.objects.create(name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
-            projdict[os.path.join('', *path)] = folder
-            # speichere Ordner
-            folder = Folder.objects.create(
-                name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
-            projdict[os.path.join('', *path)] = folder
-        for f in files:  # füge die Dateien dem Ordner hinzu
-            fileobj = open(os.path.join(root, f), 'rb')
-            result, msg = util.uploadFile(fileobj, folder, request, True)
-            fileobj.close()
+    returnmsg=util.jsonResponse({'id':projectobj.id,'name':projectobj.name}, True, request)
+
+    try:
+        with transaction.atomic():
+            for root, dirs, files in os.walk(extract_path):
+                # relativer Pfad des derzeitigen Verzeichnis
+                path = root.split('/')[rootdepth:]
+                # falls path true ist, ist root nicht das root Verzeichnis, wo die zip
+                # entpackt wurde
+                if path:
+                    # path is also ein subsubfolder und wir müssen den subfolder als
+                    # parent setzen
+                    if path[:-1]:
+                        parent = projdict[os.path.join('', *path[:-1])]
+                    else:
+                        parent = projectobj.rootFolder
+                    folder = Folder.objects.create(name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
+                    projdict[os.path.join('', *path)] = folder
+                    # speichere Ordner
+                    folder = Folder.objects.create(
+                        name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
+                    projdict[os.path.join('', *path)] = folder
+                for f in files:  # füge die Dateien dem Ordner hinzu
+                    fileobj = open(os.path.join(root, f), 'rb')
+                    result, msg = util.uploadFile(fileobj, folder, request, True)
+                    fileobj.close()
+                    if not result:
+                        returnmsg=util.jsonErrorResponse(msg,request)
+                        raise TypeError
+    except TypeError:
+        projectobj.delete() # bei Fehler muss noch das Projekt selbst gelöscht werden
 
     # lösche alle temporären Dateien und Ordner
     if os.path.isdir(tmpfolder):
         shutil.rmtree(tmpfolder)
-
-    return util.jsonResponse({}, True, request)
+    return returnmsg
 
 
 # liefert ein vom Client angefordertes Projekt in Form einer zip Datei als Filestream
-# benötigt: id:projectid
+# benötigt: id:folderid
 # liefert: filestream (404 im Fehlerfall)
-def exportZip(request, user, projectid):
+def exportZip(request, user, folderid):
     # setze das logging level auf ERROR
     # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben
     # wird
@@ -202,26 +229,30 @@ def exportZip(request, user, projectid):
 
     # Überprüfe ob das Projekt, und der Benutzer die entsprechenden Rechte
     # besitzt
-    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(
-        projectid, user, request)
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
+        folderid, user, request)
     if not rights:
         raise Http404
 
     # setze das logging level wieder auf den ursprünglichen Wert
     logger.setLevel(previous_level)
 
-    # hole das Projekt Objekt
-    projectobj = Project.objects.get(id=projectid)
+    folderobj = Folder.objects.get(id=folderid)
 
-    # erstelle ein temp Verzeichnis mit einer Kopie des Projektes
-    project_tmp_path = projectobj.rootFolder.dumpRootFolder()
+    # erstelle ein temp Verzeichnis mit einer Kopie des Ordners
+    folder_tmp_path = folderobj.dumpFolder()
+
+    if folderobj.isRoot():
+        zip_file_name = folderobj.getProject().name + '.zip'
+    else:
+        zip_file_name = folderobj.name + '.zip'
 
     # tmp Verzeichnis in dem die zip Datei gespeichert wird
     zip_tmp_path = tempfile.mkdtemp()
-    zip_file_path = os.path.join(zip_tmp_path, projectobj.name + '.zip')
+    zip_file_path = os.path.join(zip_tmp_path, zip_file_name)
 
     # erstelle die .zip Datei
-    util.createZipFromFolder(project_tmp_path, zip_file_path)
+    util.createZipFromFolder(folder_tmp_path, zip_file_path)
 
     # lese die erstellte .zip Datei ein
     file_dl = open(zip_file_path, 'rb')
@@ -241,14 +272,15 @@ def exportZip(request, user, projectid):
     if encoding is not None:
         response['Content-Encoding'] = encoding
 
-    filename_header = 'filename=%s' % (
-        projectobj.name + '.zip')
+    filename_header = 'filename=%s' % zip_file_name
 
     response['Content-Disposition'] = 'attachment; ' + filename_header
 
     # lösche die temporären Dateien und Ordner
     if os.path.isdir(zip_tmp_path):
         shutil.rmtree(zip_tmp_path)
+    if os.path.isdir(folder_tmp_path):
+        shutil.rmtree(folder_tmp_path)
 
     return response
 

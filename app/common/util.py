@@ -5,11 +5,11 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Do 04 Dez 2014 14:02:16 CET
+* Last Modified : Mo 15 Dez 2014 11:44:23 CET
 
 * Author :  christian
 
-* Coauthors : mattis
+* Coauthors : mattis, ingo
 
 * Sprintnumber : -
 
@@ -17,16 +17,23 @@
 
 """
 
+import json
+import zipfile
+import os
+import mimetypes
+
 from django.http import HttpResponse
+
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES
 from app.models.folder import Folder
 from app.models.project import Project
+from app.models.projecttemplate import ProjectTemplate
 from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
 from app.models.file.plaintextfile import PlainTextFile
-import json, zipfile, os, shutil, tempfile
-import mimetypes
+
+
 
 
 # dekodiert ein JSON
@@ -56,7 +63,12 @@ def jsonErrorResponse(errormsg, request):
 
 # liefert die ID und den Namen eines Projektes als dictionary
 def projectToJson(project):
-    return dict(id=project.id, name=project.name)
+    return dict(id=project.id,
+                name=project.name,
+                ownerid=project.author.id,
+                ownername=project.author.username,
+                createtime=datetimeToString(project.createTime),
+                rootfolderid=project.rootFolder.id)
 
 
 # Hilfsmethode um zu überprüfen, ob einer User die Rechte hat einen Ordner zu bearbeiten und ob dieser Ordner existiert
@@ -87,6 +99,18 @@ def checkIfProjectExistsAndUserHasRights(projectid, user, request):
     if not Project.objects.filter(id=projectid).exists():
         return False, jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'], request)
     elif not Project.objects.get(id=projectid).author == user:
+        return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
+    else:
+        return True, None
+
+
+# Hilfsmethode um zu überprüfen, ob einer User die Rechte hat eine Vorlage
+# abzurufen und diese Vorlage existiert
+# benötigt: projectid, user, httprequest
+def checkIfTemplateExistsAndUserHasRights(templateid, user, request):
+    if not ProjectTemplate.objects.filter(id=templateid).exclude(project__isnull=False).exists():
+        return False, jsonErrorResponse(ERROR_MESSAGES['TEMPLATENOTEXIST'], request)
+    elif not ProjectTemplate.objects.get(id=templateid).author == user:
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
         return True, None
@@ -191,7 +215,7 @@ def _getFoldersAndFilesJson(folderobj, data={}):
     data['folders'] = folderlist
     files = File.objects.filter(folder=folderobj)
     for f in files:
-        filelist.append({'id': f.id, 'name': f.name})
+        filelist.append({'id': f.id, 'name': f.name, 'mimetype': f.mimeType})
 
     folders = Folder.objects.filter(parent=folderobj)
 
@@ -213,12 +237,12 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content
     if name != None:
         dictionary['name'] = name
     if files != None:
-        dictionary['files']=files
+        dictionary['files'] = files
     return self.client.post('/documents/', dictionary)
 
 
 # Hilfsmethode für hochgeladene Dateien
-def uploadFile(f, folder, request,fromZip=False):
+def uploadFile(f, folder, request, fromZip=False):
     head, name = os.path.split(f.name)
     mime, encoding = mimetypes.guess_type(name)
 
@@ -240,14 +264,14 @@ def uploadFile(f, folder, request,fromZip=False):
         if not fromZip:
             binfile = BinaryFile.objects.createFromRequestFile(name=name, requestFile=f, folder=folder)
         else:
-            binfile=BinaryFile.objects.createFromFile(name=name,filepath=f.name,folder=folder)
+            binfile = BinaryFile.objects.createFromFile(name=name, filepath=f.name, folder=folder)
         return True, {'name': binfile.name, 'id': binfile.id}
     elif mime in ALLOWEDMIMETYPES['text']:
-        if mime==mimetypes.types_map['.tex']:
+        if mime == mimetypes.types_map['.tex']:
             try:
-                texfile=TexFile(name=name,source_code=f.read().decode('utf-8'),folder=folder)
+                texfile = TexFile(name=name, source_code=f.read().decode('utf-8'), folder=folder)
                 texfile.save()
-                return True,{'name':texfile.name,'id':texfile.id}
+                return True, {'name': texfile.name, 'id': texfile.id}
             except:
                 return jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
         else:
@@ -255,8 +279,8 @@ def uploadFile(f, folder, request,fromZip=False):
                 plainfile = PlainTextFile.objects.create(name=name, source_code=f.read().decode('utf-8'))
                 return True, {'name': plainfile.name, 'id': plainfile.id}
             except:
-                return False,jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
-    else:  #Unerlaubtes Mimetype
+                return False, jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+    else:  # Unerlaubtes Mimetype
         return False, ERROR_MESSAGES['ILLEGALFILETYPE']
 
 
@@ -297,3 +321,9 @@ def getFileSize(pyfile):
 def getFolderName(folderpath):
     path, folder_name = os.path.split(folderpath)
     return folder_name
+
+
+# gibt Zeit-Datum Objekt als String zurück
+# Format YYYY-MM-DD HH:MM:SS
+def datetimeToString(date_time):
+    return date_time.strftime('%Y-%m-%d %H:%M:%S')

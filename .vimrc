@@ -5,3 +5,5 @@ autocmd bufnewfile *.py exe "1," . 10 . "g/Author :.*/s//Author : "  $USER
 autocmd Bufwritepre,filewritepre *.py execute "normal ma"
 autocmd Bufwritepre,filewritepre *.py exe "1," . 10 . "g/Last Modified :.*/s/Last Modified :.*/Last Modified : " .strftime("%c")
 autocmd bufwritepost,filewritepost *.py execute "normal `a"
+
+let g:ultisnips_python_style="sphinx"

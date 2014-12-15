@@ -15,21 +15,57 @@
 
 """
 import os
+
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.exceptions import ObjectDoesNotExist
+
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.image import Image
 from app.models.file.pdf import PDF
 from app.models.file.file import File
+import app
+from app.models.file.binaryfile import BinaryFile
 from core import settings
+
+
+class FolderManager(models.Manager):
+    def copy(self, fromFolder, toFolder):
+        toRootFolder = toFolder.getRoot()
+
+        for fileOrFolder in fromFolder.getFilesAndFolders():
+            if isinstance(fileOrFolder, File):
+                file = fileOrFolder
+
+                try:
+                    existingFile = File.objects.get(name=file.name, folder=toFolder)
+                    existingFile.delete()
+                except ObjectDoesNotExist:
+                    pass
+
+                file.__class__.objects.clone(file, folder=toFolder)
+
+            else:
+                fromSubFolder = fileOrFolder
+                toSubFolder = Folder.objects.get(pk=fromSubFolder.pk)  # Clone
+                toSubFolder.pk = None
+                toSubFolder.parent = toFolder
+                toSubFolder.root = toRootFolder
+                toSubFolder.save()
+
+                self.copy(fromSubFolder, toSubFolder)
+
 
 class Folder(models.Model):
     name = models.CharField(max_length=255)
     createTime = models.DateTimeField(auto_now_add=True)
-    parent = models.ForeignKey("self", blank=True, null=True, related_name='children') # Darf leer sein nur bei RootFolder
-    root = models.ForeignKey("self", blank=True, null=True, related_name='rootFolder') # Darf leer sein nur bei RootFolder
+    parent = models.ForeignKey("self", blank=True, null=True,
+                               related_name='children')  # Darf leer sein nur bei RootFolder
+    root = models.ForeignKey("self", blank=True, null=True,
+                             related_name='rootFolder')  # Darf leer sein nur bei RootFolder
+    objects = FolderManager()
 
     ##
     # Prüft ob das Verzeichnis ein Rootverzeichnis ist
@@ -48,7 +84,12 @@ class Folder(models.Model):
     # Gibt das Projekt zurück
     # @return app.models.project.Project
     def getProject(self):
-        return self.getRoot().project_set.get()
+        projectTemplate = self.getRoot().projecttemplate
+        try:
+            return app.models.project.Project.objects.get(pk=projectTemplate.pk)
+        except ObjectDoesNotExist:
+            return projectTemplate
+
 
     ##
     # Gibt die MainTexDatei zurück
@@ -66,7 +107,7 @@ class Folder(models.Model):
         if self.parent:
             folderPath = os.path.join(self.parent.getTempPath(), self.name)
         else:
-            folderPath = os.path.join(settings.BASE_DIR, 'media', 'projects', "{}_{}".format(self.pk, self.name))
+            folderPath = os.path.join(settings.PROJECT_ROOT, "{}_{}".format(self.pk, self.name))
 
         if not os.path.exists(folderPath):
             os.makedirs(folderPath)
@@ -74,15 +115,14 @@ class Folder(models.Model):
         return folderPath
 
     ##
-    # Abbildet ganzes Rootverzeichnis (mit allen Dateien und Verzeichnisen)
-    # auf der Festplatte und gibt den temporären Vezeichnispfad zurück
+    # Bildet ein komplettes Verzeichnis auf der Festplatte ab
+    # und gibt den temporären Vezeichnispfad zurück
     # @return String
-    def dumpRootFolder(self):
-        root = self.getRoot()
+    def dumpFolder(self):
         for fileOrFolder in self.getFilesAndFoldersRecursively():
             fileOrFolder.getTempPath()
 
-        return root.getTempPath()
+        return self.getTempPath()
 
     ##
     # Gibt alle innere Dateien und Verzeichnise des Verzeichnises zurück
@@ -106,11 +146,14 @@ class Folder(models.Model):
         pdfFiles = list(PDF.objects.filter(folder=self).exclude(pk__in=excludeFileIds).all())
         excludeFileIds = excludeFileIds + [file.pk for file in pdfFiles]
 
+        binaryFiles = list(BinaryFile.objects.filter(folder=self).exclude(pk__in=excludeFileIds).all())
+        excludeFileIds = excludeFileIds + [file.pk for file in binaryFiles]
+
         files = list(File.objects.filter(folder=self).exclude(pk__in=excludeFileIds).all())
 
         folders = list(self.children.all())
 
-        return texFiles + plainTextFiles + imageFiles + pdfFiles + folders + files
+        return texFiles + plainTextFiles + imageFiles + pdfFiles + folders + binaryFiles + files
 
     ##
     # Gibt rekursiv alle innere Dateien und Verzeichnise des Verzeichnises zurück
@@ -118,7 +161,8 @@ class Folder(models.Model):
     def getFilesAndFoldersRecursively(self):
         filesAndFolders = self.getFilesAndFolders()
         for fileOrFolder in filesAndFolders:
-            if hasattr(fileOrFolder, 'getFilesAndFoldersRecursively') and callable(fileOrFolder.getFilesAndFoldersRecursively):
+            if hasattr(fileOrFolder, 'getFilesAndFoldersRecursively') \
+                    and callable(fileOrFolder.getFilesAndFoldersRecursively):
                 folder = fileOrFolder
                 filesAndFolders = filesAndFolders + folder.getFilesAndFoldersRecursively()
 
@@ -127,10 +171,12 @@ class Folder(models.Model):
 
     def __str__(self):
         if self.isRoot():
-            return "{}/".format(self.getProject())
+            try:
+                return "{}/".format(self.getProject())
+            except ObjectDoesNotExist:
+                return "{}/".format(self.name)
         else:
             return "{}{}/".format(self.parent, self.name)
-
 
 
 @receiver(post_save, sender=Folder)

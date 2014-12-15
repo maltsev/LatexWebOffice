@@ -13,6 +13,7 @@
     <!-- jQuery JavaScript-Bibliothek -->
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/jquery.cookie.js"></script>
+    <script src="/static/js/jquery.geturlparam.js"></script>
 
     <!-- WebShim HTML5 Polyfill -->
     <script src="/static/js/webshim/polyfiller.js"></script>
@@ -37,9 +38,10 @@
 	{% if user.is_authenticated %}
 {% block menu %}
 <ul id="hauptmenue">
+<li><a href="/editor/">Editor</a></li>
 <li><a href="/projekt/">Projektverwaltung</a></li>
 <li>Literaturverzeichnis</li>
-<li>Dokumentvorlagen</li>
+<li><a href="/vorlagen/">Dokumentvorlagen</a></li>
 <li>Eigenes Profil</li>
 </ul>
 {% endblock %}

@@ -5,7 +5,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : 4 Dec 2014 13:17:00 CET
+* Last Modified : 10 Dec 2014 13:17:00 CET
 
 * Author :  maltsev
 
@@ -14,37 +14,38 @@
 * Backlog entry :
 
 """
-import random
-import string
 from django.db import models
-from django.contrib.auth.models import User
-from django.db.models.signals import post_delete, pre_save
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from app.models.folder import Folder
+from app.models import projecttemplate, folder
 
 
-class Project(models.Model):
-    name = models.CharField(max_length=255)
-    author = models.ForeignKey(User)
-    createTime = models.DateTimeField(auto_now_add=True)
-    rootFolder = models.ForeignKey(Folder)
+class ProjectManager(models.Manager):
+    def createFromProject(self, **kwargs):
+        raise NotImplementedError('createFromProject soll von ProjectTemplate angerufen werden')
 
-    class Meta:
-        unique_together = ('name', 'author')
+    def createFromProjectTemplate(self, **kwargs):
+        if 'template' not in kwargs:
+            raise AttributeError('ProjectTemplate ist nicht eingegeben')
 
-    def __str__(self):
-        return "{}_{}".format(self.pk, self.name)
+        projectTemplate = kwargs['template']
+
+        projectName = kwargs.get('name', projectTemplate.name)
+        projectAuthor = kwargs.get('author', projectTemplate.author)
+
+        project = self.create(name=projectName, author=projectAuthor)
+
+        folder.Folder.objects.copy(projectTemplate.rootFolder, project.rootFolder)
+
+        return project
 
 
-@receiver(post_delete, sender=Project)
-def projectPostDelete(instance, **kwargs):
-    instance.rootFolder.delete()
+class Project(projecttemplate.ProjectTemplate):
+    objects = ProjectManager()
+
 
 ##
 # Automatische Erzeugung des Rootverzeichnises
 @receiver(pre_save, sender=Project)
 def projectPreSave(instance, **kwargs):
-    if not hasattr(instance, 'rootFolder') or not instance.rootFolder:
-        randomFolderName = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(32))
-        rootFolder = Folder.objects.create(name=randomFolderName)
-        instance.rootFolder = rootFolder
+    projecttemplate.projectTemplatePreSave(instance, **kwargs)

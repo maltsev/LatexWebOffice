@@ -5,11 +5,11 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Thu 07 Nov 2014 23:16:54 PM CET
+* Last Modified : Mo 15 Dez 2014 13:38:16 CET
 
 * Author :  maltsev
 
-* Coauthors :
+* Coauthors : ingo
 
 * Sprintnumber : 1
 
@@ -35,8 +35,12 @@ def editor(request):
 
 @login_required
 def projekt(request):
-    return render(request, 'projekt.html')	
+    return render(request, 'projekt.html')
+
+@login_required
+def vorlagen(request):
+    return render(request, 'vorlagen.html')
 
 @login_required
 def dateien(request):
-    return render(request, 'dateien.html')	
+    return render(request,'dateien.html')

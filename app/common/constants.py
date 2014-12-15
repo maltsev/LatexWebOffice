@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Do 04 Dez 2014 15:27:57 CET
+* Last Modified : Mi 10 Dez 2014 11:47:47 CET
 
 * Author :  christian
 
@@ -53,6 +53,8 @@ ERROR_MESSAGES = {
     'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
     'ILLEGALFILETYPE': 'Dateityp ist nicht erlaubt',
+    'TEMPLATEALREADYEXISTS':'Ein Template mit dem Namen \"{0}\" existiert bereits.',
+    'TEMPLATENOTEXIST': 'Projekt nicht gefunden',
 }
 
 ALLOWEDMIMETYPES = {

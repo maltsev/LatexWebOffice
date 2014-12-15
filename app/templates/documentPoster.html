@@ -1,0 +1,80 @@
+<html>
+<head>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<title>documentPoster</title>
+</head>
+
+<form id="poster">{% csrf_token %}
+	command:<input id="command", name="command" type="text" value="" /><br>
+	name:<input id="name", name="name" type="text" value="" /><br>
+	id:<input id="id", name="id" type="text" value="" />
+
+    <input type="submit" value="Send" />
+</form>
+
+
+<textarea id='response' cols='50' rows='10'>
+</textarea>
+
+<script>
+//http://stackoverflow.com/questions/5004233/jquery-ajax-post-example-with-php
+var request;
+$("#poster").submit(function(event){
+$('textarea#response').val('')
+
+ // Abort any pending request
+    if (request) {
+        request.abort();
+    }
+    // setup some local variables
+    var $form = $(this);
+
+    // Let's select and cache all the fields
+    var $inputs = $form.find("input, select, button, textarea");
+
+    // Serialize the data in the form
+    var serializedData = $form.serialize();
+
+    // Let's disable the inputs for the duration of the Ajax request.
+    // Note: we disable elements AFTER the form data has been serialized.
+    // Disabled form elements will not be serialized.
+    $inputs.prop("disabled", true);
+
+    // Fire off the request to /form.php
+    request = $.ajax({
+        url: "/documents/",
+        type: "post",
+        data: serializedData,
+
+    });
+
+    // Callback handler that will be called on success
+    request.done(function (response, textStatus, jqXHR){
+        // Log a message to the console
+        console.log("Hooray, it worked!");
+	$('textarea#response').val(JSON.stringify(response.response))
+    });
+
+    // Callback handler that will be called on failure
+    request.fail(function (jqXHR, textStatus, errorThrown){
+        // Log the error to the console
+        console.error(
+            "The following error occurred: "+
+            textStatus, errorThrown
+        );
+    });
+
+    // Callback handler that will be called regardless
+    // if the request failed or succeeded
+    request.always(function () {
+        // Reenable the inputs
+        $inputs.prop("disabled", false);
+    });
+
+    // Prevent default posting of form
+    event.preventDefault();
+});
+</script>
+
+
+</html>

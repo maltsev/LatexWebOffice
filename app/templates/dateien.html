@@ -1,5 +1,5 @@
 <!--
-@author: Martin Koláček  
+@author: Martin Koláček, Franziska Everinghoff
 @creation: 03.11.2014 - sprint-nr: 1
 @last-change: 20.11.2014 - sprint-nr: 2
 -->
@@ -9,6 +9,7 @@
 
 {% block header %}
 <link rel="stylesheet" href="/static/css/listselector.css">
+<link rel="stylesheet" href="/static/css/menuleiste.css">
 <script src="/static/js/listselector.js"></script>
 <script src="/static/js/dateien.js"></script>
 {% endblock %}
@@ -16,12 +17,34 @@
 <!-- content to embed in wrapper.html as content -->
 {% block content %}
 <div id="inhalt">
-<div  class="row">
+
     {% comment %}
         Stub Page
     {% endcomment %}
-	<div id="projekt_menueleiste">
-	Hier kommt die Menüleiste hin
+	<div id="menu">
+		<ul>
+		  <li class="topmenu">
+			<a href="">Öffnen</a>
+		  </li>
+		  <li class="topmenu">
+			<a href="">Erstellen</a>
+		  </li>
+		  <li class="topmenu">
+			<a href="">Hochladen</a>
+		  </li>
+		  <li class="topmenu">
+			<a href="">Herunterladen</a>
+		  </li>
+		  <li class="topmenu">
+			<a href="">Umbenennen</a>
+		  </li>
+		  <li class="topmenu">
+			<a href="">Verschieben</a>
+		  </li>
+		  <li class="topmenu">
+			<a href="">Löschen</a>
+		  </li>
+		</ul>
 	</div>
 	<div id="dateien">
 	

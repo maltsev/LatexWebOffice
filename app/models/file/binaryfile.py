@@ -19,10 +19,20 @@ from django.db import models
 from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
 from core import settings
-from app.models.file.file import File
+from app.models.file import file
 
 
-class BinaryFileManager(models.Manager):
+class BinaryFileManager(file.FileManager):
+    def clone(self, binaryFileModel, **kwargs):
+        defaultArgs = {
+            'name': binaryFileModel.name,
+            'folder': binaryFileModel.folder,
+            'file': open(binaryFileModel.filepath, 'r')
+        }
+        args = dict(list(defaultArgs.items()) + list(kwargs.items()))
+        return binaryFileModel.__class__.objects.createFromFile(**args)
+
+
     ##
     # BinaryFile Erzeugung von request.FILES
     # https://docs.djangoproject.com/en/dev/topics/http/file-uploads/
@@ -34,7 +44,7 @@ class BinaryFileManager(models.Manager):
             for chunk in requestFile.chunks():
                 content = content + chunk
 
-            kwargs['filepath'] = self.__createBinaryFile(content)
+            kwargs['filepath'], kwargs['size'] = self.__createBinaryFile(content)
             del kwargs['requestFile']
 
         return self.create(**kwargs)
@@ -45,7 +55,7 @@ class BinaryFileManager(models.Manager):
         isFilepath = 'filepath' in kwargs and bool(kwargs['filepath'])
         file = 'file' in kwargs and kwargs['file']
         if file and not isFilepath:
-            kwargs['filepath'] = self.__createBinaryFile(file.read())
+            kwargs['filepath'], kwargs['size'] = self.__createBinaryFile(file.read())
             del kwargs['file']
 
         return self.create(**kwargs)
@@ -53,7 +63,7 @@ class BinaryFileManager(models.Manager):
 
     def __createBinaryFile(self, content):
         filename = hashlib.md5(content).hexdigest()
-        filepath = os.path.join(settings.BASE_DIR, settings.MEDIA_ROOT, 'files', filename)
+        filepath = os.path.join(settings.FILE_ROOT, filename)
         if not os.path.exists(filepath):
             fileDirPath = os.path.dirname(filepath)
             if not os.path.exists(fileDirPath):
@@ -63,12 +73,12 @@ class BinaryFileManager(models.Manager):
             newFile.write(content)
             newFile.close()
 
-        return filepath
+        return filepath, os.path.getsize(filepath)
 
 
 
 
-class BinaryFile(File):
+class BinaryFile(file.File):
     filepath = models.CharField(max_length=255)
     objects = BinaryFileManager()
 

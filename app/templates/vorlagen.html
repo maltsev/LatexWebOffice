@@ -1,0 +1,36 @@
+<!--
+@author: Ingolf Bracht
+@creation: 14.12.2014 - sprint-nr: 3
+@last-change: 14.12.2014 - sprint-nr: 3
+-->
+
+{% extends "_wrapper.html" %}
+
+<!-- Header -->
+{% block header %}
+<link rel="stylesheet" href="/static/css/listselector.css">
+<link rel="stylesheet" href="/static/css/menuleiste.css">
+<script src="/static/js/listselector.js"></script>
+<script src="/static/js/vorlagen.js"></script>
+{% endblock %}
+
+<!-- Inhalt -->
+{% block content %}
+<div id="inhalt">
+<h1>Dokumentvorlagen</h1>
+<div id="menu">
+    <ul>
+      <li class="topmenu">
+        <a href="">Bearbeiten</a>
+      </li>
+      <li class="topmenu">
+        <a href="">Löschen</a>
+      </li>
+      <li class="topmenu">
+        <a href="">Importieren</a>
+      </li>
+    </ul>
+  </div>
+<div id="vorlagen"></div>
+</div>
+{% endblock %}
