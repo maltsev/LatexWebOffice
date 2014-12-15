@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Sa 13 Dez 2014 19:49:52 CET
+* Last Modified : Mo 15 Dez 2014 13:36:32 CET
 
 * Author :  christian
 
@@ -28,8 +28,6 @@ from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.common import util
 from app.common.compile import compile as comp
-
-from django.core.serializers.json import DjangoJSONEncoder
 
 from app.common.constants import ERROR_MESSAGES
 

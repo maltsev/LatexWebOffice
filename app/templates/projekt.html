@@ -1,24 +1,53 @@
 <!--
 @author: Thore Thießen
 @creation: 04.12.2014 - sprint-nr: 2
-@last-change: 04.12.2014 - sprint-nr: 2
+@last-change: 12.12.2014 - sprint-nr: 3
 -->
 
 {% extends "_wrapper.html" %}
 
 <!-- Header -->
 {% block header %}
+<link rel="stylesheet" href="/static/css/listselector.css">
+<link rel="stylesheet" href="/static/css/menuleiste.css">
+<script src="/static/js/listselector.js"></script>
 <script src="/static/js/projekt.js"></script>
 {% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
 <div id="inhalt">
-<div id="projekte">
-<!-- Projekt-Liste -->
-</div>
-<div id="dateien">
-<!-- Datei-Liste -->
-</div>
+<h1>Projektübersicht</h1>
+<!-- <div>FIXME: Menüleiste einbinden</div> -->
+<div id="menu">
+    <ul>
+      <li class="topmenu">
+        <a href="">DropDown</a>
+        <ul>
+          <li class="submenu"><a href="">Funktion 1</a></li>
+          <li class="submenu"><a href="">Funktion 2</a></li>
+        </ul>
+      </li>
+      <li class="topmenu">
+        <a href="">Öffnen</a>
+      </li>
+      <li class="topmenu">
+        <a href="">Erstellen</a>
+      </li>
+      <li class="topmenu">
+        <a href="">Löschen</a>
+      </li>
+      <li class="topmenu">
+        <a href="">Exp.</a>
+      </li>
+      <li class="topmenu">
+        <a href="">Imp.</a>
+      </li>
+      <li class="topmenu">
+        <a href="">Freigeben</a>
+      </li>
+    </ul>
+  </div>
+<div id="projekte"></div>
 </div>
 {% endblock %}
