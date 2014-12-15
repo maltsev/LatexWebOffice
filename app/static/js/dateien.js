@@ -168,19 +168,93 @@ path += "]";
 return path;
 }
 
-
-function popup(){
+function getFolderId(){
 var array = filelistHandler.getSelected();
-console.log(array["folderid"]);
+return array["folderid"];
+}
+
+function getFolderName(){
+var array = filelistHandler.getSelected();
+return array["foldername"];
+}
+
+function getFileId(){
+var array = filelistHandler.getSelected();
+return array["fileid"];
+}
+
+function getFileName(){
+var array = filelistHandler.getSelected();
+return array["name"];
+}
+
+function removePopup(category){
   $(function() {
-  alert("Blabla");
-    $( "#dialog" ).dialog();
+  if (category == "remove"){
+    $( "#dialog_datei_ordner_loeschen" ).dialog("destroy");
+  }
+  if (category == "rename"){
+      $( "#dialog_datei_ordner_umbenennen" ).dialog("destroy");
+  }
   });
+}
+
+function checkSelection(){
+if (filelistHandler.getSelected() == null){
+showPopup("no_selection");
+return false;
+}
+else {
+return true;
+}
+}
+
+function showPopup(category){
+  $(function() {
+   if (category == "no_selection"){
+		$( "#dialog_keine_auswahl" ).dialog();
+   }
+  if (category == "remove"){
+  if (checkSelection()){
+    $( "#dialog_datei_ordner_loeschen" ).dialog();
+	}
+  }
+  if (category == "rename"){
+  if (checkSelection()){
+      $( "#dialog_datei_ordner_umbenennen" ).dialog();
+	  }
+  }
+  if (category == "new_name_file"){
+   $( "#dialog_datei_neuer_name" ).dialog();
+   document.getElementById('file_name').value = getFileName();
+  }
+   if (category == "new_name_folder"){
+   $( "#dialog_ordner_neuer_name" ).dialog();
+    document.getElementById('folder_name').value = getFolderName();
+  }
+  });
+}
+
+function checkRemoveFile(id,type){
+var r = confirm("Möchten Sie die Datei "+getFileName()+" wirklich löschen?");
+if (r == true) {
+    removeFolderAndFiles(id,type);
+} else {
+}
+}
+
+function checkRemoveFolder(id,type){
+var r = confirm("Möchten Sie den Ordner "+getFolderName()+" wirklich löschen?");
+if (r == true) {
+    removeFolderAndFiles(id,type);
+} else {
+}
 }
 
 /**
  * Löscht den ausgewählten Ordner/die Datei
- * @param project - Projekt
+ * @param id - ID der Datei/des Ordners aus der Datenbank
+ * @param type - "file" oder "folder", ist es eine Datei oder ein Ordner
  */
 function removeFolderAndFiles(id,type) {
 if (type == "folder"){
@@ -266,7 +340,96 @@ jQuery.ajax('/documents/', {
 }
 }
 
+/**
+ * Nennt den ausgewählten Ordner/die Datei um
+ * @param id - ID der Datei/des Ordners aus der Datenbank
+ * @param type - "file" oder "folder", ist es eine Datei oder ein Ordner
+ */
+function renameFolderAndFiles(id,type,newname) {
+if (type == "folder"){
+jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'renamedir',
+			'id': id,
+			'name': document.getElementById('folder_name').value
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			//Anfrage Fehlerhaft
+			console.log({
+				'error': 'Fehlerhafte Anfrage: Fehler beim Abrufen der Dateiliste',
+				'details': errorThrown,
+				'id': projectID,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success'){
+				// Fehler auf dem Server
+				console.log({
+					'error': 'Fehlerhafte Rückmeldung: Fehler beim Abrufen der Dateiliste',
+					'details': data.response,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			}
+			else {
+			// Seite neu laden
+			location.reload();
+			
+			
+		}
+		}
+	});
+}
+if (type == "file"){
+jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'renamefile',
+			'id': id,
+			'name': document.getElementById('file_name').value
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			//Anfrage Fehlerhaft
+			console.log({
+				'error': 'Fehlerhafte Anfrage: Fehler beim Abrufen der Dateiliste',
+				'details': errorThrown,
+				'id': projectID,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success'){
+				// Fehler auf dem Server
+				console.log({
+					'error': 'Fehlerhafte Rückmeldung: Fehler beim Abrufen der Dateiliste',
+					'details': data.response,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			}
+			else {
+			// Seite neu laden
+			location.reload();
+			
+			
+		}
+		}
+	});
 
+}
+}
 
 /**
  * Leitet den Benutzer zurück zur Projektverwaltung.
