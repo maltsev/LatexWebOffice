@@ -35,6 +35,7 @@ from app.models.file.plaintextfile import PlainTextFile
 
 
 
+
 # dekodiert ein JSON
 def jsonDecoder(responseContent):
     return json.loads(str(responseContent, encoding='utf-8'))
@@ -64,7 +65,8 @@ def jsonErrorResponse(errormsg, request):
 def projectToJson(project):
     return dict(id=project.id,
                 name=project.name,
-                author=project.author.username,
+                ownerid=project.author.id,
+                ownername=project.author.username,
                 createtime=datetimeToString(project.createTime),
                 rootfolderid=project.rootFolder.id)
 
@@ -100,6 +102,7 @@ def checkIfProjectExistsAndUserHasRights(projectid, user, request):
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
         return True, None
+
 
 # Hilfsmethode um zu überprüfen, ob einer User die Rechte hat eine Vorlage
 # abzurufen und diese Vorlage existiert

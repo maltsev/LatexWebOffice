@@ -74,9 +74,12 @@ def compile(texid):
     # '-outdir=FOO' Verzeichnis für die Ausgabe-Dateien
     # '-bibtex' bbl-Dateien werden über bibtex erzeugt, sofern notwendig
     # '-pdf' pdf-Datei wird über pdflatex aus der angegebenen tex-Datei erzeugt
+    w = tempfile.TemporaryFile()
     rc = subprocess.call([latexmk_path(),"-f","-interaction=nonstopmode","-outdir="+out_dir_pth,"-bibtex","-pdf",tex_pth],
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE)
+                          stdout=w,
+                          stderr=subprocess.STDOUT, bufsize=0)
+
+    w.close()
     #rc.wait()
     
     # ----------------------------------------------------------------------------------------------------

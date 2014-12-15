@@ -15,21 +15,23 @@
 * Backlog entry : TEK1, 3ED9, DOK8
 
 """
-import io, json, logging, mimetypes, os, tempfile
+import mimetypes
+import logging
+import json
+
 from django.http import HttpResponse, Http404
+
 from app.models.folder import Folder
-from app.models.project import Project
 from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
-from app.models.file.pdf import PDF
 from app.common import util
 from app.common.compile import compile as comp
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
-from django.conf import settings
-from django.db import transaction
+
 from django.core.serializers.json import DjangoJSONEncoder
+
+from app.common.constants import ERROR_MESSAGES
 
 # erstellt eine neue .tex Datei in der Datenbank ohne Textinhalt
 # benötigt: id:folderid name:texname
@@ -103,7 +105,7 @@ def renameFile(request, user, fileid, newfilename):
     try:
         fileobj.name = newfilename
         fileobj.save()
-        return util.jsonResponse({}, True, request)
+        return util.jsonResponse({'id': fileobj.id, 'name': fileobj.name}, True, request)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
@@ -125,7 +127,11 @@ def moveFile(request, user, fileid, newfolderid):
     try:
         fileobj.folder = folderobj
         fileobj.save()
-        return util.jsonResponse({}, True, request)
+        return util.jsonResponse({'id': fileobj.id,
+                                  'name': fileobj.name,
+                                  'folderid': fileobj.folder.id,
+                                  'foldername': fileobj.folder.name,
+                                  'rootid': fileobj.folder.getRoot().id}, True, request)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
@@ -179,7 +185,6 @@ def downloadFile(request, user, fileid):
     # setze das logging level wieder auf den ursprünglichen Wert
     logger.setLevel(previous_level)
 
-
     if PlainTextFile.objects.filter(id=fileid).exists():
         # hole das Dateiobjekt
         downloadfileobj = PlainTextFile.objects.get(id=fileid)
@@ -230,26 +235,30 @@ def fileInfo(request, user, fileid):
     rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
     if not rights:
         return failurereturn
-    
+
     # hole das Datei und Ordner Objekt
     fileobj = File.objects.get(id=fileid)
     folderobj = Folder.objects.get(id=fileobj.folder.id)
     # ermittelt das Projekt der Datei
     projectobj = folderobj.getProject()
-    
+
     # Sende die Datei-Informationen als JSON response
+
+    # Sende die id und den Namen der Datei sowie des Ordners als JSON response
     dictionary = {'fileid': fileobj.id,
                   'filename': fileobj.name,
                   'folderid': folderobj.id,
                   'foldername': folderobj.name,
-                  'projectid': projectobj.id,
-                  'projectname': projectobj.name,
-                  'createtime': json.dumps(fileobj.createTime,cls=DjangoJSONEncoder),
-                  'lastmodifiedtime': json.dumps(fileobj.lastModifiedTime,cls=DjangoJSONEncoder),
+                  'projectid': folderobj.getProject().id,
+                  'projectname': folderobj.getProject().name,
+                  'createdate': util.datetimeToString(fileobj.createTime),
+                  'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
+                  'size': fileobj.size,
                   'mimetype': fileobj.mimeType,
-                  'size': fileobj.size
-                  }
-    
+                  'ownerid': folderobj.getProject().author.id,
+                  'ownername': folderobj.getProject().author.username
+    }
+
     return util.jsonResponse(dictionary, True, request)
 
 
@@ -258,11 +267,11 @@ def fileInfo(request, user, fileid):
 # liefert: HTTP Response (Json)
 def latexCompile(request, user, fileid):
     # rueckgabe=Sende Dateien an Ingo's Methode
-    errors,success=comp(fileid)
+    errors, success = comp(fileid)
     if errors:
-        return util.jsonErrorResponse(json.dumps(errors),request)
+        return util.jsonErrorResponse(json.dumps(errors), request)
     if success:
-        return util.jsonResponse(success,True,request)
+        return util.jsonResponse(success, True, request)
     # Sonst Fehlermeldung an Client
 
     return util.jsonErrorResponse(ERROR_MESSAGES['COMPILATIONERROR'], request)

@@ -109,6 +109,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 FILE_ROOT = os.path.join(MEDIA_ROOT, 'files')
 PROJECT_ROOT = os.path.join(MEDIA_ROOT, 'projects')
+TESTFILES_ROOT = os.path.join(BASE_DIR, 'app', 'tests', 'server', 'static')
 
 # Einstellungen für die Django Tests
 if 'test' in sys.argv:

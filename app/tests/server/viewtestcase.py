@@ -13,8 +13,6 @@
 * Backlog entry :
 
 """
-import io
-import tempfile
 import os
 import shutil
 
@@ -51,6 +49,8 @@ class ViewTestCase(TestCase):
         self._user1_project1.save()
         self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1)
         self._user1_project2.save()
+        self._user1_project3 = Project.objects.create(name='user1_project3', author=self._user1)
+        self._user1_project3.save()
 
         # erstelle ein Projekt als user2
         self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2)
@@ -95,85 +95,92 @@ class ViewTestCase(TestCase):
 
 
     def setUpFiles(self):
-        # Erstelle eine .tex Datei für user1 in user1_project1_root (Projekt root Verzeichnis)
+        # Dateinamen der verwendeten Testdateien
+        texfile1_name = 'test_tex_presentation.tex'
+        texfile2_name = 'test_tex_simple.tex'
+        texfile3_name = 'test_tex_images.tex'
+        binfile1_name = 'test_bin.bin'
+        binfile2_name = 'test_jpg.jpg'
+        binfile3_name = 'test_png.png'
+
+        # Ändere den Source Code der main.tex Datei von user1_project1
         self._user1_tex1 = self._user1_project1.rootFolder.getMainTex()
-        self._user1_tex1.source_code = "\\documentclass[a4paper,10pt]{article} \\usepackage[utf8]{inputenc} \\title{test} \\begin{document} \\maketitle \\begin{abstract} \\end{abstract} \\section{} \\end{document}"
+        texfile1 = open(os.path.join(settings.TESTFILES_ROOT, texfile1_name), 'r')
+        self._user1_tex1_source_code = texfile1.read()
+        self._user1_tex1.source_code = self._user1_tex1_source_code
         self._user1_tex1.save()
-        self._user1_tex2 = TexFile(name='tex2.tex', folder=self._user1_project1.rootFolder, source_code='user1_tex2\n')
+
+        # Erstelle eine .tex Datei für user1 in user1_project1_root (Projekt root Verzeichnis)
+        texfile2 = open(os.path.join(settings.TESTFILES_ROOT, texfile2_name), 'r')
+        self._user1_tex2_source_code = texfile2.read()
+        self._user1_tex2 = TexFile(name=texfile2_name, folder=self._user1_project1.rootFolder,
+                                   source_code=self._user1_tex2_source_code)
         self._user1_tex2.save()
-        self._user1_tex3 = TexFile(name='TEX2.tex', folder=self._user1_project1_folder1, source_code='user1_tex3\n')
+
+        # Erstelle eine .tex Datei für user1 in user1_project1_folder1
+        texfile3 = open(os.path.join(settings.TESTFILES_ROOT, texfile3_name), 'r')
+        self._user1_tex3_source_code = texfile3.read()
+        self._user1_tex3 = TexFile(name=texfile3_name, folder=self._user1_project1_folder1,
+                                   source_code=self._user1_tex3_source_code)
         self._user1_tex3.save()
 
+        # Erstelle eine .tex Datei für user1 in user1_project1_folder1
+        self._user1_tex4 = TexFile(name=texfile2_name, folder=self._user1_project1_folder1,
+                                   source_code='invalidtex source code')
+        self._user1_tex4.save()
+
+
         # Erstelle eine Binärdatei für user1 in user1_project1_folder2_subfolder1
-        self._user1_binary1_str = 'user1_binary1-test1.bin'
-        user1_binfile1 = io.BytesIO(bytes(self._user1_binary1_str, 'utf-8'))
-        self._user1_binary1 = BinaryFile.objects.createFromFile(name='test1.bin',
+        self._user1_binfile1_path = os.path.join(settings.TESTFILES_ROOT, binfile1_name)
+        binfile1 = open(self._user1_binfile1_path, 'rb')
+        self._user1_binary1 = BinaryFile.objects.createFromFile(name=binfile1_name,
                                                                 folder=self._user1_project1_folder2_subfolder1,
-                                                                file=user1_binfile1)
-        user1_binfile1.close()
+                                                                file=binfile1)
+        binfile1.close()
 
-        # Erstelle eine weitere Binärdatei für user1 in user1_project1_folder2_subfolder1
-        self._user1_binary2_str = 'user1_binary2-test2.bin'
-        user1_binfile2 = io.BytesIO(bytes(self._user1_binary1_str, 'utf-8'))
-        self._user1_binary2 = BinaryFile.objects.createFromFile(name='test2.bin',
-                                                                folder=self._user1_project1_folder2_subfolder1,
-                                                                file=user1_binfile2)
-        user1_binfile2.close()
-
-        # Erstelle eine BildDatei für user1 in user1_project1_folder2_subfolder2
-        self._user1_binary3_str = 'user1_binary3-test3.jpg'
-        user1_binfile3 = io.BytesIO(bytes(self._user1_binary3_str, 'utf-8'))
-        self._user1_binary3 = BinaryFile.objects.createFromFile(name='test3.jpg',
-                                                                folder=self._user1_project1_folder2_subfolder1,
-                                                                file=user1_binfile3)
-        user1_binfile3.close()
-
-        # Erstelle eine .tex Datei für user2 in user2_project1_root (Projekt root Verzeichnis)
+        # Ändere den Source Code der main.tex Datei von user2_project1
         self._user2_tex1 = self._user2_project1.rootFolder.getMainTex()
-        self._user2_tex1.source_code = 'user2_tex1\n'
+        texfile2 = open(os.path.join(settings.TESTFILES_ROOT, texfile2_name), 'r')
+        self._user2_tex1.source_code = texfile2.read()
         self._user2_tex1.save()
 
-    # Setup Methode für Dateien, die direkt auf der Festplatte vorhanden sein sollen
-    # (wird von test_file -> test_uploadfiles() verwendet
-    def setUpHddFiles(self):
-        self._tmp_filepath = tempfile.mkdtemp()
-        self._user1_binfile1_filename = 'test1.bin'
-        self._user1_binfile1_filepath = os.path.join(self._tmp_filepath, self._user1_binfile1_filename)
-        self._user1_binfile1 = open(self._user1_binfile1_filepath, 'wb')
-        self._user1_binfile1.write(b'test_binary')
-        self._user1_binfile1.close()
+        # Erstelle eine jpg Bilddatei für user1 in user1_project1_folder2_subfolder1
+        self._user1_binary2_path = os.path.join(settings.TESTFILES_ROOT, binfile2_name)
+        binfile2 = open(self._user1_binary2_path, 'rb')
+        self._user1_binary2 = BinaryFile.objects.createFromFile(name=binfile2_name,
+                                                                folder=self._user1_project1_folder2_subfolder1,
+                                                                file=binfile2)
+        binfile2.close()
 
-        self._user1_binfile2_filepath = os.path.join(self._tmp_filepath, 'test2.tex')
-        self._user1_binfile2 = open(self._user1_binfile2_filepath, 'w')
-        self._user1_binfile2.write('test_tex')
-        self._user1_binfile2.close()
+        # Erstelle eine png Bilddatei für user1 in user1_project1_folder2_subfolder2
+        self._user1_binary3_path = os.path.join(settings.TESTFILES_ROOT, binfile3_name)
+        binfile3 = open(self._user1_binary3_path, 'rb')
+        self._user1_binary3 = BinaryFile.objects.createFromFile(name=binfile3_name,
+                                                                folder=self._user1_project1_folder2_subfolder1,
+                                                                file=binfile3)
+        binfile3.close()
 
-        self._user1_binfile3_filepath = os.path.join(self._tmp_filepath, 'test3.jpg')
-        self._user1_binfile3 = open(self._user1_binfile3_filepath, 'wb')
-        self._user1_binfile3.write(b'test_jpg')
-        self._user1_binfile3.close()
 
     # setzt einige Variablen, die in den Tests verwendet werden können
     def setUpValues(self):
-        self._new_code1 = 'user1_tex1 new text added'
-        self._newtex_name1 = 'newmain.tex'
-        self._newbinary_name1 = 'newtest.bin'
+        texfile_name = 'test_tex_simple.tex'
+        texfile = open(os.path.join(settings.TESTFILES_ROOT, texfile_name), 'r')
+        self._new_code1 = texfile.read()
+        texfile.close()
+        self._newtex_name1 = 'NeuerTexName1.tex'
+        self._newtex_name2 = 'NeuerTexName2.tex'
+        self._newtex_name3 = 'NeuerTexName3.tex'
+        self._newbinary_name1 = 'NeuerBinaryName1.bin'
+        self._newbinary_name2 = 'NeuerBinaryName2.bin'
+        self._newbinary_name3 = 'NeuerBinaryName3.bin'
+        self._newname1 = 'NeuerName1'
+        self._newname2 = 'NeuerName2'
+        self._newname3 = 'NeuerName3'
         self._invalidid = 100000000
-        self._newprojectname1 = 'LatexWebOffice Testprojekt'
-        self._newprojectname2 = 'user1_project3'
-        self._newprojectname3 = 'user1_project4'
+        self._name_only_spaces = '    '
+        self._name_blank = ''
+        self._name_invalid_chars = 'Test1234<>\\/'
 
-
-    # entfernt die erstellten Dateien und das Temp Verzeichnis wieder
-    def tearDownHddFiles(self):
-        if os.path.isfile(self._user1_binfile1_filepath):
-            os.remove(self._user1_binfile1_filepath)
-        if os.path.isfile(self._user1_binfile2_filepath):
-            os.remove(self._user1_binfile2_filepath)
-        if os.path.isfile(self._user1_binfile3_filepath):
-            os.remove(self._user1_binfile3_filepath)
-        if os.path.isdir(self._tmp_filepath):
-            os.rmdir(self._tmp_filepath)
 
     # löscht den Ordner für die test Dateien
     def tearDownFiles(self):
