@@ -81,14 +81,14 @@ var number_of_files = response.files.length;
 if (level == 0){
 // Gibt die Liste der Dateien aus.
 for (var i = 0; i < number_of_files; i++){
-	filelistHandler.addData({'name':response.files[i].name,'foldername':response.name},false);
+	filelistHandler.addData({'name':response.files[i].name,'foldername':response.name,'folderid':response.id,'fileid':response.files[i].id},false);
 }
 }
 // Höhere Rekursionsebene - beinhaltet den aktuellen Pfad
 else {
 // Gibt die Dateien des Ordners der höheren Rekursionsebene aus
 for (var i = 0; i < number_of_files; i++){
-	filelistHandler.addData({'name':response.files[i].name,'foldername':response.name},path,false);
+	filelistHandler.addData({'name':response.files[i].name,'foldername':response.name,'folderid':response.id,'fileid':response.files[i].id},path,false);
 }
 }
 // Prüft, ob das aktuelle Array ein Array mit Unterordnern beinhaltet
@@ -145,7 +145,7 @@ path.push(sumOfFiles);
 }
 // Gibt die Dateien des Ordners aus
 for (var i = 0; i < response.folders[a].files.length; i++){
-	filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name},path,false);
+	filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id},path,false);
 }
 }
 }
@@ -169,7 +169,102 @@ return path;
 }
 
 
+function popup(){
+var array = filelistHandler.getSelected();
+console.log(array["folderid"]);
+  $(function() {
+  alert("Blabla");
+    $( "#dialog" ).dialog();
+  });
+}
 
+/**
+ * Löscht den ausgewählten Ordner/die Datei
+ * @param project - Projekt
+ */
+function removeFolderAndFiles(id,type) {
+if (type == "folder"){
+jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'rmdir',
+			'id': id
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			//Anfrage Fehlerhaft
+			console.log({
+				'error': 'Fehlerhafte Anfrage: Fehler beim Abrufen der Dateiliste',
+				'details': errorThrown,
+				'id': projectID,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success'){
+				// Fehler auf dem Server
+				console.log({
+					'error': 'Fehlerhafte Rückmeldung: Fehler beim Abrufen der Dateiliste',
+					'details': data.response,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			}
+			else {
+			// Seite neu laden
+			location.reload();
+			
+			
+		}
+		}
+	});
+}
+if (type == "file"){
+jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'deletefile',
+			'id': id
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			//Anfrage Fehlerhaft
+			console.log({
+				'error': 'Fehlerhafte Anfrage: Fehler beim Abrufen der Dateiliste',
+				'details': errorThrown,
+				'id': projectID,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success'){
+				// Fehler auf dem Server
+				console.log({
+					'error': 'Fehlerhafte Rückmeldung: Fehler beim Abrufen der Dateiliste',
+					'details': data.response,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			}
+			else {
+			// Seite neu laden
+			location.reload();
+			
+			
+		}
+		}
+	});
+
+}
+}
 
 
 

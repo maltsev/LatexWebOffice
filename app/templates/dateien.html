@@ -11,16 +11,26 @@
 <link rel="stylesheet" href="/static/css/listselector.css">
 <link rel="stylesheet" href="/static/css/menuleiste.css">
 <script src="/static/js/listselector.js"></script>
+<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+
 <script src="/static/js/dateien.js"></script>
 {% endblock %}
 
 <!-- content to embed in wrapper.html as content -->
 {% block content %}
+<div id="dialog" title="Datei/Ordner löschen" style="display: none;">
+  <p>Bitte wählen Sie aus, ob Sie die Datei oder den Ordner (und dessen Unterordner) löschen möchten. Es werden alle Unterordner vom ausgewählten Ordner gelöscht.
+  </p>
+  <p onClick="removeFolderAndFiles(86,'file')"> Datei löschen</p>
+  <p onClick="removeFolderAndFiles(0,'folder')"> Ordner löschen</p>
+</div>
 <div id="inhalt">
 
     {% comment %}
         Stub Page
     {% endcomment %}
+	
 	<div id="menu">
 		<ul>
 		  <li class="topmenu">
@@ -41,8 +51,8 @@
 		  <li class="topmenu">
 			<a href="">Verschieben</a>
 		  </li>
-		  <li class="topmenu">
-			<a href="">Löschen</a>
+		  <li onClick="popup()" class="topmenu">
+			<a>Löschen</a>
 		  </li>
 		</ul>
 	</div>
