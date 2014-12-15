@@ -114,6 +114,10 @@ if (response.folders[a].files.length != 0){
 sumOfFiles =parent.files.length; // ermittelt die Anzahl der Dateien vom parent Ordner
 }
 }
+// Wenn es mehr als eine Datei im untersten Ordner gibt
+if (response.files.length > 1){
+sumOfFiles += response.files.length-1; // setze Anzahl der Dateien auf die Anzahl der Dateien-1
+}
 path.push(sumOfFiles); // Fügt die Summe der Dateien zum Pfad hinzu
 recursiveFileAnalysis(response.folders[a],level+1,path,response); // Rekursionsaufruf
 }
