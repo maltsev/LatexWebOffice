@@ -4,17 +4,18 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 12 Dez 2014 14:36:23 CET
+* Last Modified : Sa 13 Dez 2014 19:49:52 CET
 
 * Author :  christian
 
-* Coauthors : mattis
+* Coauthors : mattis, ingo
 
 * Sprintnumber : 2
 
 * Backlog entry : TEK1, 3ED9, DOK8
 
 """
+import io, json, logging, mimetypes, os, tempfile
 from django.http import HttpResponse, Http404
 from app.models.folder import Folder
 from app.models.project import Project
@@ -27,9 +28,8 @@ from app.common import util
 from app.common.compile import compile as comp
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
 from django.conf import settings
-import mimetypes, os, io, tempfile, logging
 from django.db import transaction
-import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 # erstellt eine neue .tex Datei in der Datenbank ohne Textinhalt
 # benötigt: id:folderid name:texname
@@ -224,16 +224,32 @@ def downloadFile(request, user, fileid):
 
 
 # benötigt: id:fileid
-# liefert: HTTP Response (Json) --> fileid, filename, folderid, foldername
+# liefert: HTTP Response (Json) --> fileid, filename, folderid, foldername, projectid, projectname, createtime, lastmodifiedtime, mimetype, size
 def fileInfo(request, user, fileid):
+    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
+    if not rights:
+        return failurereturn
+    
     # hole das Datei und Ordner Objekt
     fileobj = File.objects.get(id=fileid)
     folderobj = Folder.objects.get(id=fileobj.folder.id)
-
-    # Sende die id und den Namen der Datei sowie des Ordners als JSON response
-    dictionary = {'fileid': fileobj.id, 'filename': fileobj.name, 'folderid': folderobj.id,
-                  'foldername': folderobj.name}
-
+    # ermittelt das Projekt der Datei
+    projectobj = folderobj.getProject()
+    
+    # Sende die Datei-Informationen als JSON response
+    dictionary = {'fileid': fileobj.id,
+                  'filename': fileobj.name,
+                  'folderid': folderobj.id,
+                  'foldername': folderobj.name,
+                  'projectid': projectobj.id,
+                  'projectname': projectobj.name,
+                  'createtime': json.dumps(fileobj.createTime,cls=DjangoJSONEncoder),
+                  'lastmodifiedtime': json.dumps(fileobj.lastModifiedTime,cls=DjangoJSONEncoder),
+                  'mimetype': fileobj.mimeType,
+                  'size': fileobj.size
+                  }
+    
     return util.jsonResponse(dictionary, True, request)
 
 

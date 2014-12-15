@@ -5,11 +5,11 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fri 12 Dec 2014 07:52:17 PM CET
+* Last Modified : Mo 15 Dez 2014 11:44:23 CET
 
 * Author :  christian
 
-* Coauthors : mattis
+* Coauthors : mattis, ingo
 
 * Sprintnumber : -
 
@@ -212,7 +212,7 @@ def _getFoldersAndFilesJson(folderobj, data={}):
     data['folders'] = folderlist
     files = File.objects.filter(folder=folderobj)
     for f in files:
-        filelist.append({'id': f.id, 'name': f.name})
+        filelist.append({'id': f.id, 'name': f.name, 'mimetype': f.mimeType})
 
     folders = Folder.objects.filter(parent=folderobj)
 

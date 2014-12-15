@@ -4,18 +4,18 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Do 04 Dez 2014 14:54:26 CET
+* Last Modified : Sa 13 Dez 2014 14:50:08 CET
 
 * Author :  christian
 
-* Coauthors : mattis
+* Coauthors : mattis, ingo
 
 * Sprintnumber : 2
 
 * Backlog entry : -
 
 """
-
+import json, mimetypes, os, tempfile
 from django.utils.encoding import smart_str
 from django.conf import settings
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
@@ -27,7 +27,7 @@ from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.tests.server.viewtestcase import ViewTestCase
-import os, tempfile, mimetypes
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 class FileTestClass(ViewTestCase):
@@ -403,32 +403,44 @@ class FileTestClass(ViewTestCase):
     def test_fileInfo(self):
         # Sende Anfrage zu Dateiinformation der test.bin Datei
         response = util.documentPoster(self, command='fileinfo', idpara=self._user1_binary1.id)
-
+        
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
-
+        
         # lese die Antwort des Server ein
         serveranswer = dictionary['response']
-
+        
         # status sollte 'success' sein
         self.assertEqual(dictionary['status'], SUCCESS)
-
+        
         # Es sollten richtige Informationen zur Datei zurückgegeben worden sein
         self.assertIn('fileid', serveranswer)
         self.assertIn('filename', serveranswer)
         self.assertIn('folderid', serveranswer)
         self.assertIn('foldername', serveranswer)
-
+        self.assertIn('projectid', serveranswer)
+        self.assertIn('projectname', serveranswer)
+        self.assertIn('createtime', serveranswer)
+        self.assertIn('lastmodifiedtime', serveranswer)
+        self.assertIn('mimetype', serveranswer)
+        self.assertIn('size', serveranswer)
+        
         fileobj = self._user1_binary1  # Die Datei, über die Informationen angefordert wurde
         folderobj = self._user1_binary1.folder  # der Ordner, wo fileobj liegt
-
-        # Die zurückgegebenen Informationen sollten mit fileobj und folderobj übereinstimmen
+        
+        # Die zurückgegebenen Informationen sollten mit den Datei-Informationen übereinstimmen
         self.assertEqual(serveranswer['fileid'], fileobj.id)
         self.assertEqual(serveranswer['filename'], fileobj.name)
         self.assertEqual(serveranswer['folderid'], folderobj.id)
         self.assertEqual(serveranswer['foldername'], folderobj.name)
-
-
+        self.assertEqual(serveranswer['projectid'], folderobj.getProject().id)
+        self.assertEqual(serveranswer['projectname'], folderobj.getProject().name)
+        self.assertEqual(serveranswer['createtime'], json.dumps(fileobj.createTime,cls=DjangoJSONEncoder))
+        self.assertEqual(serveranswer['lastmodifiedtime'], json.dumps(fileobj.lastModifiedTime,cls=DjangoJSONEncoder))
+        self.assertEqual(serveranswer['mimetype'], fileobj.mimeType)
+        self.assertEqual(serveranswer['size'], fileobj.size)
+        
+    
     # Teste das Komiplieren einer .tex Datei
     def test_latexCompile(self):
         # schicke POST request an den Server mit dem compile Befehl und dem zugehörigen Parameter id:fileid

@@ -4,11 +4,11 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Sat 29 Nov 2014 12:27:56 AM CET
+* Last Modified : Sat 13 Dec 2014 08:06:03 PM CET
 
 * Author :  mattis
 
-* Coauthors : christian
+* Coauthors : christian, ingo
 
 * Sprintnumber : 2
 
@@ -250,7 +250,8 @@ class FolderTestClass(ViewTestCase):
             'name': self._user2_project1.rootFolder.name,
             'files': [
                 {'id': self._user2_project1.rootFolder.getMainTex().id,
-                 'name': self._user2_project1.rootFolder.getMainTex().name}
+                 'name': self._user2_project1.rootFolder.getMainTex().name,
+                 'mimetype': self._user2_project1.rootFolder.getMainTex().mimeType}
             ],
             'folders': [{
                             'id': self._user2_project1_folder1.id,
@@ -282,9 +283,11 @@ class FolderTestClass(ViewTestCase):
             'name': self._user1_project1.rootFolder.name,
             'files': [
                 {'id': self._user1_project1.rootFolder.getMainTex().id,
-                 'name': self._user1_project1.rootFolder.getMainTex().name},
+                 'name': self._user1_project1.rootFolder.getMainTex().name,
+                 'mimetype': self._user1_project1.rootFolder.getMainTex().mimeType},
                 {'id': self._user1_tex2.id,
-                 'name': self._user1_tex2.name}
+                 'name': self._user1_tex2.name,
+                 'mimetype': self._user1_tex2.mimeType}
             ],
             'folders': [
                 {
@@ -293,7 +296,8 @@ class FolderTestClass(ViewTestCase):
                     'folders': [],
                     'files': [
                         {'id': self._user1_tex3.id,
-                         'name': self._user1_tex3.name}
+                         'name': self._user1_tex3.name,
+                         'mimetype': self._user1_tex3.mimeType}
                     ]
                 },
                 {
@@ -304,11 +308,14 @@ class FolderTestClass(ViewTestCase):
                          'name': self._user1_project1_folder2_subfolder1.name,
                          'files': [
                              {'id': self._user1_binary1.id,
-                              'name': self._user1_binary1.name},
+                              'name': self._user1_binary1.name,
+                              'mimetype': self._user1_binary1.mimeType},
                              {'id': self._user1_binary2.id,
-                              'name': self._user1_binary2.name},
+                              'name': self._user1_binary2.name,
+                              'mimetype': self._user1_binary2.mimeType},
                              {'id': self._user1_binary3.id,
-                              'name': self._user1_binary3.name}
+                              'name': self._user1_binary3.name,
+                              'mimetype': self._user1_binary3.mimeType}
                          ],
                          'folders': []},
                     ],
