@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mo 15 Dez 2014 11:42:42 CET
+* Last Modified : Mo 15 Dez 2014 12:40:42 CET
 
 * Author :  christian
 
@@ -178,6 +178,8 @@ def importZip(request, user):
     # durchlaufe alle Ordner/Unterordner in extracted
     # und erstelle die jeweiligen Objekte in der Datenbank
     # Dateien werden über die util.uploadfiles() Methode erstellt
+    returnmsg=util.jsonResponse({'id':projectobj.id,'name':projectobj.name}, True, request)
+
     try:
         with transaction.atomic():
             for root, dirs, files in os.walk(extract_path):
@@ -203,15 +205,15 @@ def importZip(request, user):
                     result, msg = util.uploadFile(fileobj, folder, request, True)
                     fileobj.close()
                     if not result:
+                        returnmsg=util.jsonErrorResponse(msg,request)
                         raise TypeError
     except TypeError:
-        print('yolo')
+        projectobj.delete() # bei Fehler muss noch das Projekt selbst gelöscht werden
 
     # lösche alle temporären Dateien und Ordner
     if os.path.isdir(tmpfolder):
         shutil.rmtree(tmpfolder)
-
-    return util.jsonResponse({}, True, request)
+    return returnmsg
 
 
 # liefert ein vom Client angefordertes Projekt in Form einer zip Datei als Filestream
