@@ -170,6 +170,7 @@ class ViewTestCase(TestCase):
         self._newtex_name1 = 'NeuerTexName1.tex'
         self._newtex_name2 = 'NeuerTexName2.tex'
         self._newtex_name3 = 'NeuerTexName3.tex'
+        self._newtex_name_only_ext = '.tex'
         self._newbinary_name1 = 'NeuerBinaryName1.bin'
         self._newbinary_name2 = 'NeuerBinaryName2.bin'
         self._newbinary_name3 = 'NeuerBinaryName3.bin'

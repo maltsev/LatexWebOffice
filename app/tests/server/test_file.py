@@ -28,121 +28,238 @@ from app.common import util
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
+from app.models.project import Project
 from app.tests.server.viewtestcase import ViewTestCase
 
 
 class FileTestClass(ViewTestCase):
-    # Initialiserung der benötigten Objekte
-    # -> wird vor jedem Test ausgeführt
     def setUp(self):
+        """Setup Methode für die einzelnen Tests
+
+         Diese Funktion wird vor jeder Testfunktion ausgeführt.
+         Damit werden die notwendigen Variablen und Modelle für jeden Test neu initialisiert.
+         Die Methoden hierzu befinden sich im ViewTestCase (viewtestcase.py).
+
+        :return: None
+        """
         self.setUpUserAndProjects()
         self.setUpFolders()
         self.setUpFiles()
         self.setUpValues()
 
-
-    # Freigabe von nicht mehr benötigten Resourcen
-    # -> wird nach jedem Test ausgeführt
     def tearDown(self):
+        """Freigabe von nicht mehr notwendigen Ressourcen.
+
+        Diese Funktion wird nach jeder Testfunktion ausgeführt.
+
+        :return: None
+        """
+
         # self.tearDownFiles()
         pass
 
+    def test_createTexFile(self):
+        """Test der createTexFile() Methode des file view
 
-    # Teste das Erstellen einer neuen leeren .tex Datei
-    def test_createtexfile(self):
+        Teste das Erstellen einer neuen .tex Datei.
+
+        Testfälle:
+        - user1 erstellt eine neue .tex Datei im rootFolder von project1 -> Erfolg
+        - user1 erstellt eine .tex Datei mit einem Namen, der bereits im selben Verzeichnis existiert -> Fehler
+        - user1 erstellt eine .tex Datei in einem Ordner der zu einem Projekt von user2 gehört -> Fehler
+        - user1 erstellt eine .tex Datei in einem Order der nicht existiert -> Fehler
+        - user1 erstellt eine .tex Datei mit einem Namen der nur aus Leerzeichen besteht -> Fehler
+        - user1 ersteltt eine .tex Datei mit einem Namen der ein leerer String ist -> Fehler
+        - user1 erstellt eine .tex Datei mit einem Namen der ungültige Sonderzeichen beinhaltet -> Fehler
+
+        :return: None
+        """
+
         # Sende Anfrage zum erstellen einer neuen .tex Datei
         response = util.documentPoster(self, command='createtex', idpara=self._user1_project1.rootFolder.id,
                                        name=self._newtex_name1)
 
+        # überprüfe ob die Texdatei in der Datenbank vorhanden ist
+        self.assertTrue(TexFile.objects.filter(name=self._newtex_name1,
+                                               folder=self._user1_project1.rootFolder.id).exists())
+
+        # hole das texfile Objekt
+        texfileobj = TexFile.objects.get(name=self._newtex_name1, folder=self._user1_project1.rootFolder.id)
+
+        # erwartete Antwort des Servers
+        serveranswer = {'id': texfileobj.id,
+                        'name': self._newtex_name1}
+
         # überprüfe die Antwort des Servers
-        # sollte success als status liefern
-        # response sollte mit serveranswer übereinstimmen
-        texfileobj = TexFile.objects.get(name=self._newtex_name1)
-        serveranswer = {'id': texfileobj.id, 'name': self._newtex_name1}
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum erstellen einer neuen .tex Datei mit einem Namen, der bereits im selben Ordner existiert
         response = util.documentPoster(self, command='createtex', idpara=self._user1_project1.rootFolder.id,
                                        name=self._newtex_name1.upper())
 
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # sollte ERROR_MESSAGES['FILENAMEEXISTS'] als Fehlermeldung liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENAMEEXISTS'])
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['FILENAMEEXISTS']
 
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum erstellen der Datei als user1 mit der folderid die user2 gehört
         response = util.documentPoster(self, command='createtex', idpara=self._user2_project1_folder1.id,
                                        name=self._newtex_name2)
 
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # sollte die Fehlermeldung ERROR_MESSAGES['NOTENOUGHRIGHTS'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
 
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum erstellen der Datei als user1 mit einer folderid die nicht existiert
-        response = util.documentPoster(self, command='createtex', idpara=100000, name=self._newtex_name2)
+        response = util.documentPoster(self, command='createtex', idpara=self._invalidid, name=self._newtex_name2)
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['DIRECTORYNOTEXIST']
 
         # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # sollte die Fehlermeldung ERROR_MESSAGES['DIRECTORYNOTEXIST'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['DIRECTORYNOTEXIST'])
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum erstellen der Datei als user1 mit einem Namen der nur aus Leerzeichen besteht
+        response = util.documentPoster(self, command='createtex', idpara=self._user1_project1_folder1.id,
+                                       name=self._name_only_spaces)
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['BLANKNAME']
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum erstellen der Datei als user1 mit einem Namen der ein leerer String ist
+        response = util.documentPoster(self, command='createtex', idpara=self._user1_project1_folder1.id,
+                                       name=self._name_blank)
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['BLANKNAME']
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum erstellen der Datei als user1 mit einem ungültigen Namen
         response = util.documentPoster(self, command='createtex', idpara=self._user1_project1_folder1.id,
                                        name=self._name_invalid_chars)
 
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['INVALIDNAME']
+
         # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # sollte die Fehlermeldung ERROR_MESSAGES['FILENOTCREATED'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['INVALIDNAME'])
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+    def test_updateFile(self):
+        """Test der updateFile() Methode des file view
 
-    # Teste das Ändern einer Datei
-    # (source code wurde geändert)
-    def test_updatefile(self):
+        Teste das aktualisieren des Inhalts eine PlainTextFile
+        (source_code wurde aktualisiert)
+
+        Testfälle:
+        - user1 ändert den source code der tex1 datei -> Erfolg
+        - user1 ändert den source code der tex1 datei zu einem leeren String -> Erfolg
+        - user1 ändert den source code einer Binärdatei -> Fehler
+        - user1 ändert den source code einer Datei die user2 gehört -> Fehler
+        - user1 ändert den source code einer Datei die nicht existiert -> Fehler
+
+        :return: None
+        """
+
         # Sende Anfrage zum ändern der Datei
         response = util.documentPoster(self, command='updatefile', idpara=self._user1_tex1.id,
                                        content=self._new_code1)
 
-        # überprüfe die Antwort des Servers
-        # sollte success als status liefern
-        # response sollte leer sein
-        util.validateJsonSuccessResponse(self, response.content, {})
         # die in der Datenbank gespeicherte .tex Datei sollte als source_code nun den neuen Inhalt besitzen
         self.assertEqual(TexFile.objects.get(id=self._user1_tex1.id).source_code, self._new_code1)
 
+        # erwartete Antwort des Servers
+        serveranswer = {}
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum ändern der Datei als user1 mit einer gültigen fileid.
+        # Die Datei soll nun nur noch einen leeren String beinhalten
+        response = util.documentPoster(self, command='updatefile', idpara=self._user1_tex1.id, content=self._name_blank)
+
+        # die in der Datenbank gespeicherte .tex Datei sollte als source_code nun den neuen Inhalt besitzen
+        self.assertEqual(TexFile.objects.get(id=self._user1_tex1.id).source_code, self._name_blank)
+
+        # erwartete Antwort des Servers
+        serveranswer = {}
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum ändern der Datei mit der fileid einer Binärdatei
         response = util.documentPoster(self, command='updatefile', idpara=self._user1_binary1.id,
                                        content=self._new_code1)
 
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # sollte die Fehlermeldung ERROR_MESSAGES['NOPLAINTEXTFILE'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOPLAINTEXTFILE'])
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['NOPLAINTEXTFILE']
 
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum ändern der Datei als user1 mit der fileid einer .tex Datei die user2 gehört
         response = util.documentPoster(self, command='updatefile', idpara=self._user2_tex1.id,
                                        content=self._new_code1)
 
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # sollte die Fehlermeldung ERROR_MESSAGES['NOTENOUGHRIGHTS'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
 
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum ändern der Datei als user1 mit einer fileid
         # die auf dem Server in der Datenbank nicht existiert
         response = util.documentPoster(self, command='updatefile', idpara=self._invalidid,
                                        content=self._new_code1)
 
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # sollte die Fehlermeldung ERROR_MESSAGES['FILENOTEXIST'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENOTEXIST'])
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['FILENOTEXIST']
 
-        # Sende Anfrage zum ändern der Datei als user1 mit einer fileid.
-        # Die Datei soll nun nur noch einen leeren String beinhalten
-        response = util.documentPoster(self, command='updatefile', idpara=self._user1_tex1.id, content='')
-        util.validateJsonSuccessResponse(self, response.content, {})
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
 
 
     # Teste das Löschen einer Datei
@@ -453,8 +570,16 @@ class FileTestClass(ViewTestCase):
 
     # Teste das Komiplieren einer .tex Datei
     def test_latexCompile(self):
+
+        projectobj = Project.objects.create(name=self._newname1, author=self._user1)
+        src_code = "\\documentclass[a4paper,10pt]{article} \\usepackage[utf8]{inputenc} \\title{test} " \
+                   "\\begin{document} \\maketitle \\begin{abstract} \\end{abstract} \\section{} \\end{document}"
+
+        texobj1 = TexFile.objects.create(name=self._newtex_name1, folder=projectobj.rootFolder, source_code = src_code)
+        texobj2 = TexFile.objects.create(name=self._newtex_name2, folder=projectobj.rootFolder, source_code = 'Test')
+
         # schicke POST request an den Server mit dem compile Befehl und dem zugehörigen Parameter id:fileid
-        response = util.documentPoster(self, command='compile', idpara=self._user1_tex1.id)
+        response = util.documentPoster(self, command='compile', idpara=texobj1.id)
 
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
@@ -465,8 +590,8 @@ class FileTestClass(ViewTestCase):
         self.assertIn('name', serveranswer)
 
         # Teste Fehlerhafte Datei
-        response = util.documentPoster(self, command='compile', idpara=self._user1_tex4.id)
+        response = util.documentPoster(self, command='compile', idpara=texobj2.id)
 
         dictionary = util.jsonDecoder(response.content)
-        self.assertEqual(dictionary['status'], FAILURE)
 
+        self.assertEqual(dictionary['status'], FAILURE)
