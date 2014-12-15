@@ -17,37 +17,29 @@
 <!-- Inhalt -->
 {% block content %}
 <div id="inhalt">
-<h1>Projektübersicht</h1>
-<!-- <div>FIXME: Menüleiste einbinden</div> -->
-<div id="menu">
-    <ul>
-      <li class="topmenu">
-        <a href="">DropDown</a>
-        <ul>
-          <li class="submenu"><a href="">Funktion 1</a></li>
-          <li class="submenu"><a href="">Funktion 2</a></li>
-        </ul>
-      </li>
-      <li class="topmenu">
-        <a href="">Öffnen</a>
-      </li>
-      <li class="topmenu">
-        <a href="">Erstellen</a>
-      </li>
-      <li class="topmenu">
-        <a href="">Löschen</a>
-      </li>
-      <li class="topmenu">
-        <a href="">Exp.</a>
-      </li>
-      <li class="topmenu">
-        <a href="">Imp.</a>
-      </li>
-      <li class="topmenu">
-        <a href="">Freigeben</a>
-      </li>
-    </ul>
-  </div>
-<div id="projekte"></div>
+	<h1>Projektübersicht</h1>
+	<div id="menu">
+		<ul>
+			<li class="topmenu">
+				<a id="open" href="#">Öffnen</a>
+			</li>
+			<li class="topmenu">
+				<a href="">Erstellen</a>
+			</li>
+			<li class="topmenu">
+				<a href="">Löschen</a>
+			</li>
+			<li class="topmenu">
+				<a href="">Export</a>
+			</li>
+			<li class="topmenu">
+				<a href="">Import</a>
+			</li>
+			<li class="topmenu">
+				<a href="">Freigeben</a>
+			</li>
+		</ul>
+	</div>
+	<div id="projekte"></div>
 </div>
 {% endblock %}
