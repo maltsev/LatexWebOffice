@@ -241,8 +241,9 @@ function ListSelector(containerId) {
 		var object = atPath(path);
 		if (object != null)
 			object.show = !object.show;
+		this.setSelected(null);
 		this.render();
-	}
+	};
 
 	// Funktion, die bei Doppelklick auf einen Datensatz aufgerufen wird
 	var dClickHandler = function(object) {};
