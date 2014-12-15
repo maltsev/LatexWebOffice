@@ -65,7 +65,7 @@ jQuery.ajax('/documents/', {
 			else {
 			// vorhandene Dateiliste entfernen
 			filelistHandler.clearData();
-			//console.log(data.response);
+			console.log(data.response);
 			/**var files = data.response.files;
 			console.log(data.response);
 			console.log(data.response.folders);
@@ -127,7 +127,7 @@ console.log({"Namevorher":(response.folders[a].name),"Path":''+path});
 analyseFolders(response.folders[a],level+1,path,response,false);
 }
 else {
-//console.log("Keine Unterordner");
+console.log("Keine Unterordner");
 var sumOfFiles = 0;
 
 for (var c=0;c<parent.folders.length;c++){
@@ -137,11 +137,22 @@ break;
 sumOfFiles += parent.folders[c].files.length;
 }
 if (response.files.length > 1){
+console.log("Drin");
 sumOfFiles += response.files.length-1;
 }
-//alert("Files"+sumOfFiles);
+console.log("SumofFiles"+response.folders[a].folders.length);
+//alert("Folders"+response.folders[a].folders);
+//alert("ArrayLänge"+path.length);
+if (response.folders.length > 1){ // es gibt mehr als einen Unterordner
+//console.log("Ordner"+parent.folders[0].name);
+//console.log("Ordner"+response.folders.name);
+if (a == 0){
 path.push(sumOfFiles);
-console.log({'Name':response.folders[a].name,'Pfad':''+path.toString()});
+}
+}
+ // Hier muss der Fehler abgefangen werden - scheinbar fixed
+
+//console.log({'Name':response.folders[a].name,'Pfad':''+path.toString()});
 
 for (var i = 0; i < response.folders[a].files.length; i++){
 	filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name},path,false);
