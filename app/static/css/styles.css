@@ -3,6 +3,17 @@ margin: 0;
 height: 100%;
 font-family: Verdana, Helvetica, Arial;
 }
+#projekt_menueleiste{
+width: 100%;
+height: auto !important;
+border: 1px solid grey;
+}
+#projektuebersicht{
+width: 100%;
+border: 1px solid grey;
+min-height: 300px;
+background: white;
+}
 #editor{
 border: 1px solid grey;
 width: 100%;

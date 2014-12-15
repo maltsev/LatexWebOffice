@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Do 04 Dez 2014 10:50:19 CET
+* Last Modified : Mo 15 Dez 2014 13:13:11 CET
 
 * Author :  christian
 
@@ -450,31 +450,41 @@ class ProjectTestClass(ViewTestCase):
         maintex.write(self._new_code1)
         maintex.close()
 
+        # Erstelle eine zip datei, die vom server angenommen werden sollte
+        # erstelle eine zip Datei aus dem Projektordner
+        zip_file_path1 = os.path.join(tmpfolder, (self._newname1 + '.zip'))
+        util.createZipFromFolder(tmpfolder_project, zip_file_path1)
+
         # erstelle eine Binärdatei im Unterordner 1
         binfile = open(os.path.join(tmpfolder_project, 'Ordner 1', 'Unterordner 1', 'binary1.bin'), 'wb')
         binfile.write(bytearray('binary_test_file_importzip', 'utf-8'))
         binfile.close()
 
+        # erstelle ine zip Datei, die vom Server nicht angenommen werden sollte,
+        # da sie eine BinärDatei mit einem Mimetype enthält, welche nicht
+        # akzeptiert wird
         # erstelle eine zip Datei aus dem Projektordner
-        zip_file_path = os.path.join(tmpfolder, (self._newname1 + '.zip'))
-        util.createZipFromFolder(tmpfolder_project, zip_file_path)
+        zip_file_path2 = os.path.join(tmpfolder, (self._newname2 + '.zip'))
+        util.createZipFromFolder(tmpfolder_project, zip_file_path2)
 
-        # stelle sicher, dass die zip Datei gültig ist
-        self.assertTrue(zipfile.is_zipfile(zip_file_path))
+
+        # stelle sicher, dass die zip Dateien gültig sind
+        self.assertTrue(zipfile.is_zipfile(zip_file_path1))
+        self.assertTrue(zipfile.is_zipfile(zip_file_path2))
 
         # lese die zip Datei ein und schreibe die Daten in den request
-        zip = open(zip_file_path, 'rb')
+        zip = open(zip_file_path1, 'rb')
         request = {
             'command': 'importzip',
             'files': [zip]
         }
 
-        self.client.post('/documents/', request)
+        response=self.client.post('/documents/', request)
         zip.close()
 
-        # Lösche alle erstellten temporären Dateien und Verzeichnisse
-        if os.path.isdir(tmpfolder):
-            shutil.rmtree(tmpfolder)
+        # Teste, dass der Server eine positive Antwort geschickt hat
+        serveranswer={'id':6,'name':self._newname1}
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
         # Teste, dass das Projekt existiert
         self.assertTrue(Project.objects.filter(author=self._user1, name=self._newname1).exists())
@@ -487,6 +497,34 @@ class ProjectTestClass(ViewTestCase):
 
         # Teste, dass auch Unterordner angelegt wurden
         self.assertTrue(Folder.objects.filter(name='Unterordner 1', root=projobj.rootFolder).exists())
+
+        #lösche Projekt wieder
+        Project.objects.get(author=self._user1,name=self._newname1).delete()
+        # Teste, dass das Projekt nicht mehr existiert
+        self.assertFalse(Project.objects.filter(author=self._user1, name=self._newname1).exists())
+
+
+
+        # lese die zip Datei ein und schreibe die Daten in den request
+        zip = open(zip_file_path2, 'rb')
+        request = {
+            'command': 'importzip',
+            'files': [zip]
+        }
+
+        response=self.client.post('/documents/', request)
+        zip.close()
+        # Die Binärdatei sollte eine ILLEGALFILETYPE Fehlermeldung hervorgerufen
+        # haben sollen
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['ILLEGALFILETYPE'])
+
+        # Stelle sicher, dass das Projekt auch nicht erstellt wurde
+        self.assertFalse(Project.objects.filter(author=self._user1, name=self._newname1).exists())
+
+
+        # Lösche alle erstellten temporären Dateien und Verzeichnisse
+        if os.path.isdir(tmpfolder):
+            shutil.rmtree(tmpfolder)
 
     def test_exportZip(self):
         """Test der exportZip() Methode des project view

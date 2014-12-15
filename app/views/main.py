@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Su 14 Dec 2014 08:56:18 PM CET
+* Last Modified : Mo 15 Dez 2014 13:38:16 CET
 
 * Author :  maltsev
 
@@ -40,3 +40,7 @@ def projekt(request):
 @login_required
 def vorlagen(request):
     return render(request, 'vorlagen.html')
+
+@login_required
+def dateien(request):
+    return render(request,'dateien.html')
