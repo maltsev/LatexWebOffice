@@ -19,7 +19,6 @@ var changesSaved = true;
 $(document).ready(function() {
 	// Datei-ID abfragen
 	id = parseInt(location.hash.substr(1));
-	alert(location.hash);
 	if (isNaN(id))
 		// ungültige ID
 		backToProject();

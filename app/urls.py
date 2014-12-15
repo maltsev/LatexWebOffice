@@ -11,6 +11,7 @@ urlpatterns = patterns('app.views',
     url(r'^editor/', 'main.editor'),
     url(r'^documents/', 'document.execute'),
     url(r'^projekt/', 'main.projekt'),
+    url(r'^dateien/', 'main.dateien'),
     url(r'^vorlagen/', 'main.vorlagen')
 )
 if settings.DEBUG:
