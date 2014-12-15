@@ -1,7 +1,7 @@
 #menu {
 	font-size: 14px;
 	position: static;
-	height: 40px;
+	padding: 3px 0 4px 0;
 }
 
 #menu ul {
@@ -9,7 +9,6 @@
 	list-style-image: none;
 	margin: 0px;
 	padding: 0px;
-	position: absolute;
 }
 
 #menu li.topmenu {
@@ -24,6 +23,10 @@
 
 .topmenu ul{
 	display: none;
+}
+
+.submenu {
+	position: absolute;
 }
 
 .topmenu a, .submenu a{
