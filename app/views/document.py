@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 12 Dez 2014 15:32:30 CET
+* Last Modified : Fri 12 Dec 2014 07:50:09 PM CET
 
 * Author :  mattis
 
@@ -130,14 +130,6 @@ def execute(request):
                     emptystring, failurereturn = util.checkIfTemplateExistsAndUserHasRights(objId, user, request)
                     if not emptystring:
                         return failurereturn
-
-
-
-
-
-
-
-
 
 
         # führe den übergebenen Befehl aus

@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fri 12 Dec 2014 07:34:28 PM CET
+* Last Modified : Fri 12 Dec 2014 07:52:17 PM CET
 
 * Author :  christian
 
@@ -105,7 +105,7 @@ def checkIfProjectExistsAndUserHasRights(projectid, user, request):
 # abzurufen und diese Vorlage existiert
 # benötigt: projectid, user, httprequest
 def checkIfTemplateExistsAndUserHasRights(templateid, user, request):
-    if not ProjectTemplate.objects.filter(id=templateid).exists():
+    if not ProjectTemplate.objects.filter(id=templateid).exclude(project__isnull=False).exists():
         return False, jsonErrorResponse(ERROR_MESSAGES['TEMPLATENOTEXIST'], request)
     elif not ProjectTemplate.objects.get(id=templateid).author == user:
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)

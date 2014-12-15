@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 12 Dez 2014 14:37:44 CET
+* Last Modified : Mo 15 Dez 2014 11:42:42 CET
 
 * Author :  christian
 
@@ -29,7 +29,7 @@ from app.models.folder import Folder
 from app.models.project import Project
 from app.common import util
 from app.common.constants import ERROR_MESSAGES
-
+from django.db import transaction
 
 # erzeugt ein neues Projekt für den Benutzer mit einer leeren main.tex Datei
 # benötigt: name:projectname
@@ -145,28 +145,34 @@ def importZip(request, user):
     # durchlaufe alle Ordner/Unterordner in extracted
     # und erstelle die jeweiligen Objekte in der Datenbank
     # Dateien werden über die util.uploadfiles() Methode erstellt
-    for root, dirs, files in os.walk(extract_path):
-        # relativer Pfad des derzeitigen Verzeichnis
-        path = root.split('/')[rootdepth:]
-        # falls path true ist, ist root nicht das root Verzeichnis, wo die zip
-        # entpackt wurde
-        if path:
-            # path is also ein subsubfolder und wir müssen den subfolder als
-            # parent setzen
-            if path[:-1]:
-                parent = projdict[os.path.join('', *path[:-1])]
-            else:
-                parent = projectobj.rootFolder
-            folder = Folder.objects.create(name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
-            projdict[os.path.join('', *path)] = folder
-            # speichere Ordner
-            folder = Folder.objects.create(
-                name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
-            projdict[os.path.join('', *path)] = folder
-        for f in files:  # füge die Dateien dem Ordner hinzu
-            fileobj = open(os.path.join(root, f), 'rb')
-            result, msg = util.uploadFile(fileobj, folder, request, True)
-            fileobj.close()
+    try:
+        with transaction.atomic():
+            for root, dirs, files in os.walk(extract_path):
+                # relativer Pfad des derzeitigen Verzeichnis
+                path = root.split('/')[rootdepth:]
+                # falls path true ist, ist root nicht das root Verzeichnis, wo die zip
+                # entpackt wurde
+                if path:
+                    # path is also ein subsubfolder und wir müssen den subfolder als
+                    # parent setzen
+                    if path[:-1]:
+                        parent = projdict[os.path.join('', *path[:-1])]
+                    else:
+                        parent = projectobj.rootFolder
+                    folder = Folder.objects.create(name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
+                    projdict[os.path.join('', *path)] = folder
+                    # speichere Ordner
+                    folder = Folder.objects.create(
+                        name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
+                    projdict[os.path.join('', *path)] = folder
+                for f in files:  # füge die Dateien dem Ordner hinzu
+                    fileobj = open(os.path.join(root, f), 'rb')
+                    result, msg = util.uploadFile(fileobj, folder, request, True)
+                    fileobj.close()
+                    if not result:
+                        raise TypeError
+    except TypeError:
+        print('yolo')
 
     # lösche alle temporären Dateien und Ordner
     if os.path.isdir(tmpfolder):
