@@ -31,21 +31,31 @@ from app.common import util
 from app.common.constants import ERROR_MESSAGES
 
 
-# erzeugt ein neues Projekt für den Benutzer mit einer leeren main.tex Datei
-# benötigt: name:projectname
-# liefert: HTTP Response (Json)
-# Beispiel response: {'name': 'user1_project1', 'id': 1}
 def projectCreate(request, user, projectname):
-    # überprüfe ob ein Projekt mit dem Namen projectname bereits für diese
-    # Benutzer existiert
+    """Erstellt ein neues Projekt mit dem Namen 'projectname'
+
+    Es wird ein neues Projekt in der Datenbank angelegt.
+    Durch das Projektmodell wird automatisch eine leere main.tex Datei im Hauptverzeichnis erstellt.
+    Als Antwort wird der Projektname und die ProjektID des erstellten Projektes geliefert.
+    Beispiel: 'response': {'name': 'user1_project1', 'id': 1}
+
+    :param request: vom Client gesendete Anfrage, wird unverändert zurückgesendet
+    :param user: eingeloggter user, für den die Anfrage ausgeführt werden soll
+    :param projectname: Name des neuen Projektes
+    :return: HTTP Response (JSON)
+    """
+
+    # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
     if Project.objects.filter(name__iexact=projectname.lower(), author=user).exists():
         return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
     else:
+        # versuche das Projekt in der Datenbank zu erstellen
         try:
             newproject = Project.objects.create(name=projectname, author=user)
         except:
             return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
+    # gib die Id und den Namen des erstellte Projektes zurück
     return util.jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
 
 
@@ -53,8 +63,17 @@ def projectCreate(request, user, projectname):
 # benötigt: id:projectid
 # liefert: HTTP Response (Json)
 def projectRm(request, user, projectid):
+    """
+    :param request:
+    :param user:
+    :param projectid:
+    :return:
+    """
+
     # hole das zu löschende Projekt
     projectobj = Project.objects.get(id=projectid)
+
+    projectCreate()
 
     # versuche das Projekt zu löschen
     try:
@@ -62,6 +81,22 @@ def projectRm(request, user, projectid):
         return util.jsonResponse({}, True, request)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+
+
+def projectRename(request, user, projectid, newprojectname):
+    # hole das Projekt, welches umbenannt werden soll
+    projectobj = Project.objects.get(id=projectid)
+        # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
+    if Project.objects.filter(name__iexact=newprojectname.lower(), author=user).exists():
+        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(newprojectname), request)
+    else:
+        # versuche das Projekt umzubenennen
+        try:
+            projectobj.name = newprojectname
+            projectobj.save()
+            return util.jsonResponse({'id': projectobj.id, 'name': projectobj.name}, True, request)
+        except:
+            return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
 # liefert eine Übersicht aller Projekte eines Benutzers

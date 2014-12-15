@@ -53,6 +53,7 @@ def execute(request):
         available_commands = {
             'projectcreate': {'command': project.projectCreate, 'parameters': [{'para': globalparas['name'], 'stringcheck':True}]},
             'projectrm': {'command': project.projectRm, 'parameters': [{'para': globalparas['id'], 'type':Project}]},
+            'projectrename': {'command': project.projectRename, 'parameters': [{'para': globalparas['id'], 'type':Project}, {'para': globalparas['name'], 'stringcheck':True}]},
             'listprojects': {'command': project.listProjects, 'parameters': []},
             'importzip': {'command': project.importZip, 'parameters': []},
             'exportzip': {'command': project.exportZip, 'parameters': [{'para': globalparas['id']}]},

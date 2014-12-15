@@ -24,23 +24,47 @@ from app.tests.server.viewtestcase import ViewTestCase
 
 
 class FolderTestClass(ViewTestCase):
-    # Initialiserung der benötigten Objekte
-    # -> wird vor jedem Test ausgeführt
     def setUp(self):
+        """Setup Methode für die einzelnen Tests
+
+         Diese Funktion wird vor jeder Testfunktion ausgeführt.
+         Damit werden die notwendigen Variablen und Modelle für jeden Test neu initialisiert.
+         Die Methoden hierzu befinden sich im ViewTestCase (viewtestcase.py).
+
+        :return: None
+        """
         self.setUpUserAndProjects()
         self.setUpFolders()
         self.setUpFiles()
         self.setUpValues()
 
-
-    # Freigabe von nicht mehr benötigten Resourcen
-    # -> wird nach jedem Test ausgeführt
     def tearDown(self):
+        """Freigabe von nicht mehr notwendigen Ressourcen.
+
+        Diese Funktion wird nach jeder Testfunktion ausgeführt.
+
+        :return: None
+        """
+
         pass
 
 
     # Teste das Erzeugen von Ordnern
     def test_createDir(self):
+        """Test der createDir() Methode des folder view
+
+        Teste das Erstellen eines neuen Ordners
+
+        Testfälle:
+        - user1 erstellt einen neuen Ordner im rootFolder von project1 -> Erfolg
+        - user1 erstellt einen Unterordner in folder1 mit dem selben Namen wie folder1 -> Erfolg
+        - user1 erstellt einen weiteren Unterordner in folder1 mit dem selben Namen wie folder1 -> Fehler
+        - user1 erstellt einen Unterordner in einem Projekt von user2 -> Fehler
+        - user1 erstellt einen neuen Ordner mit einem Verzeichnisnamen, der nur Leerzeichen enthält -> Fehler
+
+        :return: None
+        """
+
         # Sende Anfrage zum Erstellen eines Ordners im rootfolder von Projekt 1
         response = util.documentPoster(self, command='createdir', idpara=self._user1_project1.rootFolder.id,
                                        name='testFolder')
@@ -66,20 +90,23 @@ class FolderTestClass(ViewTestCase):
         # Teste, ob der Ordner im richtigen Projekt erstellt wurde
         self.assertEqual(folder1.getRoot().getProject(), self._user1_project1)
 
+        # --------------------------------------------------------------------------------------------------------------
         # Teste, ob ein Unterverzeichnis von einem Unterverzeichnis angelegt werden kann
         # und das auch mit dem gleichen Namen
-        response = util.documentPoster(self, command='createdir', idpara=folder1.id, name='root')
+        response = util.documentPoster(self, command='createdir', idpara=folder1.id, name=folder1.name)
         dictionary = util.jsonDecoder(response.content)
         self.assertTrue(Folder.objects.filter(id=dictionary['response']['id']).exists())
+
+        # --------------------------------------------------------------------------------------------------------------
         # Teste, ob ein Verzeichnis zwei gleichnamige Unterverzeichnisse haben kann
-        response = util.documentPoster(self, command='createdir', idpara=folder1.id, name='root')
+        response = util.documentPoster(self, command='createdir', idpara=folder1.id, name=folder1.name)
         dictionary = util.jsonDecoder(response.content)
         self.assertEqual(dictionary['response'], ERROR_MESSAGES['FOLDERNAMEEXISTS'])
 
-        # Teste, wie es sich mit falschen Angaben verhält
-
+        # --------------------------------------------------------------------------------------------------------------
         # Teste ob user1 in einem Project vom user2 ein Verzeichnis erstellen kann
-        response = util.documentPoster(self, command='createdir', idpara=self._user2_project1.id, name='IDONOTEXISTDIR')
+        response = util.documentPoster(self, command='createdir', idpara=self._user2_project1.rootFolder.id,
+                                       name='IDONOTEXISTDIR')
         dictionary = util.jsonDecoder(response.content)
         self.assertEqual(dictionary['status'], FAILURE)
         # Teste, dass die richtige Fehlermeldung zurückgegeben wird
@@ -88,8 +115,9 @@ class FolderTestClass(ViewTestCase):
         # Teste, dass das Verzeichnis auch nicht erstellt wurde
         self.assertFalse(Folder.objects.filter(name='IDONOTEXISTDIR').exists())
 
-        #Teste auf leeren Verzeichnisnamen
-        response = util.documentPoster(self, command='createdir', idpara=self._user1_project1.id, name=' ')
+        # --------------------------------------------------------------------------------------------------------------
+        # Teste auf leeren Verzeichnisnamen
+        response = util.documentPoster(self, command='createdir', idpara=self._user1_project1.rootFolder.id, name=' ')
         dictionary = util.jsonDecoder(response.content)
         serveranswer = dictionary['response']
         self.assertEqual(serveranswer, ERROR_MESSAGES['BLANKNAME'])
@@ -244,13 +272,17 @@ class FolderTestClass(ViewTestCase):
         # sollte success als status liefern
         self.assertEqual(dictionary['status'], SUCCESS)
 
+        rootfolder = self._user2_project1.rootFolder
+        maintex = rootfolder.getMainTex()
+
         # anfrage sollte folgende Ordner/Dateistruktur als Json liefern
         jsondict1 = {
-            'id': self._user2_project1.rootFolder.id,
-            'name': self._user2_project1.rootFolder.name,
+            'id': rootfolder.id,
+            'name': rootfolder.name,
             'files': [
-                {'id': self._user2_project1.rootFolder.getMainTex().id,
-                 'name': self._user2_project1.rootFolder.getMainTex().name}
+                {'id': maintex.id,
+                 'name': maintex.name,
+                 'mimetype': maintex.mimeType}
             ],
             'folders': [{
                             'id': self._user2_project1_folder1.id,
@@ -264,7 +296,7 @@ class FolderTestClass(ViewTestCase):
                             'files': [],
                         }]
         }
-        self.assertEqual(dictionary['response'], jsondict1)
+        self.assertDictEqual(dictionary['response'], jsondict1)
 
         # logge user1 ein
         self.client.logout()
@@ -276,15 +308,20 @@ class FolderTestClass(ViewTestCase):
         # dekodiere den JSON response als dictionary
         dictionary = util.jsonDecoder(response.content)
 
+        rootfolder = self._user1_project1.rootFolder
+        maintex = rootfolder.getMainTex()
+
         # anfrage sollte folgende Ordner/Dateistruktur als Json liefern
         jsondict2 = {
-            'id': self._user1_project1.rootFolder.id,
-            'name': self._user1_project1.rootFolder.name,
+            'id': rootfolder.id,
+            'name': rootfolder.name,
             'files': [
-                {'id': self._user1_project1.rootFolder.getMainTex().id,
-                 'name': self._user1_project1.rootFolder.getMainTex().name},
+                {'id': maintex.id,
+                 'name': maintex.name,
+                 'mimetype': maintex.mimeType},
                 {'id': self._user1_tex2.id,
-                 'name': self._user1_tex2.name}
+                 'name': self._user1_tex2.name,
+                 'mimetype': self._user1_tex2.mimeType}
             ],
             'folders': [
                 {
@@ -293,7 +330,11 @@ class FolderTestClass(ViewTestCase):
                     'folders': [],
                     'files': [
                         {'id': self._user1_tex3.id,
-                         'name': self._user1_tex3.name}
+                         'name': self._user1_tex3.name,
+                         'mimetype': self._user1_tex3.mimeType},
+                        {'id': self._user1_tex4.id,
+                         'name': self._user1_tex4.name,
+                         'mimetype': self._user1_tex4.mimeType}
                     ]
                 },
                 {
@@ -304,11 +345,14 @@ class FolderTestClass(ViewTestCase):
                          'name': self._user1_project1_folder2_subfolder1.name,
                          'files': [
                              {'id': self._user1_binary1.id,
-                              'name': self._user1_binary1.name},
+                              'name': self._user1_binary1.name,
+                              'mimetype': self._user1_binary1.mimeType},
                              {'id': self._user1_binary2.id,
-                              'name': self._user1_binary2.name},
+                              'name': self._user1_binary2.name,
+                              'mimetype': self._user1_binary2.mimeType},
                              {'id': self._user1_binary3.id,
-                              'name': self._user1_binary3.name}
+                              'name': self._user1_binary3.name,
+                              'mimetype': self._user1_binary3.mimeType}
                          ],
                          'folders': []},
                     ],
@@ -316,7 +360,7 @@ class FolderTestClass(ViewTestCase):
                 }
             ]
         }
-        self.assertEqual(dictionary['response'], jsondict2)
+        self.assertDictEqual(dictionary['response'], jsondict2)
 
         # Anfrage mit user1 auf Ordner von user2
         response = util.documentPoster(self, command='listfiles', idpara=self._user2_project1.rootFolder.id)

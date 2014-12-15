@@ -37,6 +37,7 @@ from app.models.file.plaintextfile import PlainTextFile
 
 # dekodiert ein JSON
 def jsonDecoder(responseContent):
+
     return json.loads(str(responseContent, encoding='utf-8'))
 
 
@@ -64,7 +65,8 @@ def jsonErrorResponse(errormsg, request):
 def projectToJson(project):
     return dict(id=project.id,
                 name=project.name,
-                author=project.author.username,
+                ownerid=project.author.id,
+                ownername=project.author.username,
                 createtime=datetimeToString(project.createTime),
                 rootfolderid=project.rootFolder.id)
 
@@ -212,7 +214,7 @@ def _getFoldersAndFilesJson(folderobj, data={}):
     data['folders'] = folderlist
     files = File.objects.filter(folder=folderobj)
     for f in files:
-        filelist.append({'id': f.id, 'name': f.name})
+        filelist.append({'id': f.id, 'name': f.name, 'mimetype': f.mimeType})
 
     folders = Folder.objects.filter(parent=folderobj)
 
@@ -323,4 +325,4 @@ def getFolderName(folderpath):
 # gibt Zeit-Datum Objekt als String zurück
 # Format YYYY-MM-DD HH:MM:SS
 def datetimeToString(date_time):
-    date_time.strftime('%Y-%m-%d %H:%M:%S')
+    return date_time.strftime('%Y-%m-%d %H:%M:%S')
