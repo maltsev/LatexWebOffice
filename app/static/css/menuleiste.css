@@ -1,13 +1,15 @@
 #menu {
 	font-size: 14px;
-	position: absolute;
+	position: static;
+	height: 40px;
 }
 
 #menu ul {
-  list-style-type:none;
-  list-style-image:none;
-  margin:0px;
-  padding:0px;
+	list-style-type: none;
+	list-style-image: none;
+	margin: 0px;
+	padding: 0px;
+	position: absolute;
 }
 
 #menu li.topmenu {
