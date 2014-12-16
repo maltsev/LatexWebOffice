@@ -3,6 +3,7 @@
 @creation: 12.12.2014 - sprint-nr: 3
 @last-change: 12.12.2014 - sprint-nr: 3
 */
+var root_empty = "root_empty";
 var filelistHandler;
 $( document ).ready(function() {
 // ID aus URL ermitteln
@@ -68,6 +69,7 @@ jQuery.ajax('/documents/', {
 /**
 * Die Funktion ruft die Ordnerstruktur (Baumstruktur) der Dateien rekursiv auf und 
 * stellt diese in einer Tabelle da.
+* Durch die Datei root_empty werden alle Indizes um 1 verringert. (also path.push() und recursiveFileAnalysis() Aufrufe)
 * response - Ordnerarray
 * level - aktuelle Rekursionsebene
 * path - bestehender Pfad zur Vertiefung der Rekursion
@@ -81,15 +83,25 @@ var number_of_files = response.files.length;
 if (level == 0){
 // Gibt die Liste der Dateien aus.
 for (var i = 0; i < number_of_files; i++){
+	if (response.files[i].name == root_empty && number_of_files == 1){ // Wenn es keine Datei im Ordner gibt, wird ein leerer Ordner angezeigt
+	filelistHandler.addData({'name':'','foldername':response.name,'folderid':response.id,'fileid':response.files[i].id},false);
+	}
+	else if (response.files[i].name != root_empty){ // ansonsten der Dateiname
 	filelistHandler.addData({'name':response.files[i].name,'foldername':response.name,'folderid':response.id,'fileid':response.files[i].id},false);
+	}
 }
 }
 // Höhere Rekursionsebene - beinhaltet den aktuellen Pfad
 else {
 // Gibt die Dateien des Ordners der höheren Rekursionsebene aus
 for (var i = 0; i < number_of_files; i++){
-	filelistHandler.addData({'name':response.files[i].name,'foldername':response.name,'folderid':response.id,'fileid':response.files[i].id},path,false);
-}
+	if (response.files[i].name == root_empty && number_of_files == 1){ // Wenn es keine Datei im Ordner gibt, wird ein leerer Ordner angezeigt
+		filelistHandler.addData({'name':'','foldername':response.name,'folderid':response.id,'fileid':response.files[i].id},path,false);
+	}
+	else if(response.files[i].name != root_empty){ // ansonsten der Dateiname
+		filelistHandler.addData({'name':response.files[i].name,'foldername':response.name,'folderid':response.id,'fileid':response.files[i].id},path,false);
+	}
+	}
 }
 // Prüft, ob das aktuelle Array ein Array mit Unterordnern beinhaltet
 if (response.folders.length != 0){ // es gibt Unterordner
@@ -118,7 +130,7 @@ sumOfFiles =parent.files.length; // ermittelt die Anzahl der Dateien vom parent 
 if (response.files.length > 1){
 sumOfFiles += response.files.length-1; // setze Anzahl der Dateien auf die Anzahl der Dateien-1
 }
-path.push(sumOfFiles); // Fügt die Summe der Dateien zum Pfad hinzu
+path.push(sumOfFiles-1); // Fügt die Summe der Dateien zum Pfad hinzu
 recursiveFileAnalysis(response.folders[a],level+1,path,response); // Rekursionsaufruf
 }
 // Wenn es keine Unterordner gibt, also in der Baumstruktur ein Blatt ist
@@ -140,17 +152,22 @@ sumOfFiles += response.files.length-1; // setze Anzahl der Dateien auf die Anzah
 if (response.folders.length > 1){ // es gibt mehr als einen Unterordner
 // Pfad wird nur beim ersten Element ergänzt
 if (a == 0){
-path.push(sumOfFiles);
+path.push(sumOfFiles-1);
 }
 }
 // Gibt die Dateien des Ordners aus
 for (var i = 0; i < response.folders[a].files.length; i++){
-	filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id},path,false);
+	if (response.folders[a].files[i].name == root_empty && number_of_files == 1){ // Wenn es keine Datei im Ordner gibt, wird ein leerer Ordner angezeigt
+		filelistHandler.addData({'name':'','foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id},path,false);
+	}
+	else if (response.folders[a].files[i].name != root_empty){ // ansonsten der Dateiname
+		filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id},path,false);
+	}
 }
 }
 }
 else { // Rekursiver Aufruf, wenn die Rekursionsebene 0 ist, also der erste Aufruf.
-	recursiveFileAnalysis(response.folders[a],level+1,[(number_of_files-1)],response); // Rekursionsaufruf
+	recursiveFileAnalysis(response.folders[a],level+1,[(number_of_files-1)-1],response); // Rekursionsaufruf
 }
 }
 }
