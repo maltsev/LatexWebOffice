@@ -31,6 +31,7 @@ from app.common import util
 from app.common.constants import ERROR_MESSAGES
 from django.db import transaction
 
+
 def projectCreate(request, user, projectname):
     """Erstellt ein neues Projekt mit dem Namen 'projectname'
 
@@ -84,7 +85,7 @@ def projectRm(request, user, projectid):
 def projectRename(request, user, projectid, newprojectname):
     # hole das Projekt, welches umbenannt werden soll
     projectobj = Project.objects.get(id=projectid)
-        # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
+    # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
     if Project.objects.filter(name__iexact=newprojectname.lower(), author=user).exists():
         return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(newprojectname), request)
     else:
@@ -123,9 +124,8 @@ def importZip(request, user):
     # Hole dateien aus dem request
     files = request.FILES.getlist('files')
 
-    # Erstelle ein temp Verzeichnis, in welches die .zip Datei entpackt werden
-    # soll
-    tmpfolder = tempfile.mkdtemp()
+    # Erstelle ein temp Verzeichnis, in welches die .zip Datei entpackt werden soll
+    tmpfolder = util.getNewTempFolder()
 
     zip_file_name = files[0].name
 
@@ -136,7 +136,9 @@ def importZip(request, user):
     zip_file.close()
 
     # überprüfe ob es sich um eine gültige .zip Datei handelt
-    if not zipfile.is_zipfile(zip_file_path):
+    # und ob die zip Datei kleiner als 150 bytes ist
+    # zip Datei ohne Inhalt ist 105 bytes gross
+    if not zipfile.is_zipfile(zip_file_path) or not os.path.getsize(zip_file_path) > 105:
         return util.jsonErrorResponse(ERROR_MESSAGES['ILLEGALFILETYPE'], request)
 
     extract_path = os.path.join(tmpfolder, 'extracted')
@@ -178,7 +180,7 @@ def importZip(request, user):
     # durchlaufe alle Ordner/Unterordner in extracted
     # und erstelle die jeweiligen Objekte in der Datenbank
     # Dateien werden über die util.uploadfiles() Methode erstellt
-    returnmsg=util.jsonResponse({'id':projectobj.id,'name':projectobj.name}, True, request)
+    returnmsg = util.jsonResponse({'id': projectobj.id, 'name': projectobj.name}, True, request)
 
     try:
         with transaction.atomic():
@@ -194,7 +196,8 @@ def importZip(request, user):
                         parent = projdict[os.path.join('', *path[:-1])]
                     else:
                         parent = projectobj.rootFolder
-                    folder = Folder.objects.create(name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
+                    folder = Folder.objects.create(name=util.getFolderName(root), parent=parent,
+                                                   root=projectobj.rootFolder)
                     projdict[os.path.join('', *path)] = folder
                     # speichere Ordner
                     folder = Folder.objects.create(
@@ -205,10 +208,10 @@ def importZip(request, user):
                     result, msg = util.uploadFile(fileobj, folder, request, True)
                     fileobj.close()
                     if not result:
-                        returnmsg=util.jsonErrorResponse(msg,request)
+                        returnmsg = util.jsonErrorResponse(msg, request)
                         raise TypeError
     except TypeError:
-        projectobj.delete() # bei Fehler muss noch das Projekt selbst gelöscht werden
+        projectobj.delete()  # bei Fehler muss noch das Projekt selbst gelöscht werden
 
     # lösche alle temporären Dateien und Ordner
     if os.path.isdir(tmpfolder):

@@ -16,7 +16,6 @@
 
 """
 
-import tempfile
 import zipfile
 import shutil
 import os
@@ -54,7 +53,7 @@ class ProjectTestClass(ViewTestCase):
         :return: None
         """
 
-        self.tearDownFiles()
+        #self.tearDownFiles()
 
     def test_projectCreate(self):
         """Test der projectCreate() Methode aus dem project view
@@ -79,16 +78,17 @@ class ProjectTestClass(ViewTestCase):
         serveranswer = {'id': Project.objects.filter(author=self._user1, name=self._newname1)[0].id,
                         'name': self._newname1}
 
-        # überprüfe die Antwort des Servers
-        # status sollte success sein
-        # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonSuccessResponse(self, response.content, serveranswer)
         # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
         self.assertTrue(Project.objects.get(id=serveranswer['id']))
         # es sollte ein rootFolder angelegt worden sein
         self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder)
         # die main.tex Datei sollte im Hauptverzeichnis vorhanden sein
         self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder.getMainTex())
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
         # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Erstellen eines weiteren neuen Projektes
@@ -98,10 +98,6 @@ class ProjectTestClass(ViewTestCase):
         serveranswer = {'id': Project.objects.filter(author=self._user1, name=self._newname2)[0].id,
                         'name': self._newname2}
 
-        # überprüfe die Antwort des Servers
-        # status sollte success sein
-        # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonSuccessResponse(self, response.content, serveranswer)
         # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
         self.assertTrue(Project.objects.get(id=serveranswer['id']))
         # es sollte ein rootFolder angelegt worden sein
@@ -109,9 +105,17 @@ class ProjectTestClass(ViewTestCase):
         # die main.tex Datei sollte im Hauptverzeichnis vorhanden sein
         self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder.getMainTex())
 
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
         # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein Projekt, dessen Name nur aus Leerzeichen besteht
         response = util.documentPoster(self, command='projectcreate', name=self._name_only_spaces)
+
+        # es sollte kein Projekt mit dem Namen name_only_spaces in der Datenbank vorhanden sein
+        self.assertFalse((Project.objects.filter(name=self._name_only_spaces, author=self._user1)))
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['BLANKNAME']
@@ -125,6 +129,9 @@ class ProjectTestClass(ViewTestCase):
         # erzeuge ein Projekt, dessen Name nur ein leerer String ist
         response = util.documentPoster(self, command='projectcreate', name=self._name_blank)
 
+        # es sollte kein Projekt mit dem Namen name_blank in der Datenbank vorhanden sein
+        self.assertFalse((Project.objects.filter(name=self._name_blank, author=self._user1)))
+
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['BLANKNAME']
 
@@ -137,6 +144,9 @@ class ProjectTestClass(ViewTestCase):
         # erzeuge ein Projekt, dessen Name ungültige Sonderzeichen enthält
         response = util.documentPoster(self, command='projectcreate', name=self._name_invalid_chars)
 
+        # es sollte kein Projekt mit dem Namen name_invalid_chars in der Datenbank vorhanden sein
+        self.assertFalse((Project.objects.filter(name=self._name_invalid_chars, author=self._user1)))
+
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['INVALIDNAME']
 
@@ -148,6 +158,9 @@ class ProjectTestClass(ViewTestCase):
         # --------------------------------------------------------------------------------------------------------------
         # erzeuge ein weiteres Projekt mit einem bereits existierenden Namen
         response = util.documentPoster(self, command='projectcreate', name=self._newname1.upper())
+
+        # es sollte nur ein Projekt mit dem Namen newname1 in der Datenbank vorhanden sein
+        self.assertTrue((Project.objects.filter(name=self._newname1, author=self._user1)).count() == 1)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(self._newname1.upper())
@@ -173,6 +186,10 @@ class ProjectTestClass(ViewTestCase):
         # Sende Anfrage zum Löschen eines vorhandenen Projektes
         response = util.documentPoster(self, command='projectrm', idpara=self._user1_project1.id)
 
+        # es sollten keine Ordner des Projektes mehr in der Datenbank existieren
+        self.assertFalse(Folder.objects.filter(id=self._user1_project1_folder1.id))
+        self.assertFalse(Folder.objects.filter(id=self._user1_project1_folder2_subfolder1.id))
+
         # erwartete Antwort des Servers
         serveranswer = {}
 
@@ -180,10 +197,6 @@ class ProjectTestClass(ViewTestCase):
         # status sollte success sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
-
-        # es sollte keine Ordner des Projektes mehr in der Datenbank existieren
-        self.assertFalse(Folder.objects.filter(id=self._user1_project1_folder1.id))
-        self.assertFalse(Folder.objects.filter(id=self._user1_project1_folder2_subfolder1.id))
 
         # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Löschen eines nicht vorhandenen Projektes
@@ -200,6 +213,9 @@ class ProjectTestClass(ViewTestCase):
         # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Löschen eines Projektes von user2 (als user1)
         response = util.documentPoster(self, command='projectrm', idpara=self._user2_project1.id)
+
+        # das Projekt sollte nicht gelöscht worden sein
+        self.assertTrue(Project.objects.get(id=self._user2_project1.id))
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
@@ -230,6 +246,9 @@ class ProjectTestClass(ViewTestCase):
         response = util.documentPoster(self, command='projectrename', idpara=self._user1_project1.id,
                                        name=self._newname1)
 
+        # der neue Projektname sollte in der Datenbank nun geändert worden sein
+        self.assertEqual(Project.objects.get(id=self._user1_project1.id).name, self._newname1)
+
         # erwartete Antwort des Servers
         serveranswer = {'id': self._user1_project1.id, 'name': self._newname1}
 
@@ -242,6 +261,9 @@ class ProjectTestClass(ViewTestCase):
         # Sende Anfrage zum umbenennen eines Projektes mit einem Namen der nur Leerzeichen enthält
         response = util.documentPoster(self, command='projectrename', idpara=self._user1_project2.id,
                                        name=self._name_only_spaces)
+
+        # der Name des Projektes sollte nicht mit name_only_spaces übereinstimmen
+        self.assertNotEqual(Project.objects.get(id=self._user1_project2.id).name, self._name_only_spaces)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['BLANKNAME']
@@ -256,6 +278,9 @@ class ProjectTestClass(ViewTestCase):
         response = util.documentPoster(self, command='projectrename', idpara=self._user1_project2.id,
                                        name=self._name_blank)
 
+        # der Name des Projektes sollte nicht mit name_blank übereinstimmen
+        self.assertNotEqual(Project.objects.get(id=self._user1_project2.id).name, self._name_blank)
+
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['BLANKNAME']
 
@@ -268,6 +293,9 @@ class ProjectTestClass(ViewTestCase):
         # Sende Anfrage zum umbenennen eines Projektes mit einem Namen der ungültige Sonderzeichen enthält
         response = util.documentPoster(self, command='projectrename', idpara=self._user1_project2.id,
                                        name=self._name_invalid_chars)
+
+        # der Name des Projektes sollte nicht mit name_invalid_chars übereinstimmen
+        self.assertNotEqual(Project.objects.get(id=self._user1_project2.id).name, self._name_invalid_chars)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['INVALIDNAME']
@@ -282,6 +310,9 @@ class ProjectTestClass(ViewTestCase):
         response = util.documentPoster(self, command='projectrename', idpara=self._user1_project3.id,
                                        name=self._user1_project2.name.upper())
 
+        # der Name des Projektes sollte nicht mit project2.name.upper() übereinstimmen
+        self.assertNotEqual(Project.objects.get(id=self._user1_project3.id).name, self._user1_project2.name.upper())
+
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(self._user1_project2.name.upper())
 
@@ -295,6 +326,9 @@ class ProjectTestClass(ViewTestCase):
         response = util.documentPoster(self, command='projectrename', idpara=self._invalidid,
                                        name=self._newname2)
 
+        # es sollte kein Projekt mit dem Namen newname2 vorhanden sein
+        self.assertTrue(Project.objects.filter(name=self._newname2, author=self._user1).count() == 0)
+
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['PROJECTNOTEXIST']
 
@@ -307,6 +341,9 @@ class ProjectTestClass(ViewTestCase):
         # Sende Anfrage zum umbenennen eines Projektes mit einer projectid, welche user2 gehört
         response = util.documentPoster(self, command='projectrename', idpara=self._user2_project1.id,
                                        name=self._newname3)
+
+        # der Name des Projektes sollte nicht mit newname3 übereinstimmen
+        self.assertNotEqual(Project.objects.get(id=self._user2_project1.id).name, self._newname3)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
@@ -430,7 +467,7 @@ class ProjectTestClass(ViewTestCase):
         """
 
         # erstelle ein temp Verzeichnis
-        tmpfolder = tempfile.mkdtemp()
+        tmpfolder = util.getNewTempFolder()
 
         # erstelle im temp Verzeichnis einen Projektordner und einige
         # Unterordner
@@ -452,38 +489,25 @@ class ProjectTestClass(ViewTestCase):
 
         # Erstelle eine zip datei, die vom server angenommen werden sollte
         # erstelle eine zip Datei aus dem Projektordner
-        zip_file_path1 = os.path.join(tmpfolder, (self._newname1 + '.zip'))
-        util.createZipFromFolder(tmpfolder_project, zip_file_path1)
+        zip_file_path = os.path.join(tmpfolder, (self._newname1 + '.zip'))
+        util.createZipFromFolder(tmpfolder_project, zip_file_path)
 
-        # erstelle eine Binärdatei im Unterordner 1
-        binfile = open(os.path.join(tmpfolder_project, 'Ordner 1', 'Unterordner 1', 'binary1.bin'), 'wb')
-        binfile.write(bytearray('binary_test_file_importzip', 'utf-8'))
-        binfile.close()
-
-        # erstelle ine zip Datei, die vom Server nicht angenommen werden sollte,
-        # da sie eine BinärDatei mit einem Mimetype enthält, welche nicht
-        # akzeptiert wird
-        # erstelle eine zip Datei aus dem Projektordner
-        zip_file_path2 = os.path.join(tmpfolder, (self._newname2 + '.zip'))
-        util.createZipFromFolder(tmpfolder_project, zip_file_path2)
-
-
-        # stelle sicher, dass die zip Dateien gültig sind
-        self.assertTrue(zipfile.is_zipfile(zip_file_path1))
-        self.assertTrue(zipfile.is_zipfile(zip_file_path2))
+        # stelle sicher, dass die zip Datei gültig ist
+        self.assertTrue(zipfile.is_zipfile(zip_file_path))
 
         # lese die zip Datei ein und schreibe die Daten in den request
-        zip = open(zip_file_path1, 'rb')
+        zip_file = open(zip_file_path, 'rb')
         request = {
             'command': 'importzip',
-            'files': [zip]
+            'files': [zip_file]
         }
 
-        response=self.client.post('/documents/', request)
-        zip.close()
+        # Sende Anfrage zum Importieren der zip Datei
+        response = self.client.post('/documents/', request)
+        zip_file.close()
 
         # Teste, dass der Server eine positive Antwort geschickt hat
-        serveranswer={'id':9,'name':self._newname1}
+        serveranswer = {'id': 9, 'name': self._newname1}
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
         # Teste, dass das Projekt existiert
@@ -498,29 +522,105 @@ class ProjectTestClass(ViewTestCase):
         # Teste, dass auch Unterordner angelegt wurden
         self.assertTrue(Folder.objects.filter(name='Unterordner 1', root=projobj.rootFolder).exists())
 
-        #lösche Projekt wieder
-        Project.objects.get(author=self._user1,name=self._newname1).delete()
+        # lösche Projekt wieder
+        Project.objects.get(author=self._user1, name=self._newname1).delete()
         # Teste, dass das Projekt nicht mehr existiert
         self.assertFalse(Project.objects.filter(author=self._user1, name=self._newname1).exists())
 
+        # --------------------------------------------------------------------------------------------------------------
+        # erstelle eine Binärdatei im Unterordner 1
+        binfile = open(os.path.join(tmpfolder_project, 'Ordner 1', 'Unterordner 1', 'binary1.bin'), 'wb')
+        binfile.write(bytearray('binary_test_file_importzip', 'utf-8'))
+        binfile.close()
 
+        # erstelle ine zip Datei, die vom Server nicht angenommen werden sollte,
+        # da sie eine BinärDatei mit einem Mimetype enthält, welche nicht akzeptiert wird
+        # erstelle eine zip Datei aus dem Projektordner
+        zip_file_path = os.path.join(tmpfolder, (self._newname2 + '.zip'))
+        util.createZipFromFolder(tmpfolder_project, zip_file_path)
+
+        # stelle sicher, dass die zip Datei gültig ist
+        self.assertTrue(zipfile.is_zipfile(zip_file_path))
 
         # lese die zip Datei ein und schreibe die Daten in den request
-        zip = open(zip_file_path2, 'rb')
+        zip_file = open(zip_file_path, 'rb')
         request = {
             'command': 'importzip',
-            'files': [zip]
+            'files': [zip_file]
         }
 
-        response=self.client.post('/documents/', request)
-        zip.close()
-        # Die Binärdatei sollte eine ILLEGALFILETYPE Fehlermeldung hervorgerufen
-        # haben sollen
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['ILLEGALFILETYPE'])
+        # Sende Anfrage zum Importieren der zip Datei
+        response = self.client.post('/documents/', request)
+        zip_file.close()
 
         # Stelle sicher, dass das Projekt auch nicht erstellt wurde
-        self.assertFalse(Project.objects.filter(author=self._user1, name=self._newname1).exists())
+        self.assertFalse(Project.objects.filter(author=self._user1, name=self._newname2).exists())
 
+        # Die Binärdatei sollte eine ILLEGALFILETYPE Fehlermeldung hervorrufen
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['ILLEGALFILETYPE']
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # erstelle eine Datei mit zufälligem Inhalt (keine gültige zip Datei)
+        zip_file_path = os.path.join(tmpfolder, (self._newname3 + '.zip'))
+        zip_file = open(zip_file_path, 'a+b')
+        zip_file.write(os.urandom(8))
+        request = {
+            'command': 'importzip',
+            'files': [zip_file]
+        }
+
+        # Sende Anfrage zum Importieren der zip Datei
+        response = self.client.post('/documents/', request)
+        zip_file.close()
+
+        # Stelle sicher, dass das Projekt auch nicht erstellt wurde
+        self.assertFalse(Project.objects.filter(author=self._user1, name=self._newname3).exists())
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['ILLEGALFILETYPE']
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # erstelle eine zip Datei ohne Inhalt
+        zip_file_path = os.path.join(tmpfolder, (self._newname4 + '.zip'))
+        tmpfolder_project = os.path.join(tmpfolder, self._newname4)
+        if not os.path.isdir(tmpfolder_project):
+            os.makedirs(tmpfolder_project)
+        util.createZipFromFolder(tmpfolder_project, zip_file_path)
+
+        zip_file = open(zip_file_path, 'rb')
+        # stelle sicher dass die leere Datei eine gültige zip Datei ist
+        self.assertTrue(zipfile.is_zipfile(zip_file_path))
+
+        request = {
+            'command': 'importzip',
+            'files': [zip_file]
+        }
+
+        # Sende Anfrage zum Importieren der zip Datei
+        response = self.client.post('/documents/', request)
+        zip_file.close()
+
+        # Stelle sicher, dass das Projekt auch nicht erstellt wurde
+        self.assertFalse(Project.objects.filter(author=self._user1, name=self._newname4).exists())
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['ILLEGALFILETYPE']
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
 
         # Lösche alle erstellten temporären Dateien und Verzeichnisse
         if os.path.isdir(tmpfolder):
@@ -550,7 +650,7 @@ class ProjectTestClass(ViewTestCase):
         self.assertIn('Content-Length', response)
 
         # erstelle temp Ordner
-        tmpfolder = tempfile.mkdtemp()
+        tmpfolder = util.getNewTempFolder()
         tmpfolder_extracted = os.path.join(tmpfolder, 'extracted')
         if not os.path.isdir(tmpfolder_extracted):
             os.mkdir(tmpfolder_extracted)
@@ -616,7 +716,7 @@ class ProjectTestClass(ViewTestCase):
         self.assertIn('Content-Length', response)
 
         # erstelle temp Ordner
-        tmpfolder = tempfile.mkdtemp()
+        tmpfolder = util.getNewTempFolder()
         tmpfolder_extracted = os.path.join(tmpfolder, 'extracted')
         if not os.path.isdir(tmpfolder_extracted):
             os.mkdir(tmpfolder_extracted)

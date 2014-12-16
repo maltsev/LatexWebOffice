@@ -21,8 +21,10 @@ import json
 import zipfile
 import os
 import mimetypes
+import tempfile
 
 from django.http import HttpResponse
+from core import settings
 
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES
 from app.models.folder import Folder
@@ -168,6 +170,17 @@ def checkObjectForInvalidString(name, request):
     if any(invalid in name for invalid in INVALIDCHARS):
         return False, jsonErrorResponse(ERROR_MESSAGES['INVALIDNAME'], request)
     return True, None
+
+
+def checkFileForInvalidString(name, request):
+    file_name, file_extension = os.path.splitext(name)
+
+    # file_extension ist ein leerer String wenn entweder keine Dateiendung vorhanden ist
+    # oder der Dateiname nur die Dateiendung beinhaltet, z.B. name = '.tex'
+    if file_extension == '':
+        return False, jsonErrorResponse(ERROR_MESSAGES['INVALIDNAME'], request)
+
+    return checkObjectForInvalidString(file_name, request)
 
 
 def _getFoldersAndFiles(folderobj, data={}, printing=False, ident=''):
@@ -327,3 +340,14 @@ def getFolderName(folderpath):
 # Format YYYY-MM-DD HH:MM:SS
 def datetimeToString(date_time):
     return date_time.strftime('%Y-%m-%d %H:%M:%S')
+
+# erstellt einen neuen temp Ordner im MEDIA_ROOT Verzeichnis und gibt den absoluten Pfad zurück
+def getNewTempFolder():
+    tmp_folder_path = os.path.join(settings.MEDIA_ROOT, 'tmp')
+
+    if not os.path.isdir(tmp_folder_path):
+        os.makedirs(tmp_folder_path)
+
+    tmp_folder = tempfile.mkdtemp(dir=tmp_folder_path)
+
+    return tmp_folder

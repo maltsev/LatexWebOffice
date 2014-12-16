@@ -186,6 +186,7 @@ class ViewTestCase(TestCase):
         self._newname1 = 'NeuerName1'
         self._newname2 = 'NeuerName2'
         self._newname3 = 'NeuerName3'
+        self._newname4 = 'NeuerName4'
         self._invalidid = 100000000
         self._name_only_spaces = '    '
         self._name_blank = ''
