@@ -42,6 +42,7 @@ class FileTestClass(ViewTestCase):
 
         :return: None
         """
+
         self.setUpUserAndProjects()
         self.setUpFolders()
         self.setUpFiles()
@@ -259,112 +260,174 @@ class FileTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
-
-
-
-    # Teste das Löschen einer Datei
     def test_deletefile(self):
+        """Test der deleteFile() Methode des file view
+
+        Teste das Löschen einer Datei.
+
+        Testfälle:
+        -
+        :return: None
+        """
+
         # Sende Anfrage zum Löschen der .tex Datei
         response = util.documentPoster(self, command='deletefile', idpara=self._user1_tex1.id)
 
-        # überprüfe die Antwort des Servers
-        # sollte success als status liefern
-        # response sollte leer sein
-        util.validateJsonSuccessResponse(self, response.content, {})
         # in der Datenbank sollte die Datei nun nicht mehr vorhanden sein
         self.assertFalse(PlainTextFile.objects.filter(id=self._user1_tex1.id).exists())
 
+        # erwartete Antwort des Servers
+        serveranswer = {}
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Löschen der Binärdatei
         response = util.documentPoster(self, command='deletefile', idpara=self._user1_binary1.id)
 
-        # überprüfe die Antwort des Servers
-        # sollte success als status liefern
-        # response sollte leer sein
-        util.validateJsonSuccessResponse(self, response.content, {})
         # in der Datenbank sollte die Datei nun nicht mehr vorhanden sein
         self.assertFalse(BinaryFile.objects.filter(id=self._user1_binary1.id).exists())
 
+        # erwartete Antwort des Servers
+        serveranswer = {}
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Löschen einer Datei als user1 mit der fileid einer .tex Datei die user2 gehört
         response = util.documentPoster(self, command='deletefile', idpara=self._user2_tex1.id)
 
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # sollte die Fehlermeldung ERROR_MESSAGES['NOTENOUGHRIGHTS'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
 
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Löschen der Datei als user1 mit einer fileid
         # die auf dem Server in der Datenbank nicht existiert
         response = util.documentPoster(self, command='deletefile', idpara=self._invalidid)
 
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['FILENOTEXIST']
+
         # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # sollte die Fehlermeldung ERROR_MESSAGES['FILENOTEXIST'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENOTEXIST'])
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+    def test_renameFile(self):
+        """Test der renameFile() Methode des file view
 
-    # Teste das umbennen einer Datei
-    def test_renamefile(self):
+        Teste das Umbenennen einer Datei.
+
+        Testfälle:
+        -
+        :return: None
+        """
+
         # Sende Anfrage zum Umbenennen der .tex Datei
         response = util.documentPoster(self, command='renamefile', idpara=self._user1_tex1.id,
                                        name=self._newtex_name1)
 
-        # überprüfe die Antwort des Servers
-        # sollte success als status liefern
-        # response sollte leer sein
-        util.validateJsonSuccessResponse(self, response.content, {'id': self._user1_tex1.id,
-                                                                  'name': self._newtex_name1})
-        # in der Datenbank sollte die Datei nun nicht mehr vorhanden sein
+        # in der Datenbank sollte die Datei nun den neuen Namen besitzen
         usertexobj = PlainTextFile.objects.get(id=self._user1_tex1.id)
         self.assertEqual(usertexobj.name, self._newtex_name1)
 
+        # erwartete Antwort des Servers
+        serveranswer = {'id': self._user1_tex1.id,
+                        'name': self._newtex_name1}
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Umbenennen der Binärdatei
         response = util.documentPoster(self, command='renamefile', idpara=self._user1_binary1.id,
                                        name=self._newbinary_name1)
 
-        # überprüfe die Antwort des Servers
-        # sollte success als status liefern
-        # response sollte leer sein
-        util.validateJsonSuccessResponse(self, response.content, {'id': self._user1_binary1.id,
-                                                                  'name': self._newbinary_name1})
-        # in der Datenbank sollte die Datei nun nicht mehr vorhanden sein
+        # in der Datenbank sollte die Datei nun den neuen Namen besitzen
         userbinobj = BinaryFile.objects.get(id=self._user1_binary1.id)
         self.assertEqual(userbinobj.name, self._newbinary_name1)
 
+        # erwartete Antwort des Servers
+        serveranswer = {'id': self._user1_binary1.id,
+                        'name': self._newbinary_name1}
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Umbennen einer Datei als user1 mit der fileid einer .tex Datei die user2 gehört
         response = util.documentPoster(self, command='renamefile', idpara=self._user2_tex1.id,
                                        name=self._newtex_name1)
 
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # sollte die Fehlermeldung ERROR_MESSAGES['NOTENOUGHRIGHTS'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
 
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Umbenennen der Datei als user1 mit einer fileid
         # die auf dem Server in der Datenbank nicht existiert
         response = util.documentPoster(self, command='renamefile', idpara=self._invalidid,
                                        name=self._newtex_name1)
 
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # sollte die Fehlermeldung ERROR_MESSAGES['FILENOTEXIST'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENOTEXIST'])
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['FILENOTEXIST']
 
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum erstellen einer neuen .tex Datei mit einem Namen, der bereits im selben Ordner existiert
         response = util.documentPoster(self, command='renamefile', idpara=self._user1_tex3.id,
                                        name=self._user1_tex4.name.upper())
 
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['FILENAMEEXISTS']
+
         # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # sollte ERROR_MESSAGES['FILENAMEEXISTS'] als Fehlermeldung liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENAMEEXISTS'])
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+    def test_moveFile(self):
+        """Test der moveFile() Methode des file view
 
-    # Teste das Verschieben einer Datei
-    def test_movefile(self):
+        Teste das Verschieben einer Datei.
+
+        Testfälle:
+        -
+        :return: None
+        """
+
         # Sende Anfrage zum Verschieben der .tex Datei in den Unterorder folder1 des Projektes
         response = util.documentPoster(self, command='movefile', idpara=self._user1_tex1.id,
                                        idpara2=self._user1_project1_folder1.id)
 
+        # die .tex Datei sollte nun in folder 2 sein
+        usertexobj = PlainTextFile.objects.get(id=self._user1_tex1.id)
+        self.assertEqual(usertexobj.folder, self._user1_project1_folder1)
+
+        # erwartete Antwort des Servers
         serveranswer = {'id': self._user1_tex1.id,
                         'name': self._user1_tex1.name,
                         'folderid': self._user1_project1_folder1.id,
@@ -376,15 +439,16 @@ class FileTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
-
-        # die .tex Datei sollte nun in folder 2 sein
-        usertexobj = PlainTextFile.objects.get(id=self._user1_tex1.id)
-        self.assertEqual(usertexobj.folder, self._user1_project1_folder1)
-
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Verschieben der Binärdatei in den Unterorder folder2 des Projektes
         response = util.documentPoster(self, command='movefile', idpara=self._user1_binary1.id,
                                        idpara2=self._user1_project1_folder2.id)
 
+        # die Binärdatei sollte nun in folder 2 sein
+        userbinobj = BinaryFile.objects.get(id=self._user1_binary1.id)
+        self.assertEqual(userbinobj.folder, self._user1_project1_folder2)
+
+        # erwartete Antwort des Servers
         serveranswer = {'id': self._user1_binary1.id,
                         'name': self._user1_binary1.name,
                         'folderid': self._user1_project1_folder2.id,
@@ -395,41 +459,57 @@ class FileTestClass(ViewTestCase):
         # sollte success als status liefern
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
-        # die Binärdatei sollte nun in folder 2 sein
-        userbinobj = BinaryFile.objects.get(id=self._user1_binary1.id)
-        self.assertEqual(userbinobj.folder, self._user1_project1_folder2)
 
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Verschieben einer Datei als user1 mit der fileid einer .tex Datei die user2 gehört
         response = util.documentPoster(self, command='movefile', idpara=self._user2_tex1.id,
                                        idpara2=self._user1_project1_folder1.id)
 
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
+
         # überprüfe die Antwort des Servers
         # sollte failure als status liefern
-        # sollte die Fehlermeldung ERROR_MESSAGES['NOTENOUGHRIGHTS'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Verschieben der Datei als user1 mit einer fileid
         # die auf dem Server in der Datenbank nicht existiert
         response = util.documentPoster(self, command='movefile', idpara=self._invalidid,
                                        idpara2=self._user1_project1_folder1.id)
 
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['FILENOTEXIST']
+
         # überprüfe die Antwort des Servers
         # sollte failure als status liefern
-        # sollte die Fehlermeldung ERROR_MESSAGES['FILENOTEXIST'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENOTEXIST'])
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+        # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum verschieben einer Datei mit einem Namen, der bereits im selben Ziel Ordner existiert
         response = util.documentPoster(self, command='movefile', idpara=self._user1_tex4.id,
                                        idpara2=self._user1_project1.rootFolder.id)
 
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['FILENAMEEXISTS']
+
         # überprüfe die Antwort des Servers
         # sollte failure als status liefern
-        # sollte ERROR_MESSAGES['FILENAMEEXISTS'] als Fehlermeldung liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENAMEEXISTS'])
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
 
-
-    # Teste upload lokaler Dateien auf den Server
     def test_uploadfiles(self):
+        """Test der uploadFiles() Methode des file view
+
+        Teste das Hochladen von Dateien.
+
+        Testfälle:
+        -
+        :return: None
+        """
+
         file1 = open(os.path.join(settings.TESTFILES_ROOT, 'test_bin.bin'), 'rb')
         file2 = open(os.path.join(settings.TESTFILES_ROOT, 'test_tex_simple.tex'), 'rb')
         file3 = open(os.path.join(settings.TESTFILES_ROOT, 'test_jpg.jpg'), 'rb')
@@ -551,18 +631,19 @@ class FileTestClass(ViewTestCase):
         fileobj = self._user1_binary1  # Die Datei, über die Informationen angefordert wurde
         folderobj = self._user1_binary1.folder  # der Ordner, wo fileobj liegt
 
-        serveranswer = {'fileid': fileobj.id,
-                        'filename': fileobj.name,
-                        'folderid': folderobj.id,
-                        'foldername': folderobj.name,
-                        'projectid': folderobj.getProject().id,
-                        'projectname': folderobj.getProject().name,
-                        'createtime': util.datetimeToString(fileobj.createTime),
-                        'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
-                        'size': fileobj.size,
-                        'mimetype': fileobj.mimeType,
-                        'ownerid': folderobj.getProject().author.id,
-                        'ownername': folderobj.getProject().author.username
+        serveranswer = {
+            'fileid': fileobj.id,
+            'filename': fileobj.name,
+            'folderid': folderobj.id,
+            'foldername': folderobj.name,
+            'projectid': folderobj.getProject().id,
+            'projectname': folderobj.getProject().name,
+            'createtime': util.datetimeToString(fileobj.createTime),
+            'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
+            'size': fileobj.size,
+            'mimetype': fileobj.mimeType,
+            'ownerid': folderobj.getProject().author.id,
+            'ownername': folderobj.getProject().author.username
         }
 
         # Die zurückgegebenen Informationen sollten mit fileobj und folderobj übereinstimmen
@@ -570,13 +651,12 @@ class FileTestClass(ViewTestCase):
 
     # Teste das Komiplieren einer .tex Datei
     def test_latexCompile(self):
-
         projectobj = Project.objects.create(name=self._newname1, author=self._user1)
         src_code = "\\documentclass[a4paper,10pt]{article} \\usepackage[utf8]{inputenc} \\title{test} " \
                    "\\begin{document} \\maketitle \\begin{abstract} \\end{abstract} \\section{} \\end{document}"
 
-        texobj1 = TexFile.objects.create(name=self._newtex_name1, folder=projectobj.rootFolder, source_code = src_code)
-        texobj2 = TexFile.objects.create(name=self._newtex_name2, folder=projectobj.rootFolder, source_code = 'Test')
+        texobj1 = TexFile.objects.create(name=self._newtex_name1, folder=projectobj.rootFolder, source_code=src_code)
+        texobj2 = TexFile.objects.create(name=self._newtex_name2, folder=projectobj.rootFolder, source_code='Test')
 
         # schicke POST request an den Server mit dem compile Befehl und dem zugehörigen Parameter id:fileid
         response = util.documentPoster(self, command='compile', idpara=texobj1.id)
