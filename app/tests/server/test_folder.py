@@ -260,10 +260,10 @@ class FolderTestClass(ViewTestCase):
         Testfälle:
         - user1 benennt einen Ordner um -> Erfolg
         - user1 benennt einen Ordner um mit einem Namen der bereits im selben Verzeichnis existiert -> Fehler
-        - user1 benennt einen Ordner um der user2 gehört
-        - user1 benennt einen Ordner um mit einem Namen der nur aus Leerzeichen besteht
-        - user1 benennt einen Ordner um mit einem Namen der ein leerer String ist
-        - user1 benennt einen Ordner um mit einem Namen der ungültige Zeichen enthält
+        - user1 benennt einen Ordner um der user2 gehört -> Fehler
+        - user1 benennt einen Ordner um mit einem Namen der nur aus Leerzeichen besteht -> Fehler
+        - user1 benennt einen Ordner um mit einem Namen der ein leerer String ist -> Fehler
+        - user1 benennt einen Ordner um mit einem Namen der ungültige Zeichen enthält -> Fehler
 
         :return: None
         """
@@ -441,8 +441,7 @@ class FolderTestClass(ViewTestCase):
         Teste das Verschieben eines Ordners
 
         Testfälle:
-        - user1 verschiebt einen Ordner in einen anderen Ordner, in welchen ein gleichnamiges Verzeichnis existiert
-        -> Fehler
+        - user1 verschiebt einen Ordner, wobei im Zielordner ein gleichnamiges Verzeichnis existiert -> Fehler
 
         :return: None
         """
