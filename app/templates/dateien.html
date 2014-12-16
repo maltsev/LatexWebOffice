@@ -6,6 +6,7 @@
 
 <!-- embedding file: _wrapper.html -->
 {% extends "_wrapper.html" %}
+
 {% block header %}
 <link rel="stylesheet" href="/static/css/listselector.css">
 <link rel="stylesheet" href="/static/css/menuleiste.css">
@@ -18,7 +19,6 @@
 
 <!-- content to embed in wrapper.html as content -->
 {% block content %}
-{% block dialoge %}
 <div id="dialog_keine_auswahl" title="Keine Auswahl getroffen" style="display: none;">
   <p>Sie haben leider keine Datei bzw. keinen Ordner ausgewählt. Bitte treffen Sie eine Auswahl, um die Funktionen der Webseite nutzen zu können.
   </p>
@@ -47,7 +47,6 @@
   <p onClick="removePopup('rename');showPopup('new_name_file');"> Datei umbenennen</p><!--renameFolderAndFiles(getFileId(),'file')renameFolderAndFiles(getFolderId(),'folder')-->
   <p onClick="removePopup('rename');showPopup('new_name_folder');"> Ordner umbenennen</p>
 </div>
-{% endblock %}
 <div id="inhalt">
 
     {% comment %}
