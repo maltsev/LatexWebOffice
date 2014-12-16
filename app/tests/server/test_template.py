@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Tue 16 Dec 2014 05:44:27 PM CET
+* Last Modified : Tue 16 Dec 2014 05:51:18 PM CET
 
 * Author :  mattis
 
@@ -171,7 +171,7 @@ class TemplateTestClass(ViewTestCase):
         serveranswer = [
             {
                 "ownername": self._user1_template1.author.username,
-                "rootfolderid": self._user1_template1.rootFolder.id,
+                "rootid": self._user1_template1.rootFolder.id,
                 "id": self._user1_template1.id,
                 "createtime": util.datetimeToString(self._user1_template1.createTime),
                 "ownerid": self._user1_template1.author.id,
@@ -179,7 +179,7 @@ class TemplateTestClass(ViewTestCase):
             },
             {
                 "ownername": self._user1_template2.author.username,
-                "rootfolderid": self._user1_template2.rootFolder.id,
+                "rootid": self._user1_template2.rootFolder.id,
                 "id": self._user1_template2.id,
                 "createtime": util.datetimeToString(self._user1_template2.createTime),
                 "ownerid": self._user1_template2.author.id,
