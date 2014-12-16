@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Mi 10 Dez 2014 11:47:47 CET
+* Last Modified : Tue 16 Dec 2014 05:11:47 PM CET
 
 * Author :  christian
 
@@ -54,7 +54,7 @@ ERROR_MESSAGES = {
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
     'ILLEGALFILETYPE': 'Dateityp ist nicht erlaubt',
     'TEMPLATEALREADYEXISTS':'Ein Template mit dem Namen \"{0}\" existiert bereits.',
-    'TEMPLATENOTEXIST': 'Projekt nicht gefunden',
+    'TEMPLATENOTEXIST': 'Vorlage nicht gefunden',
 }
 
 ALLOWEDMIMETYPES = {

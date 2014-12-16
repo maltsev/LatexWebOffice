@@ -4,17 +4,24 @@
 @last-change: 11.12.2014 - sprint-nr: 3
 */
 
-var projektListe;
+var projectList;
 
 // initialisiert die Liste für die Projekte, sobald die Seite geladen wurde
 $(document).ready(function() {
-	projektListe = new ListSelector('projekte');
-	projektListe.setCaptions([
+	projectList = new ListSelector('projekte');
+	projectList.setCaptions([
 		{'name': 'Name', 'element': 'name'},
 		{'name': 'Autor', 'element': 'author'},
 		{'name': 'Erstellungszeitpunkt', 'element': 'created'},
 	]);
 	showProjects();
+
+	// Projekt öffnen
+	projectList.setDClickHandler(openProject);
+	$('#open').click(function() {
+		if (projectList.getSelected() != null)
+			openProject(projectList.getSelected());
+	});
 });
 
 /**
@@ -51,13 +58,21 @@ function showProjects() {
 				});
 			else {
 				// Projekte in die Projektliste eintragen
-				projektListe.clearData();
+				projectList.clearData();
 				for (var i = 0; i < data.response.length; ++i)
 					if (i < data.response.length - 1)
-						projektListe.addData(data.response[i], [], false);
+						projectList.addData(data.response[i], [], false);
 					else
-						projektListe.addData(data.response[i]);
+						projectList.addData(data.response[i]);
 			}
 		}
 	});
+}
+
+/**
+ * Zeigt die Dateiliste für das übergebene Projekt an.
+ * @param project Projekt
+ */
+function openProject(project) {
+	document.location.assign('/dateien/#' + project.id);
 }

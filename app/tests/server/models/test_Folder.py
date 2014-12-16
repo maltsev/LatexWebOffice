@@ -55,6 +55,16 @@ class FolderTestCase(ModelTestCase):
         self.assertEqual(len(rootFilesAndFolders), len(newRootFilesAndFolders))
 
 
+    def test_mainTexDelete(self):
+        root = Folder.objects.create(name='root')
+        self.assertTrue(isinstance(root.getMainTex(), TexFile))
+        root.getMainTex().delete()
+        self.assertIsNone(root.getMainTex())
+        root.name = 'root2'
+        root.save()
+        self.assertIsNone(root.getMainTex())
+
+
     def test_getRoot(self):
         self.assertEqual(self.root, self.root_dir1_dir1_dir1.getRoot())
         self.assertEqual(self.root, self.root.getRoot())

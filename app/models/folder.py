@@ -96,8 +96,11 @@ class Folder(models.Model):
     # @return app.models.file.texfile.TexFile
     def getMainTex(self):
         rootFolder = self.getRoot()
-        file = rootFolder.file_set.filter(name='main.tex').get()
-        return TexFile.objects.get(pk=file.pk)
+        try:
+            file = rootFolder.file_set.filter(name='main.tex').get()
+            return TexFile.objects.get(pk=file.pk)
+        except ObjectDoesNotExist:
+            return None
 
     ##
     # Abbildet das Vezeichnis auf der Festplatte und gibt
@@ -180,6 +183,6 @@ class Folder(models.Model):
 
 
 @receiver(post_save, sender=Folder)
-def folderPreSave(instance, **kwargs):
-    if instance.isRoot():
+def folderPostSave(instance, **kwargs):
+    if instance.isRoot() and kwargs.get('created'):
         TexFile.objects.get_or_create(name='main.tex', folder=instance)
