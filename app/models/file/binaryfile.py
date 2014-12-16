@@ -27,7 +27,7 @@ class BinaryFileManager(file.FileManager):
         defaultArgs = {
             'name': binaryFileModel.name,
             'folder': binaryFileModel.folder,
-            'file': open(binaryFileModel.filepath, 'r')
+            'file': open(binaryFileModel.filepath, 'rb')
         }
         args = dict(list(defaultArgs.items()) + list(kwargs.items()))
         return binaryFileModel.__class__.objects.createFromFile(**args)
