@@ -1,5 +1,5 @@
 <!--
-@author: Martin Koláček  
+@author: Martin Koláček, Franziska Everinghoff
 @creation: 03.11.2014 - sprint-nr: 1
 @last-change: 20.11.2014 - sprint-nr: 2
 -->
@@ -9,19 +9,74 @@
 
 {% block header %}
 <link rel="stylesheet" href="/static/css/listselector.css">
+<link rel="stylesheet" href="/static/css/menuleiste.css">
 <script src="/static/js/listselector.js"></script>
+<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+
 <script src="/static/js/dateien.js"></script>
 {% endblock %}
 
 <!-- content to embed in wrapper.html as content -->
 {% block content %}
+<div id="dialog_keine_auswahl" title="Keine Auswahl getroffen" style="display: none;">
+  <p>Sie haben leider keine Datei bzw. keinen Ordner ausgewählt. Bitte treffen Sie eine Auswahl, um die Funktionen der Webseite nutzen zu können.
+  </p>
+</div>
+<div id="dialog_datei_ordner_loeschen" title="Datei/Ordner löschen" style="display: none;">
+  <p>Bitte wählen Sie aus, ob Sie die Datei oder den Ordner (und dessen Unterordner) löschen möchten. Es werden alle Unterordner vom ausgewählten Ordner gelöscht.
+  </p>
+  <p onClick="removePopup('remove');checkRemoveFile(getFileId(),'file')"> Datei löschen</p>
+  <p onClick="removePopup('remove');checkRemoveFolder(getFolderId(),'folder')"> Ordner löschen</p>
+</div>
+<div id="dialog_datei_neuer_name" title="Datei umbenennen" style="display: none;">
+  <p>Bitte gib einen neuen Namen für die Datei ein.
+  </p>
+  <input type="text" id="file_name" value="getFileName()" style="width: 200px;height: 30px;">
+  <input type="button" onClick="renameFolderAndFiles(getFileId(),'file')" value="Speichern">
+</div>
+<div id="dialog_ordner_neuer_name" title="Ordner umbenennen" style="display: none;">
+  <p>Bitte gib einen neuen Namen für den Ordner ein.
+  </p>
+  <input type="text" id="folder_name" value="" style="width: 200px;height: 30px;">
+  <input type="button" onClick="renameFolderAndFiles(getFolderId(),'folder')" value="Speichern">
+</div>
+<div id="dialog_datei_ordner_umbenennen" title="Datei/Ordner umbenennen" style="display: none;">
+  <p>Bitte wählen Sie aus, ob Sie die Datei oder den Ordner umbenennen möchten. 
+  </p>
+  <p onClick="removePopup('rename');showPopup('new_name_file');"> Datei umbenennen</p><!--renameFolderAndFiles(getFileId(),'file')renameFolderAndFiles(getFolderId(),'folder')-->
+  <p onClick="removePopup('rename');showPopup('new_name_folder');"> Ordner umbenennen</p>
+</div>
 <div id="inhalt">
-<div  class="row">
+
     {% comment %}
         Stub Page
     {% endcomment %}
-	<div id="projekt_menueleiste">
-	Hier kommt die Menüleiste hin
+	
+	<div id="menu">
+		<ul>
+		  <li class="topmenu">
+			<a href="">Öffnen</a>
+		  </li>
+		  <li class="topmenu">
+			<a href="">Erstellen</a>
+		  </li>
+		  <li class="topmenu">
+			<a href="">Hochladen</a>
+		  </li>
+		  <li class="topmenu">
+			<a href="">Herunterladen</a>
+		  </li>
+		  <li onClick="showPopup('rename')" class="topmenu">
+			<a>Umbenennen</a>
+		  </li>
+		  <li class="topmenu">
+			<a href="">Verschieben</a>
+		  </li>
+		  <li onClick="showPopup('remove')" class="topmenu">
+			<a>Löschen</a>
+		  </li>
+		</ul>
 	</div>
 	<div id="dateien">
 	

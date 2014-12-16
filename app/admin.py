@@ -5,7 +5,7 @@
 
 * Creation Date : 22-11-2014
 
-* Last Modified : 2 Dec 2014 21:31:00 CET
+* Last Modified : Mon 15 Dec 2014 04:30:18 PM CET
 
 * Author :  maltsev
 
@@ -28,7 +28,7 @@ class FolderForm(forms.ModelForm):
 
 @admin.register(models.folder.Folder)
 class FolderAdmin(admin.ModelAdmin):
-    list_display = ('relativePath', 'createTime', 'parent', 'root')
+    list_display = ('id', 'relativePath', 'createTime', 'parent', 'root')
     list_filter = ('parent', 'root')
     form = FolderForm
 
@@ -40,7 +40,7 @@ class FolderAdmin(admin.ModelAdmin):
 
 @admin.register(models.projecttemplate.ProjectTemplate)
 class ProjectTemplateAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'createTime')
+    list_display = ('id', 'name', 'author', 'createTime')
     list_filter = ('author',)
     exclude = ('rootFolder',)
 
@@ -51,7 +51,7 @@ class ProjectAdmin(ProjectTemplateAdmin):
 
 
 class FileAdmin(admin.ModelAdmin):
-    list_display = ('relativePath', 'createTime', 'lastModifiedTime')
+    list_display = ('id', 'relativePath', 'createTime', 'lastModifiedTime')
     list_filter = ('folder',)
 
     def relativePath(self, obj):

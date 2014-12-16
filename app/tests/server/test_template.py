@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Mo 15 Dez 2014 14:50:33 CET
+* Last Modified : Tue 16 Dec 2014 05:51:18 PM CET
 
 * Author :  mattis
 
@@ -32,7 +32,6 @@ class TemplateTestClass(ViewTestCase):
 
         :return: None
         """
-
         self.setUpUserAndProjects()
         self.setUpFolders()
         self.setUpFiles()
@@ -54,134 +53,143 @@ class TemplateTestClass(ViewTestCase):
         Teste das konvertieren eines Projektes von einem Benutzer in eine Vorlage.
 
         Testfälle:
+            - user1 konvertiert ein Projekt in ein Template => Erfolg
+            - user1 versucht ein Template mit existierenden Namen zu erstellen
+            => Fehler
+            - user1 versucht ein Template mit Illegalen Zeichen zu erstellen =>
+            Fehler
+            - user1 versucht ein Template in ein Template zu verwandeln =>
+            Fehler
+
 
         :return: None
         """
 
         # Sende Anfrage zum konvertieren eines vorhandenen Projektes in eine
         # Vorlage
-        '''response = util.documentPoster(
-            self, command='project2template', idpara=self._user1_project1.id,name=self._newname1)
-        '''
+        response = util.documentPoster(
+            self, command='project2template', idpara=self._user1_project1.id, name=self._newname1)
 
         # erwartete Antwort des Servers
-        serveranswer = {}
+        serveranswer = {'id': 9, 'name': 'NeuerName1'}
 
         # überprüfe die Antwort des Servers
         # status sollte success sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        #util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
-    def atest_projectRename(self):
-        """Test der projectRename() Methode aus dem project view
+        # Versuche ein template mit zweimal den gleichen Namen zu erstellen
+        # (sollte eine Fehlermeldung hervorrufen)
+        response = util.documentPoster(
+            self, command='project2template', idpara=self._user1_project1.id, name=self._newname1)
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['TEMPLATEALREADYEXISTS'].format(
+            self._newname1)
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
 
-        Teste das Umbenennen eines Projektes von einem Benutzer.
+        # Teste, auf Namen mit illegalen Zeichen
+        response = util.documentPoster(
+            self, command='project2template', idpara=self._user1_project1.id, name='<>')
+        serveranswer = ERROR_MESSAGES['INVALIDNAME']
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # Teste, ob man auch ein template in ein Template verwandeln kann
+        # (sollte eine Fehlermeldung geben)
+        response = util.documentPoster(
+            self, command='project2template', idpara=self._user1_template1.id, name=self._newname2)
+        serveranswer = ERROR_MESSAGES['PROJECTNOTEXIST']
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+    def test_template2Project(self):
+        """Test der template2Project() Methode aus dem template view
+
+        Teste das konvertieren einer Vorlage von einem Benutzer in ein Projekt.
 
         Testfälle:
-        - user1 benennt ein Projekt um -> Erfolg
-        - user1 benennt ein Projekt um mit einem Namen, der nur Leerzeichen enthält -> Fehler
-        - user1 benennt ein Projekt um mit einem Namen, der nur ein leerer String ist -> Fehler
-        - user1 benennt ein Projekt um mit einem Namen, der ungültige Sonderzeichen enthält -> Fehler
-        - user1 benennt ein Projekt um mit einem Namen, der bereits existiert -> Fehler
-        - user1 benennt ein Projekt mit einer ungültigen projectid um -> Fehler
-        - user1 benennt ein Projekt von user2 um -> Fehler
+            - user1 konvertiert ein Template in ein Projekt => Erfolg
+            - user1 versucht ein Projekt mit existierenden Namen zu erstellen
+            => Fehler
+            - user1 versucht ein Projekt mit Illegalen Zeichen zu erstellen =>
+            Fehler
+            - user1 versucht ein Projekt in ein Projekt zu verwandeln =>
+            Fehler
+
 
         :return: None
         """
 
-        # Sende Anfrage zum umbenennen eines Projektes
-        response = util.documentPoster(self, command='projectrename', idpara=self._user1_project1.id,
-                                       name=self._newname1)
+        # Sende Anfrage zum konvertieren einer Vorlage in ein Projekt
+        response = util.documentPoster(
+            self, command='template2project', idpara=self._user1_template1.id, name=self._newname1)
 
         # erwartete Antwort des Servers
-        serveranswer = {'id': self._user1_project1.id, 'name': self._newname1}
+        serveranswer = {'id': 9, 'name': 'NeuerName1'}
 
         # überprüfe die Antwort des Servers
         # status sollte success sein
-        # die Antwort des Servers sollte mit dictionary übereinstimmen
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
-        # --------------------------------------------------------------------------------------------------------------
-        # Sende Anfrage zum umbenennen eines Projektes mit einem Namen der nur
-        # Leerzeichen enthält
-        response = util.documentPoster(self, command='projectrename', idpara=self._user1_project2.id,
-                                       name=self._name_only_spaces)
-
-        # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['BLANKNAME']
-
-        # überprüfe die Antwort des Servers
-        # status sollte failure sein
-        # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
-
-        # --------------------------------------------------------------------------------------------------------------
-        # Sende Anfrage zum umbenennen eines Projektes mit einem Namen der ein
-        # leerer String ist
-        response = util.documentPoster(self, command='projectrename', idpara=self._user1_project2.id,
-                                       name=self._name_blank)
-
-        # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['BLANKNAME']
-
-        # überprüfe die Antwort des Servers
-        # status sollte failure sein
-        # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
-
-        # --------------------------------------------------------------------------------------------------------------
-        # Sende Anfrage zum umbenennen eines Projektes mit einem Namen der
-        # ungültige Sonderzeichen enthält
-        response = util.documentPoster(self, command='projectrename', idpara=self._user1_project2.id,
-                                       name=self._name_invalid_chars)
-
-        # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['INVALIDNAME']
-
-        # überprüfe die Antwort des Servers
-        # status sollte failure sein
-        # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
-
-        # --------------------------------------------------------------------------------------------------------------
-        # Sende Anfrage zum umbenennen eines Projektes mit einem Namen der
-        # bereits existiert
-        response = util.documentPoster(self, command='projectrename', idpara=self._user1_project3.id,
-                                       name=self._user1_project2.name.upper())
-
+        # Versuche ein template mit zweimal den gleichen Namen zu erstellen
+        # (sollte eine Fehlermeldung hervorrufen)
+        response = util.documentPoster(
+            self, command='template2project', idpara=self._user1_template1.id, name=self._newname1)
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(
-            self._user1_project2.name.upper())
-
-        # überprüfe die Antwort des Servers
-        # status sollte failure sein
-        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+            self._newname1)
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
-        # --------------------------------------------------------------------------------------------------------------
-        # Sende Anfrage zum umbenennen eines Projektes mit einer ungültigen
-        # projectid
-        response = util.documentPoster(self, command='projectrename', idpara=self._invalidid,
-                                       name=self._newname2)
+        # Teste, auf Namen mit illegalen Zeichen
+        response = util.documentPoster(
+            self, command='template2project', idpara=self._user1_template1.id, name='<>')
+        serveranswer = ERROR_MESSAGES['INVALIDNAME']
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # Teste, ob man auch ein Projekt in ein Projekt verwandeln kann
+        # (sollte eine Fehlermeldung geben)
+        response = util.documentPoster(
+            self, command='template2project', idpara=self._user1_project1.id, name=self._newname2)
+        serveranswer = ERROR_MESSAGES['TEMPLATENOTEXIST']
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+    def test_listtemplates(self):
+        """Test der listtemplates() Methode aus dem template view
+
+        Teste das Auflisten von Vorlagen eines Benutzers
+
+        Testfälle:
+            - user1 fordert eine Liste aller Projekte an -> Erfolg
+
+        :returns: None
+
+        """
+        # Sende Anfrage zum Auflisten aller Vorlagen
+        response = util.documentPoster(
+            self, command='listtemplates')
 
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['PROJECTNOTEXIST']
+        serveranswer = [
+            {
+                "ownername": self._user1_template1.author.username,
+                "rootid": self._user1_template1.rootFolder.id,
+                "id": self._user1_template1.id,
+                "createtime": util.datetimeToString(self._user1_template1.createTime),
+                "ownerid": self._user1_template1.author.id,
+                "name": self._user1_template1.name,
+            },
+            {
+                "ownername": self._user1_template2.author.username,
+                "rootid": self._user1_template2.rootFolder.id,
+                "id": self._user1_template2.id,
+                "createtime": util.datetimeToString(self._user1_template2.createTime),
+                "ownerid": self._user1_template2.author.id,
+                "name": self._user1_template2.name,
+            },
+        ]
 
         # überprüfe die Antwort des Servers
-        # status sollte failure sein
+        # status sollte success sein
+        # teste, ob in response die beiden erstellten Vorlagen von user1 richtig aufgelistet werden
+        # und keine Vorlagen von user2 aufgelistet werden
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
-
-        # --------------------------------------------------------------------------------------------------------------
-        # Sende Anfrage zum umbenennen eines Projektes mit einer projectid,
-        # welche user2 gehört
-        response = util.documentPoster(self, command='projectrename', idpara=self._user2_project1.id,
-                                       name=self._newname3)
-
-        # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
-
-        # überprüfe die Antwort des Servers
-        # status sollte failure sein
-        # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)

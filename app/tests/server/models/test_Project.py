@@ -25,7 +25,7 @@ class ProjectTestCase(ModelTestCase):
     def setUp(self):
         self.setUpProject()
 
-    def test_reateFromProjectTemplate(self):
+    def test_createFromProjectTemplate(self):
         projectTemplate = ProjectTemplate.objects.get(pk=self.project.pk)
         project = Project.objects.createFromProjectTemplate(template=projectTemplate, name="Testprojekt")
 
