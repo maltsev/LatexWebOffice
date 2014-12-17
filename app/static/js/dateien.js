@@ -66,13 +66,16 @@ jQuery.ajax('/documents/', {
 					'statusCode': response.status,
 					'statusText': response.statusText
 				});
+				if (data.response == "Dieses Verzeichnis existiert nicht"){
+					showPopup("no_folder");
+				}
 			}
 			else {
 			// vorhandene Dateiliste entfernen
 			filelistHandler.clearData();
 			// Ruft die Dateiliste über eine rekursive Funktion auf
 			recursiveFileAnalysis(data.response,0,'0',null,false);
-			
+			console.log(data.response);
 			
 		}
 		}
@@ -142,20 +145,15 @@ sumOfFiles =parent.files.length; // ermittelt die Anzahl der Dateien vom parent 
 if (response.files.length > 1){
 sumOfFiles += response.files.length-1; // setze Anzahl der Dateien auf die Anzahl der Dateien-1
 }
-path.push(sumOfFiles-1); // Fügt die Summe der Dateien zum Pfad hinzu
+path.push(sumOfFiles); // Fügt die Summe der Dateien zum Pfad hinzu
 recursiveFileAnalysis(response.folders[a],level+1,path,response); // Rekursionsaufruf
 }
 // Wenn es keine Unterordner gibt, also in der Baumstruktur ein Blatt ist
 else {
+console.log("Dubbidai");
 // repräsentiert die Summe der Dateien, die bisher in der Rekursion abgearbeitet wurde.
 var sumOfFiles = 0;
 // siehe oben
-for (var c=0;c<parent.folders.length;c++){
-if (parent.folders[c] === response){
-break;
-}
-sumOfFiles += parent.folders[c].files.length;
-}
 // Wenn es mehr als eine Datei im untersten Ordner gibt
 if (response.files.length > 1){
 sumOfFiles += response.files.length-1; // setze Anzahl der Dateien auf die Anzahl der Dateien-1
@@ -164,8 +162,26 @@ sumOfFiles += response.files.length-1; // setze Anzahl der Dateien auf die Anzah
 if (response.folders.length > 1){ // es gibt mehr als einen Unterordner
 // Pfad wird nur beim ersten Element ergänzt
 if (a == 0){
-path.push(sumOfFiles-1);
+// Summiert die Dateien solange auf (Summe der Dateien der Unterordner vom parent Ordner), bis der aktuelle Ordner erreicht ist.
+for (var c=0;c<parent.folders.length;c++){ // durchläuft alle Unterordner von Parent
+if (parent.folders[c] === response){ // Wenn ein Unterordner der aktuelle Ordner ist, brich ab
+break; // Abbruch der Schleife
 }
+sumOfFiles += parent.folders[c].files.length; // Summiert die Anzahl der Dateien aus den Unterordnern vom parent Ordner auf.
+}
+path.push(sumOfFiles);
+}
+}
+else {
+// Summiert die Dateien solange auf (Summe der Dateien der Unterordner vom parent Ordner), bis der aktuelle Ordner erreicht ist.
+for (var c=0;c<parent.folders.length;c++){ // durchläuft alle Unterordner von Parent
+if (parent.folders[c] === response){ // Wenn ein Unterordner der aktuelle Ordner ist, brich ab
+break; // Abbruch der Schleife
+}
+sumOfFiles += parent.folders[c].files.length; // Summiert die Anzahl der Dateien aus den Unterordnern vom parent Ordner auf.
+}
+path.push(sumOfFiles);
+console.log("only one subfolder");
 }
 // Gibt die Dateien des Ordners aus
 for (var i = 0; i < response.folders[a].files.length; i++){
@@ -179,7 +195,7 @@ for (var i = 0; i < response.folders[a].files.length; i++){
 }
 }
 else { // Rekursiver Aufruf, wenn die Rekursionsebene 0 ist, also der erste Aufruf.
-	recursiveFileAnalysis(response.folders[a],level+1,[(number_of_files-1)-1],response); // Rekursionsaufruf
+	recursiveFileAnalysis(response.folders[a],level+1,[(number_of_files-1)],response); // Rekursionsaufruf
 }
 }
 }
@@ -240,6 +256,21 @@ return true;
 
 function showPopup(category){
   $(function() {
+    if (category == "file_exists"){
+		$( "#dialog_datei_existiert" ).dialog();
+  }
+  if (category == "empty_input"){
+		$( "#dialog_leere_eingabe" ).dialog();
+  }
+  if (category == "illegal_sign"){
+		$( "#dialog_ungueltige_eingabe" ).dialog();
+  }
+  if (category == "no_rights_delete"){
+		$( "#dialog_keine_rechte_loeschen" ).dialog();
+   }
+   if (category == "no_folder"){
+		$( "#dialog_ordner_existiert_nicht" ).dialog();
+   }
    if (category == "no_selection"){
 		$( "#dialog_keine_auswahl" ).dialog();
    }
@@ -316,6 +347,12 @@ jQuery.ajax('/documents/', {
 					'statusCode': response.status,
 					'statusText': response.statusText
 				});
+			/**
+			* Fehlermeldungen anzeigen
+			*/
+			if (data.response == "Nutzer hat für diese Aktion nicht ausreichend Rechte"){
+				showPopup("no_rights_delete");
+			}
 			}
 			else {
 			// Seite neu laden
@@ -396,6 +433,9 @@ jQuery.ajax('/documents/', {
 				'statusCode': response.status,
 				'statusText': response.statusText
 			});
+			/**
+			* Fehlermeldungen anzeigen
+			*/
 		},
 		'success': function(data, textStatus, response) {
 			if (data.status != 'success'){
@@ -406,6 +446,15 @@ jQuery.ajax('/documents/', {
 					'statusCode': response.status,
 					'statusText': response.statusText
 				});
+				if (data.response == "Unerlaubtes Zeichen verwendet"){
+					showPopup("illegal_sign");
+				}
+				else if (data.response == "Leere Namen sind nicht erlaubt"){
+					showPopup("empty_input");
+				}
+				else if (data.response == "Diese Datei existiert schon"){
+					showPopup("folder_exists");
+				}
 			}
 			else {
 			// Seite neu laden
@@ -447,6 +496,15 @@ jQuery.ajax('/documents/', {
 					'statusCode': response.status,
 					'statusText': response.statusText
 				});
+				if (data.response == "Unerlaubtes Zeichen verwendet"){
+					showPopup("illegal_sign");
+				}
+				else if (data.response == "Leere Namen sind nicht erlaubt"){
+					showPopup("empty_input");
+				}
+				else if (data.response == "Diese Datei existiert schon"){
+					showPopup("file_exists");
+				}
 			}
 			else {
 			// Seite neu laden
