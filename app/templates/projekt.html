@@ -8,36 +8,64 @@
 
 <!-- Header -->
 {% block header %}
-<link rel="stylesheet" href="/static/css/listselector.css">
 <link rel="stylesheet" href="/static/css/menuleiste.css">
+<link rel="stylesheet" href="/static/css/listselector.css">
+<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
 <script src="/static/js/listselector.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
 <script src="/static/js/projekt.js"></script>
 {% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
+<!-- Dialogboxen -->
+<div id="dialog_noSelection" title="Kein Projekt ausgewählt" style="display: none">
+	<p>Sie haben keine Auswahl getroffen, bitte wählen sie zum <span id="dialog_noSelection_method">
+	</span> ein Projekt aus.</p>
+	<p style="text-align: center">
+		<button id="dialog_noSelection_ok">OK</button>
+	</p>
+</div>
+<div id="dialog_deleteConfirmation" title="Projekt löschen" style="display: none">
+	<p>Sind Sie sicher, dass sie das ausgewählte Projekt löschen wollen?</p>
+	<p style="text-align: center">
+		<button id="dialog_deleteConfirmation_yes">Ja</button>
+		<button id="dialog_deleteConfirmation_no">Nein</button>
+	</p>
+</div>
+<div id="dialog_createProject" title="Projekt erstellen" style="display: none">
+	<p>Bitte geben Sie einen Namen für das neu zu erstellende Projekt an, der Name darf nicht mit dem 
+	eines Ihrer anderen Projekte übereinstimmen:</p>
+	<p style="text-align: center">
+		<input type="text" id="dialog_createProject_name" />
+		<button id="dialog_createProject_ok">OK</button>
+	</p>
+</div>
+
 <h1>Übersicht über die Projekte</h1>
 <div id="inhalt">
-	
 	<div id="menu">
 		<ul>
 			<li class="topmenu">
 				<a id="open" href="#">Öffnen</a>
 			</li>
 			<li class="topmenu">
-				<a href="">Erstellen</a>
+				<a id="create" href="#">Erstellen</a>
 			</li>
 			<li class="topmenu">
-				<a href="">Löschen</a>
+				<a id="delete" href="#">Löschen</a>
 			</li>
 			<li class="topmenu">
-				<a href="">Export</a>
+				<a href="#">Umbenennen</a>
 			</li>
 			<li class="topmenu">
-				<a href="">Import</a>
+				<a href="#">Export</a>
 			</li>
 			<li class="topmenu">
-				<a href="">Freigeben</a>
+				<a href="#">Import</a>
+			</li>
+			<li class="topmenu">
+				<a href="#">Freigeben</a>
 			</li>
 		</ul>
 	</div>
