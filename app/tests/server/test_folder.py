@@ -77,10 +77,12 @@ class FolderTestClass(ViewTestCase):
         self.assertEqual(folderobj.getRoot().getProject(), self._user1_project1)
 
         # erwartete Antwort des Servers
-        serveranswer = {'id': folderobj.id,
-                        'name': folderobj.name,
-                        'parentid': folderobj.parent.id,
-                        'parentname': folderobj.parent.name}
+        serveranswer = {
+            'id': folderobj.id,
+            'name': folderobj.name,
+            'parentid': folderobj.parent.id,
+            'parentname': folderobj.parent.name
+        }
 
         # überprüfe die Antwort des Servers
         # status sollte success sein
@@ -89,21 +91,22 @@ class FolderTestClass(ViewTestCase):
 
         # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Erstellen eines neuen Unterordners im Ordner folderobj mit dem selben Namen wie folderobj
-        response = util.documentPoster(self, command='createdir', idpara=folderobj.id, name=folderobj.name)
+        response = util.documentPoster(self, command='createdir', idpara=folderobj.id, name=self._newname1)
 
         # hole das erstellte Ordner Objekt
-        folderobj2 = Folder.objects.filter(name=folderobj.name, parent=folderobj)[0]
-
-        # überprüfe ob der Ordner erstellt wurde
-        self.assertTrue(folderobj2 is not None)
+        folderobj2 = Folder.objects.filter(name=self._newname1, parent=folderobj)[0]
+        # überprüfe ob der Ordner erstellt wurde und der Name richtig gesetzt wurde
+        self.assertTrue(folderobj2.name == self._newname1)
         # Teste, ob der Ordner im richtigen Projekt erstellt wurde
         self.assertEqual(folderobj2.getRoot().getProject(), self._user1_project1)
 
         # erwartete Antwort des Servers
-        serveranswer = {'id': folderobj2.id,
-                        'name': folderobj2.name,
-                        'parentid': folderobj2.parent.id,
-                        'parentname': folderobj2.parent.name}
+        serveranswer = {
+            'id': folderobj2.id,
+            'name': self._newname1,
+            'parentid': folderobj2.parent.id,
+            'parentname': folderobj2.parent.name
+        }
 
         # überprüfe die Antwort des Servers
         # status sollte success sein
@@ -114,8 +117,8 @@ class FolderTestClass(ViewTestCase):
         # Sende Anfrage zum Erstellen eines weiteren Unterordners im Ordner folderobj mit dem selben Namen wie folderobj
         response = util.documentPoster(self, command='createdir', idpara=folderobj.id, name=folderobj.name.upper())
 
-        # Teste, dass das Verzeichnis auch nicht erstellt wurde
-        self.assertFalse(Folder.objects.filter(name=folderobj.name, parent=folderobj).count() > 1)
+        # Teste, dass das Verzeichnis auch nicht erstellt wurde (es sollte nur ein Ordner mit diesem Namen existieren)
+        self.assertTrue(Folder.objects.filter(name=folderobj.name, parent=folderobj).count() == 1)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['FOLDERNAMEEXISTS']
@@ -131,7 +134,7 @@ class FolderTestClass(ViewTestCase):
                                        name=self._newname2)
 
         # Teste, dass das Verzeichnis auch nicht erstellt wurde
-        self.assertFalse(Folder.objects.filter(name=self._newname2).exists())
+        self.assertFalse(Folder.objects.filter(name=self._newname2, parent=self._user2_project1.rootFolder).exists())
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
@@ -147,7 +150,8 @@ class FolderTestClass(ViewTestCase):
                                        name=self._name_only_spaces)
 
         # Teste, dass das Verzeichnis auch nicht erstellt wurde
-        self.assertFalse(Folder.objects.filter(name=self._name_only_spaces).exists())
+        self.assertFalse(Folder.objects.filter(name=self._name_only_spaces,
+                                               parent=self._user1_project1.rootFolder).exists())
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['BLANKNAME']
@@ -163,7 +167,7 @@ class FolderTestClass(ViewTestCase):
                                        name=self._name_blank)
 
         # Teste, dass das Verzeichnis auch nicht erstellt wurde
-        self.assertFalse(Folder.objects.filter(name=self._name_blank).exists())
+        self.assertFalse(Folder.objects.filter(name=self._name_blank, parent=self._user1_project1.rootFolder).exists())
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['BLANKNAME']
@@ -232,6 +236,9 @@ class FolderTestClass(ViewTestCase):
         # Sende Anfrage zum Löschen eines RootFolders von einem Projekt
         response = util.documentPoster(self, command='rmdir', idpara=self._user1_project1.rootFolder.id)
 
+        # der rootFolder sollte noch existieren
+        self.assertTrue(Folder.objects.filter(id=self._user1_project1.rootFolder.id).exists())
+
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
 
@@ -243,6 +250,9 @@ class FolderTestClass(ViewTestCase):
         # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Löschen eines Ordners von einem Projekt welches user2 gehört (als user1)
         response = util.documentPoster(self, command='rmdir', idpara=self._user2_project1_folder1.id)
+
+        # user2_project1_folder1 sollte noch existieren
+        self.assertTrue(Folder.objects.filter(id=self._user2_project1_folder1.id).exists())
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
@@ -260,10 +270,10 @@ class FolderTestClass(ViewTestCase):
         Testfälle:
         - user1 benennt einen Ordner um -> Erfolg
         - user1 benennt einen Ordner um mit einem Namen der bereits im selben Verzeichnis existiert -> Fehler
-        - user1 benennt einen Ordner um der user2 gehört
-        - user1 benennt einen Ordner um mit einem Namen der nur aus Leerzeichen besteht
-        - user1 benennt einen Ordner um mit einem Namen der ein leerer String ist
-        - user1 benennt einen Ordner um mit einem Namen der ungültige Zeichen enthält
+        - user1 benennt einen Ordner um der user2 gehört -> Fehler
+        - user1 benennt einen Ordner um mit einem Namen der nur aus Leerzeichen besteht -> Fehler
+        - user1 benennt einen Ordner um mit einem Namen der ein leerer String ist -> Fehler
+        - user1 benennt einen Ordner um mit einem Namen der ungültige Zeichen enthält -> Fehler
 
         :return: None
         """
@@ -274,9 +284,14 @@ class FolderTestClass(ViewTestCase):
         response = util.documentPoster(self, command='renamedir', idpara=self._user1_project1_folder1.id,
                                        name=self._newname1)
 
+        # der Ordner sollte in der Datenbank den neuen Namen besitzen
+        self.assertEqual(Folder.objects.get(id=self._user1_project1_folder1.id).name, self._newname1)
+
         # erwartete Antwort des Servers
-        serveranswer = {'id': self._user1_project1_folder1.id,
-                        'name': self._newname1}
+        serveranswer = {
+            'id': self._user1_project1_folder1.id,
+            'name': self._newname1
+        }
 
         # überprüfe die Antwort des Servers
         # status sollte success sein
@@ -287,6 +302,9 @@ class FolderTestClass(ViewTestCase):
         # Sende Anfrage zum Umbenennen eines Ordners mit einem Namen der bereits im selben Verzeichnis existiert
         response = util.documentPoster(self, command='renamedir', idpara=self._user1_project1_folder2.id,
                                        name=self._newname1)
+
+        # der Name des Ordners sollte nicht zu newname1 geändert worden sein
+        self.assertNotEqual(Folder.objects.get(id=self._user1_project1_folder2.id).name, self._newname1)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['FOLDERNAMEEXISTS']
@@ -301,6 +319,9 @@ class FolderTestClass(ViewTestCase):
         response = util.documentPoster(self, command='renamedir', idpara=self._user2_project1_folder1.id,
                                        name=self._newname2)
 
+        # der Name des Ordners sollte nicht zu newname2 geändert worden sein
+        self.assertNotEqual(Folder.objects.get(id=self._user2_project1_folder1.id).name, self._newname2)
+
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
 
@@ -313,6 +334,9 @@ class FolderTestClass(ViewTestCase):
         # Sende Anfrage zum Umbenenne eines Ordners mit einem Namen der nur aus Leerzeichen besteht
         response = util.documentPoster(self, command='renamedir', idpara=self._user1_project1_folder2.id,
                                        name=self._name_only_spaces)
+
+        # der Name des Ordners sollte nicht zu name_only_spaces geändert worden sein
+        self.assertNotEqual(Folder.objects.get(id=self._user1_project1_folder2.id).name, self._name_only_spaces)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['BLANKNAME']
@@ -327,6 +351,9 @@ class FolderTestClass(ViewTestCase):
         response = util.documentPoster(self, command='renamedir', idpara=self._user1_project1_folder2.id,
                                        name=self._name_blank)
 
+        # der Name des Ordners sollte nicht zu name_blank geändert worden sein
+        self.assertNotEqual(Folder.objects.get(id=self._user1_project1_folder2.id).name, self._name_blank)
+
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['BLANKNAME']
 
@@ -336,10 +363,12 @@ class FolderTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
         # --------------------------------------------------------------------------------------------------------------
-        # Sende Anfrage zum Umbenenne eines Ordners mit einem Namen der ein leerer String ist
+        # Sende Anfrage zum Umbenenne eines Ordners mit einem Namen der ungültige Sonderzeichen enthält
         response = util.documentPoster(self, command='renamedir', idpara=self._user1_project1_folder2.id,
                                        name=self._name_invalid_chars)
 
+        # der Name des Ordners sollte nicht zu name_invalid_chars geändert worden sein
+        self.assertNotEqual(Folder.objects.get(id=self._user1_project1_folder2.id).name, self._name_invalid_chars)
 
         serveranswer = ERROR_MESSAGES['INVALIDNAME']
 
@@ -356,9 +385,10 @@ class FolderTestClass(ViewTestCase):
         Testfälle:
         - user1 verschiebt einen Ordner in einen anderen Ordner -> Erfolg
         - user1 verschiebt einen Ordner zwischen zwei Projekten -> Erfolg
-        - user1 verschiebt einen Ordner mit einer folderID die nicht existiert -> Fehler
         - user1 verschiebt einen Ordner in einen Ordner der zum einem Projekt von user2 gehört -> Fehler
         - user1 verschiebt einen Ordner welcher zum einem Projekt von user2 gehört -> Fehler
+        - user1 verschiebt einen Ordner mit einer folderID die nicht existiert -> Fehler
+        - user1 verschiebt einen Ordner wobei die folderID des Zielordners nicht existiert -> Fehler
 
         :return: None
         """
@@ -366,6 +396,9 @@ class FolderTestClass(ViewTestCase):
         # Sende Anfrage zum verschieben des folder1 in den folder2
         response = util.documentPoster(self, command='movedir', idpara=self._user1_project1_folder1.id,
                                        idpara2=self._user1_project1_folder2.id)
+
+        # folder2 sollte nun der neuen parentfolder sein
+        self.assertEqual(Folder.objects.get(id=self._user1_project1_folder1.id).parent, self._user1_project1_folder2)
 
         # erwartete Antwort des Servers
         serveranswer = {'id': self._user1_project1_folder1.id,
@@ -384,6 +417,12 @@ class FolderTestClass(ViewTestCase):
         response = util.documentPoster(self, command='movedir', idpara=self._user1_project1_folder2.id,
                                        idpara2=self._user1_project2.rootFolder.id)
 
+        folderobj = Folder.objects.get(id=self._user1_project1_folder2.id)
+
+        # der Ordner sollte nun project2.rootFolder als parent und neuen rootFolder haben
+        self.assertEqual(folderobj.parent, self._user1_project2.rootFolder)
+        self.assertEqual(folderobj.getRoot(), self._user1_project2.rootFolder)
+
         # erwartete Antwort des Servers
         serveranswer = {'id': self._user1_project1_folder2.id,
                         'name': self._user1_project1_folder2.name,
@@ -401,6 +440,10 @@ class FolderTestClass(ViewTestCase):
         response = util.documentPoster(self, command='movedir', idpara=self._user1_project1_folder2.id,
                                        idpara2=self._user2_project1.rootFolder.id)
 
+        # der parentFolder sollte nicht user2_project1.rootFolder sein
+        self.assertNotEqual(Folder.objects.get(id=self._user1_project1_folder2.id).parent,
+                            self._user2_project1.rootFolder)
+
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
 
@@ -414,6 +457,9 @@ class FolderTestClass(ViewTestCase):
         response = util.documentPoster(self, command='movedir', idpara=self._user2_project1_folder1.id,
                                        idpara2=self._user1_project1_folder1.id)
 
+        # der parentFolder sollte nicht user1_project1_folder1 sein
+        self.assertNotEqual(Folder.objects.get(id=self._user2_project1_folder1.id).parent, self._user1_project1_folder1)
+
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
 
@@ -423,9 +469,15 @@ class FolderTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
         # --------------------------------------------------------------------------------------------------------------
+        # Anzahl der Ordner welche folder2 als parentFolder haben
+        old_parent_count = Folder.objects.filter(parent=self._user1_project1_folder2).count()
+
         # Sende Anfrage zum Verschieben eines Ordners mit einer ungültigen ID
         response = util.documentPoster(self, command='movedir', idpara=self._invalidid,
                                        idpara2=self._user1_project1_folder2.id)
+
+        # es sollte kein weiterer Ordner folder2 nun als parent besitzen
+        self.assertEqual(Folder.objects.filter(parent=self._user1_project1_folder2).count(), old_parent_count)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['DIRECTORYNOTEXIST']
@@ -441,20 +493,22 @@ class FolderTestClass(ViewTestCase):
         Teste das Verschieben eines Ordners
 
         Testfälle:
-        - user1 verschiebt einen Ordner in einen anderen Ordner, in welchen ein gleichnamiges Verzeichnis existiert
-        -> Fehler
+        - user1 verschiebt einen Ordner, wobei im Zielordner ein gleichnamiges Verzeichnis existiert -> Fehler
 
         :return: None
         """
 
-        # Teste, ob Fehlermeldung, falls es einen gleichnamigen Unterordner im Ordner schon gibt
         # Benenne subfolder so um, dass er den gleichen Namen, wie parentfolder
         self._user1_project1_folder2_subfolder1.name = self._user1_project1_folder2.name
         self._user1_project1_folder2_subfolder1.save()
 
         # Versuche subfolder in den gleichen Ordner wie parentfolder zu verschieben
         response = util.documentPoster(self, command='movedir', idpara=self._user1_project1_folder2_subfolder1.id,
-                                       idpara2=self._user1_project1_folder2.id)
+                                       idpara2=self._user1_project1_folder2.parent.id)
+
+        # subfolder1 sollte nicht den selben übergeordnerten Ordner wie folder2 haben
+        self.assertNotEqual(Folder.objects.get(id=self._user1_project1_folder2_subfolder1.id).parent,
+                            self._user1_project1_folder2.parent)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['FOLDERNAMEEXISTS']
@@ -505,10 +559,18 @@ class FolderTestClass(ViewTestCase):
                             'folders': [
                                 {'id': self._user2_project1_folder1_subfolder1.id,
                                  'name': self._user2_project1_folder1_subfolder1.name,
-                                 'files': [],
+                                 'files': [
+                                     {'id': self.emptyfile_id,
+                                      'name': self.emptyfile_name,
+                                      'mimetype': self.emptyfile_mimetype}
+                                 ],
                                  'folders': []},
                             ],
-                            'files': [],
+                            'files': [
+                                {'id': self.emptyfile_id,
+                                 'name': self.emptyfile_name,
+                                 'mimetype': self.emptyfile_mimetype}
+                            ],
                         }]
         }
 
@@ -575,7 +637,11 @@ class FolderTestClass(ViewTestCase):
                          ],
                          'folders': []},
                     ],
-                    'files': [],
+                    'files': [
+                        {'id': self.emptyfile_id,
+                         'name': self.emptyfile_name,
+                         'mimetype': self.emptyfile_mimetype}
+                    ],
                 }
             ]
         }

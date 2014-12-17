@@ -21,8 +21,11 @@ import json
 import zipfile
 import os
 import mimetypes
+import tempfile
+import magic
 
 from django.http import HttpResponse
+from core import settings
 
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES
 from app.models.folder import Folder
@@ -170,6 +173,17 @@ def checkObjectForInvalidString(name, request):
     return True, None
 
 
+def checkFileForInvalidString(name, request):
+    file_name, file_extension = os.path.splitext(name)
+
+    # file_extension ist ein leerer String wenn entweder keine Dateiendung vorhanden ist
+    # oder der Dateiname nur die Dateiendung beinhaltet, z.B. name = '.tex'
+    if file_extension == '':
+        return False, jsonErrorResponse(ERROR_MESSAGES['INVALIDNAME'], request)
+
+    return checkObjectForInvalidString(file_name, request)
+
+
 def _getFoldersAndFiles(folderobj, data={}, printing=False, ident=''):
     data['name'] = folderobj.name
     fileslist = []
@@ -216,6 +230,10 @@ def _getFoldersAndFilesJson(folderobj, data={}):
     files = File.objects.filter(folder=folderobj)
     for f in files:
         filelist.append({'id': f.id, 'name': f.name, 'mimetype': f.mimeType})
+    # wenn in dem Ordner keine Dateien existieren, schicke dummy Werte
+    # (Client kann dies einfacher verarbeiten)
+    if not files.exists():
+        filelist.append({'id': 1, 'name': 'empty<>', 'mimetype': 'None'})
 
     folders = Folder.objects.filter(parent=folderobj)
 
@@ -240,11 +258,22 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content
         dictionary['files'] = files
     return self.client.post('/documents/', dictionary)
 
+# liefert den mimetype eines python files
+def getMimetypeFromFile(python_file):
+    # nutze das python-magic paket um den mimetype zu bestimmen
+    mime_magic = magic.Magic(mime=True)
+    # lese die ersten 1024 byte ein
+    mime = mime_magic.from_buffer(python_file.read(1024)).decode('utf-8')
+    # springe wieder zurück zum Anfang der Datei
+    python_file.seek(0)
+
+    return mime
 
 # Hilfsmethode für hochgeladene Dateien
 def uploadFile(f, folder, request, fromZip=False):
     head, name = os.path.split(f.name)
-    mime, encoding = mimetypes.guess_type(name)
+
+    mime = getMimetypeFromFile(f)
 
     # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
     illegalstring, failurereturn = checkObjectForInvalidString(name, request)
@@ -258,30 +287,29 @@ def uploadFile(f, folder, request, fromZip=False):
     if not unique:
         return False, ERROR_MESSAGES['FILENAMEEXISTS']
 
-
-    # Überprüfe auf verbotene Dateiendungen
     if mime in ALLOWEDMIMETYPES['binary']:
         if not fromZip:
-            binfile = BinaryFile.objects.createFromRequestFile(name=name, requestFile=f, folder=folder)
-        else:
-            binfile = BinaryFile.objects.createFromFile(name=name, filepath=f.name, folder=folder)
-        return True, {'name': binfile.name, 'id': binfile.id}
-    elif mime in ALLOWEDMIMETYPES['text']:
-        if mime == mimetypes.types_map['.tex']:
             try:
-                texfile = TexFile(name=name, source_code=f.read().decode('utf-8'), folder=folder)
-                texfile.save()
-                return True, {'name': texfile.name, 'id': texfile.id}
+
+                file = ALLOWEDMIMETYPES['binary'][mime].objects.createFromRequestFile(name=name, requestFile=f,
+                                                                                      folder=folder, mimeType=mime)
             except:
-                return jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+                return False, ERROR_MESSAGES['DATABASEERROR']
         else:
             try:
-                plainfile = PlainTextFile.objects.create(name=name, source_code=f.read().decode('utf-8'))
-                return True, {'name': plainfile.name, 'id': plainfile.id}
+
+                file = ALLOWEDMIMETYPES['binary'][mime].objects.createFromFile(name=name, filepath=f.name,
+                                                                               folder=folder, mimeType=mime)
             except:
-                return False, jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+                return False, ERROR_MESSAGES['DATABASEERROR']
+    elif mime in ALLOWEDMIMETYPES['plaintext']:
+        file = ALLOWEDMIMETYPES['plaintext'][mime].objects.create(name=name, source_code=f.read().decode('utf-8'),
+                                                                  folder=folder, mimeType=mime)
+        file.save()
     else:  # Unerlaubtes Mimetype
         return False, ERROR_MESSAGES['ILLEGALFILETYPE']
+
+    return True, {'id': file.id, 'name': file.name}
 
 
 # Erstellt eine zip Datei des übergebenen Ordners inklusive aller Unterordner und zugehöriger Dateien
@@ -327,3 +355,14 @@ def getFolderName(folderpath):
 # Format YYYY-MM-DD HH:MM:SS
 def datetimeToString(date_time):
     return date_time.strftime('%Y-%m-%d %H:%M:%S')
+
+# erstellt einen neuen temp Ordner im MEDIA_ROOT Verzeichnis und gibt den absoluten Pfad zurück
+def getNewTempFolder():
+    tmp_folder_path = os.path.join(settings.MEDIA_ROOT, 'tmp')
+
+    if not os.path.isdir(tmp_folder_path):
+        os.makedirs(tmp_folder_path)
+
+    tmp_folder = tempfile.mkdtemp(dir=tmp_folder_path)
+
+    return tmp_folder

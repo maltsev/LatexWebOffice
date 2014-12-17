@@ -28,8 +28,21 @@ from app.models.file.binaryfile import BinaryFile
 
 
 class ViewTestCase(TestCase):
-    # Setup Methode für Benutzer und Projekte
+    """ Klasse für Test Methoden der einzelnen Views.
+
+    """
+
     def setUpUserAndProjects(self):
+        """Erstellt Benutzer und Projekte für die Tests.
+
+        Es werden 3 Benutzer erstellt:
+        - user1 hat 3 Projekte und 2 Vorlagen
+        - user2 hat 2 Projekte
+        - user3 hat keine Projekte
+
+        :return: None
+        """
+
         # erstelle user1
         self._user1 = User.objects.create_user(username='user1@test.de', password='123456')
         self._user1._unhashedpw = '123456'
@@ -69,6 +82,11 @@ class ViewTestCase(TestCase):
 
 
     def setUpSingleUser(self):
+        """Erstellt einen einzelnen Benutzer und loggt diesen ein.
+
+        :return: None
+        """
+
         # erstelle user1
         self._user1 = User.objects.create_user(username='user1@test.de', password='123456')
         self._user1._unhashedpw = '123456'
@@ -76,9 +94,20 @@ class ViewTestCase(TestCase):
         # logge user1 ein
         self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
 
-
-    # Setup Methode für Dateien und Ordner
     def setUpFolders(self):
+        """Erstellt mehrere Ordner in den Projekten von user1 und user2.
+
+        Es werden folgende Ordner erstellt:
+        user1_project1/folder1
+        user1_project1/folder2
+        user1_project1/folder2/subfolder1
+
+        user2_project1/folder1
+        user2_project1/folder1/subfolder1
+
+        :return: None
+        """
+
         # erstelle zwei Order für user1, die dem Projekt user1_project1 zugewiesen werden
         # erstelle einen Unterordner in _user1_project1_folder2
         self._user1_project1_folder1 = Folder(name='user1_project1_folder1', parent=self._user1_project1.rootFolder,
@@ -104,6 +133,17 @@ class ViewTestCase(TestCase):
 
 
     def setUpFiles(self):
+        """Lädt mehrere Testdateien und speichert diese in der Datenbank.
+
+        Es werden folgende Dateien erstellt:
+        - user1: tex1 in project1_rootFolder (main.tex, es wird der sourc_code geändert)
+        - user1: tex2 in project1_rootFolder
+        - user1: tex3 in project1_rootFolder/folder1
+        - user1 : tex4
+
+        :return: None
+        """
+
         # Dateinamen der verwendeten Testdateien
         texfile1_name = 'test_tex_presentation.tex'
         texfile2_name = 'test_tex_simple.tex'
@@ -186,10 +226,15 @@ class ViewTestCase(TestCase):
         self._newname1 = 'NeuerName1'
         self._newname2 = 'NeuerName2'
         self._newname3 = 'NeuerName3'
+        self._newname4 = 'NeuerName4'
         self._invalidid = 100000000
         self._name_only_spaces = '    '
         self._name_blank = ''
         self._name_invalid_chars = 'Test1234<>\\/'
+
+        self.emptyfile_name = 'empty<>'
+        self.emptyfile_id = 1
+        self.emptyfile_mimetype = 'None'
 
 
     # löscht den Ordner für die test Dateien
