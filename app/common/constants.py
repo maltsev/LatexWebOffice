@@ -62,7 +62,8 @@ ERROR_MESSAGES = {
 
 ALLOWEDMIMETYPES = {
     'plaintext': {
-        'text/x-tex': TexFile,
+        'text/x-tex': TexFile,                      # Linux
+        'application/x-tex': TexFile,               # Windows
         'text/plain': PlainTextFile,
 
         'text/x-c': PlainTextFile,                  # C Source File

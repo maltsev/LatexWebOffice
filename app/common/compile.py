@@ -37,7 +37,7 @@ from core.settings import BASE_DIR
 #         2. Array der ID und des Namens der erzeugten pdf-Datei oder None, sofern keine pdf-Datei erzeugt werden konnte
 #
 def compile(texid):
-
+    oldwd = os.getcwd()
     # tex-File der übergebenen ID
     tex_fle  = TexFile.objects.get(id=texid)
     # Verzeichnis der tex-Datei
@@ -75,7 +75,7 @@ def compile(texid):
     # '-bibtex' bbl-Dateien werden über bibtex erzeugt, sofern notwendig
     # '-pdf' pdf-Datei wird über pdflatex aus der angegebenen tex-Datei erzeugt
     w = tempfile.TemporaryFile()
-    rc = subprocess.call([latexmk_path(),"-f","-interaction=nonstopmode","-outdir="+out_dir_pth,"-bibtex","-pdf",tex_pth],
+    rc = subprocess.call(["perl", latexmk_path(),"-f","-interaction=nonstopmode","-outdir="+out_dir_pth,"-bibtex","-pdf",tex_pth],
                           stdout=w,
                           stderr=subprocess.STDOUT, bufsize=0)
 
@@ -104,6 +104,7 @@ def compile(texid):
         pdf_file = open(pdf_pth,'rb')
         # erzeugt das PDF-Model aus der pdf-Datei
         pdf = PDF.objects.createFromFile(name=pdf_nme,folder=tex_dir,file=pdf_file)
+        pdf_file.close()
 
         # Rückgabewert
         pdf_data = {'id':pdf.id,'name':pdf.name}
@@ -134,6 +135,7 @@ def compile(texid):
 
     # ----------------------------------------------------------------------------------------------------
 
+    os.chdir(oldwd)
     # entfernt das temporäre root-Verzeichnis und sämtliche Unterordner
     shutil.rmtree(root_pth)
 
