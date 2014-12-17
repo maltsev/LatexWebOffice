@@ -3,7 +3,7 @@
 @creation: 12.12.2014 - sprint-nr: 3
 @last-change: 12.12.2014 - sprint-nr: 3
 */
-var root_empty = "root_empty";
+var root_empty = "empty<>";
 var filelistHandler;
 $( document ).ready(function() {
 // ID aus URL ermitteln
@@ -454,5 +454,16 @@ jQuery.ajax('/documents/', {
 function backToProject() {
 	// TODO: auf das richtige Projekt verweisen?
 	window.location.replace('/projekt/');
+}
+
+/**
+ * Öffnet die Datei im Editor.
+ * @param fileid - ID der Datei
+ * @param filename - Name der Datei
+ */
+function openEditor(fileid, filename) {
+	if (filename != ""){
+	document.location.assign('/editor/#' + fileid);
+	}
 }
 
