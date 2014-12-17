@@ -5,7 +5,7 @@
 
 * Creation Date : 11-12-2014
 
-* Last Modified : 11 Dev 2014 20:26:13 CET
+* Last Modified : 17 Dev 2014 10:01:13 CET
 
 * Author :  maltsev
 
@@ -15,15 +15,27 @@
 
 """
 from app.models.projecttemplate import ProjectTemplate
-from app.tests.server.models.modeltestcase import ModelTestCase
+from app.tests.server.models import modeltestcase
 
-class ProjectTemplateTestCase(ModelTestCase):
+class ProjectTemplateTestCase(modeltestcase.ModelTestCase):
     def setUp(self):
         self.setUpProject()
 
     def test_createFromProject(self):
-        projectTemplate = ProjectTemplate.objects.createFromProject(project=self.project, name="Projektvorlage")
+        project = self.project
+        projectName = project.name
+        projectTemplate = ProjectTemplate.objects.createFromProject(project=project, name="Projektvorlage")
 
         self.assertEqual("Projektvorlage", projectTemplate.name)
-        self.assertEqual(len(self.project.rootFolder.getFilesAndFoldersRecursively()),
-                         len(projectTemplate.rootFolder.getFilesAndFoldersRecursively()))
+        self.assertEqual(projectName, project.name)
+
+        projectRootFolderContent = modeltestcase.getFolderContent(project.rootFolder)
+        projectTemplateRootFolderContent = modeltestcase.getFolderContent(projectTemplate.rootFolder)
+        self.assertEqual(projectRootFolderContent, projectTemplateRootFolderContent)
+
+        projectRootFolderMainTex = project.rootFolder.getMainTex()
+        projectRootFolderMainTex.source_code = projectRootFolderMainTex.source_code + " test"
+        projectRootFolderMainTex.save()
+
+        self.assertNotEqual(projectRootFolderContent, modeltestcase.getFolderContent(project.rootFolder))
+        self.assertEqual(projectTemplateRootFolderContent, modeltestcase.getFolderContent(projectTemplate.rootFolder))

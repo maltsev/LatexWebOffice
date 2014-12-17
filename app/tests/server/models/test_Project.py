@@ -5,11 +5,11 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Mi 26 Nov 2014 20:39:13 CET
+* Last Modified : 17 Dec 2014 10:02:00 CET
 
 * Author :  maltsev
 
-* Sprintnumber : 2
+* Sprintnumber : 3
 
 * Backlog entry :
 
@@ -19,19 +19,30 @@ from app.models.folder import Folder
 from app.models.project import Project
 from app.models.projecttemplate import ProjectTemplate
 from app.models.file.file import File
-from app.tests.server.models.modeltestcase import ModelTestCase
+from app.tests.server.models.test_ProjectTemplate import ProjectTemplateTestCase
+from app.tests.server.models import modeltestcase
 
-class ProjectTestCase(ModelTestCase):
-    def setUp(self):
-        self.setUpProject()
-
+class ProjectTestCase(ProjectTemplateTestCase):
     def test_createFromProjectTemplate(self):
         projectTemplate = ProjectTemplate.objects.get(pk=self.project.pk)
+        projectTemplateName = projectTemplate.name
         project = Project.objects.createFromProjectTemplate(template=projectTemplate, name="Testprojekt")
 
         self.assertEqual("Testprojekt", project.name)
-        self.assertEqual(len(projectTemplate.rootFolder.getFilesAndFoldersRecursively()),
-                         len(project.rootFolder.getFilesAndFoldersRecursively()))
+        self.assertEqual(projectTemplateName, projectTemplate.name)
+
+        projectRootFolderContent = modeltestcase.getFolderContent(self.project.rootFolder)
+        projectTemplateRootFolderContent = modeltestcase.getFolderContent(projectTemplate.rootFolder)
+
+        self.assertEqual(projectRootFolderContent, projectTemplateRootFolderContent)
+
+        projectTemplateRootFolderMainTex = projectTemplate.rootFolder.getMainTex()
+        projectTemplateRootFolderMainTex.source_code = projectTemplateRootFolderMainTex.source_code + 'test'
+        projectTemplateRootFolderMainTex.save()
+
+        self.assertNotEqual(projectTemplateRootFolderContent, modeltestcase.getFolderContent(projectTemplate.rootFolder))
+        self.assertEqual(projectRootFolderContent, modeltestcase.getFolderContent(project.rootFolder))
+
 
     def test_getProject(self):
         self.assertEqual(self.project, self.rootFolder.getProject())
