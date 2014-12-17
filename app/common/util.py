@@ -178,8 +178,7 @@ def checkFileForInvalidString(name, request):
 
     # file_extension ist ein leerer String wenn entweder keine Dateiendung vorhanden ist
     # oder der Dateiname nur die Dateiendung beinhaltet, z.B. name = '.tex'
-    # wenn ein Dateiname ohne Dateiendung gesendet wurde, gibt Fehlermeldung zurück
-    if file_extension == '' and not (file_name.isspace() or file_name == ''):
+    if file_extension == '':
         return False, jsonErrorResponse(ERROR_MESSAGES['INVALIDNAME'], request)
 
     return checkObjectForInvalidString(file_name, request)
@@ -234,7 +233,7 @@ def _getFoldersAndFilesJson(folderobj, data={}):
     # wenn in dem Ordner keine Dateien existieren, schicke dummy Werte
     # (Client kann dies einfacher verarbeiten)
     if not files.exists():
-        filelist.append({'id': 1, 'name': 'empty<>', 'mimetype': 'None'})
+        filelist.append({'id': 1, 'name': 'empty<>', 'mimetype': ''})
 
     folders = Folder.objects.filter(parent=folderobj)
 
@@ -280,10 +279,10 @@ def uploadFile(f, folder, request, fromZip=False):
     mime = getMimetypeFromFile(name)
 
     # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
-    # und ob sie eine Dateiendung besitzen
-    illegalstring, failurereturn = checkFileForInvalidString(name, request)
+    illegalstring, failurereturn = checkObjectForInvalidString(name, request)
     if not illegalstring:
-        return False, failurereturn
+        return False, ERROR_MESSAGES['INVALIDNAME']
+
 
     # Überprüfe auf doppelte Dateien unter Nichtbeachtung Groß- und Kleinschreibung
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert

@@ -135,17 +135,17 @@ break; // Abbruch der Schleife
 sumOfFiles += parent.folders[c].files.length; // Summiert die Anzahl der Dateien aus den Unterordnern vom parent Ordner auf.
 }
 // Wenn die Summe der Dateien 0 ist
-if (sumOfFiles == 0){
+if (sumOfFiles == 1){
 // Wenn es keine Ordner über dem aktuellen gibt
-if (response.folders[a].files.length != 0){ 
+if (response.folders[a].files.length > 1){ 
 sumOfFiles =parent.files.length; // ermittelt die Anzahl der Dateien vom parent Ordner
 }
 }
 // Wenn es mehr als eine Datei im untersten Ordner gibt
-if (response.files.length > 1){
+if (response.files.length > 2){
 sumOfFiles += response.files.length-1; // setze Anzahl der Dateien auf die Anzahl der Dateien-1
 }
-path.push(sumOfFiles); // Fügt die Summe der Dateien zum Pfad hinzu
+path.push(sumOfFiles-1); // Fügt die Summe der Dateien zum Pfad hinzu
 recursiveFileAnalysis(response.folders[a],level+1,path,response); // Rekursionsaufruf
 }
 // Wenn es keine Unterordner gibt, also in der Baumstruktur ein Blatt ist
@@ -155,7 +155,7 @@ console.log("Dubbidai");
 var sumOfFiles = 0;
 // siehe oben
 // Wenn es mehr als eine Datei im untersten Ordner gibt
-if (response.files.length > 1){
+if (response.files.length > 2){
 sumOfFiles += response.files.length-1; // setze Anzahl der Dateien auf die Anzahl der Dateien-1
 }
 // Wenn es mehr als einen Unterordner gibt, also mehrere Unterordner Blätter sind
@@ -189,7 +189,7 @@ for (var i = 0; i < response.folders[a].files.length; i++){
 		filelistHandler.addData({'name':'','foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id,'filetype':response.folders[a].files[i].mimetype},path,false);
 	}
 	else if (response.folders[a].files[i].name != root_empty){ // ansonsten der Dateiname
-		filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id,'filetype':response.folders[a].mimetype},path,false);
+		filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id,'filetype':response.folders[a].files[i].mimetype},path,false);
 	}
 }
 }
@@ -256,7 +256,11 @@ return true;
 
 function showPopup(category){
   $(function() {
-    if (category == "file_exists"){
+  
+  if (category == "folder_exists"){
+		$( "#dialog_ordner_existiert" ).dialog();
+  }
+  if (category == "file_exists"){
 		$( "#dialog_datei_existiert" ).dialog();
   }
   if (category == "empty_input"){
@@ -285,7 +289,12 @@ function showPopup(category){
 	  }
   }
   if (category == "new_name_file"){
+  if (getFileName() != ""){
    $( "#dialog_datei_neuer_name" ).dialog();
+   }
+   else {
+   	$( "#dialog_datei_existiert_nicht" ).dialog();
+   }
    document.getElementById('file_name').value = getFileName();
   }
    if (category == "new_name_folder"){
@@ -296,10 +305,16 @@ function showPopup(category){
 }
 
 function checkRemoveFile(id,type){
+if (getFileName() != ""){
 var r = confirm("Möchten Sie die Datei "+getFileName()+" wirklich löschen?");
 if (r == true) {
     removeFolderAndFiles(id,type);
-} else {
+}
+ else {
+}
+}
+else {
+   	$( "#dialog_datei_existiert_nicht" ).dialog();
 }
 }
 
@@ -452,7 +467,7 @@ jQuery.ajax('/documents/', {
 				else if (data.response == "Leere Namen sind nicht erlaubt"){
 					showPopup("empty_input");
 				}
-				else if (data.response == "Diese Datei existiert schon"){
+				else if (data.response == "Dieses Verzeichnis existiert schon"){
 					showPopup("folder_exists");
 				}
 			}
