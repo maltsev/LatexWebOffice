@@ -21,7 +21,19 @@ filelistHandler.setCaptions([
 
 	showFilelist(id);
 }
+
+/*
+* Fängt Doppelklicks auf eine Datei/einen Ordner ab.
+*/
+	filelistHandler.setDClickHandler(openEditor);
+
+
+
+
 });
+
+
+
 
 function showFilelist(projectID){
 //alert(projectID);
@@ -84,10 +96,10 @@ if (level == 0){
 // Gibt die Liste der Dateien aus.
 for (var i = 0; i < number_of_files; i++){
 	if (response.files[i].name == root_empty && number_of_files == 1){ // Wenn es keine Datei im Ordner gibt, wird ein leerer Ordner angezeigt
-	filelistHandler.addData({'name':'','foldername':response.name,'folderid':response.id,'fileid':response.files[i].id},false);
+	filelistHandler.addData({'name':'','foldername':'Root','folderid':response.id,'fileid':response.files[i].id,'filetype':response.files[i].mimetype},false);
 	}
 	else if (response.files[i].name != root_empty){ // ansonsten der Dateiname
-	filelistHandler.addData({'name':response.files[i].name,'foldername':response.name,'folderid':response.id,'fileid':response.files[i].id},false);
+	filelistHandler.addData({'name':response.files[i].name,'foldername':'Root','folderid':response.id,'fileid':response.files[i].id,'filetype':response.files[i].mimetype},false);
 	}
 }
 }
@@ -96,10 +108,10 @@ else {
 // Gibt die Dateien des Ordners der höheren Rekursionsebene aus
 for (var i = 0; i < number_of_files; i++){
 	if (response.files[i].name == root_empty && number_of_files == 1){ // Wenn es keine Datei im Ordner gibt, wird ein leerer Ordner angezeigt
-		filelistHandler.addData({'name':'','foldername':response.name,'folderid':response.id,'fileid':response.files[i].id},path,false);
+		filelistHandler.addData({'name':'','foldername':response.name,'folderid':response.id,'fileid':response.files[i].id,'filetype':response.files[i].mimetype},path,false);
 	}
 	else if(response.files[i].name != root_empty){ // ansonsten der Dateiname
-		filelistHandler.addData({'name':response.files[i].name,'foldername':response.name,'folderid':response.id,'fileid':response.files[i].id},path,false);
+		filelistHandler.addData({'name':response.files[i].name,'foldername':response.name,'folderid':response.id,'fileid':response.files[i].id,'filetype':response.files[i].mimetype},path,false);
 	}
 	}
 }
@@ -158,10 +170,10 @@ path.push(sumOfFiles-1);
 // Gibt die Dateien des Ordners aus
 for (var i = 0; i < response.folders[a].files.length; i++){
 	if (response.folders[a].files[i].name == root_empty && number_of_files == 1){ // Wenn es keine Datei im Ordner gibt, wird ein leerer Ordner angezeigt
-		filelistHandler.addData({'name':'','foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id},path,false);
+		filelistHandler.addData({'name':'','foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id,'filetype':response.folders[a].files[i].mimetype},path,false);
 	}
 	else if (response.folders[a].files[i].name != root_empty){ // ansonsten der Dateiname
-		filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id},path,false);
+		filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id,'filetype':response.folders[a].mimetype},path,false);
 	}
 }
 }
@@ -461,7 +473,16 @@ function backToProject() {
  * @param fileid - ID der Datei
  * @param filename - Name der Datei
  */
-function openEditor(fileid, filename) {
+function openEditor() {
+var fileid = "";
+var filename = "";
+try{
+fileid = getFileId();
+filename = getFileName();
+}
+catch(err){
+
+}
 	if (filename != ""){
 	document.location.assign('/editor/#' + fileid);
 	}

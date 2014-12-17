@@ -1,7 +1,7 @@
 <!--
 @author: Franziska Everinghoff, Timo Dümke
 @creation: 20.11.2014 - sprint-nr: 2
-@last-change: 04.12.2014 - sprint-nr: 2
+@last-change: 17.12.2014 - sprint-nr: 3
 -->
 
 {% extends "_wrapper.html" %}
@@ -23,7 +23,7 @@
 {% block content %}
 <div id="inhalt">
 
-	<div id="dialog_editor_verlassen" style="display: none;">
+	<div id="dialog_editor_verlassen" title="Editor verlassen"style="display: none;">
 							<p>Wollen Sie den Editor wirklich verlassen?</p>
 							<p onClick="history.back()"> Ja</p>
 							<p onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')"> Nein</p>
@@ -59,8 +59,7 @@
 			<td>
 				<div id="symbolleiste">
 					<button id="backtoprojekt" type="button" title="Zurück zur Dateiübersicht des Projekts" onClick="confirmExit()">						
-						<i class="fa fa-angle-left"></i> <!-- Zurück zur Dateiübersicht des Projekts -->
-											
+						<i class="fa fa-angle-left"></i> <!-- Zurück zur Dateiübersicht des Projekts -->											
 					</button>
 					<button id="save" type="button" title="Speichern">
 						<i class="fa fa-floppy-o"></i> <!-- Speichern -->
