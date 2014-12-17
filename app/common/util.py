@@ -22,7 +22,7 @@ import zipfile
 import os
 import mimetypes
 import tempfile
-import magic
+#import magic
 
 from django.http import HttpResponse
 from core import settings
