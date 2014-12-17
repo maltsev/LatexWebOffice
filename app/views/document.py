@@ -90,7 +90,7 @@ def execute(request):
             'createtex': {
                 'command': file.createTexFile,
                 'parameters': [{'para': globalparas['id'], 'type': Folder},
-                               {'para': globalparas['name'], 'stringcheck': True}]
+                               {'para': globalparas['name'], 'filenamecheck': True}]
             },
             'updatefile': {
                 'command': file.updateFile,
@@ -104,7 +104,7 @@ def execute(request):
             'renamefile': {
                 'command': file.renameFile,
                 'parameters': [{'para': globalparas['id'], 'type': File},
-                               {'para': globalparas['name'], 'stringcheck': True}]
+                               {'para': globalparas['name'], 'filenamecheck': True}]
             },
             'movefile': {
                 'command': file.moveFile,
@@ -194,6 +194,11 @@ def execute(request):
             # Teste auf ungültige strings
             if para.get('stringcheck'):
                 failstring, failurereturn = util.checkObjectForInvalidString(
+                    request.POST.get(para['para']['name']), request)
+                if not failstring:
+                    return failurereturn
+            elif para.get('filenamecheck'):
+                failstring, failurereturn = util.checkFileForInvalidString(
                     request.POST.get(para['para']['name']), request)
                 if not failstring:
                     return failurereturn

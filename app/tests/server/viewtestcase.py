@@ -231,6 +231,8 @@ class ViewTestCase(TestCase):
         self._name_only_spaces = '    '
         self._name_blank = ''
         self._name_invalid_chars = 'Test1234<>\\/'
+        self._name_no_ext = 'filename'
+        self._name_only_ext = '.tex'
 
         self.emptyfile_name = 'empty<>'
         self.emptyfile_id = 1

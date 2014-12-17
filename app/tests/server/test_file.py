@@ -76,6 +76,8 @@ class FileTestClass(ViewTestCase):
         - user1 erstellt eine .tex Datei mit einem Namen der nur aus Leerzeichen besteht -> Fehler
         - user1 ersteltt eine .tex Datei mit einem Namen der ein leerer String ist -> Fehler
         - user1 erstellt eine .tex Datei mit einem Namen der ungültige Sonderzeichen beinhaltet -> Fehler
+        - user1 erstellt eine .tex Datei mit einem Namen der keine Dateiendung besitzt -> Fehler
+        - user1 erstellt eine .tex Datei mit einem Namen der nur die Dateiendung besitzt -> Fehler
 
         :return: None
         """
@@ -168,6 +170,32 @@ class FileTestClass(ViewTestCase):
         # Sende Anfrage zum erstellen der Datei als user1 mit einem ungültigen Namen
         response = util.documentPoster(self, command='createtex', idpara=self._user1_project1_folder1.id,
                                        name=self._name_invalid_chars)
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['INVALIDNAME']
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum erstellen der Datei als user1 mit einem ungültigen Namen (ohne Dateiendung)
+        response = util.documentPoster(self, command='createtex', idpara=self._user1_project1_folder1.id,
+                                       name=self._name_no_ext)
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['INVALIDNAME']
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum erstellen der Datei als user1 mit einem ungültigen Namen (nur Dateiendung)
+        response = util.documentPoster(self, command='createtex', idpara=self._user1_project1_folder1.id,
+                                       name=self._newtex_name_only_ext)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['INVALIDNAME']
@@ -346,6 +374,8 @@ class FileTestClass(ViewTestCase):
         - user1 benennt eine .tex Datei um mit einem Namen der nur aus Leerzeichen besteht -> Fehler
         - user1 benennt eine .tex Datei um mit einem Namen der ein leerer String ist -> Fehler
         - user1 benennt eine .tex Datei um mit einem Namen der ungültige Sonderzeichen enthält -> Fehler
+        - user1 benennt eine .tex Datei um mit einem Namen der keine Dateiendung besitzt -> Fehler
+        - user1 benennt eine .tex Datei um mit einem Namen der nur aus der Dateiendung besteht -> Fehler
 
         :return: None
         """
@@ -455,6 +485,32 @@ class FileTestClass(ViewTestCase):
         # Sende Anfrage zum Umbenennen einer .tex Datei mit einem Namen, der ungültige Sonderzeichen enthält
         response = util.documentPoster(self, command='renamefile', idpara=self._user1_tex3.id,
                                        name=self._name_invalid_chars)
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['INVALIDNAME']
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum Umbenennen einer .tex Datei mit einem Namen, der keine Dateiendung enthält
+        response = util.documentPoster(self, command='renamefile', idpara=self._user1_tex3.id,
+                                       name=self._name_no_ext)
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['INVALIDNAME']
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum Umbenennen einer .tex Datei mit einem Namen, der nur die Dateiendung enthält
+        response = util.documentPoster(self, command='renamefile', idpara=self._user1_tex3.id,
+                                       name=self._newtex_name_only_ext)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['INVALIDNAME']
@@ -591,9 +647,11 @@ class FileTestClass(ViewTestCase):
         file1_name = 'test_bin.bin'
         file2_name = 'test_tex_simple.tex'
         file3_name = 'test_jpg.jpg'
+        file4_name = 'test_executable'
         file1 = open(os.path.join(settings.TESTFILES_ROOT, file1_name), 'rb')
         file2 = open(os.path.join(settings.TESTFILES_ROOT, file2_name), 'rb')
         file3 = open(os.path.join(settings.TESTFILES_ROOT, file3_name), 'rb')
+        file4 = open(os.path.join(settings.TESTFILES_ROOT, file4_name), 'rb')
 
         # Anfrage an den Server
         serverrequest = {
@@ -614,12 +672,16 @@ class FileTestClass(ViewTestCase):
         file3obj = File.objects.filter(name=file3_name, folder=self._user1_project1_folder2)
         self.assertTrue(file3obj.exists())
 
+        #file4obj = File.objects.filter(name=file4_name, folder=self._user1_project1_folder2)
+        #self.assertFalse(file4obj.exists())
+
 
         # erwartete Antwort des Servers
         serveranswer = {
             'failure':
                 [
-                    {'name': file1_name, 'reason': ERROR_MESSAGES['ILLEGALFILETYPE']}
+                    {'name': file1_name, 'reason': ERROR_MESSAGES['ILLEGALFILETYPE']},
+                    #{'name': file4_name, 'reason': ERROR_MESSAGES['ILLEGALFILETYPE']}
                 ],
             'success':
                 [
@@ -638,7 +700,7 @@ class FileTestClass(ViewTestCase):
         serverrequest = {
             'command': 'uploadfiles',
             'id': self._user2_project1_folder1.id,
-            'files': [file1, file2, file3]
+            'files': [file2, file3]
         }
 
         # Sende Anfrage an den Server die Dateien hochzuladen
@@ -675,6 +737,7 @@ class FileTestClass(ViewTestCase):
         file1.close()
         file2.close()
         file3.close()
+        file4.close()
 
     def test_downloadFile(self):
         """Test der downloadFile() Methode des file view

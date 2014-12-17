@@ -178,7 +178,8 @@ def checkFileForInvalidString(name, request):
 
     # file_extension ist ein leerer String wenn entweder keine Dateiendung vorhanden ist
     # oder der Dateiname nur die Dateiendung beinhaltet, z.B. name = '.tex'
-    if file_extension == '':
+    # wenn ein Dateiname ohne Dateiendung gesendet wurde, gibt Fehlermeldung zurück
+    if file_extension == '' and not (file_name.isspace() or file_name == ''):
         return False, jsonErrorResponse(ERROR_MESSAGES['INVALIDNAME'], request)
 
     return checkObjectForInvalidString(file_name, request)
@@ -279,10 +280,10 @@ def uploadFile(f, folder, request, fromZip=False):
     mime = getMimetypeFromFile(name)
 
     # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
-    illegalstring, failurereturn = checkObjectForInvalidString(name, request)
+    # und ob sie eine Dateiendung besitzen
+    illegalstring, failurereturn = checkFileForInvalidString(name, request)
     if not illegalstring:
-        return False, ERROR_MESSAGES['INVALIDNAME']
-
+        return False, failurereturn
 
     # Überprüfe auf doppelte Dateien unter Nichtbeachtung Groß- und Kleinschreibung
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert
