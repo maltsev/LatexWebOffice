@@ -1,6 +1,6 @@
 #menu {
 	font-size: 14px;
-	position: static;
+	position: absolute;top:220px;
 	padding: 3px 0 4px 0;
 }
 
