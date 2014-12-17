@@ -5,15 +5,16 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Fri 28 Nov 2014 10:41:36 PM CET
+* Last Modified : 17 Dec 2014 10:01:00 PM CET
 
 * Author :  maltsev
 
-* Sprintnumber : 2
+* Sprintnumber : 3
 
 * Backlog entry :
 
 """
+import os
 from django.test import TestCase
 from django.contrib.auth.models import User
 from app.models.folder import Folder
@@ -30,3 +31,24 @@ class ModelTestCase(TestCase):
 
         self.rootFolder_dir1 = Folder.objects.create(name='rootFolder_dir1', parent=self.rootFolder, root=self.rootFolder)
         self.rootFolder_dir1_file1 = File.objects.create(name='rootFolder_dir1_file1', folder=self.rootFolder_dir1)
+
+
+
+
+
+def getFolderContent(folder):
+    return sorted([getFileOrFolderData(f) for f in folder.getFilesAndFoldersRecursively()])
+
+
+def getFileOrFolderData(file):
+    data = str(file).split(os.path.sep)[1:]
+    if hasattr(file, 'getContent'):
+        contentObj = file.getContent()
+        if hasattr(contentObj, 'getvalue'):
+            content = contentObj.getvalue()
+        else:
+            content = contentObj.read()
+
+        data.append(content)
+
+    return data
