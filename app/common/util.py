@@ -261,11 +261,13 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content
 # liefert den mimetype eines python files
 def getMimetypeFromFile(python_file):
     # nutze das python-magic paket um den mimetype zu bestimmen
-    mime_magic = magic.Magic(mime=True)
+    #mime_magic = magic.Magic(mime=True)
     # lese die ersten 1024 byte ein
-    mime = mime_magic.from_buffer(python_file.read(1024)).decode('utf-8')
+    #mime = mime_magic.from_buffer(python_file.read(1024)).decode('utf-8')
     # springe wieder zurück zum Anfang der Datei
-    python_file.seek(0)
+    #python_file.seek(0)
+
+    mime, encoding = mimetypes.guess_type(python_file)
 
     return mime
 
@@ -273,7 +275,8 @@ def getMimetypeFromFile(python_file):
 def uploadFile(f, folder, request, fromZip=False):
     head, name = os.path.split(f.name)
 
-    mime = getMimetypeFromFile(f)
+    #mime = getMimetypeFromFile(f)
+    mime = getMimetypeFromFile(name)
 
     # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
     illegalstring, failurereturn = checkObjectForInvalidString(name, request)

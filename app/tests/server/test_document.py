@@ -23,54 +23,104 @@ from app.tests.server.viewtestcase import ViewTestCase
 
 
 class DocumentsTestClass(ViewTestCase):
-    # Initialiserung der benötigten Objecte
-    # -> wird vor jedem Test ausgeführt
     def setUp(self):
+        """Setup Methode für die einzelnen Tests
+
+         Diese Funktion wird vor jeder Testfunktion ausgeführt.
+         Damit werden die notwendigen Variablen und Modelle für jeden Test neu initialisiert.
+         Die Methoden hierzu befinden sich im ViewTestCase (viewtestcase.py).
+
+        :return: None
+        """
+
         self.setUpSingleUser()
 
-
-    # Freigabe von nicht mehr benötigten Resourcen
-    # -> wird nach jedem Test ausgeführt
     def tearDown(self):
+        """Freigabe von nicht mehr notwendigen Ressourcen.
+
+        Diese Funktion wird nach jeder Testfunktion ausgeführt.
+
+        :return: None
+        """
+
         pass
 
 
-    # Teste die Verteilfunktion, die die verschiedenen Document-commands den richtigen Methode zuweist
+
     def test_Execute(self):
+        """Test der execute() Methode des document view
+
+        Teste die Verteilfunktion, die die verschiedenen Document-commands den richtigen Methode zuweist.
+
+        Testfälle:
+        - user1 ruft createdir mit fehlendem Parameter id auf -> Fehler
+        - user1 ruft unbekannten Befehl auf -> Fehler
+        - user1 ruft createdir mit eine String als id auf -> Fehler
+        - user1 ruft updatefile auf ohne den content mitzusenden -> Fehler
+
+        :return: None
+        """
+
         missingpara_id = {'name': 'id', 'type': int}
         missingpara_content = {'name': 'content', 'type': str}
         missingpara_name = {'name': 'name', 'type': str}
 
         # Teste Aufruf mit fehlendem Parameter
-        # createdir command benötigt Parameter 'id':parentdirid und 'name':
-        # directoryname
+        # createdir command benötigt Parameter 'id':parentdirid und 'name': directoryname
         response = util.documentPoster(self, command='createdir', idpara=None, name='newfolder')
 
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # sollte die Fehlermeldung ERROR_MESSAGES['MISSINGPARAMETER'] liefern
-        util.validateJsonFailureResponse(
-            self, response.content,
-            ERROR_MESSAGES['MISSINGPARAMETER'].format(missingpara_id)
-        )
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['MISSINGPARAMETER'].format(missingpara_id)
 
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
         # Teste unbekannten Befehl ('command')
         response = util.documentPoster(self, command='DOESNOTEXIST')
 
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern, da der Parameter 'DOESNOTEXIST' nicht existiert
-        # sollte die Fehlermeldung ERROR_MESSAGES['COMMANDNOTFOUND'] liefern
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['COMMANDNOTFOUND'])
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['COMMANDNOTFOUND']
 
-        # Teste Fehlerhafte Parameter:
-        # id!=int
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum erstellen eines Ordners mit einem String als ID
         response = util.documentPoster(self, command='createdir', idpara='noIntID', name='newfolder')
 
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern, da ein String als ID übergeben wurde
-        # sollte die Fehlermeldung ERROR_MESSAGES['MISSINGPARAMETER'] liefern
-        util.validateJsonFailureResponse(self, response.content,
-                                         ERROR_MESSAGES['MISSINGPARAMETER'].format(missingpara_id))
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['MISSINGPARAMETER'].format(missingpara_id)
 
-        # files!=files
-        # TODO
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum ändern des Inhalt einer .tex Datei ohne den Inhalt mitzusenden
+        response = util.documentPoster(self, command='updatefile', idpara=1)
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['MISSINGPARAMETER'].format(missingpara_content)
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        #util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum Umbenennen einer Datei ohne den neuen Namen mitzusenden
+        response = util.documentPoster(self, command='renamefile', idpara=1)
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['MISSINGPARAMETER'].format(missingpara_name)
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        #util.validateJsonFailureResponse(self, response.content, serveranswer)
