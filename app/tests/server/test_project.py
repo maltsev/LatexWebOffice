@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Mo 15 Dez 2014 13:13:11 CET
+* Last Modified : Tue 16 Dec 2014 05:30:00 PM CET
 
 * Author :  christian
 
@@ -339,19 +339,19 @@ class ProjectTestClass(ViewTestCase):
              'ownerid': self._user1_project1.author.id,
              'ownername': self._user1_project1.author.username,
              'createtime': util.datetimeToString(self._user1_project1.createTime),
-             'rootfolderid': self._user1_project1.rootFolder.id},
+             'rootid': self._user1_project1.rootFolder.id},
             {'id': self._user1_project2.id,
              'name': self._user1_project2.name,
              'ownerid': self._user1_project2.author.id,
              'ownername': self._user1_project2.author.username,
              'createtime': util.datetimeToString(self._user1_project2.createTime),
-             'rootfolderid': self._user1_project2.rootFolder.id},
+             'rootid': self._user1_project2.rootFolder.id},
             {'id': self._user1_project3.id,
              'name': self._user1_project3.name,
              'ownerid': self._user1_project3.author.id,
              'ownername': self._user1_project3.author.username,
              'createtime': util.datetimeToString(self._user1_project3.createTime),
-             'rootfolderid': self._user1_project3.rootFolder.id}
+             'rootid': self._user1_project3.rootFolder.id}
         ]
 
         # überprüfe die Antwort des Servers
@@ -378,13 +378,13 @@ class ProjectTestClass(ViewTestCase):
              'ownerid': self._user2_project1.author.id,
              'ownername': self._user2_project1.author.username,
              'createtime': util.datetimeToString(self._user2_project1.createTime),
-             'rootfolderid': self._user2_project1.rootFolder.id},
+             'rootid': self._user2_project1.rootFolder.id},
             {'id': self._user2_project2.id,
              'name': self._user2_project2.name,
              'ownerid': self._user2_project2.author.id,
              'ownername': self._user2_project2.author.username,
              'createtime': util.datetimeToString(self._user2_project2.createTime),
-             'rootfolderid': self._user2_project2.rootFolder.id}
+             'rootid': self._user2_project2.rootFolder.id}
         ]
 
         # überprüfe die Antwort des Servers
@@ -483,7 +483,7 @@ class ProjectTestClass(ViewTestCase):
         zip.close()
 
         # Teste, dass der Server eine positive Antwort geschickt hat
-        serveranswer={'id':6,'name':self._newname1}
+        serveranswer={'id':9,'name':self._newname1}
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
         # Teste, dass das Projekt existiert

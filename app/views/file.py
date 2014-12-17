@@ -28,7 +28,6 @@ from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.common import util
 from app.common.compile import compile as comp
-
 from app.common.constants import ERROR_MESSAGES
 
 # erstellt eine neue .tex Datei in der Datenbank ohne Textinhalt
@@ -249,7 +248,7 @@ def fileInfo(request, user, fileid):
                   'foldername': folderobj.name,
                   'projectid': folderobj.getProject().id,
                   'projectname': folderobj.getProject().name,
-                  'createdate': util.datetimeToString(fileobj.createTime),
+                  'createtime': util.datetimeToString(fileobj.createTime),
                   'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
                   'size': fileobj.size,
                   'mimetype': fileobj.mimeType,

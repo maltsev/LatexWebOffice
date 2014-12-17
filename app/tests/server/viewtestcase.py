@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Fri 28 Nov 2014 10:41:36 PM CET
+* Last Modified : Tue 16 Dec 2014 05:28:39 PM CET
 
 * Author :  maltsev
 
@@ -22,6 +22,7 @@ from django.contrib.auth.models import User
 from core import settings
 from app.models.folder import Folder
 from app.models.project import Project
+from app.models.projecttemplate import ProjectTemplate
 from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
 
@@ -52,11 +53,19 @@ class ViewTestCase(TestCase):
         self._user1_project3 = Project.objects.create(name='user1_project3', author=self._user1)
         self._user1_project3.save()
 
+        # erstelle eine Vorlage als user1
+        self._user1_template1=ProjectTemplate.objects.create(name='user1_template1',author=self._user1)
+        self._user1_template1.save()
+        self._user1_template2=ProjectTemplate.objects.create(name='user1_template2',author=self._user1)
+        self._user1_template2.save()
+
         # erstelle ein Projekt als user2
         self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2)
         self._user2_project1.save()
         self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2)
         self._user2_project2.save()
+        self._user2_template1=ProjectTemplate.objects.create(name='user2_template1',author=self._user2)
+        self._user2_template1.save()
 
 
     def setUpSingleUser(self):
@@ -170,6 +179,7 @@ class ViewTestCase(TestCase):
         self._newtex_name1 = 'NeuerTexName1.tex'
         self._newtex_name2 = 'NeuerTexName2.tex'
         self._newtex_name3 = 'NeuerTexName3.tex'
+        self._newtex_name_only_ext = '.tex'
         self._newbinary_name1 = 'NeuerBinaryName1.bin'
         self._newbinary_name2 = 'NeuerBinaryName2.bin'
         self._newbinary_name3 = 'NeuerBinaryName3.bin'
