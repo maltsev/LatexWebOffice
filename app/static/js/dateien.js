@@ -21,7 +21,19 @@ filelistHandler.setCaptions([
 
 	showFilelist(id);
 }
+
+/*
+* Fängt Doppelklicks auf eine Datei/einen Ordner ab.
+*/
+	filelistHandler.setDClickHandler(openEditor);
+
+
+
+
 });
+
+
+
 
 function showFilelist(projectID){
 //alert(projectID);
@@ -461,7 +473,16 @@ function backToProject() {
  * @param fileid - ID der Datei
  * @param filename - Name der Datei
  */
-function openEditor(fileid, filename) {
+function openEditor() {
+var fileid = "";
+var filename = "";
+try{
+fileid = getFileId();
+filename = getFileName();
+}
+catch(err){
+
+}
 	if (filename != ""){
 	document.location.assign('/editor/#' + fileid);
 	}
