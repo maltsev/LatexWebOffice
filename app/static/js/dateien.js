@@ -96,10 +96,10 @@ if (level == 0){
 // Gibt die Liste der Dateien aus.
 for (var i = 0; i < number_of_files; i++){
 	if (response.files[i].name == root_empty && number_of_files == 1){ // Wenn es keine Datei im Ordner gibt, wird ein leerer Ordner angezeigt
-	filelistHandler.addData({'name':'','foldername':response.name,'folderid':response.id,'fileid':response.files[i].id},false);
+	filelistHandler.addData({'name':'','foldername':'Root','folderid':response.id,'fileid':response.files[i].id},false);
 	}
 	else if (response.files[i].name != root_empty){ // ansonsten der Dateiname
-	filelistHandler.addData({'name':response.files[i].name,'foldername':response.name,'folderid':response.id,'fileid':response.files[i].id},false);
+	filelistHandler.addData({'name':response.files[i].name,'foldername':'Root','folderid':response.id,'fileid':response.files[i].id},false);
 	}
 }
 }

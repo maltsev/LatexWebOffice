@@ -74,5 +74,5 @@ function showProjects() {
  * @param project Projekt
  */
 function openProject(project) {
-	document.location.assign('/dateien/#' + project.id);
+	document.location.assign('/dateien/#' + project.rootid);
 }
