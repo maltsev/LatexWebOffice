@@ -530,7 +530,7 @@ class ProjectTestClass(ViewTestCase):
         # --------------------------------------------------------------------------------------------------------------
         # erstelle eine Binärdatei im Unterordner 1
         binfile = open(os.path.join(tmpfolder_project, 'Ordner 1', 'Unterordner 1', 'binary1.bin'), 'wb')
-        binfile.write(bytearray('binary_test_file_importzip', 'utf-8'))
+        binfile.write(os.urandom(128))
         binfile.close()
 
         # erstelle ine zip Datei, die vom Server nicht angenommen werden sollte,

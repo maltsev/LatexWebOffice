@@ -16,8 +16,11 @@
 * Backlog entry : -
 
 """
-
-import mimetypes
+from app.models.file.texfile import TexFile
+from app.models.file.plaintextfile import PlainTextFile
+from app.models.file.binaryfile import BinaryFile
+from app.models.file.pdf import PDF
+from app.models.file.image import Image
 
 # Fehlermeldungen, welche von den verschiedenen Methoden zur Rückgabe genutzt werden
 ERROR_MESSAGES = {
@@ -46,27 +49,35 @@ ERROR_MESSAGES = {
     'BLANKNAME': 'Leere Namen sind nicht erlaubt',
     'DATABASEERROR': 'Datenbankfehler',
     'COMPILATIONERROR': 'Fehler beim Kompilieren',
-    'COMPILATIONERROR_CITATIONUNDEFINED' : 'Zitierung undefiniert',
-    'COMPILATIONERROR_FILENOTFOUND' : 'Datei nicht gefunden',
-    'COMPILATIONERROR_SYNTAXERROR' : 'Syntax-Fehler',
+    'COMPILATIONERROR_CITATIONUNDEFINED': 'Zitierung undefiniert',
+    'COMPILATIONERROR_FILENOTFOUND': 'Datei nicht gefunden',
+    'COMPILATIONERROR_SYNTAXERROR': 'Syntax-Fehler',
     'PROJECTNOTEXIST': 'Projekt nicht gefunden',
     'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
     'ILLEGALFILETYPE': 'Dateityp ist nicht erlaubt',
-    'TEMPLATEALREADYEXISTS':'Ein Template mit dem Namen \"{0}\" existiert bereits.',
+    'TEMPLATEALREADYEXISTS': 'Eine Vorlage mit dem Namen \"{0}\" existiert bereits.',
     'TEMPLATENOTEXIST': 'Vorlage nicht gefunden',
 }
 
 ALLOWEDMIMETYPES = {
-    'text': {
-        mimetypes.types_map['.tex']
+    'plaintext': {
+        'text/x-tex': TexFile,
+        'text/plain': PlainTextFile,
+
+        'text/x-c': PlainTextFile,                  # C Source File
+        'text/html': PlainTextFile,                 # HTML
+        'text/x-java-source,java': PlainTextFile    # Java Source File
     },
     'binary': {
-        mimetypes.types_map['.png'],
-        mimetypes.types_map['.jpeg'],
-        mimetypes.types_map['.jpg'],
-    }
+        'image/png': Image,
+        'image/jpg': Image,
+        'image/jpeg': Image,
+        'image/gif': Image,
+        'application/tga': Image,
 
+        'application/pdf': PDF
+    }
 }
 
 
