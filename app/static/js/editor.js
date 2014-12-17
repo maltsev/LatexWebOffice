@@ -58,6 +58,11 @@ $(document).ready(function() {
 	}
 });
 
+	// Dialogfenster Editor zurück
+	function confirmExit(){
+		$( "#dialog_editor_verlassen" ).dialog();
+	}
+	
 /// Klammern, welche automatisch geschlossen werden sollen
 var braces = {
 	'{': '}',

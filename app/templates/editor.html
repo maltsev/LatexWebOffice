@@ -13,6 +13,8 @@
 <!-- Einbindung der Funktionalität vom ACE Editor -->
 <script src="/static/js/ace/ace.js"></script>
 <script src="/static/js/ace/ext-language_tools.js"></script>
+<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
 
 <script src="/static/js/editor.js"></script>
 {% endblock %}
@@ -20,6 +22,13 @@
 <!-- Inhalt -->
 {% block content %}
 <div id="inhalt">
+
+	<div id="dialog_editor_verlassen" style="display: none;">
+							<p>Wollen Sie den Editor wirklich verlassen?</p>
+							<p onClick="history.back()"> Ja</p>
+							<p onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')"> Nein</p>
+						</div>
+						
 	<table id="editor_table1" style="width: 100%">
 		<!-- Menüleiste 1 mit Drop-Down-Menü: Bearbeiten, Vorlagen, Assistent, Bibliographie, Ansicht, 
 		Optionen, Hilfe -->
@@ -42,9 +51,17 @@
 
 		<!-- Menüleiste 2 mit Symbolen für Speichern, Zurück und Vor, Ausschneiden, Kopieren, 
 		Einfügen, PDF Export, Grafik einfügen, Parallele Anzeige von TEX und PDF -->
+		
+		
+		
+		
 		<tr>
 			<td>
 				<div id="symbolleiste">
+					<button id="backtoprojekt" type="button" title="Zurück zur Dateiübersicht des Projekts" onClick="confirmExit()">						
+						<i class="fa fa-angle-left"></i> <!-- Zurück zur Dateiübersicht des Projekts -->
+											
+					</button>
 					<button id="save" type="button" title="Speichern">
 						<i class="fa fa-floppy-o"></i> <!-- Speichern -->
 					</button>
