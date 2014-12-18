@@ -1,7 +1,7 @@
 /*
 @author: Thore Thießen, Timo Dümke, Franziska Everinghoff
 @creation: 21.11.2014 - sprint-nr: 2
-@last-change: 17.12.2014 - sprint-nr: 3
+@last-change: 18.12.2014 - sprint-nr: 3
 */
 
 /// ID der im Editor geöffneten Datei
@@ -58,11 +58,11 @@ $(document).ready(function() {
 	}
 });
 
-	// Dialogfenster Editor zurück
-	function confirmExit(){
-		$( "#dialog_editor_verlassen" ).dialog();
-	}
-	
+// Dialogfenster Editor zurück
+function confirmExit() {
+	$('#dialog_editor_verlassen').dialog();
+}
+
 /// Klammern, welche automatisch geschlossen werden sollen
 var braces = {
 	'{': '}',
@@ -90,7 +90,7 @@ function autoBraceCompletion(e) {
  * Leitet den Benutzer zurück zur Projektverwaltung.
  */
 function backToProject() {
-	// TODO: auf das richtige Projekt verweisen?
+	// TODO: auf das richtige Projekt verweisen
 	window.location.replace('/projekt/');
 }
 
@@ -99,37 +99,16 @@ function backToProject() {
  * @param id ID der Datei
  */
 function loadFile(id) {
-	// TODO: Editor-Funktionen sperren
-
-	// Dokument abfragen
-	jQuery.ajax('/documents/', {
-		'type': 'POST',
-		'data': {
+	documentsDataRequest({
 			'command': 'downloadfile',
 			'id': id
-		},
-		'headers': {
-			'X-CSRFToken': $.cookie('csrftoken')
-		},
-		'dataType': 'text',
-		'error': function(response, textStatus, errorThrown) {
-			// Fehler bei der Anfrage
-			console.log({
-				'error': 'Fehler beim Laden der Datei',
-				'details': errorThrown,
-				'id': id,
-				'statusCode': response.status,
-				'statusText': response.statusText
-			});
-			backToProject();
-		},
-		'success': function(data, textStatus, response) {
-			// Datei erfolgreich geladen
-			editor.setValue(data, 0);
-			editor.getSelection().selectTo(0, 0);
-			changesSaved = true;
-			// TODO: Editor-Funktionen entsperren
-		}
+		}, function(result, data) {
+			if (result) {
+				editor.setValue(data, 0);
+				editor.getSelection().selectTo(0, 0);
+				changesSaved = true;
+			} else
+				backToProject();
 	});
 }
 
@@ -138,46 +117,13 @@ function loadFile(id) {
  * @param id ID der Datei
  */
 function saveFile(id) {
-	// TODO: Editor-Funktionen sperren
-
-	// Dokument schicken
-	jQuery.ajax('/documents/', {
-		'type': 'POST',
-		'data': {
+	documentsJsonRequest({
 			'command': 'updatefile',
 			'id': id,
 			'content': editor.getValue()
-		},
-		'headers': {
-			'X-CSRFToken': $.cookie('csrftoken')
-		},
-		'dataType': 'json',
-		'error': function(response, textStatus, errorThrown) {
-			// Fehler beim Speichern
-			console.log({
-				'error': 'Fehler beim Speichern der Datei',
-				'details': errorThrown,
-				'id': id,
-				'statusCode': response.status,
-				'statusText': response.statusText
-			});
-			// TODO: Editor-Funktionen entsperren
-		},
-		'success': function(data, textStatus, response) {
-			if (data.status != 'success')
-				// Server-seitiger Fehler
-				console.log({
-					'error': 'Fehler beim Speichern der Datei',
-					'details': data.response,
-					'id': id,
-					'statusCode': response.status,
-					'statusText': response.statusText
-				});
-			else
+		}, function(result, data) {
+			if (result)
 				changesSaved = true;
-
-			// TODO: Editor-Funktionen entsperren
-		}
 	});
 }
 
@@ -187,45 +133,15 @@ function saveFile(id) {
  */
 function compile(id) {
 	// TODO: parallele Anzeige TEX/PDF implementieren
-	// TODO: Editor-Funktionen sperren?
 
-	// Dokument kompilieren
-	jQuery.ajax('/documents/', {
-		'type': 'POST',
-		'data': {
+	documentsJsonRequest({
 			'command': 'compile',
 			'id': id
-		},
-		'headers': {
-			'X-CSRFToken': $.cookie('csrftoken')
-		},
-		'dataType': 'json',
-		'error': function(response, textStatus, errorThrown) {
-			// Fehler beim Aufruf
-			console.log({
-				'error': 'Fehler beim Kompilieren',
-				'details': errorThrown,
-				'id': id,
-				'statusCode': response.status,
-				'statusText': response.statusText
-			});
-		},
-		'success': function(data, textStatus, response) {
-			if (data.status != 'success')
-				// Server-seitiger Fehler
-				console.log({
-					'error': 'Fehler beim Kompilieren',
-					'details': data.response,
-					'id': id,
-					'statusCode': response.status,
-					'statusText': response.statusText
-				});
-			else
-				// Dokument anzeigen
-				internalPostRedirect('/documents/', {
+		}, function(result, data) {
+			if (result)
+				documentsRedirect({
 					'command': 'downloadfile', 
 					'id': data.response.id
 				});
-		}
 	});
 }
