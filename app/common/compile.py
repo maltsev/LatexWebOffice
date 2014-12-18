@@ -67,7 +67,8 @@ def compile(texid):
     #                                             KOMPILIERUNG
     # ----------------------------------------------------------------------------------------------------
     # wechselt in das Verzeichnis der tex-Datei
-    os.chdir(root_pth)
+    os.chdir(tex_dir_pth)
+
     # kompiliert die tex-Datei gemäß der gesetzten Argumente:
     # '-f' führt die Kompilieren auch unter auftretenden Fehlern so möglich durch
     # '-interaction=nonstopmode' unterbindet die Unterbrechung des Kompiliervorgangs für eine manuelle Eingabeaufforderung (falls eines der ausführenden Programm einen Fehler festgestellt hat)
