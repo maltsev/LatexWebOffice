@@ -128,38 +128,12 @@ function exportZip(id) {
  * Importieren eines Projektes aus einer ZIP-Datei.
  */
 function importZip() {
-	jQuery.ajax('/documents/', {
-		'type': 'POST',
-		'data': {
+	documentsJsonRequest({
 			'command': 'importzip',
-		},
-		'headers': {
-			'X-CSRFToken': $.cookie('csrftoken')
-		},
-		'dataType': 'json',
-		'error': function(response, textStatus, errorThrown) {
-			// Fehler beim Importieren
-			console.log({
-				'error': 'Fehler beim Importieren',
-				'details': errorThrown,
-				'files': [zip_file],
-				'statusCode': response.status,
-				'statusText': response.statusText
-			});
-		},
-		'success': function(data, textStatus, response) {
-			if (data.status != 'success')
-				// Server-seitiger Fehler
-				console.log({
-					'error': 'Fehler beim Importtieren',
-					'details': data.response,
-					'files': [zip_file],
-					'statusCode': response.status,
-					'statusText': response.statusText
-				});
-			else
+			'files': [zip_file]
+		}, function(result, data) {
+			if (result)
 				showProjects();
-		}
 	});
 }
 
