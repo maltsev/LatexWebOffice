@@ -1,80 +1,108 @@
-<html>
-<head>
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-	<title>documentPoster</title>
-</head>
+{% extends "_wrapper.html" %}
 
-<form id="poster">{% csrf_token %}
-	command:<input id="command", name="command" type="text" value="" /><br>
-	name:<input id="name", name="name" type="text" value="" /><br>
-	id:<input id="id", name="id" type="text" value="" />
+<!-- Header -->
+{% block header %}
+<style type="text/css">
+pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+.string { color: green; }
+.number { color: darkorange; }
+.boolean { color: blue; }
+.null { color: magenta; }
+.key { color: red; }
+</style>
+{% endblock %}
 
-    <input type="submit" value="Send" />
-</form>
+<!-- Inhalt -->
+{% block content %}
+<!-- content area with login -->
+<div id='inhalt'>
+    <form id="poster">{% csrf_token %} command:
+        <input id="command" , name="command" type="text" value="" />
+        <br> name:
+        <input id="name" , name="name" type="text" value="" />
+        <br> id:
+        <input id="id" , name="id" type="text" value="" />
+        <br> folderid:
+        <input id="folderid" , name="folderid" type="text" value="" />
+        <br> content:
+        <input id="content" , name="content" type="text" value="" />
+        <br> files:
+        <input type="file" name="files" id="files" multiple>
+        <input type="submit" value="Send" />
+    </form>
 
+    <pre id='response'>
+    </pre>
 
-<textarea id='response' cols='50' rows='10'>
-</textarea>
+    <script>
+	function syntaxHighlight(json) {// http://stackoverflow.com/questions/4810841/how-can-i-pretty-print-json-using-javascript
+	    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+	    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+		var cls = 'number';
+		if (/^"/.test(match)) {
+		    if (/:$/.test(match)) {
+			cls = 'key';
+		    } else {
+			cls = 'string';
+		    }
+		} else if (/true|false/.test(match)) {
+		    cls = 'boolean';
+		} else if (/null/.test(match)) {
+		    cls = 'null';
+		}
+		return '<span class="' + cls + '">' + match + '</span>';
+	    });
+	}
+        $('#poster')
+            .submit(function(e) {
+                e.preventDefault();
 
-<script>
-//http://stackoverflow.com/questions/5004233/jquery-ajax-post-example-with-php
-var request;
-$("#poster").submit(function(event){
-$('textarea#response').val('')
+                var data = new FormData(this); // <-- 'this' is your form element
 
- // Abort any pending request
-    if (request) {
-        request.abort();
-    }
-    // setup some local variables
-    var $form = $(this);
+                $.ajax({
+                    url: '/documents/',
+                    data: data,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    type: 'POST',
+                    success: function(data, status, xhr) { //http://stackoverflow.com/questions/16086162/handle-file-download-from-ajax-post
 
-    // Let's select and cache all the fields
-    var $inputs = $form.find("input, select, button, textarea");
+                        // check for a filename
+                        var filename = "";
+                        var disposition = xhr.getResponseHeader('Content-Disposition');
+                        if (disposition && disposition.indexOf('attachment') !== -1) {
+                            var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                            var matches = filenameRegex.exec(disposition);
+                            if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+                        }
+                        var type = xhr.getResponseHeader('Content-Type');
+                        var blob = new Blob([response], {
+                            type: type
+                        });
+                        var URL = window.URL || window.webkitURL;
+                        var downloadUrl = URL.createObjectURL(blob);
+                        if (filename) {
+                            // use HTML5 a[download] attribute to specify filename
+                            var a = document.createElement("a");
+                            // safari doesn't support this yet
+                            if (typeof a.download === 'undefined') {
+                                window.location = downloadUrl;
+                            } else {
+                                a.href = downloadUrl;
+                                a.download = filename;
+                                document.body.appendChild(a);
+                                a.click();
+                            }
+                        } else {}
 
-    // Serialize the data in the form
-    var serializedData = $form.serialize();
+                        console.log(data)
+                        $('#response')
+                            .html(syntaxHighlight(JSON.stringify(data.response, null, '\t')))
+                    }
+                });
+            });
+    </script>
+</div>
+{% endblock %}
 
-    // Let's disable the inputs for the duration of the Ajax request.
-    // Note: we disable elements AFTER the form data has been serialized.
-    // Disabled form elements will not be serialized.
-    $inputs.prop("disabled", true);
-
-    // Fire off the request to /form.php
-    request = $.ajax({
-        url: "/documents/",
-        type: "post",
-        data: serializedData,
-
-    });
-
-    // Callback handler that will be called on success
-    request.done(function (response, textStatus, jqXHR){
-        // Log a message to the console
-        console.log("Hooray, it worked!");
-	$('textarea#response').val(JSON.stringify(response.response))
-    });
-
-    // Callback handler that will be called on failure
-    request.fail(function (jqXHR, textStatus, errorThrown){
-        // Log the error to the console
-        console.error(
-            "The following error occurred: "+
-            textStatus, errorThrown
-        );
-    });
-
-    // Callback handler that will be called regardless
-    // if the request failed or succeeded
-    request.always(function () {
-        // Reenable the inputs
-        $inputs.prop("disabled", false);
-    });
-
-    // Prevent default posting of form
-    event.preventDefault();
-});
-</script>
-
-
-</html>

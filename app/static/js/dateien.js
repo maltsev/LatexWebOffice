@@ -4,14 +4,17 @@
 @last-change: 18.12.2014 - sprint-nr: 3
 */
 
-var id;
+// Dummy-Datei für Behandlung von leeren Ordnern
 var root_empty = "empty<>";
-var filelistHandler;
+
+// Handler für die Dateiliste
+var filelistHandler; 
 
 $( document ).ready(function() {
 	// ID aus URL ermitteln
 	id = parseInt(location.hash.substr(1));
 	if (isNaN(id)){
+		// bei ungültiger ID wird der Nutzer zur Projektübersicht weitergeleitet
 		backToProject();
 	} else {
 		filelistHandler = new ListSelector("dateien");
@@ -56,7 +59,10 @@ $( document ).ready(function() {
 
 
 
-
+/*
+* Die Funktion ruf die Dateiliste aus der Datenbank ab (inklusive Ordner und ihrer Hierarchie)
+* @param projectID - Die Projekt-ID, die per URL übergeben wird.
+*/
 function showFilelist(projectID){
 //alert(projectID);
 jQuery.ajax('/documents/', {
@@ -88,6 +94,7 @@ jQuery.ajax('/documents/', {
 					'statusCode': response.status,
 					'statusText': response.statusText
 				});
+				// Zeigt ein Popup, falls das Verzeichnis nicht existiert
 				if (data.response == "Dieses Verzeichnis existiert nicht"){
 					showPopup("no_folder");
 				}
@@ -96,26 +103,24 @@ jQuery.ajax('/documents/', {
 			// vorhandene Dateiliste entfernen
 			filelistHandler.clearData();
 			// Ruft die Dateiliste über eine rekursive Funktion auf
-			recursiveFileAnalysis(data.response,0,'0',null,false);
-			console.log(data.response);
-			
+			recursiveFileAnalysis(data.response,0,'0',null,false);			
 		}
 		}
 	});
 }
-/**
+
+/*
 * Die Funktion ruft die Ordnerstruktur (Baumstruktur) der Dateien rekursiv auf und 
 * stellt diese in einer Tabelle da.
 * Durch die Datei root_empty werden alle Indizes um 1 verringert. (also path.push() und recursiveFileAnalysis() Aufrufe)
-* response - Ordnerarray
-* level - aktuelle Rekursionsebene
-* path - bestehender Pfad zur Vertiefung der Rekursion
-* parent - Ebene über dem Array von Response
+* @param response - Ordnerarray
+* @param level - aktuelle Rekursionsebene
+* @param path - bestehender Pfad zur Vertiefung der Rekursion
+* @param parent - Ebene über dem Array von Response
 */
 function recursiveFileAnalysis(response,level,path,parent){
 // ermittelt vom aktuellen Response die Anzahl der Dateien.
 var number_of_files = response.files.length;
-
 // Erster Aufruf der Rekursion (Rekursionsebene 0)
 if (level == 0){
 // Gibt die Liste der Dateien aus.
@@ -223,38 +228,42 @@ else { // Rekursiver Aufruf, wenn die Rekursionsebene 0 ist, also der erste Aufr
 }
 }
 
-function getPath(number){
-var path = "[";
-for (var c=0;c<number;c++){
-if (c> 0){
-path += ",";
-}
-path += "0";
-}
-path += "]";
-return path;
-}
-
+/*
+* Ermittelt anhand der aktuell getroffenen Auswahl die ID des ausgewählten Ordners, wenn einer ausgewählt ist und gibt diese zurück.
+*/
 function getFolderId(){
 var array = filelistHandler.getSelected();
 return array["folderid"];
 }
 
+/*
+* Ermittelt anhand der aktuell getroffenen Auswahl den Namen des ausgewählten Ordners, wenn einer ausgewählt ist und gibt diesen zurück.
+*/
 function getFolderName(){
 var array = filelistHandler.getSelected();
 return array["foldername"];
 }
 
+/*
+* Ermittelt anhand der aktuell getroffenen Auswahl die ID der ausgewählten Datei, wenn eine ausgewählt ist und gibt diese zurück.
+*/
 function getFileId(){
 var array = filelistHandler.getSelected();
 return array["fileid"];
 }
 
+/*
+* Ermittelt anhand der aktuell getroffenen Auswahl den Namen der ausgewählten Datei, wenn eine ausgewählt ist und gibt diesen zurück.
+*/
 function getFileName(){
 var array = filelistHandler.getSelected();
 return array["name"];
 }
 
+/*
+* Die Funktion entfernt dem Parameter entsprechend ein Popup.
+* @param category - Kategorie des Popups, das entfernt werden soll
+*/
 function removePopup(category){
   $(function() {
   if (category == "remove"){
@@ -266,6 +275,10 @@ function removePopup(category){
   });
 }
 
+/*
+* Prüft, ob der Nutzer etwas in der Datei-/Ordnerauswahl ausgewählt hat und informiert in ansonsten über ein Popup, dass er
+* eine Auswahl treffen muss.
+*/
 function checkSelection(){
 if (filelistHandler.getSelected() == null){
 showPopup("no_selection");
@@ -276,6 +289,10 @@ return true;
 }
 }
 
+/*
+* Die Funktion zeigt für verschiedene Fehlermeldungen Popups aus der Datei dateien.html an.
+* @param category - Kategorie für das Popup, um je nach übergebenem Parameter das passende Popupfenster anzuzeigen
+*/
 function showPopup(category){
   $(function() {
   
@@ -326,6 +343,11 @@ function showPopup(category){
   });
 }
 
+/*
+* Die Funktion stellt eine Sicherheitsabfrage, ob eine Datei wirklich gelöscht werden soll.
+* @param id - ID der zu löschenden Datei
+* @param type - Typ ("file") des zu löschenden Objekts
+*/
 function checkRemoveFile(id,type){
 if (getFileName() != ""){
 var r = confirm("Möchten Sie die Datei "+getFileName()+" wirklich löschen?");
@@ -340,6 +362,11 @@ else {
 }
 }
 
+/*
+* Die Funktion stellt eine Sicherheitsabfrage, ob ein Ordner wirklich gelöscht werden soll.
+* @param id - ID des zu löschenden Ordners
+* @param type - Typ ("folder") des zu löschenden Objekts
+*/
 function checkRemoveFolder(id,type){
 var r = confirm("Möchten Sie den Ordner "+getFolderName()+" wirklich löschen?");
 if (r == true) {
@@ -348,18 +375,52 @@ if (r == true) {
 }
 }
 
-/**
- * Lädt eine Datei herunter.
- * @param id ID der Datei
- */
+/*
+* Die Funktion stößt den Download einer Datei an.
+*/
 function downloadFile(id) {
-	documentsRedirect({
-		'command': 'downloadfile',
-		'id': id
+
+jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'downloadfile',
+			'id': id
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			//Anfrage Fehlerhaft
+			console.log({
+				'error': 'Fehlerhafte Anfrage: Fehler beim Abrufen der Dateiliste',
+				'details': errorThrown,
+				'id': id,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success'){
+				// Fehler auf dem Server
+				console.log({
+					'error': 'Fehlerhafte Rückmeldung: Fehler beim Abrufen der Dateiliste',
+					'details': data.response,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			}
+			else {
+			// Datei herunterladen
+			
+			
+		}
+		}
 	});
 }
 
-/**
+
+/*
  * Löscht den ausgewählten Ordner/die Datei
  * @param id - ID der Datei/des Ordners aus der Datenbank
  * @param type - "file" oder "folder", ist es eine Datei oder ein Ordner
@@ -454,7 +515,7 @@ jQuery.ajax('/documents/', {
 }
 }
 
-/**
+/*
  * Nennt den ausgewählten Ordner/die Datei um
  * @param id - ID der Datei/des Ordners aus der Datenbank
  * @param type - "file" oder "folder", ist es eine Datei oder ein Ordner
@@ -566,7 +627,7 @@ jQuery.ajax('/documents/', {
 }
 }
 
-/**
+/*
  * Leitet den Benutzer zurück zur Projektverwaltung.
  */
 function backToProject() {
@@ -574,7 +635,7 @@ function backToProject() {
 	window.location.replace('/projekt/');
 }
 
-/**
+/*
  * Öffnet die Datei im Editor.
  * @param fileid - ID der Datei
  * @param filename - Name der Datei
@@ -593,4 +654,3 @@ catch(err){
 	document.location.assign('/editor/#' + fileid);
 	}
 }
-
