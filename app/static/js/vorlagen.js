@@ -14,8 +14,8 @@ $(document).ready(function() {
 	templatesList = new ListSelector('vorlagen');
 	templatesList.setCaptions([
 		{'name': 'Name', 'element': 'name'},
-		{'name': 'Autor', 'element': 'author'},
-		{'name': 'Erstellungszeitpunkt', 'element': 'created'}
+		{'name': 'Autor', 'element': 'ownername'},
+		{'name': 'Erstellungszeitpunkt', 'element': 'createtime'}
 	]);
 	showTemplates();
 	
@@ -23,7 +23,7 @@ $(document).ready(function() {
 	$('#import').click(function() {
 		
 		if(templatesList.getSelected()!=null)
-			dialogImportToProject(templatesList.getSelected().id);
+			dialogTemplateToProject(templatesList.getSelected().id);
 		else
 			dialogNoSelection('Importieren');
 	});
@@ -81,7 +81,7 @@ function showTemplates() {
  * @param id ID der Vorlage, aus welcher ein Projekt erzeugt werden soll
  * @param name Name des zu erzeugenden Projektes
  */
-function template2project(id,name) {
+function templateToProject(id,name) {
 	
 	// Vorlage in Projekt umwandeln
 	jQuery.ajax('/documents/', {
