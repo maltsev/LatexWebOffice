@@ -155,6 +155,12 @@ function ListSelector(containerId) {
 				});
 			}
 
+			// ggf. Tooltip
+			if (tooltipHandler != null)
+				row.tooltip({'items': 'tr', 'content': (function(callback) {
+					tooltipHandler(this, callback);
+				}).bind(container[i].object)});
+
 			// anzuzeigende Elemente hinzufügen
 			for (var j = 0; j < captions.length; ++j) {
 				var cell = $('<td></td>').text(container[i].object[captions[j].element]);
@@ -265,5 +271,17 @@ function ListSelector(containerId) {
 	 */
 	this.setDClickHandler = function(handler) {
 		dClickHandler = handler;
+	};
+
+	// Funktion, die für Tooltips aufgerufen wird (oder null)
+	var tooltipHandler = null;
+
+	/**
+	 * Setzt den Handler für das Anzeigen eines Tooltips für einen Datensatz.
+	 * @param handler Funktion, die beim Anzeigen des Tooltips mit dem Datensatzes und einer 
+	 * Rückgabefunktion als Parameter aufgerufen wird (oder <code>null</code>)
+	 */
+	this.setTooltipHandler = function(handler) {
+		tooltipHandler = handler;
 	};
 }

@@ -7,6 +7,7 @@
 var id;
 var root_empty = "empty<>";
 var filelistHandler;
+
 $( document ).ready(function() {
 	// ID aus URL ermitteln
 	id = parseInt(location.hash.substr(1));
@@ -22,6 +23,21 @@ $( document ).ready(function() {
 	
 		showFilelist(id);
 	}
+
+	// Tooltips
+	filelistHandler.setTooltipHandler(function(file, callback) {
+		documentsJsonRequest({
+				'command': 'fileinfo',
+				'id': file.fileid
+			}, function(result, data) {
+				if (result)
+					callback('Erstellt: ' + data.response.createtime + 
+						'<br />Zuletzt geändert: ' + data.response.lastmodifiedtime + 
+						'<br />Größe: ' + prettySize(data.response.size));
+				else
+					callback('');
+		});
+	});
 
 	// Herunterladen von Dateien
 	$('#download').attr('href', '#' + id);

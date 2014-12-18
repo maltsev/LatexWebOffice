@@ -5,6 +5,18 @@
 */
 
 /**
+ * Gibt eine Dateigröße in Bytes in für Menschen besser lesbaren Format aus.
+ * @param bytes Dateigröße in Bytes
+ * @return String mit der Größenangabe
+ */
+function prettySize(bytes) {
+	var units = ['B', 'KB', 'MB', 'GB', 'TB'];
+	for (i = 0; bytes > 1000 && i < units.length; ++i)
+		bytes = Math.floor(bytes / 1000);
+	return('' + bytes + units[i]);
+}
+
+/**
  * Setzt eine AJAX-Anfrage für eine JSON-Antwort an /documents/ ab.
  * @param param Paramter für die Anfrage (command, id, …)
  * @param handler Handler für die Antwort als function(bool result, object data)
