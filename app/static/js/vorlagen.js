@@ -20,12 +20,12 @@ $(document).ready(function() {
 	showTemplates();
 	
 	// Menü-Eintrag für das Umwandeln belegen
-	$('#project').click(function() {
+	$('#export').click(function() {
 		
 		if(templatesList.getSelected()!=null)
 			dialogTemplateToProject(templatesList.getSelected().id);
 		else
-			dialogNoSelection('Importieren');
+			dialogNoSelection('Exportieren');
 	});
 });
 
@@ -119,7 +119,7 @@ function templateToProject(id,name) {
 			}
 			else
 				// Weiterleitung zum erzeugten Projekt
-				document.location.assign('/dateien/#'+response.id);
+				document.location.assign('/dateien/#'+id);
 		}
 	});
 }

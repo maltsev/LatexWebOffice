@@ -21,14 +21,14 @@
 
 <!-- Dialogboxen -->
 <div id="dialog_noSelection" title="Keine Vorlage ausgewählt" style="display: none">
-	<p>Sie haben keine Auswahl getroffen, bitte wählen Sie zum <span id="dialog_noSelection_method">
+	<p>Sie haben keine Auswahl getroffen.<br>Bitte wählen Sie zum <span id="dialog_noSelection_method">
 	</span> eine Vorlage aus.</p>
 	<p style="text-align: center">
 		<button id="dialog_noSelection_ok">OK</button>
 	</p>
 </div>
-<div id="dialog_templateToProject" title="Projekt aus Vorlage erzeugen" style="display: none">
-	<p>Bitte geben Sie einen Namen für das neu zu erstellende Projekt an, der Name darf nicht mit dem 
+<div id="dialog_templateToProject" title="Projekt aus Vorlage erzeugen" style="display: none" width=1000>
+	<p>Bitte geben Sie einen Namen für das neu zu erstellende Projekt an.<br>Dieser darf nicht mit dem 
 	eines Ihrer anderen Projekte übereinstimmen:</p>
 	<p style="text-align: center">
 		<input type="text" id="dialog_templateToProject_name" />
@@ -44,10 +44,7 @@
 				<a id="open" href="#">Öffnen</a>
 			</li>
 			<li class="topmenu">
-				<a id="edit" href="#">Bearbeiten</a>
-				</li>
-			<li class="topmenu">
-				<a id="project" href="#">Importieren</a>
+				<a id="export" href="#">Projekt-Export</a>
 			</li>
     	</ul>
     </div>
