@@ -1,40 +1,41 @@
 ﻿/*
 @author: Timo Dümke
 @creation: 12.12.2014 - sprint-nr: 3
-@last-change: 12.12.2014 - sprint-nr: 3
+@last-change: 18.12.2014 - sprint-nr: 3
 */
+
+var id;
 var root_empty = "empty<>";
 var filelistHandler;
 $( document ).ready(function() {
-// ID aus URL ermitteln
+	// ID aus URL ermitteln
 	id = parseInt(location.hash.substr(1));
 	if (isNaN(id)){
 		backToProject();
-		}
-	else {
-filelistHandler = new ListSelector("dateien");
-filelistHandler.setCaptions([
-{'name': 'Ordner', 'element': 'foldername'},
-{'name': 'Name', 'element': 'name'},
-{'name': 'Dateityp', 'element': 'filetype'}
-]);
+	} else {
+		filelistHandler = new ListSelector("dateien");
+		filelistHandler.setCaptions([
+			{'name': 'Ordner', 'element': 'foldername'},
+			{'name': 'Name', 'element': 'name'},
+			{'name': 'Dateityp', 'element': 'filetype'}
+		]);
+	
+		showFilelist(id);
+	}
 
-	showFilelist(id);
-}
-
-// Herunterladen von Dateien
+	// Herunterladen von Dateien
+	$('#download').attr('href', '#' + id);
 	$('#download').click(function() {
-		downloadFile(getFileId());
+		if (filelistHandler.getSelected() != null)
+			downloadFile(getFileId());
+		else
+			$('#dialog_keine_auswahl').dialog();
 	});
 
-/*
-* Fängt Doppelklicks auf eine Datei/einen Ordner ab.
-*/
+	/*
+	* Fängt Doppelklicks auf eine Datei/einen Ordner ab.
+	*/
 	filelistHandler.setDClickHandler(openEditor);
-
-
-
-
 });
 
 
@@ -331,51 +332,16 @@ if (r == true) {
 }
 }
 
-/*
-* Datei herunterladen
-*/
-
+/**
+ * Lädt eine Datei herunter.
+ * @param id ID der Datei
+ */
 function downloadFile(id) {
-
-jQuery.ajax('/documents/', {
-		'type': 'POST',
-		'data': {
-			'command': 'downloadfile',
-			'id': id
-		},
-		'headers': {
-			'X-CSRFToken': $.cookie('csrftoken')
-		},
-		'dataType': 'json',
-		'error': function(response, textStatus, errorThrown) {
-			//Anfrage Fehlerhaft
-			console.log({
-				'error': 'Fehlerhafte Anfrage: Fehler beim Abrufen der Dateiliste',
-				'details': errorThrown,
-				'id': id,
-				'statusCode': response.status,
-				'statusText': response.statusText
-			});
-		},
-		'success': function(data, textStatus, response) {
-			if (data.status != 'success'){
-				// Fehler auf dem Server
-				console.log({
-					'error': 'Fehlerhafte Rückmeldung: Fehler beim Abrufen der Dateiliste',
-					'details': data.response,
-					'statusCode': response.status,
-					'statusText': response.statusText
-				});
-			}
-			else {
-			// Datei herunterladen
-			
-			
-		}
-		}
+	documentsRedirect({
+		'command': 'downloadfile',
+		'id': id
 	});
 }
-
 
 /**
  * Löscht den ausgewählten Ordner/die Datei

@@ -273,3 +273,8 @@ float:right;
 width: 15%;
 color: #a8a4a4;
 }
+
+/* unsichtbar */
+.invisible {
+	display: none;
+}
