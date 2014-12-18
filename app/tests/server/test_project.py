@@ -20,6 +20,7 @@ import zipfile
 import shutil
 import os
 import mimetypes
+from unittest.mock import MagicMock
 
 from app.common.constants import ERROR_MESSAGES
 from app.common import util
