@@ -1,42 +1,90 @@
 /*
 @author: Thore Thießen
 @creation: 01.12.2014 - sprint-nr: 2
-@last-change: 01.12.2014 - sprint-nr: 2
+@last-change: 18.12.2014 - sprint-nr: 3
 */
 
 /**
- * Enkodiert eine Zeichenkette HTML-sicher.
- * @param string Zeichenkette
- * @returns enkodierte Zeichenkette
+ * Setzt eine AJAX-Anfrage für eine JSON-Antwort an /documents/ ab.
+ * @param param Paramter für die Anfrage (command, id, …)
+ * @param handler Handler für die Antwort als function(bool result, object data)
  */
-function htmlEscape(string) {
-	return(String(string)
-			.replace(/&/g, '&amp;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#39;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;'));
+function documentsJsonRequest(param, handler) {
+	jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': param,
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			// Fehler bei der Anfrage
+			var result = {
+				'status': 'failure',
+				'response': errorThrown + ': ' + response.status + '; ' + response.statusText
+			};
+			console.log(result);
+			handler(false, result);
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success') {
+				// Server-seitiger Fehler
+				console.log(data);
+				handler(false, data);
+			} else
+				handler(true, data);
+		}
+	});
 }
 
 /**
- * Leitet den Benutzer auf eine Seite weiter, wobei zusätzlich POST-Daten gesendet werden.
- * @param url URL der Seite
- * @param data Daten
+ * Setzt eine AJAX-Anfrage für eine Binär-Antwort an /documents/ ab.
+ * @param param Paramter für die Anfrage (command, id, …)
+ * @param handler Handler für die Antwort als function(bool result, data)
  */
-function internalPostRedirect(url, data) {
-	var formHtml = '<form action="' + url + '" method="post">';
+function documentsDataRequest(param, handler) {
+	jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': param,
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'text',
+		'error': function(response, textStatus, errorThrown) {
+			// Fehler bei der Anfrage
+			console.log({
+				'status': 'failure',
+				'response': errorThrown + ': ' + response.status + '; ' + response.statusText
+			});
+			handler(false, null);
+		},
+		'success': function(data, textStatus, response) {
+			handler(true, data);
+		}
+	});
+}
+
+/**
+ * Leitet den Benutzer auf /documents/ weiter, wobei zusätzlich POST-Daten gesendet werden.
+ * @param param Paramter für die Anfrage (command, id, …)
+ */
+function documentsRedirect(param) {
+	var form = $('<form></form>').attr('action',  '/documents/').attr('method', 'post');
+	$('body').append(form);
 
 	// CSRF Token
-	formHtml += '<input type="hidden" name="csrfmiddlewaretoken" value="' + 
-			htmlEscape($.cookie('csrftoken')) + '" />';
+	form.append($('<input />')
+		.attr('type', 'hidden')
+		.attr('name', 'csrfmiddlewaretoken')
+		.attr('value', $.cookie('csrftoken')));
 
 	// Daten
-	$.each(data, function(index, value) {
-		formHtml += '<input type="hidden" name="' + htmlEscape(index) + '" value="' + 
-				htmlEscape(value) + '" />';
+	$.each(param, function(name, value) {
+		form.append($('<input />')
+			.attr('type', 'hidden')
+			.attr('name', name)
+			.attr('value', value));
 	});
 
-	var form = $(formHtml);
-	$('body').append(form);
 	form.submit();
 }
