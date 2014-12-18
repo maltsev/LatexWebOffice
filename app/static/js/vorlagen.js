@@ -20,7 +20,7 @@ $(document).ready(function() {
 	showTemplates();
 	
 	// Menü-Eintrag für das Umwandeln belegen
-	$('#import').click(function() {
+	$('#project').click(function() {
 		
 		if(templatesList.getSelected()!=null)
 			dialogTemplateToProject(templatesList.getSelected().id);
@@ -105,7 +105,7 @@ function templateToProject(id,name) {
 				'statusText': response.statusText
 			});
 		},
-		'success': function(data, textStatus, response) {
+		'success': function(data,textStatus,response) {
 			if (data.status != 'success') {
 				// Server-seitiger Fehler
 				console.log({
@@ -147,16 +147,16 @@ function dialogNoSelection(method) {
  *
  * @param id ID der Vorlage, aus welcher ein Projekt erzeugt werden soll
  */
-function dialogImportToProject(id) {
+function dialogTemplateToProject(id) {
 	
 	// Name zunächst leer
-	$('#dialog_importToProject_name').val('');
+	$('#dialog_templateToProject_name').val('');
 
 	// OK-Button
-	$('#dialog_importToProject_ok').click(function() {
-		template2project(id,$('#dialog_importToProject_name').val());
-		$('#dialog_importToProject').dialog('destroy');
+	$('#dialog_templateToProject_ok').click(function() {
+		templateToProject(id,$('#dialog_templateToProject_name').val());
+		$('#dialog_templateToProject').dialog('destroy');
 	});
 
-	$('#dialog_importToProject').dialog();
+	$('#dialog_templateToProject').dialog();
 }
