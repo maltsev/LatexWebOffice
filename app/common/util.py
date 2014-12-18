@@ -22,7 +22,7 @@ import zipfile
 import os
 import mimetypes
 import tempfile
-#import magic
+import platform
 
 from django.http import HttpResponse
 from core import settings
@@ -32,11 +32,6 @@ from app.models.folder import Folder
 from app.models.project import Project
 from app.models.projecttemplate import ProjectTemplate
 from app.models.file.file import File
-from app.models.file.texfile import TexFile
-from app.models.file.binaryfile import BinaryFile
-from app.models.file.plaintextfile import PlainTextFile
-
-
 
 
 # dekodiert ein JSON
@@ -234,7 +229,7 @@ def _getFoldersAndFilesJson(folderobj, data={}):
     # wenn in dem Ordner keine Dateien existieren, schicke dummy Werte
     # (Client kann dies einfacher verarbeiten)
     if not files.exists():
-        filelist.append({'id': 1, 'name': 'empty<>', 'mimetype': 'None'})
+        filelist.append({'id': 1, 'name': 'empty<>', 'mimetype': ''})
 
     folders = Folder.objects.filter(parent=folderobj)
 
@@ -260,24 +255,25 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content
     return self.client.post('/documents/', dictionary)
 
 # liefert den mimetype eines python files
-def getMimetypeFromFile(python_file):
-    # nutze das python-magic paket um den mimetype zu bestimmen
-    #mime_magic = magic.Magic(mime=True)
-    # lese die ersten 1024 byte ein
-    #mime = mime_magic.from_buffer(python_file.read(1024)).decode('utf-8')
-    # springe wieder zurück zum Anfang der Datei
-    #python_file.seek(0)
+def getMimetypeFromFile(python_file, file_name):
 
-    mime, encoding = mimetypes.guess_type(python_file)
+    if platform.system() == 'Linux':
+        import magic
+        # nutze das python-magic paket um den mimetype zu bestimmen
+        mime_magic = magic.Magic(mime=True)
+        # lese die ersten 1024 byte ein
+        mimetype = mime_magic.from_buffer(python_file.read(1024)).decode('utf-8')
+        # springe wieder zurück zum Anfang der Datei
+        python_file.seek(0)
+    else:
+        mimetype, encoding = mimetypes.guess_type(file_name)
 
-    return mime
+    return mimetype
 
 # Hilfsmethode für hochgeladene Dateien
 def uploadFile(f, folder, request, fromZip=False):
     head, name = os.path.split(f.name)
-
-    #mime = getMimetypeFromFile(f)
-    mime = getMimetypeFromFile(name)
+    mime = getMimetypeFromFile(f, name)
 
     # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
     # und ob sie eine Dateiendung besitzen
@@ -294,7 +290,6 @@ def uploadFile(f, folder, request, fromZip=False):
     if mime in ALLOWEDMIMETYPES['binary']:
         if not fromZip:
             try:
-
                 file = ALLOWEDMIMETYPES['binary'][mime].objects.createFromRequestFile(name=name, requestFile=f,
                                                                                       folder=folder, mimeType=mime)
             except:

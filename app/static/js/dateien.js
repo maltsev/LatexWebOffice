@@ -22,6 +22,11 @@ filelistHandler.setCaptions([
 	showFilelist(id);
 }
 
+// Herunterladen von Dateien
+	$('#download').click(function() {
+		downloadFile(getFileId());
+	});
+
 /*
 * Fängt Doppelklicks auf eine Datei/einen Ordner ab.
 */
@@ -66,13 +71,16 @@ jQuery.ajax('/documents/', {
 					'statusCode': response.status,
 					'statusText': response.statusText
 				});
+				if (data.response == "Dieses Verzeichnis existiert nicht"){
+					showPopup("no_folder");
+				}
 			}
 			else {
 			// vorhandene Dateiliste entfernen
 			filelistHandler.clearData();
 			// Ruft die Dateiliste über eine rekursive Funktion auf
 			recursiveFileAnalysis(data.response,0,'0',null,false);
-			
+			console.log(data.response);
 			
 		}
 		}
@@ -132,14 +140,14 @@ break; // Abbruch der Schleife
 sumOfFiles += parent.folders[c].files.length; // Summiert die Anzahl der Dateien aus den Unterordnern vom parent Ordner auf.
 }
 // Wenn die Summe der Dateien 0 ist
-if (sumOfFiles == 0){
+if (sumOfFiles == 1){
 // Wenn es keine Ordner über dem aktuellen gibt
-if (response.folders[a].files.length != 0){ 
+if (response.folders[a].files.length > 1){ 
 sumOfFiles =parent.files.length; // ermittelt die Anzahl der Dateien vom parent Ordner
 }
 }
 // Wenn es mehr als eine Datei im untersten Ordner gibt
-if (response.files.length > 1){
+if (response.files.length > 2){
 sumOfFiles += response.files.length-1; // setze Anzahl der Dateien auf die Anzahl der Dateien-1
 }
 path.push(sumOfFiles-1); // Fügt die Summe der Dateien zum Pfad hinzu
@@ -147,25 +155,38 @@ recursiveFileAnalysis(response.folders[a],level+1,path,response); // Rekursionsa
 }
 // Wenn es keine Unterordner gibt, also in der Baumstruktur ein Blatt ist
 else {
+console.log("Dubbidai");
 // repräsentiert die Summe der Dateien, die bisher in der Rekursion abgearbeitet wurde.
 var sumOfFiles = 0;
 // siehe oben
-for (var c=0;c<parent.folders.length;c++){
-if (parent.folders[c] === response){
-break;
-}
-sumOfFiles += parent.folders[c].files.length;
-}
 // Wenn es mehr als eine Datei im untersten Ordner gibt
-if (response.files.length > 1){
+if (response.files.length > 2){
 sumOfFiles += response.files.length-1; // setze Anzahl der Dateien auf die Anzahl der Dateien-1
 }
 // Wenn es mehr als einen Unterordner gibt, also mehrere Unterordner Blätter sind
 if (response.folders.length > 1){ // es gibt mehr als einen Unterordner
 // Pfad wird nur beim ersten Element ergänzt
 if (a == 0){
-path.push(sumOfFiles-1);
+// Summiert die Dateien solange auf (Summe der Dateien der Unterordner vom parent Ordner), bis der aktuelle Ordner erreicht ist.
+for (var c=0;c<parent.folders.length;c++){ // durchläuft alle Unterordner von Parent
+if (parent.folders[c] === response){ // Wenn ein Unterordner der aktuelle Ordner ist, brich ab
+break; // Abbruch der Schleife
 }
+sumOfFiles += parent.folders[c].files.length; // Summiert die Anzahl der Dateien aus den Unterordnern vom parent Ordner auf.
+}
+path.push(sumOfFiles);
+}
+}
+else {
+// Summiert die Dateien solange auf (Summe der Dateien der Unterordner vom parent Ordner), bis der aktuelle Ordner erreicht ist.
+for (var c=0;c<parent.folders.length;c++){ // durchläuft alle Unterordner von Parent
+if (parent.folders[c] === response){ // Wenn ein Unterordner der aktuelle Ordner ist, brich ab
+break; // Abbruch der Schleife
+}
+sumOfFiles += parent.folders[c].files.length; // Summiert die Anzahl der Dateien aus den Unterordnern vom parent Ordner auf.
+}
+path.push(sumOfFiles);
+console.log("only one subfolder");
 }
 // Gibt die Dateien des Ordners aus
 for (var i = 0; i < response.folders[a].files.length; i++){
@@ -173,13 +194,13 @@ for (var i = 0; i < response.folders[a].files.length; i++){
 		filelistHandler.addData({'name':'','foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id,'filetype':response.folders[a].files[i].mimetype},path,false);
 	}
 	else if (response.folders[a].files[i].name != root_empty){ // ansonsten der Dateiname
-		filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id,'filetype':response.folders[a].mimetype},path,false);
+		filelistHandler.addData({'name':response.folders[a].files[i].name,'foldername':response.folders[a].name,'folderid':response.folders[a].id,'fileid':response.folders[a].files[i].id,'filetype':response.folders[a].files[i].mimetype},path,false);
 	}
 }
 }
 }
 else { // Rekursiver Aufruf, wenn die Rekursionsebene 0 ist, also der erste Aufruf.
-	recursiveFileAnalysis(response.folders[a],level+1,[(number_of_files-1)-1],response); // Rekursionsaufruf
+	recursiveFileAnalysis(response.folders[a],level+1,[(number_of_files-1)],response); // Rekursionsaufruf
 }
 }
 }
@@ -240,6 +261,25 @@ return true;
 
 function showPopup(category){
   $(function() {
+  
+  if (category == "folder_exists"){
+		$( "#dialog_ordner_existiert" ).dialog();
+  }
+  if (category == "file_exists"){
+		$( "#dialog_datei_existiert" ).dialog();
+  }
+  if (category == "empty_input"){
+		$( "#dialog_leere_eingabe" ).dialog();
+  }
+  if (category == "illegal_sign"){
+		$( "#dialog_ungueltige_eingabe" ).dialog();
+  }
+  if (category == "no_rights_delete"){
+		$( "#dialog_keine_rechte_loeschen" ).dialog();
+   }
+   if (category == "no_folder"){
+		$( "#dialog_ordner_existiert_nicht" ).dialog();
+   }
    if (category == "no_selection"){
 		$( "#dialog_keine_auswahl" ).dialog();
    }
@@ -254,7 +294,12 @@ function showPopup(category){
 	  }
   }
   if (category == "new_name_file"){
+  if (getFileName() != ""){
    $( "#dialog_datei_neuer_name" ).dialog();
+   }
+   else {
+   	$( "#dialog_datei_existiert_nicht" ).dialog();
+   }
    document.getElementById('file_name').value = getFileName();
   }
    if (category == "new_name_folder"){
@@ -265,10 +310,16 @@ function showPopup(category){
 }
 
 function checkRemoveFile(id,type){
+if (getFileName() != ""){
 var r = confirm("Möchten Sie die Datei "+getFileName()+" wirklich löschen?");
 if (r == true) {
     removeFolderAndFiles(id,type);
-} else {
+}
+ else {
+}
+}
+else {
+   	$( "#dialog_datei_existiert_nicht" ).dialog();
 }
 }
 
@@ -279,6 +330,52 @@ if (r == true) {
 } else {
 }
 }
+
+/*
+* Datei herunterladen
+*/
+
+function downloadFile(id) {
+
+jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'downloadfile',
+			'id': id
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			//Anfrage Fehlerhaft
+			console.log({
+				'error': 'Fehlerhafte Anfrage: Fehler beim Abrufen der Dateiliste',
+				'details': errorThrown,
+				'id': id,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success'){
+				// Fehler auf dem Server
+				console.log({
+					'error': 'Fehlerhafte Rückmeldung: Fehler beim Abrufen der Dateiliste',
+					'details': data.response,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			}
+			else {
+			// Datei herunterladen
+			
+			
+		}
+		}
+	});
+}
+
 
 /**
  * Löscht den ausgewählten Ordner/die Datei
@@ -316,6 +413,12 @@ jQuery.ajax('/documents/', {
 					'statusCode': response.status,
 					'statusText': response.statusText
 				});
+			/**
+			* Fehlermeldungen anzeigen
+			*/
+			if (data.response == "Nutzer hat für diese Aktion nicht ausreichend Rechte"){
+				showPopup("no_rights_delete");
+			}
 			}
 			else {
 			// Seite neu laden
@@ -396,6 +499,9 @@ jQuery.ajax('/documents/', {
 				'statusCode': response.status,
 				'statusText': response.statusText
 			});
+			/**
+			* Fehlermeldungen anzeigen
+			*/
 		},
 		'success': function(data, textStatus, response) {
 			if (data.status != 'success'){
@@ -406,6 +512,15 @@ jQuery.ajax('/documents/', {
 					'statusCode': response.status,
 					'statusText': response.statusText
 				});
+				if (data.response == "Unerlaubtes Zeichen verwendet"){
+					showPopup("illegal_sign");
+				}
+				else if (data.response == "Leere Namen sind nicht erlaubt"){
+					showPopup("empty_input");
+				}
+				else if (data.response == "Dieses Verzeichnis existiert schon"){
+					showPopup("folder_exists");
+				}
 			}
 			else {
 			// Seite neu laden
@@ -447,6 +562,15 @@ jQuery.ajax('/documents/', {
 					'statusCode': response.status,
 					'statusText': response.statusText
 				});
+				if (data.response == "Unerlaubtes Zeichen verwendet"){
+					showPopup("illegal_sign");
+				}
+				else if (data.response == "Leere Namen sind nicht erlaubt"){
+					showPopup("empty_input");
+				}
+				else if (data.response == "Diese Datei existiert schon"){
+					showPopup("file_exists");
+				}
 			}
 			else {
 			// Seite neu laden

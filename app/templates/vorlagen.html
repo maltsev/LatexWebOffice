@@ -10,27 +10,48 @@
 {% block header %}
 <link rel="stylesheet" href="/static/css/listselector.css">
 <link rel="stylesheet" href="/static/css/menuleiste.css">
+<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
 <script src="/static/js/listselector.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
 <script src="/static/js/vorlagen.js"></script>
 {% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
+
+<!-- Dialogboxen -->
+<div id="dialog_noSelection" title="Keine Vorlage ausgewählt" style="display: none">
+	<p>Sie haben keine Auswahl getroffen, bitte wählen Sie zum <span id="dialog_noSelection_method">
+	</span> eine Vorlage aus.</p>
+	<p style="text-align: center">
+		<button id="dialog_noSelection_ok">OK</button>
+	</p>
+</div>
+<div id="dialog_importToProject" title="Projekt importieren" style="display: none">
+	<p>Bitte geben Sie einen Namen für das neu zu erstellende Projekt an, der Name darf nicht mit dem 
+	eines Ihrer anderen Projekte übereinstimmen:</p>
+	<p style="text-align: center">
+		<input type="text" id="dialog_importToProject_name" />
+		<button id="dialog_importToProject_ok">OK</button>
+	</p>
+</div>
+
+<h1>Übersicht über die Vorlagen</h1>
 <div id="inhalt">
-<h1>Dokumentvorlagen</h1>
-<div id="menu">
-    <ul>
-      <li class="topmenu">
-        <a href="">Bearbeiten</a>
-      </li>
-      <li class="topmenu">
-        <a href="">Löschen</a>
-      </li>
-      <li class="topmenu">
-        <a href="">Importieren</a>
-      </li>
-    </ul>
-  </div>
+	<div id="menu">
+    	<ul>
+			<li class="topmenu">
+				<a id="open" href="#">Öffnen</a>
+			</li>
+			<li class="topmenu">
+				<a id="edit" href="#">Bearbeiten</a>
+				</li>
+			<li class="topmenu">
+				<a id="import" href="#">Importieren</a>
+			</li>
+    	</ul>
+    </div>
 <div id="vorlagen"></div>
+
 </div>
 {% endblock %}

@@ -20,6 +20,36 @@
 <!-- content to embed in wrapper.html as content -->
 {% block content %}
 <h1>Übersicht über die Dateien</h1>
+<!-- Fehlermeldungen als Dialoge -->
+<div id="dialog_keine_rechte_loeschen" title="Löschen fehlgeschlagen" style="display: none;">
+  <p>Sie haben nicht ausreichend Rechte, um diese Aktion durchzuführen.
+  </p>
+</div>
+<div id="dialog_keine_rechte_dateien_abrufen" title="Abfrage fehlgeschlagen" style="display: none;">
+  <p>Sie haben nicht ausreichend Rechte, um diese Aktion durchzuführen.
+  </p>
+</div>
+<div id="dialog_ungueltige_eingabe" title="Ungültige Eingabe" style="display: none;">
+  <p>Sie haben einen ungültiges Zeichen verwendet.
+  </p>
+</div>
+<div id="dialog_leere_eingabe" title="Ungültige Eingabe" style="display: none;">
+  <p>Bitte geben Sie mindestens ein Zeichen ein.
+  </p>
+</div>
+<div id="dialog_ordner_existiert_nicht" title="Abfrage fehlgeschlagen" style="display: none;">
+  <p>Es existiert kein derartiges Verzeichnis.
+  </p>
+</div>
+<div id="dialog_ordner_existiert" title="Ungültige Eingabe" style="display: none;">
+  <p>Es existiert bereits ein Ordner unter dem angegebenen Namen.
+  </p>
+</div>
+<div id="dialog_datei_existiert_nicht" title="Ungültige Eingabe" style="display: none;">
+  <p>Es konnte keine Datei gefunden werden.
+  </p>
+</div>
+<!-- Ende der Fehlermeldungen -->
 <div id="dialog_keine_auswahl" title="Keine Auswahl getroffen" style="display: none;">
   <p>Sie haben leider keine Datei bzw. keinen Ordner ausgewählt. Bitte treffen Sie eine Auswahl, um die Funktionen der Webseite nutzen zu können.
   </p>
@@ -67,7 +97,7 @@
 			<a href="">Hochladen</a>
 		  </li>
 		  <li class="topmenu">
-			<a href="">Herunterladen</a>
+			<a id="download" href="#">Herunterladen</a>
 		  </li>
 		  <li onClick="showPopup('rename')" class="topmenu">
 			<a>Umbenennen</a>

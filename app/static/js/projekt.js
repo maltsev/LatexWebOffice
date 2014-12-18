@@ -38,6 +38,11 @@ $(document).ready(function() {
 			dialogNoSelection('Löschen');
 	});
 
+	// ZIP-Export von Projekten
+	$('#export').click(function() {
+		exportZip(projectList.getSelected().id);
+	});
+
 	showProjects();
 });
 
