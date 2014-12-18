@@ -50,6 +50,14 @@ $(document).ready(function() {
 });
 
 /**
+ * Zeigt die Dateiliste für das übergebene Projekt an.
+ * @param project Projekt
+ */
+function openProject(project) {
+	document.location.assign('/dateien/#' + project.rootid);
+}
+
+/**
  * Zeigt alle Projekte des Benutzers an.
  */
 function showProjects() {
@@ -69,14 +77,6 @@ function showProjects() {
 }
 
 /**
- * Zeigt die Dateiliste für das übergebene Projekt an.
- * @param project Projekt
- */
-function openProject(project) {
-	document.location.assign('/dateien/#' + project.rootid);
-}
-
-/**
  * Löscht ein Projekt.
  * @param id ID des Projektes
  */
@@ -93,14 +93,18 @@ function deleteProject(id) {
 /**
  * Erstellt ein neues Projekt.
  * @param name Name des Projektes
+ * @param handler Funktion mit function(bool result, msg), die nach der Operation aufgerufen wird
  */
-function createProject(name) {
+function createProject(name, handler) {
 	documentsJsonRequest({
 			'command': 'projectcreate',
 			'name': name
 		}, function(result, data) {
-			if (result)
+			if (result) {
 				showProjects();
+				handler(true, '');
+			} else
+				handler(false, data.response);
 	});
 }
 
@@ -159,8 +163,14 @@ function dialogCreateProject() {
 
 	// OK-Button
 	$('#dialog_createProject_ok').click(function() {
-		createProject($('#dialog_createProject_name').val());
-		$('#dialog_createProject').dialog('destroy');
+		createProject($('#dialog_createProject_name').val(), function(result, msg) {
+			if (result)
+				$('#dialog_createProject').dialog('destroy');
+			else {
+				$('#dialog_createProject_message').text(msg);
+				$('#dialog_createProject_message').removeClass('invisible');
+			}
+		});
 	});
 
 	$('#dialog_createProject').dialog();
