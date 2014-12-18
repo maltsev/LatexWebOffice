@@ -106,7 +106,7 @@ function template2project(id,name) {
 			});
 		},
 		'success': function(data, textStatus, response) {
-			if (data.status != 'success')
+			if (data.status != 'success') {
 				// Server-seitiger Fehler
 				console.log({
 					'error': 'Fehler beim Importieren',
@@ -115,6 +115,8 @@ function template2project(id,name) {
 					'statusCode': response.status,
 					'statusText': response.statusText
 				});
+				alert('Fehler beim Importieren'+'\n'+data.response);
+			}
 			else
 				// Weiterleitung zum erzeugten Projekt
 				document.location.assign('/dateien/#'+response.id);
