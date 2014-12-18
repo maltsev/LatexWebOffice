@@ -297,7 +297,7 @@ def uploadFile(f, folder, request, fromZip=False):
         else:
             try:
 
-                file = ALLOWEDMIMETYPES['binary'][mime].objects.createFromFile(name=name, filepath=f.name,
+                file = ALLOWEDMIMETYPES['binary'][mime].objects.createFromFile(name=name, file=f,
                                                                                folder=folder, mimeType=mime)
             except:
                 return False, ERROR_MESSAGES['DATABASEERROR']
