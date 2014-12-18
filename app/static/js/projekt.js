@@ -38,12 +38,16 @@ $(document).ready(function() {
 			dialogNoSelection('Löschen');
 	});
 	
+	// Projekt als zip Importieren
+	$('#importzip').click(function() {
+		dialogImportZip();
+	});
+	
 	// Zip Export von Projekten
 	$('#export').click(function() {
 		exportZip(projectList.getSelected().id);
 	});
 });
-
 
 /*
 * Exportiere eine Datei als Zip Datei
@@ -224,6 +228,46 @@ function createProject(name) {
 	});
 }
 
+/**
+ * Importieren eines Projektes als Zip-Datei. 
+ *
+ */
+ 
+ function importZip() {
+	jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'importzip',
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			// Fehler beim Importieren
+			console.log({
+				'error': 'Fehler beim Importieren',
+				'details': errorThrown,
+				'files':[zip_file]
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success')
+				// Server-seitiger Fehler
+				console.log({
+					'error': 'Fehler beim Importtieren',
+					'details': data.response,
+					'files':[zip_file]
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			else
+				showProjects();
+		}
+	});
+}
 /**
  * Zeigt einen Dialog mit dem Hinweis, dass keine Auswahl getroffen wurde, an.
  * @param method Name der Funktion, die eine Auswahl benötigt

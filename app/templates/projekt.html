@@ -41,6 +41,15 @@
 		<button id="dialog_createProject_ok">OK</button>
 	</p>
 </div>
+<div id="dialog_importZip" title="Projekt Importieren" style="display: none">
+	<p>Bitte wählen Sie eine Datei zum Importieren aus!<br>
+	Es dürfen nur Zip_Dateien importiert werden.</p>
+	<p style="text-align: center">
+		<input type="file" id="dialog_importZip_datei" accept=".zip" />
+		<input type="submit" />
+		<button id="dialog_importZip_import">Importieren</button>
+	</p>
+</div>
 
 <h1>Übersicht über die Projekte</h1>
 <div id="inhalt">
@@ -62,7 +71,7 @@
 				<a id="export" href="#">Export</a>
 			</li>
 			<li class="topmenu">
-				<a href="#">Import</a>
+				<a id="importzip" href="#">Import</a>
 			</li>
 			<li class="topmenu">
 				<a href="#">Freigeben</a>
