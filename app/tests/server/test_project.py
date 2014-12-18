@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Do 18 Dez 2014 11:36:55 CET
+* Last Modified : Thu 18 Dec 2014 06:05:09 PM CET
 
 * Author :  christian
 
@@ -508,7 +508,7 @@ class ProjectTestClass(ViewTestCase):
         zip_file.close()
 
         # Teste, dass der Server eine positive Antwort geschickt hat
-        serveranswer = {'id': 9, 'name': self._newname1}
+        serveranswer = {'id': 9, 'name': self._newname1, 'rootid':14}
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
         # Teste, dass das Projekt existiert

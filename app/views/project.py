@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Do 18 Dez 2014 11:12:28 CET
+* Last Modified : Thu 18 Dec 2014 06:03:06 PM CET
 
 * Author :  christian
 
@@ -154,7 +154,7 @@ def importZip(request, user):
 
 
     # Erstelle das neue Projekt mit einen Namen, welcher ungültig ist.
-    projectobj = Project.objects.create(name=project_name+'>old', author=user)
+    projectobj = Project.objects.create(name=project_name+'<old', author=user)
 
     # Lösche main.tex die vom Projekt angelegt wurde
     projectobj.rootFolder.getMainTex().delete()
@@ -173,7 +173,7 @@ def importZip(request, user):
     # durchlaufe alle Ordner/Unterordner in extracted
     # und erstelle die jeweiligen Objekte in der Datenbank
     # Dateien werden über die util.uploadfiles() Methode erstellt
-    returnmsg = util.jsonResponse({'id': projectobj.id, 'name': project_name}, True, request)
+    returnmsg = util.jsonResponse({'id': projectobj.id, 'name': project_name, 'rootid':projectobj.rootFolder.id}, True, request)
 
     failed=False
 
