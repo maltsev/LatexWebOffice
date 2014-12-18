@@ -10,12 +10,15 @@
 {% block header %}
 <link rel="stylesheet" href="/static/css/listselector.css">
 <link rel="stylesheet" href="/static/css/menuleiste.css">
+<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
 <script src="/static/js/listselector.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
 <script src="/static/js/vorlagen.js"></script>
 {% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
+<<<<<<< HEAD
 <h1>Dokumentvorlagen</h1>
 <div id="inhalt">
 
@@ -32,6 +35,39 @@
       </li>
     </ul>
   </div>
+=======
+
+<!-- Dialogboxen -->
+<div id="dialog_noSelection" title="Keine Vorlage ausgewählt" style="display: none">
+	<p>Sie haben keine Auswahl getroffen.<br>Bitte wählen Sie zum <span id="dialog_noSelection_method">
+	</span> eine Vorlage aus.</p>
+	<p style="text-align: center">
+		<button id="dialog_noSelection_ok">OK</button>
+	</p>
+</div>
+<div id="dialog_templateToProject" title="Projekt aus Vorlage erzeugen" style="display: none" width=1000>
+	<p>Bitte geben Sie einen Namen für das neu zu erstellende Projekt an.<br>Dieser darf nicht mit dem 
+	eines Ihrer anderen Projekte übereinstimmen:</p>
+	<p style="text-align: center">
+		<input type="text" id="dialog_templateToProject_name" />
+		<button id="dialog_templateToProject_ok">OK</button>
+	</p>
+</div>
+
+<h1>Übersicht über die Vorlagen</h1>
+<div id="inhalt">
+	<div id="menu">
+    	<ul>
+			<li class="topmenu">
+				<a id="open" href="#">Öffnen</a>
+			</li>
+			<li class="topmenu">
+				<a id="export" href="#">Projekt-Export</a>
+			</li>
+    	</ul>
+    </div>
+>>>>>>> FETCH_HEAD
 <div id="vorlagen"></div>
+
 </div>
 {% endblock %}

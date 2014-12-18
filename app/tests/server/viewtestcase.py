@@ -236,7 +236,7 @@ class ViewTestCase(TestCase):
 
         self.emptyfile_name = 'empty<>'
         self.emptyfile_id = 1
-        self.emptyfile_mimetype = 'None'
+        self.emptyfile_mimetype = ''
 
 
     # löscht den Ordner für die test Dateien
