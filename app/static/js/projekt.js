@@ -193,3 +193,19 @@ function dialogCreateProject() {
 
 	$('#dialog_createProject').dialog();
 }
+
+/**
+ * Zeigt einen Dialog zum Importieren eines Projektes aus einer zip Datei an.
+ */
+ function dialogImportZip() {
+ 	//zip Datei Auswählen
+ 	$('#dialog_importZip_datei').click(function(){
+ 		$('input[type=file]').click();
+ 	});
+ 	//Import-Button
+ 	$('#dialog_importZip_import').dialog('close');
+ 	
+ 	$('#dialog_importZip').dialog();
+ }
+ 	
+ 	
