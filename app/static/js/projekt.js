@@ -40,7 +40,10 @@ $(document).ready(function() {
 
 	// ZIP-Export von Projekten
 	$('#export').click(function() {
-		exportZip(projectList.getSelected().id);
+		if (projectList.getSelected() != null)
+			exportZip(projectList.getSelected().id);
+		else
+			dialogNoSelection('Exportieren');
 	});
 
 	showProjects();
@@ -98,6 +101,17 @@ function createProject(name) {
 		}, function(result, data) {
 			if (result)
 				showProjects();
+	});
+}
+
+/**
+ * Exportiert ein Projekt als ZIP und bietet diese zum Download an.
+ * @param id ID des Projektes
+ */
+function exportZip(id) {
+	documentsRedirect({
+		'command': 'exportzip',
+		'id': id
 	});
 }
 
