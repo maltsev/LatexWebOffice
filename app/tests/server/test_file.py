@@ -647,11 +647,9 @@ class FileTestClass(ViewTestCase):
         file1_name = 'test_bin.bin'
         file2_name = 'test_tex_simple.tex'
         file3_name = 'test_jpg.jpg'
-        file4_name = 'test_executable'
         file1 = open(os.path.join(settings.TESTFILES_ROOT, file1_name), 'rb')
         file2 = open(os.path.join(settings.TESTFILES_ROOT, file2_name), 'rb')
         file3 = open(os.path.join(settings.TESTFILES_ROOT, file3_name), 'rb')
-        file4 = open(os.path.join(settings.TESTFILES_ROOT, file4_name), 'rb')
 
         # Anfrage an den Server
         serverrequest = {
@@ -672,16 +670,12 @@ class FileTestClass(ViewTestCase):
         file3obj = File.objects.filter(name=file3_name, folder=self._user1_project1_folder2)
         self.assertTrue(file3obj.exists())
 
-        #file4obj = File.objects.filter(name=file4_name, folder=self._user1_project1_folder2)
-        #self.assertFalse(file4obj.exists())
-
 
         # erwartete Antwort des Servers
         serveranswer = {
             'failure':
                 [
                     {'name': file1_name, 'reason': ERROR_MESSAGES['ILLEGALFILETYPE']},
-                    #{'name': file4_name, 'reason': ERROR_MESSAGES['ILLEGALFILETYPE']}
                 ],
             'success':
                 [
@@ -737,7 +731,6 @@ class FileTestClass(ViewTestCase):
         file1.close()
         file2.close()
         file3.close()
-        file4.close()
 
     def test_downloadFile(self):
         """Test der downloadFile() Methode des file view
