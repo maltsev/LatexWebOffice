@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Tue 16 Dec 2014 05:30:00 PM CET
+* Last Modified : Do 18 Dez 2014 11:36:55 CET
 
 * Author :  christian
 
@@ -536,7 +536,7 @@ class ProjectTestClass(ViewTestCase):
         # erstelle ine zip Datei, die vom Server nicht angenommen werden sollte,
         # da sie eine BinärDatei mit einem Mimetype enthält, welche nicht akzeptiert wird
         # erstelle eine zip Datei aus dem Projektordner
-        zip_file_path = os.path.join(tmpfolder, (self._newname2 + '.zip'))
+        zip_file_path = os.path.join(tmpfolder, (self._user1_project1.name + '.zip'))
         util.createZipFromFolder(tmpfolder_project, zip_file_path)
 
         # stelle sicher, dass die zip Datei gültig ist
@@ -553,8 +553,10 @@ class ProjectTestClass(ViewTestCase):
         response = self.client.post('/documents/', request)
         zip_file.close()
 
-        # Stelle sicher, dass das Projekt auch nicht erstellt wurde
-        self.assertFalse(Project.objects.filter(author=self._user1, name=self._newname2).exists())
+        # Stelle sicher, dass das Projekt nicht mit dem Inhalt aus der zip Datei
+        # überschrieben wurde
+        self.assertFalse(Folder.objects.filter(root=self._user1_project1.rootFolder,name='Ordner 1'))
+
 
         # Die Binärdatei sollte eine ILLEGALFILETYPE Fehlermeldung hervorrufen
         # erwartete Antwort des Servers
@@ -564,6 +566,7 @@ class ProjectTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
 
         # --------------------------------------------------------------------------------------------------------------
         # erstelle eine Datei mit zufälligem Inhalt (keine gültige zip Datei)

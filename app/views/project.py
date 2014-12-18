@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mo 15 Dez 2014 12:40:42 CET
+* Last Modified : Do 18 Dez 2014 11:12:28 CET
 
 * Author :  christian
 
@@ -152,16 +152,9 @@ def importZip(request, user):
     # benutze den Namen der zip Datei (ohne Dateiendung) als Projektnamen
     project_name, fileExtension = os.path.splitext(zip_file_name)
 
-    # prüfe ob ein Projekt mit dem gleichen Namen bereits existiert
-    # Groß- und Kleinschreibung wird hierbei nicht beachtet
-    # wenn es existiert, dann lösche dies
-    # Achtung: Projekt wird ohne weitere Abfrage komplett gelöscht
-    # Es ist Aufgabe des Clients, vorher eine Abfrage anzuzeigen
-    if Project.objects.filter(name__iexact=project_name.lower(), author=user).exists():
-        Project.objects.get(name__iexact=project_name.lower(), author=user).delete()
 
-    # Erstelle das neue Projekt
-    projectobj = Project.objects.create(name=project_name, author=user)
+    # Erstelle das neue Projekt mit einen Namen, welcher ungültig ist.
+    projectobj = Project.objects.create(name=project_name+'>old', author=user)
 
     # Lösche main.tex die vom Projekt angelegt wurde
     projectobj.rootFolder.getMainTex().delete()
@@ -180,13 +173,15 @@ def importZip(request, user):
     # durchlaufe alle Ordner/Unterordner in extracted
     # und erstelle die jeweiligen Objekte in der Datenbank
     # Dateien werden über die util.uploadfiles() Methode erstellt
-    returnmsg = util.jsonResponse({'id': projectobj.id, 'name': projectobj.name}, True, request)
+    returnmsg = util.jsonResponse({'id': projectobj.id, 'name': project_name}, True, request)
+
+    failed=False
 
     try:
         with transaction.atomic():
             for root, dirs, files in os.walk(extract_path):
                 # relativer Pfad des derzeitigen Verzeichnis
-                path = root.split('/')[rootdepth:]
+                path = root.split(os.sep)[rootdepth:]
                 # falls path true ist, ist root nicht das root Verzeichnis, wo die zip
                 # entpackt wurde
                 if path:
@@ -212,6 +207,19 @@ def importZip(request, user):
                         raise TypeError
     except TypeError:
         projectobj.delete()  # bei Fehler muss noch das Projekt selbst gelöscht werden
+        failed=True
+
+    if not failed:
+        # prüfe ob ein Projekt mit dem gleichen Namen bereits existiert
+        # Groß- und Kleinschreibung wird hierbei nicht beachtet
+        # wenn es existiert, dann lösche dies
+        # Achtung: Projekt wird ohne weitere Abfrage komplett gelöscht
+        # Es ist Aufgabe des Clients, vorher eine Abfrage anzuzeigen
+        if Project.objects.filter(name__iexact=project_name.lower(), author=user).exists():
+            Project.objects.get(name__iexact=project_name.lower(), author=user).delete()
+        projectobj.name=project_name
+        projectobj.save()
+
 
     # lösche alle temporären Dateien und Ordner
     if os.path.isdir(tmpfolder):
