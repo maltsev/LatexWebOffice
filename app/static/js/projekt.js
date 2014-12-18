@@ -46,7 +46,7 @@ $(document).ready(function() {
 	// ZIP-Export von Projekten
 	$('#export').click(function() {
 		if (projectList.getSelected() != null)
-			exportZip(projectList.getSelected().id);
+			exportZip(projectList.getSelected().rootid);
 		else
 			dialogNoSelection('Exportieren');
 	});
