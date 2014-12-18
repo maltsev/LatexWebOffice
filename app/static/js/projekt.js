@@ -37,18 +37,13 @@ $(document).ready(function() {
 		else
 			dialogNoSelection('Löschen');
 	});
-<<<<<<< HEAD
-	
-	// Projekt als zip Importieren
+
+	// Projekt von ZIP importieren
 	$('#importzip').click(function() {
 		dialogImportZip();
 	});
-	
-	// Zip Export von Projekten
-=======
 
 	// ZIP-Export von Projekten
->>>>>>> FETCH_HEAD
 	$('#export').click(function() {
 		if (projectList.getSelected() != null)
 			exportZip(projectList.getSelected().id);
@@ -56,12 +51,6 @@ $(document).ready(function() {
 			dialogNoSelection('Exportieren');
 	});
 
-<<<<<<< HEAD
-/*
-* Exportiere eine Datei als Zip Datei
-*/
-function exportZip(id){
-=======
 	showProjects();
 });
 
@@ -72,7 +61,6 @@ function exportZip(id){
 function openProject(project) {
 	document.location.assign('/dateien/#' + project.rootid);
 }
->>>>>>> FETCH_HEAD
 
 /**
  * Zeigt alle Projekte des Benutzers an.
@@ -176,6 +164,7 @@ function exportZip(id) {
 		}
 	});
 }
+
 /**
  * Zeigt einen Dialog mit dem Hinweis, dass keine Auswahl getroffen wurde, an.
  * @param method Name der Funktion, die eine Auswahl benötigt
