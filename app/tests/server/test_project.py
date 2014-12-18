@@ -20,7 +20,6 @@ import zipfile
 import shutil
 import os
 import mimetypes
-from unittest.mock import MagicMock
 
 from app.common.constants import ERROR_MESSAGES
 from app.common import util
@@ -55,6 +54,7 @@ class ProjectTestClass(ViewTestCase):
         """
 
         #self.tearDownFiles()
+
 
     def test_projectCreate(self):
         """Test der projectCreate() Methode aus dem project view
