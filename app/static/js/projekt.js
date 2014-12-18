@@ -125,11 +125,9 @@ function exportZip(id) {
 }
 
 /**
- * Importieren eines Projektes als Zip-Datei. 
- *
+ * Importieren eines Projektes aus einer ZIP-Datei.
  */
- 
- function importZip() {
+function importZip() {
 	jQuery.ajax('/documents/', {
 		'type': 'POST',
 		'data': {
@@ -144,7 +142,7 @@ function exportZip(id) {
 			console.log({
 				'error': 'Fehler beim Importieren',
 				'details': errorThrown,
-				'files':[zip_file]
+				'files': [zip_file],
 				'statusCode': response.status,
 				'statusText': response.statusText
 			});
@@ -155,7 +153,7 @@ function exportZip(id) {
 				console.log({
 					'error': 'Fehler beim Importtieren',
 					'details': data.response,
-					'files':[zip_file]
+					'files': [zip_file],
 					'statusCode': response.status,
 					'statusText': response.statusText
 				});
