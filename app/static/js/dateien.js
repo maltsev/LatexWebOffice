@@ -22,6 +22,11 @@ filelistHandler.setCaptions([
 	showFilelist(id);
 }
 
+// Herunterladen von Dateien
+	$('#download').click(function() {
+		downloadFile(getFileId());
+	});
+
 /*
 * Fängt Doppelklicks auf eine Datei/einen Ordner ab.
 */
@@ -325,6 +330,52 @@ if (r == true) {
 } else {
 }
 }
+
+/*
+* Datei herunterladen
+*/
+
+function downloadFile(id) {
+
+jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'downloadfile',
+			'id': id
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			//Anfrage Fehlerhaft
+			console.log({
+				'error': 'Fehlerhafte Anfrage: Fehler beim Abrufen der Dateiliste',
+				'details': errorThrown,
+				'id': id,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success'){
+				// Fehler auf dem Server
+				console.log({
+					'error': 'Fehlerhafte Rückmeldung: Fehler beim Abrufen der Dateiliste',
+					'details': data.response,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			}
+			else {
+			// Datei herunterladen
+			
+			
+		}
+		}
+	});
+}
+
 
 /**
  * Löscht den ausgewählten Ordner/die Datei

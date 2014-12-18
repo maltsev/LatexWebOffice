@@ -37,8 +37,58 @@ $(document).ready(function() {
 		else
 			dialogNoSelection('Löschen');
 	});
+	
+	// Zip Export von Projekten
+	$('#export').click(function() {
+		exportZip(projectList.getSelected().id);
+	});
 });
 
+
+/*
+* Exportiere eine Datei als Zip Datei
+*/
+function exportZip(id){
+
+jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'exportzip',
+			'id': id
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			//Anfrage Fehlerhaft
+			console.log({
+				'error': 'Fehlerhafte Anfrage: Fehler beim Abrufen der Dateiliste',
+				'details': errorThrown,
+				'id': id,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success'){
+				// Fehler auf dem Server
+				console.log({
+					'error': 'Fehlerhafte Rückmeldung: Fehler beim Abrufen der Dateiliste',
+					'details': data.response,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			}
+			else {
+			// Seite neu laden
+			alert("test");
+			//download file
+			
+			
+		}
+		}
+	})};
 /**
  * Zeigt alle Projekte des Benutzers an.
  */
