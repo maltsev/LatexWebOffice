@@ -191,12 +191,14 @@ def importZip(request, user):
                         parent = projdict[os.path.join('', *path[:-1])]
                     else:
                         parent = projectobj.rootFolder
-                    folder = Folder.objects.create(name=util.getFolderName(root), parent=parent,
+                    folder = Folder.objects.create(name=util.convertLatinToUnicode(util.getFolderName(root)),
+                                                   parent=parent,
                                                    root=projectobj.rootFolder)
                     projdict[os.path.join('', *path)] = folder
                     # speichere Ordner
                     folder = Folder.objects.create(
-                        name=util.getFolderName(root), parent=parent, root=projectobj.rootFolder)
+                        name=util.convertLatinToUnicode(util.getFolderName(root)),
+                        parent=parent, root=projectobj.rootFolder)
                     projdict[os.path.join('', *path)] = folder
                 for f in files:  # füge die Dateien dem Ordner hinzu
                     fileobj = open(os.path.join(root, f), 'rb')

@@ -272,7 +272,8 @@ def getMimetypeFromFile(python_file, file_name):
 
 # Hilfsmethode für hochgeladene Dateien
 def uploadFile(f, folder, request, fromZip=False):
-    head, name = os.path.split(f.name)
+    head, _name = os.path.split(f.name)
+    name = convertLatinToUnicode(_name)
     mime = getMimetypeFromFile(f, name)
 
     # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
@@ -365,3 +366,9 @@ def getNewTempFolder():
     tmp_folder = tempfile.mkdtemp(dir=tmp_folder_path)
 
     return tmp_folder
+
+def convertLatinToUnicode(string):
+    try:
+        return bytes(string, 'cp437').decode('utf-8')
+    except UnicodeDecodeError:
+        return string
