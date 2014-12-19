@@ -31,7 +31,9 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-TEMPLATE_CONTEXT_PROCESSORS += ('app.contextprocessors.settingsprocessor.error_messages',)
+TEMPLATE_CONTEXT_PROCESSORS += ('app.contextprocessors.settingsprocessor.Error_messages',
+                                'app.contextprocessors.settingsprocessor.Available_commands',
+                                'app.contextprocessors.settingsprocessor.Global_paras',)
 
 # Application definition
 

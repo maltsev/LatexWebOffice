@@ -14,6 +14,13 @@
 
 """
 from app.common.constants import ERROR_MESSAGES
+from app.views.document import available_commands, globalparas
 
-def error_messages(request):
-    return {'ERROR_MESSAGES':ERROR_MESSAGES}
+def Error_messages(request):
+    return {'ERROR_MESSAGES': ERROR_MESSAGES}
+
+def Available_commands(request):
+    return {'AVAILABLE_COMMANDS': available_commands}
+
+def Global_paras(request):
+    return {'GLOBAL_PARAS': globalparas}

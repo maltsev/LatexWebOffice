@@ -28,9 +28,135 @@ from app.models.project import Project
 from app.models.folder import Folder
 
 
+globalparas = {
+    'id': {'name': 'id', 'type': int},
+    'content': {'name': 'content', 'type': str},
+    'folderid': {'name': 'folderid', 'type': int},
+    'name': {'name': 'name', 'type': str},
+    'formatid': {'name': 'formatid', 'type': int}
+}
+
+# dictionary mit verfügbaren Befehlen und den entsprechenden Aktionen
+# die entsprechenden Methoden befinden sich in:
+# '/app/views/project.py', '/app/views/file.py' und '/app/views/folder.py'
+available_commands = {
+    'projectcreate': {
+        'command': project.projectCreate,
+        'parameters': [
+            {'para': globalparas['name'], 'stringcheck': True}]
+    },
+    'projectrm': {
+        'command': project.projectRm,
+        'parameters': [{'para': globalparas['id'], 'type': Project}]
+    },
+    'projectrename': {
+        'command': project.projectRename,
+        'parameters': [{'para': globalparas['id'], 'type': Project},
+                       {'para': globalparas['name'], 'stringcheck': True}]
+    },
+    'listprojects': {
+        'command': project.listProjects,
+        'parameters': []
+    },
+    'importzip': {
+        'command': project.importZip,
+        'parameters': []
+    },
+    'exportzip': {
+        'command': project.exportZip,
+        'parameters': [{'para': globalparas['id']}]
+    },
+    'shareproject': {
+        'command': project.shareProject,
+        'parameters': [{'para': globalparas['id'], 'type': Project},
+                       {'para': globalparas['name'], 'stringcheck': True}]
+    },
+    'createtex': {
+        'command': file.createTexFile,
+        'parameters': [{'para': globalparas['id'], 'type': Folder},
+                       {'para': globalparas['name'], 'filenamecheck': True}]
+    },
+    'updatefile': {
+        'command': file.updateFile,
+        'parameters': [{'para': globalparas['id'], 'type': File},
+                       {'para': globalparas['content']}]
+    },
+    'deletefile': {
+        'command': file.deleteFile,
+        'parameters': [{'para': globalparas['id'], 'type': File}]
+    },
+    'renamefile': {
+        'command': file.renameFile,
+        'parameters': [{'para': globalparas['id'], 'type': File},
+                       {'para': globalparas['name'], 'filenamecheck': True}]
+    },
+    'movefile': {
+        'command': file.moveFile,
+        'parameters': [{'para': globalparas['id'], 'type': File},
+                       {'para': globalparas['folderid'], 'type': Folder}]
+    },
+    'uploadfiles': {
+        'command': file.uploadFiles,
+        'parameters': [{'para': globalparas['id'], 'type': Folder}]
+    },
+    'downloadfile': {
+        'command': file.downloadFile,
+        'parameters': [{'para': globalparas['id']}]
+    },
+    'fileinfo': {
+        'command': file.fileInfo,
+        'parameters': [{'para': globalparas['id'], 'type': File}]
+    },
+    'compile': {
+        'command': file.latexCompile,
+        'parameters': [{'para': globalparas['id'], 'type': File}]
+    },
+    'createdir': {
+        'command': folder.createDir,
+        'parameters': [{'para': globalparas['id'], 'type': Folder},
+                       {'para': globalparas['name'], 'stringcheck': True}]
+    },
+    'rmdir': {
+        'command': folder.rmDir,
+        'parameters': [{'para': globalparas['id'], 'type': Folder}]
+    },
+    'renamedir': {
+        'command': folder.renameDir,
+        'parameters': [{'para': globalparas['id'], 'type': Folder},
+                       {'para': globalparas['name'], 'stringcheck': True}]
+    },
+    'movedir': {
+        'command': folder.moveDir,
+        'parameters': [{'para': globalparas['id'], 'type': Folder},
+                       {'para': globalparas['folderid'], 'type': Folder}]
+    },
+    'listfiles': {
+        'command': folder.listFiles,
+        'parameters': [{'para': globalparas['id'], 'type': Folder}]
+    },
+    'template2project': {
+        'command': template.template2Project,
+        'parameters': [{'para': globalparas['id'], 'type': ProjectTemplate},
+                       {'para': globalparas['name'], 'stringcheck': True}]
+    },
+    'project2template': {
+        'command': template.project2Template,
+        'parameters': [{'para': globalparas['id'], 'type': Project},
+                       {'para': globalparas['name'], 'stringcheck': True}]
+    },
+    'listtemplates': {
+        'command': template.listTemplates,
+        'parameters': []
+    },
+    'templaterm': {
+        'command': template.templateRm,
+        'parameters': [{'para': globalparas['id'], 'type': ProjectTemplate}]
+    }
+}
+
+
 def debug(request):
     return render(request, 'documentPoster.html')
-
 
 # Schnittstellenfunktion
 # bietet eine Schnittstelle zur Kommunikation zwischen Client und Server
@@ -50,125 +176,6 @@ def execute(request):
             'folderid': {'name': 'folderid', 'type': int},
             'name': {'name': 'name', 'type': str},
             'formatid': {'name': 'formatid', 'type': int}
-        }
-
-        # dictionary mit verfügbaren Befehlen und den entsprechenden Aktionen
-        # die entsprechenden Methoden befinden sich in:
-        # '/app/views/project.py', '/app/views/file.py' und '/app/views/folder.py'
-        available_commands = {
-            'projectcreate': {
-                'command': project.projectCreate,
-                'parameters': [
-                    {'para': globalparas['name'], 'stringcheck': True}]
-            },
-            'projectrm': {
-                'command': project.projectRm,
-                'parameters': [{'para': globalparas['id'], 'type': Project}]
-            },
-            'projectrename': {
-                'command': project.projectRename,
-                'parameters': [{'para': globalparas['id'], 'type': Project},
-                               {'para': globalparas['name'], 'stringcheck': True}]
-            },
-            'listprojects': {
-                'command': project.listProjects,
-                'parameters': []
-            },
-            'importzip': {
-                'command': project.importZip,
-                'parameters': []
-            },
-            'exportzip': {
-                'command': project.exportZip,
-                'parameters': [{'para': globalparas['id']}]
-            },
-            'shareproject': {
-                'command': project.shareProject,
-                'parameters': [{'para': globalparas['id'], 'type': Project},
-                               {'para': globalparas['name'], 'stringcheck': True}]
-            },
-            'createtex': {
-                'command': file.createTexFile,
-                'parameters': [{'para': globalparas['id'], 'type': Folder},
-                               {'para': globalparas['name'], 'filenamecheck': True}]
-            },
-            'updatefile': {
-                'command': file.updateFile,
-                'parameters': [{'para': globalparas['id'], 'type': File},
-                               {'para': globalparas['content']}]
-            },
-            'deletefile': {
-                'command': file.deleteFile,
-                'parameters': [{'para': globalparas['id'], 'type': File}]
-            },
-            'renamefile': {
-                'command': file.renameFile,
-                'parameters': [{'para': globalparas['id'], 'type': File},
-                               {'para': globalparas['name'], 'filenamecheck': True}]
-            },
-            'movefile': {
-                'command': file.moveFile,
-                'parameters': [{'para': globalparas['id'], 'type': File},
-                               {'para': globalparas['folderid'], 'type': Folder}]
-            },
-            'uploadfiles': {
-                'command': file.uploadFiles,
-                'parameters': [{'para': globalparas['id'], 'type': Folder}]
-            },
-            'downloadfile': {
-                'command': file.downloadFile,
-                'parameters': [{'para': globalparas['id']}]
-            },
-            'fileinfo': {
-                'command': file.fileInfo,
-                'parameters': [{'para': globalparas['id'], 'type': File}]
-            },
-            'compile': {
-                'command': file.latexCompile,
-                'parameters': [{'para': globalparas['id'], 'type': File}]
-            },
-            'createdir': {
-                'command': folder.createDir,
-                'parameters': [{'para': globalparas['id'], 'type': Folder},
-                               {'para': globalparas['name'], 'stringcheck': True}]
-            },
-            'rmdir': {
-                'command': folder.rmDir,
-                'parameters': [{'para': globalparas['id'], 'type': Folder}]
-            },
-            'renamedir': {
-                'command': folder.renameDir,
-                'parameters': [{'para': globalparas['id'], 'type': Folder},
-                               {'para': globalparas['name'], 'stringcheck': True}]
-            },
-            'movedir': {
-                'command': folder.moveDir,
-                'parameters': [{'para': globalparas['id'], 'type': Folder},
-                               {'para': globalparas['folderid'], 'type': Folder}]
-            },
-            'listfiles': {
-                'command': folder.listFiles,
-                'parameters': [{'para': globalparas['id'], 'type': Folder}]
-            },
-            'template2project': {
-                'command': template.template2Project,
-                'parameters': [{'para': globalparas['id'], 'type': ProjectTemplate},
-                               {'para': globalparas['name'], 'stringcheck': True}]
-            },
-            'project2template': {
-                'command': template.project2Template,
-                'parameters': [{'para': globalparas['id'], 'type': Project},
-                               {'para': globalparas['name'], 'stringcheck': True}]
-            },
-            'listtemplates': {
-                'command': template.listTemplates,
-                'parameters': []
-            },
-            'templaterm': {
-                'command': template.templateRm,
-                'parameters': [{'para': globalparas['id'], 'type': ProjectTemplate}]
-            },
-
         }
 
         # wenn der Schlüssel nicht gefunden wurde
