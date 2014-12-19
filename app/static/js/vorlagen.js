@@ -7,7 +7,7 @@
 var templatesList;
 
 /*
- * Initialisiert die Liste für die Vorlagen, sobald die Seite geladen wurde
+ * Initialisiert die Liste für die Vorlagen, sobald die Seite geladen wurde.
  */
 $(document).ready(function() {
 	
@@ -17,9 +17,8 @@ $(document).ready(function() {
 		{'name': 'Autor', 'element': 'ownername'},
 		{'name': 'Erstellungszeitpunkt', 'element': 'createtime'}
 	]);
-	showTemplates();
 	
-	// Menü-Eintrag für das Umwandeln belegen
+	// Projekt-Export
 	$('#export').click(function() {
 		
 		if(templatesList.getSelected()!=null)
@@ -27,100 +26,52 @@ $(document).ready(function() {
 		else
 			dialogNoSelection('Exportieren');
 	});
+	
+	showTemplates();
 });
 
 /**
  * Listet die Vorlagen des Benutzers auf.
  */
 function showTemplates() {
-	
-	// Vorlagen abfragen
-	jQuery.ajax('/documents/', {
-		'type': 'POST',
-		'data': {
-			'command': 'listtemplates'
+
+	documentsJsonRequest({
+		'command': 'listtemplates'
 		},
-		'headers': {
-			'X-CSRFToken': $.cookie('csrftoken')
-		},
-		'dataType': 'json',
-		'error': function(response,textStatus,errorThrown) {
-			// Fehler beim Laden der Vorlagen-Liste
-			console.log({
-				'error': 'Fehler beim Laden der Vorlagen-Liste',
-				'details': errorThrown,
-				'statusCode': response.status,
-				'statusText': response.statusText
-			});
-		},
-		'success': function(data,textStatus,response) {
-			if(data.status!='success')
-				// Server-seitiger Fehler
-				console.log({
-					'error': 'Fehler beim Laden der Vorlagen-Liste',
-					'details': data.response,
-					'statusCode': response.status,
-					'statusText': response.statusText
-				});
-			else {
+		function(result,data) {
+			templatesList.clearData();
+			if(result) {
 				// Vorlagen in die Vorlagen-Liste eintragen
-				templatesList.clearData();
-				for(var i=0;i<data.response.length;++i)
+				for (var i=0;i<data.response.length;++i)
 					if(i<data.response.length-1)
 						templatesList.addData(data.response[i],[],false);
 					else
 						templatesList.addData(data.response[i]);
 			}
-		}
 	});
 }
 
 /*
- * Wandelt eine Vorlage in ein Projekt um.
+ * Wandelt eine Vorlage in ein Projekt um und leitet zu dessen Datei-Liste weiter.
  *
  * @param id ID der Vorlage, aus welcher ein Projekt erzeugt werden soll
  * @param name Name des zu erzeugenden Projektes
+ * @param handler Funktion mit function(bool result, msg), die nach der Operation aufgerufen wird
  */
-function templateToProject(id,name) {
-	
-	// Vorlage in Projekt umwandeln
-	jQuery.ajax('/documents/', {
-		'type': 'POST',
-		'data': {
-			'command': 'template2project',
-			'id': id,
-			'name': name
+function templateToProject(id,name,handler) {
+
+	documentsJsonRequest({
+		'command': 'template2project',
+		'id': id,
+		'name': name
 		},
-		'headers': {
-			'X-CSRFToken': $.cookie('csrftoken')
-		},
-		'dataType': 'json',
-		'error': function(response, textStatus, errorThrown) {
-			// Fehler beim Aufruf
-			console.log({
-				'error': 'Fehler beim Importieren',
-				'details': errorThrown,
-				'id': id,
-				'statusCode': response.status,
-				'statusText': response.statusText
-			});
-		},
-		'success': function(data,textStatus,response) {
-			if (data.status != 'success') {
-				// Server-seitiger Fehler
-				console.log({
-					'error': 'Fehler beim Importieren',
-					'details': data.response,
-					'id': id,
-					'statusCode': response.status,
-					'statusText': response.statusText
-				});
-				alert('Fehler beim Importieren'+'\n'+data.response);
-			}
-			else
+		function(result,data) {
+			if(result) {
 				// Weiterleitung zum erzeugten Projekt
-				document.location.assign('/dateien/#' + data.response.rootid);
-		}
+				document.location.assign('/dateien/#'+data.response.rootid);
+				handler(true,'');
+			} else
+				handler(false,data.response);
 	});
 }
 
@@ -139,6 +90,7 @@ function dialogNoSelection(method) {
 		$('#dialog_noSelection').dialog('destroy');
 	});
 	
+	// öffnet die Dialogbox
 	$('#dialog_noSelection').dialog();
 }
 
@@ -149,14 +101,26 @@ function dialogNoSelection(method) {
  */
 function dialogTemplateToProject(id) {
 	
-	// Name zunächst leer
+	// leert das Eingabefeld für den Projektnamen
 	$('#dialog_templateToProject_name').val('');
-
+	
+	// setzt die Fehlermeldung zurück
+	$('#dialog_templateToProject_message').text('');
+	if(!$('#dialog_templateToProject_message').hasClass('invisible'))
+		$('#dialog_templateToProject_message').addClass('invisible');
+	
 	// OK-Button
 	$('#dialog_templateToProject_ok').click(function() {
-		templateToProject(id,$('#dialog_templateToProject_name').val());
-		$('#dialog_templateToProject').dialog('destroy');
+		templateToProject(id,$('#dialog_templateToProject_name').val(),function(result,msg) {
+			if(result)
+				$('#dialog_templateToProject').dialog('destroy');
+			else {
+				$('#dialog_templateToProject_message').text(msg);
+				$('#dialog_templateToProject_message').removeClass('invisible');
+			}
+		});
 	});
-
+	
+	// öffnet die Dialogbox
 	$('#dialog_templateToProject').dialog();
 }
