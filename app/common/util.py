@@ -150,10 +150,10 @@ def validateJsonSuccessResponse(self, responsecontent, response):
 # Vorraussetzung beim Aufruf: das Objekt existiert in der Datenbank
 def checkIfFileOrFolderIsUnique(newname, modelClass, folder, request):
     if modelClass == File:
-        if File.objects.filter(name__iexact=newname.lower, folder=folder).exists():
+        if File.objects.filter(name__iexact=newname.lower(), folder=folder).exists():
             return False, jsonErrorResponse(ERROR_MESSAGES['FILENAMEEXISTS'], request)
     else:
-        if Folder.objects.filter(name__iexact=newname.lower, parent=folder).exists():
+        if Folder.objects.filter(name__iexact=newname.lower(), parent=folder).exists():
             return False, jsonErrorResponse(ERROR_MESSAGES['FOLDERNAMEEXISTS'], request)
     return True, None
 

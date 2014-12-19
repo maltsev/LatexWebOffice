@@ -119,7 +119,7 @@ function templateToProject(id,name) {
 			}
 			else
 				// Weiterleitung zum erzeugten Projekt
-				document.location.assign('/dateien/#'+id);
+				document.location.assign('/dateien/#' + data.response.rootid);
 		}
 	});
 }

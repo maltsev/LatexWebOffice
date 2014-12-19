@@ -35,7 +35,7 @@ def template2Project(request, user, vorlageid, projectname):
     project = Project.objects.createFromProjectTemplate(
         template=template, name=projectname)
 
-    return util.jsonResponse({'id': project.id, 'name': project.name}, True, request)
+    return util.jsonResponse({'id': project.id, 'name': project.name, 'rootid': project.rootFolder.id}, True, request)
 
 
 def project2Template(request, user, projectid, templatename):
