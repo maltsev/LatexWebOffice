@@ -40,13 +40,20 @@
 		<button id="dialog_createProject_ok">OK</button>
 	</p>
 </div>
-<div id="dialog_importZip" title="Projekt aus zip Importieren" style="display: none">
-	<p>Bitte wählen Sie eine Datei zum Importieren aus!<br>
-	Nur zip-Dateien sind erlaubt.</p>
+<div id="dialog_importZip" title="Projekt aus ZIP importieren" style="display: none">
+	<p>Bitte wählen Sie eine Datei zum Importieren aus!<br />
+	Nur ZIP-Dateien sind erlaubt.</p>
+	<p id="dialog_importZip_message" class="error invisible"></p>
 	<p style="text-align: center">
-		<input type="file" id="dialog_importZip_datei" accept=".zip" />
-		<button id="dialog_importZip_import">Importieren</button>
+		<form id="dialog_importZip_form" action="/documents/" method="post" 
+				target="dialog_importZip_dstFrame" enctype="multipart/form-data">
+			{% csrf_token %}
+			<input type="hidden" name="command" value="importzip" />
+			<input type="file" name="files" accept=".zip" />
+			<input type="submit" value="Importieren" />
+		</form>
 	</p>
+	<iframe name="dialog_importZip_dstFrame" class="invisible"></iframe>
 </div>
 
 <h1>Übersicht über die Projekte</h1>

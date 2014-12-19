@@ -125,19 +125,6 @@ function exportZip(id) {
 }
 
 /**
- * Importieren eines Projektes aus einer ZIP-Datei.
- */
-function importZip() {
-	documentsJsonRequest({
-			'command': 'importzip',
-			'files': [zip_file]
-		}, function(result, data) {
-			if (result)
-				showProjects();
-	});
-}
-
-/**
  * Zeigt einen Dialog mit dem Hinweis, dass keine Auswahl getroffen wurde, an.
  * @param method Name der Funktion, die eine Auswahl benötigt
  */
@@ -195,17 +182,13 @@ function dialogCreateProject() {
 }
 
 /**
- * Zeigt einen Dialog zum Importieren eines Projektes aus einer zip Datei an.
+ * Zeigt einen Dialog zum Importieren eines Projektes aus einer ZIP-Datei an.
  */
- function dialogImportZip() {
- 	//zip Datei Auswählen
- 	$('#dialog_importZip_datei').click(function(){
- 		$('input[type=file]').click();
- 	});
- 	//Import-Button
- 	$('#dialog_importZip_import').dialog('close');
- 	
- 	$('#dialog_importZip').dialog();
- }
- 	
- 	
+function dialogImportZip() {
+	// Import
+	$('#dialog_importZip_form').submit(function() {
+		$('#dialog_importZip').dialog('destroy');
+	});
+
+	$('#dialog_importZip').dialog();
+}
