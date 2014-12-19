@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Tue 16 Dec 2014 05:11:47 PM CET
+* Last Modified : Fr 19 Dez 2014 14:23:40 CET
 
 * Author :  christian
 
@@ -55,7 +55,7 @@ ERROR_MESSAGES = {
     'PROJECTNOTEXIST': 'Projekt nicht gefunden',
     'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
-    'ILLEGALFILETYPE': 'Dateityp ist nicht erlaubt',
+    'ILLEGALFILETYPE': 'Dateityp \"{}\" ist nicht erlaubt',
     'TEMPLATEALREADYEXISTS': 'Eine Vorlage mit dem Namen \"{0}\" existiert bereits.',
     'TEMPLATENOTEXIST': 'Vorlage nicht gefunden',
 }

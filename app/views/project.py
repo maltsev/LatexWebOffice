@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Thu 18 Dec 2014 06:03:06 PM CET
+* Last Modified : Fr 19 Dez 2014 14:41:34 CET
 
 * Author :  christian
 
@@ -191,7 +191,10 @@ def importZip(request, user):
                         parent = projdict[os.path.join('', *path[:-1])]
                     else:
                         parent = projectobj.rootFolder
-                    folder = Folder.objects.create(name=util.convertLatinToUnicode(util.getFolderName(root)),
+                    name=util.convertLatinToUnicode(util.getFolderName(root))
+                    if name=='__MACOSX':
+                        continue
+                    folder = Folder.objects.create(name=name,
                                                    parent=parent,
                                                    root=projectobj.rootFolder)
                     projdict[os.path.join('', *path)] = folder
