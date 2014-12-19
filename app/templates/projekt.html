@@ -49,7 +49,7 @@
 				target="dialog_importZip_dstFrame" enctype="multipart/form-data">
 			{% csrf_token %}
 			<input type="hidden" name="command" value="importzip" />
-			<input type="file" name="files" accept=".zip" />
+			<input type="file" name="files" accept="application/zip" />
 			<input type="submit" value="Importieren" />
 		</form>
 	</p>
