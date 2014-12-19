@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Tue 16 Dec 2014 05:51:18 PM CET
+* Last Modified : Fr 19 Dez 2014 08:10:32 CET
 
 * Author :  mattis
 
@@ -123,7 +123,7 @@ class TemplateTestClass(ViewTestCase):
             self, command='template2project', idpara=self._user1_template1.id, name=self._newname1)
 
         # erwartete Antwort des Servers
-        serveranswer = {'id': 9, 'name': 'NeuerName1'}
+        serveranswer = {'id': 9, 'name': 'NeuerName1', 'rootid':14}
 
         # überprüfe die Antwort des Servers
         # status sollte success sein

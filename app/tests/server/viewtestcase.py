@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Tue 16 Dec 2014 05:28:39 PM CET
+* Last Modified : Thu 18 Dec 2014 11:53:41 PM CET
 
 * Author :  maltsev
 
@@ -151,6 +151,10 @@ class ViewTestCase(TestCase):
         binfile1_name = 'test_bin.bin'
         binfile2_name = 'test_jpg.jpg'
         binfile3_name = 'test_png.png'
+        zipfile1_name = 'test_utf8_Übung.zip'
+
+        # Pfad für die zip
+        self._zipfile1_path = os.path.join(settings. TESTFILES_ROOT, zipfile1_name)
 
         # Ändere den Source Code der main.tex Datei von user1_project1
         self._user1_tex1 = self._user1_project1.rootFolder.getMainTex()
@@ -227,6 +231,7 @@ class ViewTestCase(TestCase):
         self._newname2 = 'NeuerName2'
         self._newname3 = 'NeuerName3'
         self._newname4 = 'NeuerName4'
+        self._newname5 = 'NeuerName5'
         self._invalidid = 100000000
         self._name_only_spaces = '    '
         self._name_blank = ''

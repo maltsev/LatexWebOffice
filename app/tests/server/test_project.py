@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Thu 18 Dec 2014 06:05:09 PM CET
+* Last Modified : Fri 19 Dec 2014 12:11:35 AM CET
 
 * Author :  christian
 
@@ -21,7 +21,7 @@ import shutil
 import os
 import mimetypes
 
-from app.common.constants import ERROR_MESSAGES
+from app.common.constants import ERROR_MESSAGES, SUCCESS
 from app.common import util
 from app.models.folder import Folder
 from app.models.project import Project
@@ -629,6 +629,31 @@ class ProjectTestClass(ViewTestCase):
         # Lösche alle erstellten temporären Dateien und Verzeichnisse
         if os.path.isdir(tmpfolder):
             shutil.rmtree(tmpfolder)
+        '''
+        # --------------------------------------------------------------------------------------------------------------
+        # Teste das zweimalige Importieren einer Zip mit Umlauten im namen
+        for x in range(0,2):
+            zip_file_path = self._zipfile1_path
+            zip_file = open(zip_file_path, 'rb')
+            # stelle sicher dass die leere Datei eine gültige zip Datei ist
+            self.assertTrue(zipfile.is_zipfile(zip_file_path))
+
+            request = {
+                'command': 'importzip',
+                'files': [zip_file]
+            }
+            # Sende Anfrage zum Importieren der zip Datei
+            response = self.client.post('/documents/', request)
+            zip_file.close()
+
+            # Teste, dass der Server eine positive Antwort geschickt hat
+            self.assertTrue(util.jsonDecoder(response.content))
+
+
+            # Lösche alle erstellten temporären Dateien und Verzeichnisse
+            if os.path.isdir(tmpfolder):
+                shutil.rmtree(tmpfolder)
+            '''
 
     def test_exportZip(self):
         """Test der exportZip() Methode des project view
