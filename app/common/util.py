@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fr 19 Dez 2014 14:31:34 CET
+* Last Modified : Fri 19 Dec 2014 10:02:46 PM CET
 
 * Author :  christian
 
@@ -279,10 +279,8 @@ def uploadFile(f, folder, request, fromZip=False):
 
     # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
     # und ob sie eine Dateiendung besitzen
-    print(name)
     illegalstring, failurereturn = checkFileForInvalidString(name, request)
     if not illegalstring:
-        print('name not allowed')
         return False, failurereturn
 
     if mime == 'application/x-empty':
@@ -313,7 +311,6 @@ def uploadFile(f, folder, request, fromZip=False):
                                                                   folder=folder, mimeType=mime)
         file.save()
     else:  # Unerlaubtes Mimetype
-        print('mimetype not allowed: {}'.format(mime))
         return False, ERROR_MESSAGES['ILLEGALFILETYPE']
 
     return True, {'id': file.id, 'name': file.name}

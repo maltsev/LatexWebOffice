@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 19 Dez 2014 15:28:33 CET
+* Last Modified : Fri 19 Dec 2014 10:01:04 PM CET
 
 * Author :  mattis
 
@@ -33,7 +33,7 @@ globalparas = {
     'content': {'name': 'content', 'type': str},
     'folderid': {'name': 'folderid', 'type': int},
     'name': {'name': 'name', 'type': str},
-    'formatid': {'name': 'formatid', 'type': int}
+    'formatid': {'name': 'formatid', 'type': int},
 }
 
 # dictionary mit verfügbaren Befehlen und den entsprechenden Aktionen
@@ -155,11 +155,17 @@ available_commands = {
 }
 
 available_commands_output={}
-
-for key in available_commands:
-    print(key)
-    available_commands_output[key]="test"
-
+for key,value in available_commands.items():
+    parameters=[]
+    for paras in value['parameters']:
+        globalparainfo=(paras['para']).copy()
+        value={'para':globalparainfo}
+        if globalparainfo.get('type'):
+            del globalparainfo['type']
+        parameters.append(value)
+    if key=='uploadfiles' or key=='importzip':
+        parameters.append({'para':{'name':'files'}})
+    available_commands_output.update({key:parameters})
 
 
 
@@ -177,14 +183,6 @@ def execute(request):
 
         # hole den aktuellen Benutzer
         user = request.user
-
-        globalparas = {
-            'id': {'name': 'id', 'type': int},
-            'content': {'name': 'content', 'type': str},
-            'folderid': {'name': 'folderid', 'type': int},
-            'name': {'name': 'name', 'type': str},
-            'formatid': {'name': 'formatid', 'type': int}
-        }
 
         # wenn der Schlüssel nicht gefunden wurde
         # gib Fehlermeldung zurück

@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fr 19 Dez 2014 14:23:40 CET
+* Last Modified : Fri 19 Dec 2014 07:23:52 PM CET
 
 * Author :  christian
 
@@ -39,7 +39,7 @@ ERROR_MESSAGES = {
     'MISSINGPARAMETER': 'Fehlender Parameter: {0}',
     'FILENOTCREATED': 'Datei konnte nicht erstellt werden.',
     'EMPTYTEXNOTCREATED': 'main.tex Datei konnte im neuen Projekt nicht erstellt werden.',
-    'PROJECTALREADYEXISTS': 'Ein Projekt mit dem Namen \"{0}\" existiert bereits.',
+    'PROJECTALREADYEXISTS': 'Ein Projekt mit dem Namen {0} existiert bereits.',
     'NOTENOUGHRIGHTS': 'Nutzer hat für diese Aktion nicht ausreichend Rechte',
     'FOLDERNAMEEXISTS': 'Dieses Verzeichnis existiert schon',
     'FILENAMEEXISTS': 'Diese Datei existiert schon',
@@ -55,8 +55,8 @@ ERROR_MESSAGES = {
     'PROJECTNOTEXIST': 'Projekt nicht gefunden',
     'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
-    'ILLEGALFILETYPE': 'Dateityp \"{}\" ist nicht erlaubt',
-    'TEMPLATEALREADYEXISTS': 'Eine Vorlage mit dem Namen \"{0}\" existiert bereits.',
+    'ILLEGALFILETYPE': 'Dateityp {0} ist nicht erlaubt',
+    'TEMPLATEALREADYEXISTS': 'Eine Vorlage mit dem Namen {0} existiert bereits.',
     'TEMPLATENOTEXIST': 'Vorlage nicht gefunden',
 }
 
