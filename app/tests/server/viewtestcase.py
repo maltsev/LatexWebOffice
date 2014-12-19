@@ -121,6 +121,19 @@ class ViewTestCase(TestCase):
                                                          root=self._user1_project1.rootFolder)
         self._user1_project1_folder2_subfolder1.save()
 
+        # erstelle zwei Order für user1, die der Vorlage user1_template1 zugewiesen werden
+        # erstelle einen Unterordner in _user1_template1_folder2
+        self._user1_template1_folder1 = Folder(name='user1_template1_folder1', parent=self._user1_template1.rootFolder,
+                                               root=self._user1_template1.rootFolder)
+        self._user1_template1_folder1.save()
+        self._user1_template1_folder2 = Folder(name='user1_template1_folder2', parent=self._user1_template1.rootFolder,
+                                               root=self._user1_template1.rootFolder)
+        self._user1_template1_folder2.save()
+        self._user1_template1_folder2_subfolder1 = Folder(name='user1_template1_folder2_subfolder1',
+                                                         parent=self._user1_template1_folder2,
+                                                         root=self._user1_template1.rootFolder)
+        self._user1_template1_folder2_subfolder1.save()
+
         # erstelle einen Order für user2, die dem Projekt user2_project1 zugewiesen werden
         # erstelle einen Unterordner in _user2_project1_folder1
         self._user2_project1_folder1 = Folder(name='user2_project1_folder1', parent=self._user2_project1.rootFolder,

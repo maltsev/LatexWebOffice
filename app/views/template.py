@@ -66,3 +66,21 @@ def listTemplates(request, user):
 
     return util.jsonResponse(json_return, True, request)
 
+def templateRm(request, user, templateid):
+    """
+    :param request:
+    :param user:
+    :param templateid:
+    :return:
+    """
+
+    # hole die zu löschende Vorlage
+    templateobj = ProjectTemplate.objects.get(id=templateid)
+
+    # versuche die Vorlage zu löschen
+    try:
+        templateobj.delete()
+        return util.jsonResponse({}, True, request)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+

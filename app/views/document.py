@@ -164,6 +164,11 @@ def execute(request):
                 'command': template.listTemplates,
                 'parameters': []
             },
+            'templaterm': {
+                'command': template.templateRm,
+                'parameters': [{'para': globalparas['id'], 'type': ProjectTemplate}]
+            },
+
         }
 
         # wenn der Schlüssel nicht gefunden wurde

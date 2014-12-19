@@ -19,6 +19,9 @@
 from app.common.constants import ERROR_MESSAGES
 from app.common import util
 from app.tests.server.viewtestcase import ViewTestCase
+from app.models.folder import Folder
+from app.models.projecttemplate import ProjectTemplate
+from app.models.project import Project
 
 
 class TemplateTestClass(ViewTestCase):
@@ -122,8 +125,10 @@ class TemplateTestClass(ViewTestCase):
         response = util.documentPoster(
             self, command='template2project', idpara=self._user1_template1.id, name=self._newname1)
 
+        projectobj = Project.objects.filter(name=self._newname1, author=self._user1)[0]
+
         # erwartete Antwort des Servers
-        serveranswer = {'id': 9, 'name': 'NeuerName1', 'rootid':14}
+        serveranswer = {'id': projectobj.id, 'name': self._newname1, 'rootid': projectobj.rootFolder.id}
 
         # überprüfe die Antwort des Servers
         # status sollte success sein
@@ -193,3 +198,58 @@ class TemplateTestClass(ViewTestCase):
         # und keine Vorlagen von user2 aufgelistet werden
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+    def test_templateRm(self):
+        """Test der templateRm() Methode aus dem template view
+
+        Teste das Löschen einer Vorlage von einem Benutzer.
+
+        Testfälle:
+        - user1 löscht eine vorhandene Vorlage -> Erfolg
+        - user1 löscht eine nicht vorhandene Vorlage -> Fehler
+        - user1 löscht eine Vorlage welche user2 gehört -> Fehler
+
+        :return: None
+        """
+
+        # Sende Anfrage zum Löschen einer vorhandenen Vorlage
+        response = util.documentPoster(self, command='templaterm', idpara=self._user1_template1.id)
+
+        # es sollten keine Ordner der Vorlage mehr in der Datenbank existieren
+        self.assertFalse(Folder.objects.filter(id=self._user1_template1_folder1.id))
+        self.assertFalse(Folder.objects.filter(id=self._user1_template1_folder2_subfolder1.id))
+
+        # erwartete Antwort des Servers
+        serveranswer = {}
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum Löschen eines nicht vorhandenen Projektes
+        response = util.documentPoster(self, command='templaterm', idpara=self._invalidid)
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['TEMPLATENOTEXIST']
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum Löschen eines Projektes von user2 (als user1)
+        response = util.documentPoster(self, command='templaterm', idpara=self._user2_template1.id)
+
+        # das Projekt sollte nicht gelöscht worden sein
+        self.assertTrue(ProjectTemplate.objects.get(id=self._user2_template1.id))
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
