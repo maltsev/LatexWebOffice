@@ -50,6 +50,11 @@ $( document ).ready(function() {
 		else
 			$('#dialog_keine_auswahl').dialog();
 	});
+	
+	// Datei (tex|jpg|png|pdf) Hochladen
+	$('#uploadfiles').click(function() {
+		dialogUploadFile();
+	});
 
 	/*
 	* Fängt Doppelklicks auf eine Datei/einen Ordner ab.
@@ -273,6 +278,18 @@ function removePopup(category){
       $( "#dialog_datei_ordner_umbenennen" ).dialog("destroy");
   }
   });
+}
+
+/**
+ * Zeigt einen Dialog zum Hochladen einer Datei an.
+ */
+function dialogUploadFile() {
+	// Hochladen
+	$('#dialog_uploadFile_form').submit(function() {
+		$('#dialog_uploadFile').dialog('destroy');
+	});
+
+	$('#dialog_uploadFile').dialog();
 }
 
 /*

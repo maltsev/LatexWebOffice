@@ -75,6 +75,21 @@
   <p onClick="removePopup('rename');showPopup('new_name_file');"> Datei umbenennen</p><!--renameFolderAndFiles(getFileId(),'file')renameFolderAndFiles(getFolderId(),'folder')-->
   <p onClick="removePopup('rename');showPopup('new_name_folder');"> Ordner umbenennen</p>
 </div>
+<div id="dialog_uploadFile" title="Datei Hochladen" style="display: none">
+	<p>Bitte wählen Sie Dateien zum Hochladen aus!<br />
+	Erlaubte Dateien (.tex|.jpg|.png|.pdf).</p>
+	<p id="dialog_uploadFile_message" class="error invisible"></p>
+	<p style="text-align: center">
+		<form id="dialog_uploadFile_form" action="/documents/" method="post" 
+				target="dialog_uploadFile_dstFrame" enctype="multipart/form-data">
+			{% csrf_token %}
+			<input type="hidden" name="command" value="uploadfiles" />
+			<input type="file" name="files" accept="tex|jpg|png|pdf" />
+			<input type="submit" value="Hochladen" />
+		</form>
+	</p>
+	<iframe name="dialog_uploadFile_dstFrame" class="invisible"></iframe>
+</div>
 <div id="inhalt">
 
     {% comment %}
