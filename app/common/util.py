@@ -276,11 +276,17 @@ def uploadFile(f, folder, request, fromZip=False):
     name = convertLatinToUnicode(_name)
     mime = getMimetypeFromFile(f, name)
 
+
     # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
     # und ob sie eine Dateiendung besitzen
+    print(name)
     illegalstring, failurereturn = checkFileForInvalidString(name, request)
     if not illegalstring:
+        print('name not allowed')
         return False, failurereturn
+
+    if mime == 'application/x-empty':
+        mime, encoding = mimetypes.guess_type(name)
 
     # Überprüfe auf doppelte Dateien unter Nichtbeachtung Groß- und Kleinschreibung
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert
@@ -307,6 +313,7 @@ def uploadFile(f, folder, request, fromZip=False):
                                                                   folder=folder, mimeType=mime)
         file.save()
     else:  # Unerlaubtes Mimetype
+        print('mimetype not allowed: {}'.format(mime))
         return False, ERROR_MESSAGES['ILLEGALFILETYPE']
 
     return True, {'id': file.id, 'name': file.name}
