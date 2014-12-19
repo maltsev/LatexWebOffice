@@ -13,14 +13,19 @@
 * Sprintnumber : 1
 
 """
+import json
+
 from app.common.constants import ERROR_MESSAGES
 from app.views.document import available_commands, globalparas
 
+
 def Error_messages(request):
-    return {'ERROR_MESSAGES': ERROR_MESSAGES}
+    return {'ERROR_MESSAGES': json.dumps(ERROR_MESSAGES)}
+
 
 def Available_commands(request):
-    return {'AVAILABLE_COMMANDS': available_commands}
+    return {'AVAILABLE_COMMANDS': json.dumps(available_commands)}
+
 
 def Global_paras(request):
-    return {'GLOBAL_PARAS': globalparas}
+    return {'GLOBAL_PARAS': json.dumps(globalparas)}
