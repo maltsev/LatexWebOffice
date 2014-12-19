@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fri 12 Dec 2014 07:50:09 PM CET
+* Last Modified : Fr 19 Dez 2014 15:28:33 CET
 
 * Author :  mattis
 
@@ -153,6 +153,14 @@ available_commands = {
         'parameters': [{'para': globalparas['id'], 'type': ProjectTemplate}]
     }
 }
+
+available_commands_output={}
+
+for key in available_commands:
+    print(key)
+    available_commands_output[key]="test"
+
+
 
 
 def debug(request):

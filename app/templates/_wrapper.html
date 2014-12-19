@@ -26,6 +26,12 @@
 	<!-- allgemeine Funktionen -->
 	<script src="/static/js/general.js"></script>
 
+	<script>
+		var ERROR_MESSAGES = JSON.parse("{{ ERROR_MESSAGES}}".replace(/&#39;/g, "\""));
+	//	var GLOBAL_PARAS = JSON.parse("{{ GLOBAL_PARAS }}".replace(/&#39;/g, "\""));
+//		var AVAILABLE_COMMANDS = JSON.parse("{{ AVAILABLE_COMMANDS }}".replace(/&#39;/g, "\"")); */
+	</script>
+
 	<!-- seitenspezifische Header -->
 	{% block header %}{% endblock %}
 </head>
