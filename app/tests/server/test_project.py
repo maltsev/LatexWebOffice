@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Fri 19 Dec 2014 12:11:35 AM CET
+* Last Modified : Fr 19 Dez 2014 11:15:20 CET
 
 * Author :  christian
 
@@ -507,8 +507,10 @@ class ProjectTestClass(ViewTestCase):
         response = self.client.post('/documents/', request)
         zip_file.close()
 
+        projectobj=Project.objects.get(author=self._user1,name=self._newname1)
+
         # Teste, dass der Server eine positive Antwort geschickt hat
-        serveranswer = {'id': 9, 'name': self._newname1, 'rootid':14}
+        serveranswer = {'id': projectobj.id, 'name': self._newname1, 'rootid':projectobj.rootFolder.id}
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
         # Teste, dass das Projekt existiert
