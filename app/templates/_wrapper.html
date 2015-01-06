@@ -7,66 +7,73 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<!-- Styles -->
-	<link rel="stylesheet" href="/static/css/bootstrap.min.css">
-	<link rel="stylesheet" href="/static/css/bootstrap-theme.min.css">
-	<link rel="stylesheet" href="/static/css/styles.css">
-
-	<!-- jQuery -->
-	<script src="/static/js/jquery.min.js"></script>
-	<script src="/static/js/jquery.cookie.js"></script>
-
-	<!-- jQuery-UI -->
-	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
-	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
-
-	<!-- WebShim HTML5 Polyfill -->
-	<script src="/static/js/webshim/polyfiller.js"></script>
-	<script>webshim.setOptions({basePath: '/static/js/webshim/shims/'}); webshim.polyfill('forms');</script>
-
-	<!-- allgemeine Funktionen -->
-	<script src="/static/js/general.js"></script>
-
-	<script>
-		var a="{{ ERROR_MESSAGES}}".replace(/&quot;/g, "\"").replace(/(?:\r\n|\r|\n)/g,'');
-		var ERROR_MESSAGES = JSON.parse(a)
-		var AVAILABLE_COMMANDS = JSON.parse("{{ AVAILABLE_COMMANDS }}".replace(/&#39;/g, "\"")); 
-	</script>
+	<link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="/static/bootstrap/css/bootstrap-theme.min.css">
+	<link rel="stylesheet" href="/static/css/navigation/nav.css">
 
 	<!-- seitenspezifische Header -->
 	{% block header %}{% endblock %}
 </head>
 <body>
-    <div id="wrapper">
-	<div id="kopfzeile">
-	<a href="../"><img src="/static/img/icon.png" id="logo" alt="Logo vom LatexWebOffice"></a>
-        {% if user.is_authenticated %}
-            <a href="/logout/"><div class="whitebutton">ABMELDEN</div></a>
-        {% else %}
-        	<a href="/registration/"><div class="whitebutton">REGISTRIEREN</div></a>
-	        <a href="/login/"><div class="greenbutton">ANMELDEN</div></a>
-        {% endif %}
-	</div>
-	<div id="menueleiste">
-	<!-- loading embedded menu -->
-	{% if user.is_authenticated %}
-{% block menu %}
-<ul id="hauptmenue">
-<li><a href="/projekt/">Projektverwaltung</a></li>
-<li>Literaturverzeichnis</li>
-<li><a href="/vorlagen/">Dokumentvorlagen</a></li>
-<li>Eigenes Profil</li>
-</ul>
-{% endblock %}
-{% endif %}	 
-	</div>
-	<!-- loading embedded menu -->
-    {% block content %}{% endblock %}
-	<div id="fusszeile">
-		<ul id="fusszeile_menue">
-			<li><a href="/impressum/">Impressum</a></li>
-			<li><a href="">Hilfe</a></li>
-		</ul>
-	</div>
-    </div>
+
+	{% block navbar %}
+	<!-- Static navbar -->
+	    <nav class="navbar navbar-default navbar-static-top">
+	      <div class="container">
+		<div class="navbar-header">
+		  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+		    <span class="sr-only">Toggle navigation</span>
+		    <span class="icon-bar"></span>
+		    <span class="icon-bar"></span>
+		    <span class="icon-bar"></span>
+		  </button>
+		  <a class="navbar-brand" href="/">
+			  <img src="/static/img/icon.png" id="logo" alt="Logo vom LatexWebOffice">
+		  </a>
+		</div>
+		<div id="navbar" class="navbar-collapse collapse">
+		  <ul class="nav navbar-nav">
+			 {% if user.is_authenticated %}
+		    <li><a href="/projekt">Projekte</a></li>
+		    <li><a href="/vorlagen">Vorlagen</a></li>
+		    	{% else %}
+			<li><a href="/registration/">Registrieren</a></li>
+			<li><a href="/login/">Einloggen</a></li>
+		    {% endif %}
+
+		  </ul>
+		  <ul class="nav navbar-nav navbar-right">
+		    <li><a href="/impressum/">Impressum</a></li>
+			  {% if user.is_authenticated %}
+			  <li class="dropdown">
+				  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ user.first_name }}<span class="caret"></span></a>
+				  <ul class="dropdown-menu" role="menu">
+					  <li><a href="/logout/">Abmelden</a></li>
+				  </ul>
+			  </li>
+		        {% endif %}
+		  </ul>
+		</div><!--/.nav-collapse -->
+	      </div>
+	    </nav>
+	{% endblock %}
+	<!-- jQuery -->
+	<script src="/static/js/jquery.min.js"></script>
+	<script src="/static/js/jquery.cookie.js"></script>
+	<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+	<script>
+	<!-- setze den tab auf active, welcher gerade angezeigt wird
+	$(document).ready(function() {
+	$('.nav li a').on('click', function() {
+	    $(this).parent().parent().find('.active').removeClass('active');
+	    $(this).parent().addClass('active').css('font-weight', 'bold');
+	});
+		$('.nav').find('a[href="' + location.pathname + '"]').parents('li').addClass('active');
+	});
+	</script>
+	<!-- Sämtliche Inhalte sollten innerhalb des containers geschrieben werden. 
+	Daher sollte jede andere HMTL datei diese wrapper_datei erweitern und lediglich den content block überschreiben 
+	-->
+	<div class="container">{% block content %}{% endblock %}</div>
 </body>
 </html>
