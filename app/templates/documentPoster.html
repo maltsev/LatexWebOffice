@@ -35,6 +35,10 @@ pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
 	    <label for="id">Id</label>
             <input id="id" class="form-control" name="id" type="text" value="" />
 		</div>
+        <div id="div-formatid" class="hider form-group">
+	    <label for="id">Formatid</label>
+            <input id="formatid" class="form-control" name="formatid" type="text" value="" />
+		</div>
 		<div id="div-folderid" class="hider form-group">
 	    <label for="folderid">Folderid</label>
             <input id="folderid" class="form-control" name="folderid" type="text" value="" />
@@ -161,7 +165,9 @@ pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
 
                         console.log(data)
                         $('#response')
-                            .html(syntaxHighlight(JSON.stringify(data.response, null, '\t')))
+                            .html('<b>Status:</b>' + data.status + '<br>' + syntaxHighlight(JSON.stringify(data.response, null, '\t'))
+                            + '<p><b>Request:</b><br>' + syntaxHighlight(JSON.stringify(data.request, null, '\t')) + '</p>'
+                            )
                     }
                 });
             });

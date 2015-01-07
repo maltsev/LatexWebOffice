@@ -245,10 +245,6 @@ class ViewTestCase(TestCase):
         self._name_no_ext = 'filename'
         self._name_only_ext = '.tex'
 
-        self.emptyfile_name = 'empty<>'
-        self.emptyfile_id = 1
-        self.emptyfile_mimetype = ''
-
 
     # löscht den Ordner für die test Dateien
     def tearDownFiles(self):

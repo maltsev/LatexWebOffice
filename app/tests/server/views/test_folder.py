@@ -559,18 +559,10 @@ class FolderTestClass(ViewTestCase):
                             'folders': [
                                 {'id': self._user2_project1_folder1_subfolder1.id,
                                  'name': self._user2_project1_folder1_subfolder1.name,
-                                 'files': [
-                                     {'id': self.emptyfile_id,
-                                      'name': self.emptyfile_name,
-                                      'mimetype': self.emptyfile_mimetype}
-                                 ],
+                                 'files': [],
                                  'folders': []},
                             ],
-                            'files': [
-                                {'id': self.emptyfile_id,
-                                 'name': self.emptyfile_name,
-                                 'mimetype': self.emptyfile_mimetype}
-                            ],
+                            'files': [],
                         }]
         }
 
@@ -637,11 +629,7 @@ class FolderTestClass(ViewTestCase):
                          ],
                          'folders': []},
                     ],
-                    'files': [
-                        {'id': self.emptyfile_id,
-                         'name': self.emptyfile_name,
-                         'mimetype': self.emptyfile_mimetype}
-                    ],
+                    'files': [],
                 }
             ]
         }

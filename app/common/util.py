@@ -257,11 +257,6 @@ def _getFoldersAndFilesJson(folderobj, data={}):
     for f in files:
         filelist.append({'id': f.id, 'name': f.name, 'mimetype': f.mimeType})
 
-    # wenn in dem Ordner keine Dateien existieren, schicke dummy Werte
-    # (Client kann dies einfacher verarbeiten)
-    if not files.exists():
-        filelist.append({'id': 1, 'name': 'empty<>', 'mimetype': ''})
-
     # hole alle Unterordner Objekte des aktuelle Ordner Objektes (folderobj)
     folders = Folder.objects.filter(parent=folderobj)
 
@@ -529,12 +524,14 @@ def validateJsonSuccessResponse(self, responsecontent, response):
     return _validateServerJsonResponse(self, responsecontent, SUCCESS, response)
 
 
-def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content=None, name=None, files=None):
+def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, idpara3=None, content=None, name=None,
+                   files=None):
     """Hilfsmethode um leichter die verschiedenen commands des document views durchzutesten.
 
     :param command: Befehl der ausgeführt werden soll
     :param idpara: Parameter id des auszuführenden Befehls
     :param idpara2: Parameter folderid des auszuführenden Befehls
+    :param idpara3: Parameter formatid des auszuführenden Befehls
     :param content: Parameter content des auszuführenden Befehls
     :param name: Parameter name des auszuführenden Befehls
     :param files: Parameter files des auszuführenden Befehls
@@ -547,6 +544,8 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, content
         dictionary['id'] = idpara
     if idpara2 != None:
         dictionary['folderid'] = idpara2
+    if idpara3 != None:
+        dictionary['formatid'] = idpara3
     if content != None:
         dictionary['content'] = content
     if name != None:
