@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Mi 12 Nov 2014 09:16:05 CET
+* Last Modified : Mi 07 Jan 2015 10:30:11 CET
 
 * Author :  maltsev
 
@@ -38,7 +38,7 @@ import re
 #  @param request The HttpRequest Object
 def login(request):
     if request.user.is_authenticated():
-        return redirect('/')
+        return redirect('/projekt/')
 
     email = ''
     if request.method == 'POST':
@@ -50,7 +50,7 @@ def login(request):
         if user is not None:
             if user.is_active:
                 auth.login(request, user)
-                return redirect('/')
+                return redirect('/projekt/')
             else:
                 messages.error(request, ERROR_MESSAGES['INACTIVEACCOUNT'].format(email))
 
@@ -77,7 +77,7 @@ def logout(request):
 def registration(request):
 
     if request.user.is_authenticated():
-        return redirect('/')
+        return redirect('/projekt/')
 
     email = ''
     first_name = ''

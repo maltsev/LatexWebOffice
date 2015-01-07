@@ -18,8 +18,8 @@
 
 	{% block navbar %}
 	<!-- Static navbar -->
-	    <nav class="navbar navbar-default navbar-static-top">
-	      <div class="container">
+	    <nav class="navbar navbar-default">
+	      <div class="container-fluid">
 		<div class="navbar-header">
 		  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
 		    <span class="sr-only">Toggle navigation</span>
@@ -34,8 +34,8 @@
 		<div id="navbar" class="navbar-collapse collapse">
 		  <ul class="nav navbar-nav">
 			 {% if user.is_authenticated %}
-		    <li><a href="/projekt">Projekte</a></li>
-		    <li><a href="/vorlagen">Vorlagen</a></li>
+		    <li><a href="/projekt/">Projekte</a></li>
+		    <li><a href="/vorlagen/">Vorlagen</a></li>
 		    	{% else %}
 			<li><a href="/registration/">Registrieren</a></li>
 			<li><a href="/login/">Einloggen</a></li>
@@ -46,7 +46,7 @@
 		    <li><a href="/impressum/">Impressum</a></li>
 			  {% if user.is_authenticated %}
 			  <li class="dropdown">
-				  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ user.first_name }}<span class="caret"></span></a>
+				  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ user.username }}<span class="caret"></span></a>
 				  <ul class="dropdown-menu" role="menu">
 					  <li><a href="/logout/">Abmelden</a></li>
 				  </ul>
@@ -66,7 +66,6 @@
 	$(document).ready(function() {
 	$('.nav li a').on('click', function() {
 	    $(this).parent().parent().find('.active').removeClass('active');
-	    $(this).parent().addClass('active').css('font-weight', 'bold');
 	});
 		$('.nav').find('a[href="' + location.pathname + '"]').parents('li').addClass('active');
 	});
@@ -74,6 +73,6 @@
 	<!-- Sämtliche Inhalte sollten innerhalb des containers geschrieben werden. 
 	Daher sollte jede andere HMTL datei diese wrapper_datei erweitern und lediglich den content block überschreiben 
 	-->
-	<div class="container">{% block content %}{% endblock %}</div>
+	<div class="container-fluid">{% block content %}{% endblock %}</div>
 </body>
 </html>

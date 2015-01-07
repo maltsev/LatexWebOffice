@@ -2,6 +2,11 @@
 
 <!-- Header -->
 {% block header %}
+
+<script>
+var AVAILABLE_COMMANDS = JSON.parse("{{ AVAILABLE_COMMANDS }}".replace(/&#39;/g, "\"")); 
+
+</script>
 <style type="text/css">
 pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
 .string { color: green; }
@@ -15,27 +20,36 @@ pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
 <!-- Inhalt -->
 {% block content %}
 <!-- content area with login -->
-<div id='inhalt'>
-    <form id="poster">{% csrf_token %} Command:
-        <select name="command" id="command" size="5">
-        </select>
-        <p id="name">Name:
-            <input id="name" , name="name" type="text" value="" />
-        </p>
-        <p id="id">ID:
-            <input id="id" , name="id" type="text" value="" />
-        </p>
-        <p id="folderid">Folderid:
-            <input id="folderid" , name="folderid" type="text" value="" />
-        </p>
-        <p id='content'>Content:
-            <input id="content" , name="content" type="text" value="" />
-        </p>
-        <p id='files'>Files:
-            <input type="file" name="files" id="files" multiple>
-        </p>
-        <br>
-        <input type="submit" value="Send" />
+<div class="col-md-12" id='inhalt'>
+    <form id="poster">{% csrf_token %} 
+	    <div class="form-group">
+	    <label for="command"> Command</label>
+		<select class="form-control" name="command" id="command" size="5">
+		</select>
+	    </div>
+		<div id="div-name" class="hider form-group">
+	    <label for="name">Name</label>
+            <input class="form-control" id="name" , name="name" type="text" value="" />
+		</div>
+		<div id="div-id" class="hider form-group">
+	    <label for="id">Id</label>
+            <input id="id" class="form-control" name="id" type="text" value="" />
+		</div>
+		<div id="div-folderid" class="hider form-group">
+	    <label for="folderid">Folderid</label>
+            <input id="folderid" class="form-control" name="folderid" type="text" value="" />
+		</div>
+		<div id="div-content" class="hider form-group">
+	    <label for="content">Content </label>
+            <input id="content" class="form-control" name="content" type="text" value="" />
+		</div>
+		<div id="div-files" class="hider form-group">
+	    <label for="files">files</label>
+            <input type="file" name="files" class="form-control" id="files" multiple>
+		</div>
+		<div class="form-group">
+        <input type="submit" class="form-control btn btn-default" value="Send" />
+		</div>
     </form>
 
     <pre id='response'>
@@ -61,7 +75,7 @@ pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
                         var str = $(this)
                             .text();
                         var paras = AVAILABLE_COMMANDS[str];
-                        var inputs = $("#poster p");
+                        var inputs = $(".hider");
                         inputs.each(function() {
                             //   this.hide()
                             $("#" + this.id)
@@ -70,7 +84,7 @@ pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
                         });
                         //Die Parameter, die benötigt werden, sollen eingeblendet werden
                         for (input in AVAILABLE_COMMANDS[str]) {
-                            $("#" + AVAILABLE_COMMANDS[str][input]['para']['name'])
+                            $("#div-" + AVAILABLE_COMMANDS[str][input]['para']['name'])
                                 .show()
                         }
 
