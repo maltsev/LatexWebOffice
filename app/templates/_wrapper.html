@@ -82,6 +82,8 @@
 	<!-- Sämtliche Inhalte sollten innerhalb des containers geschrieben werden. 
 	Daher sollte jede andere HMTL datei diese wrapper_datei erweitern und lediglich den content block überschreiben 
 	-->
+	{%block bodyblock %}
 	<div class="container-fluid">{% block content %}{% endblock %}</div>
+	{% endblock %}
 </body>
 </html>
