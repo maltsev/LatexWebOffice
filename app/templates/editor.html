@@ -13,23 +13,34 @@
 <!-- Einbindung der Funktionalität vom ACE Editor -->
 <script src="/static/js/ace/ace.js"></script>
 <script src="/static/js/ace/ext-language_tools.js"></script>
-
 <script src="/static/js/editor.js"></script>
 {% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
-<div id="inhalt">
-
+<div id="inhalt" style="display: block;min-height: 40%; height: 40%; background: green;">
+Tst
 	<div id="dialog_editor_verlassen" title="Editor verlassen"style="display: none;">
 							<p>Wollen Sie den Editor wirklich verlassen?</p>
 							<p onClick="history.back()"> Ja</p>
 							<p onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')"> Nein</p>
 						</div>
+						<!--
+						   <header class="navbar navbar-static-top bs-docs-nav" id="top" role="banner">
+ <div class="dropdown">
+  <button id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Dropdown trigger
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+    <li>Test</li>
+	<li>Test2</li>
+  </ul>
+</div>-->
 						
-	<table id="editor_table1" style="width: 100%">
+	<!--<table id="editor_table1" style="width: 100%">
 		<!-- Menüleiste 1 mit Drop-Down-Menü: Bearbeiten, Vorlagen, Assistent, Bibliographie, Ansicht, 
-		Optionen, Hilfe -->
+		Optionen, Hilfe 
 		<tr style="width: 100%">
 			<td style="padding-bottom: 50px">
 				<div id="menu">
@@ -44,7 +55,8 @@
 					</ul>
 				</div>
 			</td>
-		</tr>
+		</tr> 
+		-->
 		<!-- Ende Menüleiste 1-->
 
 		<!-- Menüleiste 2 mit Symbolen für Speichern, Zurück und Vor, Ausschneiden, Kopieren, 
@@ -52,47 +64,48 @@
 		
 		
 		
-		
+		<!--
 		<tr>
 			<td>
 				<div id="symbolleiste">
 					<button id="backtoprojekt" type="button" title="Zurück zur Dateiübersicht des Projekts" onClick="confirmExit()">						
-						<i class="fa fa-angle-left"></i> <!-- Zurück zur Dateiübersicht des Projekts -->											
+						<i class="fa fa-angle-left"></i> <!-- Zurück zur Dateiübersicht des Projekts 											
 					</button>
 					<button id="save" type="button" title="Speichern">
-						<i class="fa fa-floppy-o"></i> <!-- Speichern -->
+						<i class="fa fa-floppy-o"></i> 
 					</button>
 					<button id="undo" type="button" title="Zurück">
-						<i class="fa fa-undo"></i> <!-- Zurück -->
+						<i class="fa fa-undo"></i> <!-- Zurück 
 					</button>
 					<button id="redo" type="button" title="Vor">
-						<i class="fa fa-repeat"></i> <!-- Vor -->
+						<i class="fa fa-repeat"></i> <!-- Vor 
 					</button>
 					<button id="cut" type="button" title="Ausschneiden">
-						<i class="fa fa-scissors"></i> <!-- Ausschneiden -->
+						<i class="fa fa-scissors"></i> <!-- Ausschneiden 
 					</button>
 					<button id="copy" type="button" title="Kopieren">
-						<i class="fa fa-files-o"></i> <!-- Kopieren -->
+						<i class="fa fa-files-o"></i> <!-- Kopieren 
 					</button>
 					<button id="paste" type="button" title="Einfügen">
-						<i class="fa fa-clipboard"></i> <!-- Einfügen -->
+						<i class="fa fa-clipboard"></i> <!-- Einfügen 
 					</button>
 					<button id="compile" type="button" title="PDF Export">
-						<i class="fa fa-file-pdf-o"></i> <!-- PDF-Export -->
+						<i class="fa fa-file-pdf-o"></i> <!-- PDF-Export 
 					</button>
 					<button id="insertImage" type="button" title="Grafik einfügen">
-						<i class="fa fa-file-image-o"></i> <!-- Grafik einfügen -->
+						<i class="fa fa-file-image-o"></i> <!-- Grafik einfügen 
 					</button>
 					<button id="switchView" type="button" title="PDF und TEX">
-						<i class="fa fa-refresh"></i> <!-- parallele Anzeige von TEX und PDF-Ausgabe -->
+						<i class="fa fa-refresh"></i> <!-- parallele Anzeige von TEX und PDF-Ausgabe 
 					</button>
 				</div>
 			</td>
 		</tr>
-		<!-- Ende Menüleiste 2 mit Symbolen -->
+		 Ende Menüleiste 2 mit Symbolen 
 	</table>
-<div>
+	-->
+
 <!-- verwendeter Editor: ACE Editor -->
-<div id="editor"></div>
+<div style="min-height: 80%;" id="editor"></div>
 </div>
 {% endblock %}
