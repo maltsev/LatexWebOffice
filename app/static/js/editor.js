@@ -99,7 +99,7 @@ function backToProject() {
  * @param id ID der Datei
  */
 function loadFile(id) {
-	documentsDataRequest({
+	/**documentsDataRequest({
 			'command': 'downloadfile',
 			'id': id
 		}, function(result, data) {
@@ -109,7 +109,7 @@ function loadFile(id) {
 				changesSaved = true;
 			} else
 				backToProject();
-	});
+	});**/
 }
 
 /**
