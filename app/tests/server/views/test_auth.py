@@ -74,7 +74,7 @@ class AuthLoginTestClass(TestCase):
     def test_redirectForAuthenticatedUsers(self):
         self._client.login(username=self._user1.username,password=self._user1._unhashedpw)
         response=(self._client.get('/login/'))
-        self.assertRedirects(response,'/')
+        self.assertRedirects(response,'/projekt/')
 
 
     def test_logoutUser(self):
