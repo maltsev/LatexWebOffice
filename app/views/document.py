@@ -42,8 +42,12 @@ globalparas = {
 available_commands = {
     'projectcreate': {
         'command': project.projectCreate,
-        'parameters': [
-            {'para': globalparas['name'], 'stringcheck': True}]
+        'parameters': [{'para': globalparas['name'], 'stringcheck': True}]
+    },
+    'projectclone': {
+        'command': project.projectClone,
+        'parameters': [{'para': globalparas['id'], 'type': Project},
+                       {'para': globalparas['name'], 'stringcheck': True}]
     },
     'projectrm': {
         'command': project.projectRm,
@@ -144,33 +148,38 @@ available_commands = {
         'parameters': [{'para': globalparas['id'], 'type': Project},
                        {'para': globalparas['name'], 'stringcheck': True}]
     },
-    'listtemplates': {
-        'command': template.listTemplates,
-        'parameters': []
-    },
     'templaterm': {
         'command': template.templateRm,
         'parameters': [{'para': globalparas['id'], 'type': ProjectTemplate}]
+    },
+    'templaterename': {
+        'command': template.templateRename,
+        'parameters': [{'para': globalparas['id'], 'type': ProjectTemplate},
+                       {'para': globalparas['name'], 'stringcheck': True}]
+    },
+    'listtemplates': {
+        'command': template.listTemplates,
+        'parameters': []
     }
 }
 
-available_commands_output={}
-for key,value in available_commands.items():
-    parameters=[]
+available_commands_output = {}
+for key, value in available_commands.items():
+    parameters = []
     for paras in value['parameters']:
-        globalparainfo=(paras['para']).copy()
-        value={'para':globalparainfo}
+        globalparainfo = (paras['para']).copy()
+        value = {'para': globalparainfo}
         if globalparainfo.get('type'):
             del globalparainfo['type']
         parameters.append(value)
-    if key=='uploadfiles' or key=='importzip':
-        parameters.append({'para':{'name':'files'}})
-    available_commands_output.update({key:parameters})
-
+    if key == 'uploadfiles' or key == 'importzip':
+        parameters.append({'para': {'name': 'files'}})
+    available_commands_output.update({key: parameters})
 
 
 def debug(request):
     return render(request, 'documentPoster.html')
+
 
 # Schnittstellenfunktion
 # bietet eine Schnittstelle zur Kommunikation zwischen Client und Server
@@ -244,7 +253,7 @@ def execute(request):
                     if not emptystring:
                         return failurereturn
 
-
         # führe den übergebenen Befehl aus
         return c['command'](request, user, *args)
+
     return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format('unkown'), request)

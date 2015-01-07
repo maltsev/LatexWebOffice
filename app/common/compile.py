@@ -36,7 +36,7 @@ from core.settings import BASE_DIR
 #         1. Liste der Fehlermeldungen, welche beim Kompilieren geworfen wurden oder None, falls keine Fehler auftraten
 #         2. Array der ID und des Namens der erzeugten pdf-Datei oder None, sofern keine pdf-Datei erzeugt werden konnte
 #
-def compile(texid):
+def compile(texid, targetformat=0):
     oldwd = os.getcwd()
     # tex-File der übergebenen ID
     tex_fle  = TexFile.objects.get(id=texid)

@@ -81,6 +81,8 @@ ALLOWEDMIMETYPES = {
     }
 }
 
+ZIPMIMETYPE = 'application/zip'
+STANDARDENCODING = 'utf-8'
 
 # Ungültige Zeichen für Dateien und Ordner
 INVALIDCHARS = '<>;|"\/?*'

@@ -16,10 +16,9 @@
 
 """
 
-from django.contrib.auth.models import User
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
+from app.common.constants import ERROR_MESSAGES
 from app.common import util
-from app.tests.server.viewtestcase import ViewTestCase
+from app.tests.server.views.viewtestcase import ViewTestCase
 
 
 class DocumentsTestClass(ViewTestCase):

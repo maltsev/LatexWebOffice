@@ -60,25 +60,18 @@ class ViewTestCase(TestCase):
 
         # erstelle ein Projekt als user1
         self._user1_project1 = Project.objects.create(name='user1_project1', author=self._user1)
-        self._user1_project1.save()
         self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1)
-        self._user1_project2.save()
         self._user1_project3 = Project.objects.create(name='user1_project3', author=self._user1)
-        self._user1_project3.save()
 
         # erstelle eine Vorlage als user1
-        self._user1_template1=ProjectTemplate.objects.create(name='user1_template1',author=self._user1)
-        self._user1_template1.save()
-        self._user1_template2=ProjectTemplate.objects.create(name='user1_template2',author=self._user1)
-        self._user1_template2.save()
+        self._user1_template1 = ProjectTemplate.objects.create(name='user1_template1', author=self._user1)
+        self._user1_template2 = ProjectTemplate.objects.create(name='user1_template2', author=self._user1)
+        self._user1_template3 = ProjectTemplate.objects.create(name='user1_template2´3', author=self._user1)
 
         # erstelle ein Projekt als user2
         self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2)
-        self._user2_project1.save()
         self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2)
-        self._user2_project2.save()
-        self._user2_template1=ProjectTemplate.objects.create(name='user2_template1',author=self._user2)
-        self._user2_template1.save()
+        self._user2_template1 = ProjectTemplate.objects.create(name='user2_template1', author=self._user2)
 
 
     def setUpSingleUser(self):
@@ -130,8 +123,8 @@ class ViewTestCase(TestCase):
                                                root=self._user1_template1.rootFolder)
         self._user1_template1_folder2.save()
         self._user1_template1_folder2_subfolder1 = Folder(name='user1_template1_folder2_subfolder1',
-                                                         parent=self._user1_template1_folder2,
-                                                         root=self._user1_template1.rootFolder)
+                                                          parent=self._user1_template1_folder2,
+                                                          root=self._user1_template1.rootFolder)
         self._user1_template1_folder2_subfolder1.save()
 
         # erstelle einen Order für user2, die dem Projekt user2_project1 zugewiesen werden
@@ -167,7 +160,7 @@ class ViewTestCase(TestCase):
         zipfile1_name = 'test_utf8_Übung.zip'
 
         # Pfad für die zip
-        self._zipfile1_path = os.path.join(settings. TESTFILES_ROOT, zipfile1_name)
+        self._zipfile1_path = os.path.join(settings.TESTFILES_ROOT, zipfile1_name)
 
         # Ändere den Source Code der main.tex Datei von user1_project1
         self._user1_tex1 = self._user1_project1.rootFolder.getMainTex()

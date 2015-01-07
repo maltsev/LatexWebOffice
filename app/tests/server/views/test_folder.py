@@ -16,11 +16,11 @@
 
 """
 
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
+from app.common.constants import ERROR_MESSAGES
 from app.common import util
 from app.models.folder import Folder
 from app.models.file.file import File
-from app.tests.server.viewtestcase import ViewTestCase
+from app.tests.server.views.viewtestcase import ViewTestCase
 
 
 class FolderTestClass(ViewTestCase):

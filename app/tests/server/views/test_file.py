@@ -25,7 +25,7 @@ import shutil
 from django.utils.encoding import smart_str
 
 from core import settings
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
+from app.common.constants import ERROR_MESSAGES
 from app.common import util
 from app.models.file.file import File
 from app.models.file.texfile import TexFile
@@ -33,7 +33,7 @@ from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.models.file.pdf import PDF
 from app.models.project import Project
-from app.tests.server.viewtestcase import ViewTestCase
+from app.tests.server.views.viewtestcase import ViewTestCase
 
 
 class FileTestClass(ViewTestCase):
@@ -845,6 +845,8 @@ class FileTestClass(ViewTestCase):
         # hole die Datei- und Ordnerobjekte
         fileobj = self._user1_binary1
         folderobj = self._user1_binary1.folder
+        # ermittelt das Projekt der Datei
+        projectobj = folderobj.getProject()
 
         # erwartete Antwort des Servers
         serveranswer = {
@@ -852,14 +854,14 @@ class FileTestClass(ViewTestCase):
             'filename': fileobj.name,
             'folderid': folderobj.id,
             'foldername': folderobj.name,
-            'projectid': folderobj.getProject().id,
-            'projectname': folderobj.getProject().name,
+            'projectid': projectobj.id,
+            'projectname': projectobj.name,
             'createtime': util.datetimeToString(fileobj.createTime),
             'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
             'size': fileobj.size,
             'mimetype': fileobj.mimeType,
-            'ownerid': folderobj.getProject().author.id,
-            'ownername': folderobj.getProject().author.username
+            'ownerid': projectobj.author.id,
+            'ownername': projectobj.author.username
         }
 
         # überprüfe die Antwort des Servers
@@ -874,6 +876,8 @@ class FileTestClass(ViewTestCase):
         # hole die Datei- und Ordnerobjekte
         fileobj = self._user1_tex2
         folderobj = self._user1_tex2.folder
+        # ermittelt das Projekt der Datei
+        projectobj = folderobj.getProject()
 
         # erwartete Antwort des Servers
         serveranswer = {
@@ -881,14 +885,14 @@ class FileTestClass(ViewTestCase):
             'filename': fileobj.name,
             'folderid': folderobj.id,
             'foldername': folderobj.name,
-            'projectid': folderobj.getProject().id,
-            'projectname': folderobj.getProject().name,
+            'projectid': projectobj.id,
+            'projectname': projectobj.name,
             'createtime': util.datetimeToString(fileobj.createTime),
             'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
             'size': fileobj.size,
             'mimetype': fileobj.mimeType,
-            'ownerid': folderobj.getProject().author.id,
-            'ownername': folderobj.getProject().author.username
+            'ownerid': projectobj.author.id,
+            'ownername': projectobj.author.username
         }
 
         # überprüfe die Antwort des Servers
@@ -911,87 +915,6 @@ class FileTestClass(ViewTestCase):
         # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zu Dateiinformation einer Datei von user2 (als user1)
         response = util.documentPoster(self, command='fileinfo', idpara=self._user2_tex1.id)
-
-        # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
-
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
-
-    def test_latexCompile(self):
-        """Test der latexCompile() Methode des file view
-
-        Teste das Kompilieren einer einfachen .tex Datei,
-        (Hier soll nur der generelle Aufruf der latexCompile() Funktion getestet werden,
-        weitere Tests für die eigentliche compile Funktion befinden sich in test_compile.py)
-
-        Testfälle:
-        - user1 kompiliert eine simple .tex Datei -> Erfolg
-        - user1 kompiliert eine fehlerhafte .tex Datei -> Fehler
-        - user1 kompiliert eine Datei die nicht vorhanden ist -> Fehler
-        - user1 kompiliert eine Datei welche user2 gehört -> Fehler
-
-        :return: None
-        """
-
-        # erstelle ein Projekt mit 2 .tex Dateien, wobei texobj2 keine gültige .tex Datei ist
-        projectobj = Project.objects.create(name=self._newname1, author=self._user1)
-        src_code = "\\documentclass[a4paper,10pt]{article} \\usepackage[utf8]{inputenc} \\title{test} " \
-                   "\\begin{document} \\maketitle \\begin{abstract} \\end{abstract} \\section{} \\end{document}"
-        texobj1 = TexFile.objects.create(name=self._newtex_name1, folder=projectobj.rootFolder, source_code=src_code)
-        texobj2 = TexFile.objects.create(name=self._newtex_name2, folder=projectobj.rootFolder, source_code='Test')
-
-        # Sende Anfrage zum Kompilieren der .tex Datei
-        response = util.documentPoster(self, command='compile', idpara=texobj1.id)
-
-        # der Name sollte dem der .tex Datei entsprechen, jedoch mit der Endung .pdf
-        pdf_name = texobj1.name[:-3] + 'pdf'
-        # hole das PDF Objekt
-        pdfobj = PDF.objects.filter(name=pdf_name, folder=texobj1.folder)
-
-        # Das PDF Objekt zu der .tex Datei sollte in der Datenbank vorhanden sein
-        self.assertTrue(pdfobj.count() == 1)
-
-        # erwartete Antwort des Servers
-        serveranswer = {
-            'id': pdfobj[0].id,
-            'name': pdf_name
-        }
-
-        # überprüfe die Antwort des Servers
-        # sollte success als status liefern
-        # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonSuccessResponse(self, response.content, serveranswer)
-
-        # --------------------------------------------------------------------------------------------------------------
-        # Sende Anfrage zum Kompilieren einer fehlerhaften .tex Datei
-        response = util.documentPoster(self, command='compile', idpara=texobj2.id)
-
-        # erwartete Antwort des Servers
-        serveranswer = '["Syntax-Fehler: Es konnte kein g\\u00fcltiges \\\\end gefunden werden."]'
-
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
-
-        # --------------------------------------------------------------------------------------------------------------
-        # Sende Anfrage zum Kompilieren einer Datei die nicht vorhanden ist
-        response = util.documentPoster(self, command='compile', idpara=self._invalidid)
-
-        # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['FILENOTEXIST']
-
-        # überprüfe die Antwort des Servers
-        # sollte failure als status liefern
-        # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
-
-        # --------------------------------------------------------------------------------------------------------------
-        # Sende Anfrage zum Kompilieren einer Datei die user2 gehört (als user1)
-        response = util.documentPoster(self, command='compile', idpara=self._user2_tex1.id)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']

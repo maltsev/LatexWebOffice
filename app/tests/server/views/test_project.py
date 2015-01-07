@@ -21,12 +21,12 @@ import shutil
 import os
 import mimetypes
 
-from app.common.constants import ERROR_MESSAGES, SUCCESS
+from app.common.constants import ERROR_MESSAGES
 from app.common import util
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.plaintextfile import PlainTextFile
-from app.tests.server.viewtestcase import ViewTestCase
+from app.tests.server.views.viewtestcase import ViewTestCase
 
 
 class ProjectTestClass(ViewTestCase):
@@ -170,6 +170,119 @@ class ProjectTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+    def test_projectClone(self):
+        """Test der projectClone() Methode aus dem project view
+
+        Teste das Duplizieren eines Projektes.
+
+        Testfälle:
+        - user1 dupliziert ein vorhandenes Projekt -> Erfolg
+        - user1 dupliziert ein nicht vorhandenens Projekt -> Fehler
+        - user1 dupliziert ein Projekt, dessen Projektname nur Leerzeichen enthält -> Fehler
+        - user1 dupliziert ein Projekt, dessen Projektname ein leerer String ist -> Fehler
+        - user1 dupliziert ein Projekt, dessen Projektname ungültige Sonderzeichen enthält -> Fehler
+        - user1 dupliziert ein Projekt, dessen Projektname bereits existiert -> Fehler
+
+        :return: None
+        """
+
+        # Sende Anfrage zum Duplizieren eines Projektes
+        response = util.documentPoster(self, command='projectclone', idpara=self._user1_project1.id,
+                                       name=self._newname1)
+
+        # erwartete Antwort des Servers
+        serveranswer = {'id': Project.objects.filter(author=self._user1, name=self._newname1)[0].id,
+                        'name': self._newname1}
+
+        # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']))
+        # es sollte ein rootFolder angelegt worden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder)
+        # die main.tex Datei sollte im Hauptverzeichnis vorhanden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder.getMainTex())
+
+        # --------------------------------------------------------------------------------------------------------------
+        # dupliziere ein Projekt, mit einer ungültigen Id
+        response = util.documentPoster(self, command='projectclone', idpara=self._invalidid,
+                                       name=self._newname2)
+
+        # es sollte kein Projekt mit dem Namen _newname2 in der Datenbank vorhanden sein
+        self.assertFalse((Project.objects.filter(name=self._newname2, author=self._user1)))
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['PROJECTNOTEXIST']
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # dupliziere ein Projekt, mit einem Namen der nur aus Leerzeichen besteht
+        response = util.documentPoster(self, command='projectclone', idpara=self._user1_project2.id,
+                                       name=self._name_only_spaces)
+
+        # es sollte kein Projekt mit dem Namen name_only_spaces in der Datenbank vorhanden sein
+        self.assertFalse((Project.objects.filter(name=self._name_only_spaces, author=self._user1)))
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['BLANKNAME']
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # dupliziere ein Projekt, mit einem Namen der nur ein leerer String ist
+        response = util.documentPoster(self, command='projectclone', idpara=self._user1_project2.id,
+                                       name=self._name_blank)
+
+        # es sollte kein Projekt mit dem Namen name_blank in der Datenbank vorhanden sein
+        self.assertFalse((Project.objects.filter(name=self._name_blank, author=self._user1)))
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['BLANKNAME']
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # dupliziere ein Projekt, mit einem Namen der ungültige Sonderzeichen enthält
+        response = util.documentPoster(self, command='projectclone', idpara=self._user1_project2.id,
+                                       name=self._name_invalid_chars)
+
+        # es sollte kein Projekt mit dem Namen name_invalid_chars in der Datenbank vorhanden sein
+        self.assertFalse((Project.objects.filter(name=self._name_invalid_chars, author=self._user1)))
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['INVALIDNAME']
+
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # dupliziere ein Projekt mit einem bereits existierenden Namen
+        response = util.documentPoster(self, command='projectclone', idpara=self._user1_project2.id,
+                                       name=self._newname1.upper())
+
+        # es sollte nur ein Projekt mit dem Namen newname1 in der Datenbank vorhanden sein
+        self.assertTrue((Project.objects.filter(name=self._newname1, author=self._user1)).count() == 1)
+
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(self._newname1.upper())
+
+        # überprüfe die Antwort des Server
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
 
     def test_projectRm(self):
         """Test der  projectRm() Methode aus dem project view

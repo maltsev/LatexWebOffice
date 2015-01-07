@@ -16,11 +16,7 @@
 
 """
 
-from django.test import TestCase, Client
-from django.contrib.auth.models import User
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
-import json
-from app.tests.server.viewtestcase import ViewTestCase
+from app.tests.server.views.viewtestcase import ViewTestCase
 
 
 class MainTestClass(ViewTestCase):

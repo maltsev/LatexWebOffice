@@ -15,7 +15,6 @@
 * Backlog entry : TEK1, 3ED9, DOK8
 
 """
-import mimetypes
 import logging
 import json
 
@@ -28,12 +27,19 @@ from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.common import util
 from app.common.compile import compile as comp
-from app.common.constants import ERROR_MESSAGES
+from app.common.constants import ERROR_MESSAGES, STANDARDENCODING
 
-# erstellt eine neue .tex Datei in der Datenbank ohne Textinhalt
-# benötigt: id:folderid name:texname
-# liefert HTTP Response (Json); response: id=fileid, name=filename
+
 def createTexFile(request, user, folderid, texname):
+    """Erstellt eine neue .tex Datei in der Datenbank ohne Textinhalt.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param folderid: Id des Ordners, in welchen die Datei erstellt werden soll
+    :param texname: Name der .tex Datei
+    :return: HttpResponse (JSON)
+    """
+
     # hole das Ordner Objekt
     folderobj = Folder.objects.get(id=folderid)
 
@@ -50,10 +56,16 @@ def createTexFile(request, user, folderid, texname):
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
-# aktualisiert eine geänderte Datei eines Projektes in der Datenbank (akzeptiert nur PlainTextFiles)
-# benötigt: id:fileid, content:filecontenttostring
-# liefert: HTTP Response (Json)
 def updateFile(request, user, fileid, filecontenttostring):
+    """Aktualisiert eine geänderte Datei eines Projektes in der Datenbank (akzeptiert nur PlainTextFiles).
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der Datei, welche geändert werden soll
+    :param filecontenttostring:  neuer Dateiinhalt als String
+    :return: HttpResponse (JSON)
+    """
+
     # wenn es sich bei der Datei nicht um ein PlainTextFile Model aus der Datenbank handelt
     # kann die Datei nicht bearbeitet werden, d.h. es wurde eine Binaryfile übergeben
     if not PlainTextFile.objects.filter(id=fileid).exists():
@@ -71,10 +83,15 @@ def updateFile(request, user, fileid, filecontenttostring):
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
-# löscht eine vom Client angegebene Datei eines Projektes
-# benötigt: id:fileid
-# liefert: HTTP Response (Json)
 def deleteFile(request, user, fileid):
+    """Löscht eine vom Client angegebene Datei eines Projektes.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der Datei welche gelöscht werden soll
+    :return: HttpResponse (JSON)
+    """
+
     # hole das file object
     fileobj = File.objects.get(id=fileid)
 
@@ -86,10 +103,16 @@ def deleteFile(request, user, fileid):
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
-# benennt eine vom Client angegebene Datei um
-# benötigt: id:fileid, name:newfilename
-# liefert: HTTP Response (Json)
 def renameFile(request, user, fileid, newfilename):
+    """Benennt eine vom Client angegebene Datei um.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der Datei welche umbenannt werden soll
+    :param newfilename: neuer Dateiname
+    :return: HttpResponse (JSON)
+    """
+
     # hole das file object
     fileobj = File.objects.get(id=fileid)
 
@@ -107,10 +130,16 @@ def renameFile(request, user, fileid, newfilename):
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
-# verschiebt eine Datei in einen anderen Ordner
-# benötigt: id: fileid, folderid: newfolderid
-# liefert HTTP Response (Json)
 def moveFile(request, user, fileid, newfolderid):
+    """Verschiebt eine Datei in einen anderen Ordner.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der Datei welche verschoben werden soll
+    :param newfolderid: Id des Ordners, in welchen die Datei verschoben werden soll
+    :return: HttpResponse (JSON)
+    """
+
     # hole das folder und file object
     folderobj = Folder.objects.get(id=newfolderid)
     fileobj = File.objects.get(id=fileid)
@@ -133,11 +162,15 @@ def moveFile(request, user, fileid, newfolderid):
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
-# speichert vom Client gesendete Dateien im entsprechenden Projektordner
-# bzw. in der Datenbank (.tex)/
-# benötigt: id:projectid, folderid:folderid
-# liefert: HTTP Response (Json)
 def uploadFiles(request, user, folderid):
+    """Speichert vom Client gesendete Dateien im entsprechenden Projektordner.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param folderid: Id des Ordners, in welchen die hochgeladenen Dateien gespeichert werden sollen.
+    :return: HttpResponse (JSON)
+    """
+
     # dictionary für die Rückgabe von erfolgreich gespeicherten Dateien bzw. fehlgeschlagenen
     # es wird jeweils der name zurückgegeben (bei Erfolg zusätzlich die fileid, bei Fehlschlag der Grund)
     errors = []
@@ -164,10 +197,15 @@ def uploadFiles(request, user, folderid):
     return util.jsonResponse({'success': success, 'failure': errors}, True, request)
 
 
-# liefert eine vom Client angeforderte Datei als Filestream
-# benötigt: id:fileid
-# liefert: filestream
 def downloadFile(request, user, fileid):
+    """Liefert eine vom Client angeforderte Datei als Filestream.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der Datei welcher heruntergeladen werden soll
+    :return: filestream (404 im Fehlerfall)
+    """
+
     # setze das logging level auf ERROR
     # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben wird
     logger = logging.getLogger('django.request')
@@ -207,16 +245,9 @@ def downloadFile(request, user, fileid):
 
     downloadfileobj_content.close()
 
-    # versuche den Mimetype herauszufinden
-    ctype, encoding = mimetypes.guess_type(downloadfileobj.name)
-
-    # wenn kein Mimetype erkannt wurde, setze den Standard Typ
-    if ctype is None:
-        ctype = 'application/octet-stream'
-    response['Content-Type'] = ctype
+    response['Content-Type'] = downloadfileobj.mimeType
     response['Content-Length'] = downloadfileobj_size
-    if encoding is not None:
-        response['Content-Encoding'] = encoding
+    response['Content-Encoding'] = STANDARDENCODING
 
     filename_header = 'filename=%s' % downloadfileobj.name
 
@@ -225,13 +256,14 @@ def downloadFile(request, user, fileid):
     return response
 
 
-# benötigt: id:fileid
-# liefert: HTTP Response (Json) --> fileid, filename, folderid, foldername, projectid, projectname, createtime, lastmodifiedtime, mimetype, size
 def fileInfo(request, user, fileid):
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
-    if not rights:
-        return failurereturn
+    """Liefert Informationen zur angeforderten Datei.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der Datei, von der die Informationen angefordert werden
+    :return: HttpResponse (JSON)
+    """
 
     # hole das Datei und Ordner Objekt
     fileobj = File.objects.get(id=fileid)
@@ -246,25 +278,30 @@ def fileInfo(request, user, fileid):
                   'filename': fileobj.name,
                   'folderid': folderobj.id,
                   'foldername': folderobj.name,
-                  'projectid': folderobj.getProject().id,
-                  'projectname': folderobj.getProject().name,
+                  'projectid': projectobj.id,
+                  'projectname': projectobj.name,
                   'createtime': util.datetimeToString(fileobj.createTime),
                   'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
                   'size': fileobj.size,
                   'mimetype': fileobj.mimeType,
-                  'ownerid': folderobj.getProject().author.id,
-                  'ownername': folderobj.getProject().author.username
+                  'ownerid': projectobj.author.id,
+                  'ownername': projectobj.author.username
     }
 
     return util.jsonResponse(dictionary, True, request)
 
 
-# Kompiliert eine LaTeX Datei
-# benötigt: id:fileid
-# liefert: HTTP Response (Json)
-def latexCompile(request, user, fileid):
-    # rueckgabe=Sende Dateien an Ingo's Methode
-    errors, success = comp(fileid)
+def latexCompile(request, user, fileid, targetformat=0):
+    """Kompiliert eine LaTeX Datei.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid:
+    :param targetformat 0 - PDF, 1 - HTML
+    :return: HttpResponse (JSON)
+    """
+
+    errors, success = comp(fileid, targetformat)
     if errors:
         return util.jsonErrorResponse(json.dumps(errors), request)
     if success:
