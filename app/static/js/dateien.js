@@ -436,6 +436,52 @@ jQuery.ajax('/documents/', {
 	});
 }
 
+/*
+* Hochladen einer Datei aus einem lokalen Ordner.
+*/
+function uploadFile(id,type) {
+
+jQuery.ajax('/documents/', {
+		'type': 'POST',
+		'data': {
+			'command': 'uploadfile',
+			'id': id
+			'type': folder
+		},
+		'headers': {
+			'X-CSRFToken': $.cookie('csrftoken')
+		},
+		'dataType': 'json',
+		'error': function(response, textStatus, errorThrown) {
+			//Anfrage Fehlerhaft
+			console.log({
+				'error': 'Fehlerhafte Anfrage: Fehler beim Abrufen der Dateiliste',
+				'details': errorThrown,
+				'id': id,
+				'statusCode': response.status,
+				'statusText': response.statusText
+			});
+		},
+		'success': function(data, textStatus, response) {
+			if (data.status != 'success'){
+				// Fehler auf dem Server
+				console.log({
+					'error': 'Fehlerhafte Rückmeldung: Fehler beim Abrufen der Dateiliste',
+					'details': data.response,
+					'statusCode': response.status,
+					'statusText': response.statusText
+				});
+			}
+			else {
+			// Datei hochladen und Seite aktualisieren 
+			location.reload();
+			
+			
+		}
+		}
+	});
+}
+
 
 /*
  * Löscht den ausgewählten Ordner/die Datei

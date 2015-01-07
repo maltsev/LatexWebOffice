@@ -29,7 +29,7 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 TEMPLATE_CONTEXT_PROCESSORS += ('app.contextprocessors.settingsprocessor.Error_messages',
                                 'app.contextprocessors.settingsprocessor.Available_commands',
@@ -129,3 +129,8 @@ if 'test' in sys.argv:
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
+try:
+    pass
+    #from core.latexwebofficeconf import *
+except:
+    pass

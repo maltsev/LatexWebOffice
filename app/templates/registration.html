@@ -1,72 +1,9 @@
-<!--
-@author: Franziska Everinghoff 
-@creation: 06.11.2014 - sprint-nr: 1
-@last-change: 20.11.2014 - sprint-nr: 2
--->
-
 {% extends "_wrapper.html" %}
 
 <!-- Header -->
 {% block header %}
-<script src="/static/js/inputvalidation.js"></script>
 {% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
-<div id="inhalt">
-    <div id="registrierungsbox">
-        <h1>REGISTRIEREN</h1>
-        <div class="hline_green"></div>
-		<!-- Anzeigen der Fehlermeldung -->
-        <div class="row">
-            {% comment %}
-            Stub Page
-            {% endcomment %}
-
-            {% if messages %}
-                <ul class="messages"><!-- https://docs.djangoproject.com/en/dev/ref/contrib/messages/ Senden der Meldungen vom Server zum Client -->
-                    {% for message in messages %}
-                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-
-            <form action="#" method="post" role="form">
-            {% csrf_token %}
-			<!-- Eingabefelder für Vorname, Mailadresse, Passwort und Passwort wdh.-->
-            <div class="form-group">
-		        <ul>
-		        <li class="inputlabel">Vorname</li>
-			<li class="inputfield"><input type="text" required class="form-control" name="first_name" placeholder="Vorname" value="{{first_name}}"></li>
-			     </ul>
-            </div>
-		
-            <div class="form-group">
-		        <ul>
-		        <li class="inputlabel">E-Mail-Adresse</li>
-			<li class="inputfield"><input type="email" required class="form-control" name="email" placeholder="Email" value="{{email}}"></li>
-			     </ul>
-            </div>
-
-            <div class="form-group">
-		        <ul>
-		        <li class="inputlabel">Passwort</li>
-		        <li class="inputfield"><input type="password" required id="password1" class="form-control" name="password1" placeholder="Passwort"></li>
-		        </ul>
-            </div>
-
-            <div class="form-group">
-              <ul>
-              <li class="inputlabel">Passwort wiederholen</li>
-              <li class="inputfield"><input type="password" required id="password2" class="form-control" name="password2" placeholder="Passwort wiederholen"></li>
-			  </ul>
-		  </div>
-
-            <button type="submit" class="greenbutton btn btn-success">Registrieren</button>
-            <div class="hline_green" style="margin-top: -60px;float:left;"></div>
-            </form>
-
-        </div>
-    </div>
-</div>
 {% endblock %}
