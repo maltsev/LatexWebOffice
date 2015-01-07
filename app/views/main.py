@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Mo 15 Dez 2014 13:38:16 CET
+* Last Modified : Mi 07 Jan 2015 16:43:33 CET
 
 * Author :  maltsev
 
@@ -19,7 +19,6 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 
-@login_required
 def index(request):
     return render(request, 'index.html')
 

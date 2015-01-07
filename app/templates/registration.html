@@ -1,9 +1,139 @@
+<!--
+
+* Purpose :
+
+* Creation Date :
+
+* Last Modified :
+
+* Author : mattis
+
+* Coauthors :   
+
+* Sprintnumber : 1,4
+
+* Backlog entry : 
+
+-->
+
 {% extends "_wrapper.html" %}
 
 <!-- Header -->
 {% block header %}
+	<script src="/static/js/jquery.validate.min.js"></script>
 {% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
+<form class="form-horizontal" id="regform" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
+	<div class="form-group has-feedback">
+		<label for="first_name" class="col-sm-2 control-label" placeholder="Vorname">Vorname</label>
+		<div class="reg-input-group col-sm-10">
+			<input type="text" class="form-control" id="first_name" name="first_name" placeholder="Vorname" aria-describedby="inputError2Status">
+			<div class="help-block with-errors"></div>
+		</div>
+	</div>
+	<div class="form-group has-feedback">
+		<label for="email" class="col-sm-2 control-label" placeholder="email">Email</label>
+		<div class="reg-input-group col-sm-10">
+			<input type="email" class="form-control" id="email" name="email" placeholder="Email" aria-describedby="inputError2Status">
+			<div class="help-block with-errors"></div>
+		</div>
+	</div>
+	<div class="form-group has-feedback">
+		<label for="password1" class="col-sm-2 control-label" placeholder="Passwort">Passwort</label>
+		<div class="reg-input-group col-sm-10">
+			<input type="password" class="form-control" id="password1" name="password1" placeholder="Passwort" aria-describedby="inputError2Status">
+			<div class="help-block with-errors"></div>
+		</div>
+	</div>
+	<div class="form-group has-feedback">
+		<label for="password2" class="col-sm-2 control-label" placeholder="Passwort">Passwort wiederholen</label>
+		<div class="reg-input-group col-sm-10">
+			<input type="password" class="form-control" id="password2" name="password2" placeholder="Passwort" aria-describedby="inputError2Status">
+			<div class="help-block with-errors"></div>
+		</div>
+	</div>
+
+
+	<div class="col-sm-offset-2">
+		<button type="submit" class="btn btn-lg btn-primary btn-block">Submit</button>
+	</div>
+
+</form>
+
+<script>
+
+// override jquery validate plugin defaults http://stackoverflow.com/a/18754780
+$.validator.setDefaults({
+    highlight: function(element) {
+        $(element).closest('.form-group').removeClass('has-success').addClass('has-error');
+	$(element).closest('.reg-input-group').find('span.fa').remove();
+    	$(element).closest('.reg-input-group').append('<span class="fa glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>');
+    },
+    unhighlight: function(element) {
+        $(element).closest('.form-group').removeClass('has-error').addClass('has-success');
+	$(element).closest('.reg-input-group').find('span.fa').remove();
+    	$(element).closest('.reg-input-group').append('<span class="fa glyphicon glyphicon-ok form-control-feedback" aria-hidden="true"></span>');
+
+    },
+    errorElement: 'span',
+    errorClass: 'help-block',
+    errorPlacement: function(error, element) {
+        if(element.parent('.input-group').length) {
+            error.insertAfter(element.parent());
+        } else {
+            error.insertAfter(element);
+        }
+    }
+});
+
+var a="{{ ERROR_MESSAGES}}".replace(/&quot;/g, "\"").replace(/(?:\r\n|\r|\n)/g,'');
+var ERROR_MESSAGES = JSON.parse(a);
+
+jQuery.extend(jQuery.validator.messages, {
+	required: ERROR_MESSAGES.NOEMPTYFIELDS,
+	email: ERROR_MESSAGES.INVALIDEMAIL,
+});
+
+
+
+
+    $('#regform').validate({
+	    rules:{
+		    first_name:"required",
+		    email:{
+			    required:true,
+			    email:true,
+			    remote:{
+				    url: "/reguserexists/",
+				    type: "post",
+				    data:{
+					    'email':function(){return $('#email').val();}
+				    }
+
+			    }
+
+		    },
+		    password1:"required",
+		    password2:{
+			    required:true,
+			    equalTo:"#password1"
+		    }
+	    },
+	messages: {
+		password2:{
+			equalTo: ERROR_MESSAGES.PASSWORDSDONTMATCH
+		},
+		email:{
+			remote:ERROR_MESSAGES.EMAILALREADYEXISTS,
+		}
+
+	},
+    });
+
+</script>
+
+
+
 {% endblock %}
