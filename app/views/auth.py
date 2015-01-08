@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Mi 07 Jan 2015 10:30:11 CET
+* Last Modified : Mi 07 Jan 2015 16:40:09 CET
 
 * Author :  maltsev
 
@@ -25,6 +25,7 @@ from core.settings import LOGIN_URL
 from app.common.constants import ERROR_MESSAGES
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.views.decorators.csrf import csrf_exempt
 from django.template import Template, context, RequestContext
 import re
 
@@ -132,11 +133,26 @@ def registration(request):
             if user is not None:
                 if user.is_active:
                     auth.login(request, user)
-                    return redirect('/')
+                    return redirect('/projekt/')
             else:
                 messages.error(request, ERROR_MESSAGES['LOGINORREGFAILED'])
 
     return render_to_response('registration.html', {'first_name': first_name, 'email': email}, context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def userexists(request):
+    from django.http import HttpResponse
+    import json
+    print(request.POST.get('email'))
+    if request.method=='POST' and request.POST.get('email'):
+        if  User.objects.filter(username=request.POST.get('email')).exists():
+            return HttpResponse("false")
+
+        else:
+            return HttpResponse("true")
+    return util.jsonErrorResponse({},request)
+
 
 
 # Helper function to check if a email address is valid

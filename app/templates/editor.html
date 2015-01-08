@@ -25,6 +25,19 @@ Tst
 							<p onClick="history.back()"> Ja</p>
 							<p onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')"> Nein</p>
 						</div>
+						
+	<div id="dialog_tabelle_erstellen" title="Tabelle erstellen" style="display: none;">	
+		<p>Bitte geben Sie die Eckdaten der Tabelle ein</p>
+		<p onClick=""> Erstellen</p>
+		<p onClick=" $( '#dialog_tabelle_erstellen' ).dialog('destroy')"> Abbrechen</p>
+	</div>
+	
+	<button type="button" class="btn btn-default" aria-label="Left Align" title="Erstelle eine Tabelle" onClick="createTable()">
+		<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> <!-- Button für den Tabellenassistent -->
+	</button>
+
+
+
 						<!--
 						   <header class="navbar navbar-static-top bs-docs-nav" id="top" role="banner">
  <div class="dropdown">

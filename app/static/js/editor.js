@@ -63,6 +63,12 @@ function confirmExit() {
 	$('#dialog_editor_verlassen').dialog();
 }
 
+// Dialogfenster Tabellenassistent
+function createTable() {
+	$('#dialog_tabelle_erstellen').dialog();
+}
+
+
 /// Klammern, welche automatisch geschlossen werden sollen
 var braces = {
 	'{': '}',

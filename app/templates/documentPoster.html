@@ -58,53 +58,54 @@ pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
 
     <pre id='response'>
     </pre>
-
-    <script>
-        //Die commands sortieren, sodass man sie in der liste leicht wiederfinden kann
-        sortedCommandKeys = []
-        for (cmd in AVAILABLE_COMMANDS) sortedCommandKeys.push(cmd);
-        sortedCommandKeys.sort();
-        //Jeder command wird als option eingefügt
-        for (var i = 0; i < sortedCommandKeys.length; ++i) {
-            cmd = sortedCommandKeys[i]
-            $("#command")
-                .append('<option value=' + cmd + '>' + cmd + '</option>');
-        }
-
-        //Falls ein command angeklickt werden, sollen parameter, die nicht benötigt werden, ausgeblendet werden
+<script>
+    //Die commands sortieren, sodass man sie in der liste leicht wiederfinden kann
+    sortedCommandKeys = []
+    for (cmd in AVAILABLE_COMMANDS) sortedCommandKeys.push(cmd);
+    sortedCommandKeys.sort();
+    //Jeder command wird als option eingefügt
+    for (var i = 0; i < sortedCommandKeys.length; ++i) {
+        cmd = sortedCommandKeys[i]
         $("#command")
-            .change(function(key, value) {
-                $("select option:selected")
-                    .each(function() {
-                        var str = $(this)
-                            .text();
-                        var paras = AVAILABLE_COMMANDS[str];
-                        var inputs = $(".hider");
-                        inputs.each(function() {
-                            //   this.hide()
-                            $("#" + this.id)
-                                .hide()
+            .append('<option value=' + cmd + '>' + cmd + '</option>');
+    }
 
-                        });
-                        //Die Parameter, die benötigt werden, sollen eingeblendet werden
-                        for (input in AVAILABLE_COMMANDS[str]) {
-                            $("#div-" + AVAILABLE_COMMANDS[str][input]['para']['name'])
-                                .show()
-                        }
+    //Falls ein command angeklickt werden, sollen parameter, die nicht benötigt werden, ausgeblendet werden
+    $("#command")
+        .change(function(key, value) {
+            $("select option:selected")
+                .each(function() {
+                    var str = $(this)
+                        .text();
+                    var paras = AVAILABLE_COMMANDS[str];
+                    var inputs = $(".hider");
+                    inputs.each(function() {
+                        //   this.hide()
+                        $("#" + this.id)
+                            .hide()
 
                     });
+                    //Die Parameter, die benötigt werden, sollen eingeblendet werden
+                    for (input in AVAILABLE_COMMANDS[str]) {
+                        $("#div-" + AVAILABLE_COMMANDS[str][input]['para']['name'])
+                            .show()
+                    }
 
-            })
-            .change();
+                });
+
+        })
+        .change();
 
 
 
 
-        function syntaxHighlight(json) { // http://stackoverflow.com/questions/4810841/how-can-i-pretty-print-json-using-javascript
-            json = json.replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
-            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function(match) {
+    function syntaxHighlight(json) { // http://stackoverflow.com/questions/4810841/how-can-i-pretty-print-json-using-javascript
+        json = json.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        return json.replace(
+            /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+            function(match) {
                 var cls = 'number';
                 if (/^"/.test(match)) {
                     if (/:$/.test(match)) {
@@ -119,59 +120,65 @@ pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
                 }
                 return '<span class="' + cls + '">' + match + '</span>';
             });
-        }
-        $('#poster')
-            .submit(function(e) {
-                e.preventDefault();
+    }
+    $('#poster')
+        .submit(function(e) {
+            e.preventDefault();
 
-                var data = new FormData(this); // <-- 'this' is your form element
+            var data = new FormData(this); // <-- 'this' is your form element
+            console.log(data);
 
-                $.ajax({
-                    url: '/documents/',
-                    data: data,
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    type: 'POST',
-                    success: function(data, status, xhr) { //http://stackoverflow.com/questions/16086162/handle-file-download-from-ajax-post
+            $.ajax({
+                url: '/documents/',
+                data: data,
+                cache: false,
+                contentType: false,
+                processData: false,
+                type: 'POST',
+                success: function(data, status, xhr) { //http://stackoverflow.com/questions/16086162/handle-file-download-from-ajax-post
 
-                        // check for a filename
-                        var filename = "";
-                        var disposition = xhr.getResponseHeader('Content-Disposition');
-                        if (disposition && disposition.indexOf('attachment') !== -1) {
-                            var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-                            var matches = filenameRegex.exec(disposition);
-                            if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
-                        }
-                        var type = xhr.getResponseHeader('Content-Type');
-                        var blob = new Blob([response], {
-                            type: type
+                    // check for a filename
+                    var filename = "";
+                    var disposition = xhr.getResponseHeader('Content-Disposition');
+                    if (disposition && disposition.indexOf('attachment') !== -1) {
+                        var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                        var matches = filenameRegex.exec(disposition);
+                        if (matches != null && matches[1]) filename = matches[1].replace(
+                            /['"]/g, '');
+
+                        var $inputs = $('#poster :input');
+
+                        // not sure if you wanted this, but I thought I'd add it.
+                        // get an associative array of just the values.
+                        var params = {};
+                        $inputs.each(function() {
+                            params[this.name] = $(this).val();
                         });
-                        var URL = window.URL || window.webkitURL;
-                        var downloadUrl = URL.createObjectURL(blob);
-                        if (filename) {
-                            // use HTML5 a[download] attribute to specify filename
-                            var a = document.createElement("a");
-                            // safari doesn't support this yet
-                            if (typeof a.download === 'undefined') {
-                                window.location = downloadUrl;
-                            } else {
-                                a.href = downloadUrl;
-                                a.download = filename;
-                                document.body.appendChild(a);
-                                a.click();
-                            }
-                        } else {}
+
+
+                        var form = $('<form method="POST" action="' + '/documents/' + '">');
+                        $.each(params, function(k, v) {
+                            console.log(k, v);
+                            form.append($('<input type="hidden" name="' + k +
+                                '" value="' + v + '">'));
+                        });
+                        $('body').append(form);
+                        form.submit();
+                    } else {
 
                         console.log(data)
                         $('#response')
-                            .html('<b>Status:</b>' + data.status + '<br>' + syntaxHighlight(JSON.stringify(data.response, null, '\t'))
-                            + '<p><b>Request:</b><br>' + syntaxHighlight(JSON.stringify(data.request, null, '\t')) + '</p>'
-                            )
+                            .html('<b>Status:</b>' + data.status + '<br>' + syntaxHighlight(
+                                    JSON.stringify(data.response, null, '\t')) +
+                                '<p><b>Request:</b><br>' + syntaxHighlight(JSON.stringify(
+                                    data.request, null, '\t')) + '</p>'
+                            );
                     }
-                });
+                }
             });
-    </script>
+        });
+</script>
+    
 </div>
 {% endblock %}
 

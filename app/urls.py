@@ -4,6 +4,7 @@ from django.conf import settings
 urlpatterns = patterns('app.views',
     url(r'^$', 'main.index'),
     url(r'^registration/', 'auth.registration'),
+    url(r'^reguserexists/', 'auth.userexists'),
     url(r'^login/', 'auth.login'),
     url(r'^logout/', 'auth.logout'),
     url(r'^impressum/', 'main.impressum'),
@@ -12,7 +13,7 @@ urlpatterns = patterns('app.views',
     url(r'^documents/', 'document.execute'),
     url(r'^projekt/', 'main.projekt'),
     url(r'^dateien/', 'main.dateien'),
-    url(r'^vorlagen/', 'main.vorlagen')
+    url(r'^vorlagen/', 'main.vorlagen'),
 )
 if settings.DEBUG:
     urlpatterns += patterns('app.views',
