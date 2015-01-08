@@ -205,4 +205,4 @@ class AuthRegistrationTestClass(TestCase):
         self._client.login(username=self._user1_email,password=self._user1_password1)
         self.assertIn('_auth_user_id',self._client.session)
         response=self._client.get('/registration/')
-        self.assertRedirects(response,'/')
+        self.assertRedirects(response,'/projekt/')
