@@ -30,78 +30,80 @@
 	<link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
 	<link rel="stylesheet" href="/static/bootstrap/css/bootstrap-theme.min.css">
 	<link rel="stylesheet" href="/static/css/navigation/nav.css">
-    <link rel="stylesheet" href="/static/jstree/themes/default/style.min.css">
+	<link rel="stylesheet" href="/static/jstree/themes/default/style.min.css">
 
 	<script src="/static/js/jquery.min.js"></script>
 	<script src="/static/js/jquery.cookie.js"></script>
 	<script src="/static/bootstrap/js/bootstrap.min.js"></script>
-    <script src="/static/jstree/jstree.min.js"></script>
+    	<script src="/static/jstree/jstree.min.js"></script>
 
 	<!-- seitenspezifische Header -->
 	{% block header %}{% endblock %}
 </head>
 <body>
 
-	{% block navbar %}
-	<!-- Static navbar -->
-	    <nav class="navbar navbar-default">
-	      <div class="container-fluid">
-		<div class="navbar-header">
-		  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-		    <span class="sr-only">Toggle navigation</span>
-		    <span class="icon-bar"></span>
-		    <span class="icon-bar"></span>
-		    <span class="icon-bar"></span>
-		  </button>
-		  <a class="navbar-brand" href="/">
-			  <img src="/static/img/icon.png" id="logo" alt="Logo vom LatexWebOffice">
-		  </a>
-		</div>
-		<div id="navbar" class="navbar-collapse collapse">
-		  <ul class="nav navbar-nav">
-			 {% if user.is_authenticated %}
-		    <li><a href="/projekt/">Projekte</a></li>
-		    <li><a href="/vorlagen/">Vorlagen</a></li>
-		    	{% else %}
-			<li><a href="/registration/">Registrieren</a></li>
-			<li><a href="/login/">Einloggen</a></li>
-		    {% endif %}
+    {% block navbar %}
+    <!-- Static navbar -->
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a class="navbar-brand" href="/"><img src="/static/img/icon.png" id="logo" alt="Logo vom LatexWebOffice">
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li><a href="/projekt/">Projekte</a>
+                    </li>
+                    <li><a href="/vorlagen/">Vorlagen</a>
+                    </li>
+                    {% else %}
+                    <li><a href="/registration/">Registrieren</a>
+                    </li>
+                    <li><a href="/login/">Einloggen</a>
+                    </li>
+                    {% endif %}
 
-		  </ul>
-		  <ul class="nav navbar-nav navbar-right">
-			   <li class="dropdown">
-				  <a href="#" class="glyphicon glyphicon glyphicon-question-sign dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="caret"></span></a>
-				  <ul class="dropdown-menu" role="menu">
-					  <li><a href="/impressum/">Impressum</a></li>
-					  <li><a href="/hilfe/">Hilfe</a></li>
-				  </ul>
-			  </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="#" class="glyphicon glyphicon glyphicon-question-sign dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="/impressum/">Impressum</a>
+                            </li>
+                            <li><a href="/hilfe/">Hilfe</a>
+                            </li>
+                        </ul>
+                    </li>
 
-			  {% if user.is_authenticated %}
-			  <li class="dropdown">
-				  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ user.username }}<span class="caret"></span></a>
-				  <ul class="dropdown-menu" role="menu">
-					  <li><a href="/logout/">Abmelden</a></li>
-				  </ul>
-			  </li>
-		        {% endif %}
-		  </ul>
-		</div><!--/.nav-collapse -->
-	      </div>
-	    </nav>
-	{% endblock %}
-	<script>
-	<!-- setze den tab auf active, welcher gerade angezeigt wird
-	$(document).ready(function() {
-	$('.nav li a').on('click', function() {
-	    $(this).parent().parent().find('.active').removeClass('active');
-	});
-		$('.nav').find('a[href="' + location.pathname + '"]').parents('li').addClass('active');
-	});
-	</script>
-	<!-- Sämtliche Inhalte sollten innerhalb des containers geschrieben werden. 
+                    {% if user.is_authenticated %}
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ user.username }}<span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="/logout/">Abmelden</a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+    </nav>
+    {% endblock %}
+    <script>
+        <!-- setze den tab auf active, welcher gerade angezeigt wird
+        $(document).ready(function() {
+            $('.nav li a').on('click', function() {
+                $(this).parent().parent().find('.active').removeClass('active');
+            });
+            $('.nav').find('a[href="' + location.pathname + '"]').parents('li').addClass('active');
+        });
+    </script>
+    <!-- Sämtliche Inhalte sollten innerhalb des containers geschrieben werden. 
 	Daher sollte jede andere HMTL datei diese wrapper_datei erweitern und lediglich den content block überschreiben 
 	-->
-	<div class="container-fluid container-fill">{% block content %}{% endblock %}</div>
+    <div class="container-fluid container-fill">{% block content %}{% endblock %}</div>
 </body>
+
 </html>
