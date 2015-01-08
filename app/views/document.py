@@ -24,6 +24,8 @@ from app.common.constants import ERROR_MESSAGES
 from app.views import file, folder, project, template
 from app.models.projecttemplate import ProjectTemplate
 from app.models.file.file import File
+from app.models.file.texfile import TexFile
+from app.models.file.plaintextfile import PlainTextFile
 from app.models.project import Project
 from app.models.folder import Folder
 
@@ -82,7 +84,7 @@ available_commands = {
     },
     'updatefile': {
         'command': file.updateFile,
-        'parameters': [{'para': globalparas['id'], 'type': File},
+        'parameters': [{'para': globalparas['id'], 'type': PlainTextFile},
                        {'para': globalparas['content']}]
     },
     'deletefile': {
@@ -113,7 +115,7 @@ available_commands = {
     },
     'compile': {
         'command': file.latexCompile,
-        'parameters': [{'para': globalparas['id'], 'type': File},
+        'parameters': [{'para': globalparas['id'], 'type': TexFile},
                        {'para': globalparas['formatid']}]
     },
     'createdir': {
@@ -245,9 +247,21 @@ def execute(request):
                     if not rights:
                         return failurereturn
                 elif objType == File:
-                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request)
+                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request,
+                                                                                   objecttype=File)
                     if not rights:
                         return failurereturn
+                elif objType == TexFile:
+                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request,
+                                                                                   objecttype=TexFile)
+                    if not rights:
+                        return failurereturn
+                elif objType == PlainTextFile:
+                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request,
+                                                                                   objecttype=PlainTextFile)
+                    if not rights:
+                        return failurereturn
+
                 elif objType == ProjectTemplate:
                     # Überprüfe, ob Vorlage existiert und der User darauf Rechte hat
                     emptystring, failurereturn = util.checkIfTemplateExistsAndUserHasRights(objId, user, request)
