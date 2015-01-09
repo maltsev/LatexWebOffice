@@ -7,3 +7,6 @@
 .navbar-nav>li>a{
 	padding-bottom:18.5px;
 }
+.navbar{
+	border-radius: 0px;
+}

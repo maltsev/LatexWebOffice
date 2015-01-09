@@ -27,6 +27,9 @@ def impressum(request):
 
 def hilfe(request):
     return render(request, 'hilfe.html')
+	
+def faq(request):
+    return render(request, 'faq.html')
 
 @login_required
 def editor(request):
