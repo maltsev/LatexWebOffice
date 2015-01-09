@@ -14,30 +14,121 @@
 <script src="/static/js/ace/ace.js"></script>
 <script src="/static/js/ace/ext-language_tools.js"></script>
 <script src="/static/js/editor.js"></script>
+<style type="text/css">
+.container-fluid{
+height: 100%;
+}
+body,html{
+height: 100%;
+}
+ul.nav li {
+float: left;
+}
+ul.nav li button{
+height: 50px;
+width: 50px;
+background-color: Transparent;
+border: 0;
+border-right: 1px solid lightgrey;
+}
+ul.nav li button:hover{
+background: lightgrey;
+}			
+</style>
 {% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
-<div id="inhalt" style="min-height: 100%; height: 100%; background: green;">
-Tst
+<div id="inhalt" style="min-height: 100%; height: 100%;">
+
 	<div id="dialog_editor_verlassen" title="Editor verlassen"style="display: none;">
 							<p>Wollen Sie den Editor wirklich verlassen?</p>
 							<p onClick="history.back()"> Ja</p>
 							<p onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')"> Nein</p>
 						</div>
-						
-	<div id="dialog_tabelle_erstellen" title="Tabelle erstellen" style="display: none;">	
+						 <div id="dialog_tabelle_erstellen" title="Tabelle erstellen" style="display: none;">	
 		<p>Bitte geben Sie die Eckdaten der Tabelle ein</p>
 		<p onClick=""> Erstellen</p>
 		<p onClick=" $( '#dialog_tabelle_erstellen' ).dialog('destroy')"> Abbrechen</p>
 	</div>
+						 <nav class="navbar navbar-default">
+	      <div class="container-fluid">
+		<div class="navbar-header" style="float: left;text-align: left;width: 100%;margin-left: 0;">
+		  <button type="button" style="float: left;" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#editorsymbols" aria-expanded="false" aria-controls="editorsymbols">
+		    Menü
+			<span class="sr-only">Toggle navigation</span>
+		    <span class="icon-bar"></span>
+		    <span class="icon-bar"></span>
+		    <span class="icon-bar"></span>
+		  </button>
+		
+
 	
-	<button type="button" class="btn btn-default" aria-label="Left Align" title="Erstelle eine Tabelle" onClick="createTable()">
-		<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> <!-- Button für den Tabellenassistent -->
-	</button>
-
-
-
+		</div>
+		<div id="editorsymbols" class="navbar-collapse collapse">
+		  <ul class="nav navbar-nav">
+				<li>
+					<button id="backtoprojekt" type="button" title="Zurück zur Dateiübersicht des Projekts" onClick="confirmExit()">						
+						<i class="fa fa-angle-left"></i> <!-- Zurück zur Dateiübersicht des Projekts 	 -->										
+					</button>
+				</li>
+				<li>
+					<button id="save" type="button" title="Speichern">
+						<i class="fa fa-floppy-o"></i> 
+					</button>
+				</li>
+				<li>
+					<button id="undo" type="button" title="Zurück">
+						<i class="fa fa-undo"></i> <!-- Zurück -->
+					</button>
+				</li>
+				<li>
+					<button id="redo" type="button" title="Vor">
+						<i class="fa fa-repeat"></i> <!-- Vor -->
+					</button>
+				</li>
+				<li>
+					<button id="cut" type="button" title="Ausschneiden">
+						<i class="fa fa-scissors"></i> <!-- Ausschneiden -->
+					</button>
+				</li>
+				<li>
+					<button id="copy" type="button" title="Kopieren">
+						<i class="fa fa-files-o"></i> <!-- Kopieren -->
+					</button>
+				</li>
+				<li>
+					<button id="paste" type="button" title="Einfügen">
+						<i class="fa fa-clipboard"></i> <!-- Einfügen -->
+					</button>
+				</li>
+				<li>
+					<button id="compile" type="button" title="PDF Export">
+						<i class="fa fa-file-pdf-o"></i> <!-- PDF-Export -->
+					</button>
+				</li>
+				<li>
+					<button id="insertImage" type="button" title="Grafik einfügen">
+						<i class="fa fa-file-image-o"></i> <!-- Grafik einfügen -->
+					</button>
+				</li>
+				<li>
+					<button type="button" class="btn btn-default" aria-label="Left Align" title="Erstelle eine Tabelle" onClick="createTable()">
+						<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> <!-- Button für den Tabellenassistent -->
+					</button>
+				</li>
+				<li>
+					<button id="switchView" type="button" title="PDF und TEX">
+						<i class="fa fa-refresh"></i> <!-- parallele Anzeige von TEX und PDF-Ausgabe -->
+					</button>
+				</li>
+		
+		    
+		  </ul>
+		 
+		</div><!--/.nav-collapse -->
+	      </div>
+	    </nav>
 						<!--
 						   <header class="navbar navbar-static-top bs-docs-nav" id="top" role="banner">
  <div class="dropdown">
