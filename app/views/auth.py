@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Fr 09 Jan 2015 11:43:23 CET
+* Last Modified : Fr 09 Jan 2015 13:53:25 CET
 
 * Author :  maltsev
 
@@ -92,10 +92,6 @@ def registration(request):
         # boolean, true if there are errors in the user data
         foundErrors = False
 
-        # regular expression for first_name
-        # should only contain alphabetic chars
-        # and german special characters äöüß, no spaces allowed
-        regex_first_name = re.compile('^[a-zA-ZöäüÖÄÜ]*$')
 
         # validation checks
         # no empty fields
@@ -109,11 +105,6 @@ def registration(request):
         # no valid email format
         if not validEmail(email):
             messages.error(request, ERROR_MESSAGES['INVALIDEMAIL'])
-            foundErrors = True
-        # first name may only contain standard ASCII characters
-        # and some german special characters
-        if not regex_first_name.match(first_name):
-            messages.error(request, ERROR_MESSAGES['INVALIDCHARACTERINFIRSTNAME'])
             foundErrors = True
         # passwords may not contain any spaces
         if ' ' in password1:

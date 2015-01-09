@@ -3,7 +3,7 @@ $(document).ready(function() {
         rules: {
             first_name: {
                 required: true,
-                pattern: /^[a-zA-zÄÖÜäöü]*$/,
+                pattern: /[\s]*$/,
             },
             email: {
                 required: true,
@@ -20,7 +20,10 @@ $(document).ready(function() {
                 }
 
             },
-            password1: "required",
+            password1: {
+		    required:true,
+		    noSpaces:true,
+	    },
             password2: {
                 required: true,
                 equalTo: "#password1"
@@ -30,6 +33,9 @@ $(document).ready(function() {
             first_name: {
                 pattern: ERROR_MESSAGES.INVALIDCHARACTERINFIRSTNAME
             },
+	    password1: {
+		noSpaces: ERROR_MESSAGES.NOSPACESINPASSWORDS
+	    },
             password2: {
                 equalTo: ERROR_MESSAGES.PASSWORDSDONTMATCH
             },

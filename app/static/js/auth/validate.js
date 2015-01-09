@@ -26,3 +26,7 @@ jQuery.extend(jQuery.validator.messages, {
 	required: ERROR_MESSAGES.NOEMPTYFIELDS,
 	email: ERROR_MESSAGES.INVALIDEMAIL,
 });
+
+jQuery.validator.addMethod("noSpaces", function(value, element) { 
+	return value.indexOf(" ") < 0 && value != ""; 
+}, "No space please and don't leave it empty");

@@ -141,11 +141,6 @@ pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
                     var filename = "";
                     var disposition = xhr.getResponseHeader('Content-Disposition');
                     if (disposition && disposition.indexOf('attachment') !== -1) {
-                        var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-                        var matches = filenameRegex.exec(disposition);
-                        if (matches != null && matches[1]) filename = matches[1].replace(
-                            /['"]/g, '');
-
                         var $inputs = $('#poster :input');
 
                         // not sure if you wanted this, but I thought I'd add it.
