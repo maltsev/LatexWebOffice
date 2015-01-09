@@ -4,7 +4,7 @@
 
 * Creation Date : 25-11-2014
 
-* Last Modified : Do 04 Dez 2014 15:23:33 CET
+* Last Modified : Sat 10 Jan 2015 12:46:36 AM CET
 
 * Author :  mattis
 
@@ -40,12 +40,12 @@ class MainTestClass(ViewTestCase):
         self.assertTemplateUsed(response, 'impressum.html')
 
 
-    # Test der Hilfe Seite
-    def test_hilfe(self):
-        # Teste ob Hilfe unter der URL aufrufbar ist und das richtige Template nutzt
-        response = self.client.get('/hilfe/')
+    # Test der faq Seite
+    def test_faq(self):
+        # Teste ob FAQ unter der URL aufrufbar ist und das richtige Template nutzt
+        response = self.client.get('/faq/')
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'hilfe.html')
+        self.assertTemplateUsed(response, 'faq.html')
 
 
     # Test der Editor Seite

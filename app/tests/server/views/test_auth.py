@@ -4,7 +4,7 @@
 
 * Creation Date : 06-11-2014
 
-* Last Modified : Fr 09 Jan 2015 11:46:25 CET
+* Last Modified : Sat 10 Jan 2015 12:45:43 AM CET
 
 * Author : mattis
 
@@ -132,12 +132,6 @@ class AuthRegistrationTestClass(TestCase):
         self._user5_password1 = 'test 123'
         self._user5_password2 = 'test 123'
 
-        # user 6 data -> first_name contains illegal character
-        self._user6_first_name = 'user©'
-        self._user6_email = 'user6@test.de'
-        self._user6_password1 = 'test123'
-        self._user6_password2 = 'test123'
-
         # create active user7
         user7 = User.objects.create_user(
             username='user7@test.de', password='123456')
@@ -202,13 +196,6 @@ class AuthRegistrationTestClass(TestCase):
         response = self._client.post(
             '/registration/', {'first_name': self._user5_first_name, 'email': self._user5_email,
             'password1': self._user5_password1, 'password2': self._user5_password2})
-        self.assertNotIn('_auth_user_id',self._client.session)
-
-    # Test if you can't register when first_name contains illegal characters
-    def test_registrationFailFirstNameIllegalChar(self):
-        response = self._client.post(
-            '/registration/', {'first_name': self._user6_first_name, 'email': self._user6_email,
-            'password1': self._user6_password1, 'password2': self._user6_password2})
         self.assertNotIn('_auth_user_id',self._client.session)
 
 
