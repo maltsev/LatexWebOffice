@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Mi 07 Jan 2015 16:43:33 CET
+* Last Modified : Fr 09 Jan 2015 14:48:46 CET
 
 * Author :  maltsev
 
@@ -25,9 +25,6 @@ def index(request):
 def impressum(request):
     return render(request, 'impressum.html')
 
-def hilfe(request):
-    return render(request, 'hilfe.html')
-	
 def faq(request):
     return render(request, 'faq.html')
 
