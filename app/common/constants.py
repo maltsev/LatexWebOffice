@@ -55,9 +55,11 @@ ERROR_MESSAGES = {
     'PROJECTNOTEXIST': 'Projekt nicht gefunden',
     'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
+    'NOTEXFILE': 'Keine Tex Datei.',
     'ILLEGALFILETYPE': 'Dateityp {0} ist nicht erlaubt',
     'TEMPLATEALREADYEXISTS': 'Eine Vorlage mit dem Namen {0} existiert bereits.',
     'TEMPLATENOTEXIST': 'Vorlage nicht gefunden',
+    'UNKNOWNFORMAT': 'Unbekanntes Ausgabeformat'
 }
 
 ALLOWEDMIMETYPES = {
@@ -77,7 +79,10 @@ ALLOWEDMIMETYPES = {
         'image/gif': Image,
         'application/tga': Image,
 
-        'application/pdf': PDF
+        'application/pdf': PDF,
+        'application/postscript': BinaryFile,
+        'application/x-dvi': BinaryFile,
+        'application/zip': BinaryFile
     }
 }
 

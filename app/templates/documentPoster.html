@@ -168,9 +168,9 @@ pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
 
                         console.log(data)
                         $('#response')
-                            .html('<b>Status:</b>' + data.status + '<br>' + syntaxHighlight(
-                                    JSON.stringify(data.response, null, '\t')) +
-                                '<p><b>Request:</b><br>' + syntaxHighlight(JSON.stringify(
+                            .html('<b>Status: </b>' + data.status + '<br>' + '<b>Response: </b><br>' +
+                            syntaxHighlight(JSON.stringify(data.response, null, '\t')) +
+                                '<p><b>Request: </b><br>' + syntaxHighlight(JSON.stringify(
                                     data.request, null, '\t')) + '</p>'
                             );
                     }

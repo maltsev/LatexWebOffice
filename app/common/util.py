@@ -31,6 +31,8 @@ from app.models.folder import Folder
 from app.models.project import Project
 from app.models.projecttemplate import ProjectTemplate
 from app.models.file.file import File
+from app.models.file.texfile import TexFile
+from app.models.file.plaintextfile import PlainTextFile
 
 
 def jsonDecoder(responseContent):
@@ -114,18 +116,30 @@ def checkIfDirExistsAndUserHasRights(folderid, user, request):
         return True, None
 
 
-def checkIfFileExistsAndUserHasRights(fileid, user, request):
+def checkIfFileExistsAndUserHasRights(fileid, user, request, objecttype=File):
     """Überprüft, ob die Datei mit der fileid existiert, und der User die Rechte hat diese zu bearbeiten.
 
     :param fileid: Id der Datei, für welche die Überprüfung durchgeführt werden soll
     :param user: Benutzer, für den die Überprüfung durchgeführt werden soll
     :param request: Anfrage des Clients, wird unverändert zurückgeschickt
+    :param objecttype: Datei Objekt, für welches die Überprüfung durchgeführt werden soll, z.B. File oder TexFile
     :return: (False, HttpResponse (JSON) mit der entsprechenden Fehlermeldung), bzw. (True, None) bei Erfolg
     """
 
-    if not File.objects.filter(id=fileid).exists():
-        return False, jsonErrorResponse(ERROR_MESSAGES['FILENOTEXIST'], request)
-    elif not File.objects.get(id=fileid).folder.getRoot().getProject().author == user:
+    # wenn die Datei mit der fileid vom Typ objecttype nicht existiert
+    if not objecttype.objects.filter(id=fileid).exists():
+        error = ERROR_MESSAGES['FILENOTEXIST']
+
+        file_exists = File.objects.filter(id=fileid).exists()
+
+        # wenn es eine Tex Datei sein soll, es sich aber um einen anderen Dateityp handelt
+        if objecttype == TexFile and file_exists:
+            error = ERROR_MESSAGES['NOTEXFILE']
+        elif objecttype == PlainTextFile and file_exists:
+            error = ERROR_MESSAGES['NOPLAINTEXTFILE']
+
+        return False, jsonErrorResponse(error, request)
+    elif not objecttype.objects.get(id=fileid).folder.getRoot().getProject().author == user:
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
         return True, None
@@ -367,6 +381,13 @@ def createZipFromFolder(folderpath, zip_file_path):
     :return: None
     """
 
+    # sichere das aktuelle Arbeitsverzeichnis
+    oldwd = os.getcwd()
+
+    # wechsel das aktuelle Arbeitsverzeichnis (Verzeichnis der zip Datei)
+    wd, _ = os.path.split(zip_file_path)
+    os.chdir(wd)
+
     relroot = os.path.abspath(folderpath)
     with zipfile.ZipFile(zip_file_path, "w") as zip:
         for root, dirs, files in os.walk(folderpath):
@@ -377,6 +398,9 @@ def createZipFromFolder(folderpath, zip_file_path):
                 if os.path.isfile(filename):
                     arcname = os.path.join(os.path.relpath(root, relroot), file)
                     zip.write(filename, arcname)
+
+    # stelle das vorherige Arbeitsverzeichnis wieder her
+    os.chdir(oldwd)
 
 
 def extractZipToFolder(folderpath, zip_file_path):

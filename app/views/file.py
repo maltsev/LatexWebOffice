@@ -17,6 +17,7 @@
 """
 import logging
 import json
+import mimetypes
 
 from django.http import HttpResponse, Http404
 
@@ -26,7 +27,7 @@ from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
 from app.common import util
-from app.common.compile import compile as comp
+from app.common.compile import latexcompile
 from app.common.constants import ERROR_MESSAGES, STANDARDENCODING
 
 
@@ -65,11 +66,6 @@ def updateFile(request, user, fileid, filecontenttostring):
     :param filecontenttostring:  neuer Dateiinhalt als String
     :return: HttpResponse (JSON)
     """
-
-    # wenn es sich bei der Datei nicht um ein PlainTextFile Model aus der Datenbank handelt
-    # kann die Datei nicht bearbeitet werden, d.h. es wurde eine Binaryfile übergeben
-    if not PlainTextFile.objects.filter(id=fileid).exists():
-        return util.jsonErrorResponse(ERROR_MESSAGES['NOPLAINTEXTFILE'], request)
 
     # lese die PlainTextFile Datei ein
     plaintextobj = PlainTextFile.objects.get(id=fileid)
@@ -236,7 +232,7 @@ def downloadFile(request, user, fileid):
         downloadfileobj = BinaryFile.objects.get(id=fileid)
 
         # hole den Inhalt des Dateiobjektes
-        downloadfileobj_content = open(downloadfileobj.filepath, 'rb')
+        downloadfileobj_content = downloadfileobj.getContent()
 
         # ermittle die Dateigröße
         downloadfileobj_size = util.getFileSize(downloadfileobj_content)
@@ -245,9 +241,13 @@ def downloadFile(request, user, fileid):
 
     downloadfileobj_content.close()
 
+    # versuche die Kodierung herauszufinden
+    _, encoding = mimetypes.guess_type(downloadfileobj.name)
+
     response['Content-Type'] = downloadfileobj.mimeType
     response['Content-Length'] = downloadfileobj_size
-    response['Content-Encoding'] = STANDARDENCODING
+    if encoding is not None:
+        response['Content-Encoding'] = encoding
 
     filename_header = 'filename=%s' % downloadfileobj.name
 
@@ -296,12 +296,12 @@ def latexCompile(request, user, fileid, targetformat=0):
 
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
-    :param fileid:
+    :param fileid: Id der tex Datei welche kompiliert werden soll
     :param targetformat 0 - PDF, 1 - HTML
     :return: HttpResponse (JSON)
     """
 
-    errors, success = comp(fileid, targetformat)
+    errors, success = latexcompile(fileid, targetformat)
     if errors:
         return util.jsonErrorResponse(json.dumps(errors), request)
     if success:
