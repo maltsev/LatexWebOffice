@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Mi 07 Jan 2015 16:40:09 CET
+* Last Modified : Fr 09 Jan 2015 11:43:23 CET
 
 * Author :  maltsev
 
@@ -93,9 +93,9 @@ def registration(request):
         foundErrors = False
 
         # regular expression for first_name
-        # should only contain ASCII characters 33 - 126 (hex: 21 - 7E)
+        # should only contain alphabetic chars
         # and german special characters äöüß, no spaces allowed
-        regex_first_name = re.compile('^[\x21-\x7EÄÖÜäöüß´°]*$')
+        regex_first_name = re.compile('^[a-zA-ZöäüÖÄÜ]*$')
 
         # validation checks
         # no empty fields
@@ -141,17 +141,14 @@ def registration(request):
 
 
 @csrf_exempt
+#Überprüft, ob eine Emailadresse bereits registiert ist. Falls sie registiert ist, wird false zurückgesendet. Andernfalls true.
 def userexists(request):
     from django.http import HttpResponse
-    import json
-    print(request.POST.get('email'))
     if request.method=='POST' and request.POST.get('email'):
         if  User.objects.filter(username=request.POST.get('email')).exists():
             return HttpResponse("false")
 
-        else:
-            return HttpResponse("true")
-    return util.jsonErrorResponse({},request)
+    return HttpResponse('true')
 
 
 

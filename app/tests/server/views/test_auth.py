@@ -4,7 +4,7 @@
 
 * Creation Date : 06-11-2014
 
-* Last Modified : Tue 06 Jan 2015 01:51:13 PM CET
+* Last Modified : Fr 09 Jan 2015 11:46:25 CET
 
 * Author : mattis
 
@@ -45,6 +45,7 @@ class AuthLoginTestClass(TestCase):
         self._user2 = user2
 
         self._client = Client()
+
 
     # Test if a user is not logged in with an incorrect password -> user1
     def test_loginFailIncorrectPassword(self):
@@ -102,13 +103,13 @@ class AuthRegistrationTestClass(TestCase):
     def setUp(self):
 
         # user 1 data -> everything correct
-        self._user1_first_name = 'user1'
+        self._user1_first_name = 'usereins'
         self._user1_email = 'user1@test.de'
         self._user1_password1 = 'test123'
         self._user1_password2 = 'test123'
 
         # user 2 data -> incorrect email address (username)
-        self._user2_first_name = 'user2'
+        self._user2_first_name = 'userzwei'
         self._user2_email = 'user2@test'
         self._user2_password1 = 'test1234'
         self._user2_password2 = 'test1234'
@@ -120,36 +121,51 @@ class AuthRegistrationTestClass(TestCase):
         self._user3_password2 = 'test'
 
         # user 4 data -> passwords do not match
-        self._user4_first_name = 'user4'
+        self._user4_first_name = 'uservier'
         self._user4_email = 'user4@test.de'
         self._user4_password1 = 'test123'
         self._user4_password2 = 'test12'
 
         # user 5 data -> password contains spaces
-        self._user5_first_name = 'user5'
+        self._user5_first_name = 'userfuenf'
         self._user5_email = 'user5@test.de'
         self._user5_password1 = 'test 123'
         self._user5_password2 = 'test 123'
 
         # user 6 data -> first_name contains illegal character
-        self._user6_first_name = 'user6©'
+        self._user6_first_name = 'user©'
         self._user6_email = 'user6@test.de'
         self._user6_password1 = 'test123'
         self._user6_password2 = 'test123'
 
+        # create active user7
+        user7 = User.objects.create_user(
+            username='user7@test.de', password='123456')
+        user7._unhashedpw = '123456'
+        self._user7 = user7
+
         self._client = Client()
+
+
+    # Test Überprüfung, ob eine Emailadresse schon existiert
+    def test_userexists(self):
+        response=self._client.post('/reguserexists/',{'email':self._user7.username})
+        self.assertContains(response,'false')
+
+        response=self._client.post('/reguserexists/',{'email':'Idonotexist@moeplrocks.de'})
+        self.assertContains(response,'true')
 
     # Test if you successfully register when you fill out all fields and
     # enter a valid email address -> user1
     # if automatic login after registration was successful this test passes
-    def atest_registrationSuccess(self):
+    def test_registrationSuccess(self):
         response = self._client.post(
             '/registration/', {'first_name': self._user1_first_name, 'email': self._user1_email,
             'password1': self._user1_password1, 'password2': self._user1_password2})
         self.assertIn('_auth_user_id', self._client.session)
 
     # Test if you can't register when same email is already registered
-    def atest_registrationFailAlreadyRegistered(self):
+    def test_registrationFailAlreadyRegistered(self):
         # create user1 separately again, because user1 from first registrationSuccess
         # doesn't exist here in our database
         new_user = User.objects.create_user(username=self._user1_email,
@@ -158,51 +174,51 @@ class AuthRegistrationTestClass(TestCase):
         response = self._client.post(
             '/registration/', {'first_name': self._user1_first_name, 'email': self._user1_email,
             'password1': self._user1_password1, 'password2': self._user1_password2}, follow=True)
-        self.assertContains(response, ERROR_MESSAGES['EMAILALREADYEXISTS'])
+        self.assertNotIn('_auth_user_id',self._client.session)
 
     # Test if you can't register with an invalid email address -> user 2
-    def atest_registrationFailInvalidEmail(self):
+    def test_registrationFailInvalidEmail(self):
         response = self._client.post(
             '/registration/', {'first_name': self._user2_first_name, 'email': self._user2_email,
             'password1': self._user2_password1, 'password2': self._user2_password2})
-        self.assertContains(response, ERROR_MESSAGES['INVALIDEMAIL'])
+        self.assertNotIn('_auth_user_id',self._client.session)
 
     # Test if you can't register when you didn't fill out all fields -> user3
-    def atest_registrationFailNotFilledAllFields(self):
+    def test_registrationFailNotFilledAllFields(self):
         response = self._client.post(
             '/registration/', {'first_name': self._user3_first_name, 'email': self._user3_email,
             'password1': self._user3_password1, 'password2': self._user3_password2})
-        self.assertContains(response, ERROR_MESSAGES['NOEMPTYFIELDS'])
+        self.assertNotIn('_auth_user_id',self._client.session)
 
     # Test if you can't register when the passwords do not match -> user4
-    def atest_registrationFailPasswordsDontMatch(self):
+    def test_registrationFailPasswordsDontMatch(self):
         response = self._client.post(
             '/registration/', {'first_name': self._user4_first_name, 'email': self._user4_email,
             'password1': self._user4_password1, 'password2': self._user4_password2})
-        self.assertContains(response, ERROR_MESSAGES['PASSWORDSDONTMATCH'])
+        self.assertNotIn('_auth_user_id',self._client.session)
 
     # Test if you can't register when password contains spaces -> user5
-    def atest_registrationFailPasswordContainsSpaces(self):
+    def test_registrationFailPasswordContainsSpaces(self):
         response = self._client.post(
             '/registration/', {'first_name': self._user5_first_name, 'email': self._user5_email,
             'password1': self._user5_password1, 'password2': self._user5_password2})
-        self.assertContains(response, ERROR_MESSAGES['NOSPACESINPASSWORDS'])
+        self.assertNotIn('_auth_user_id',self._client.session)
 
     # Test if you can't register when first_name contains illegal characters
-    def atest_registrationFailFirstNameIllegalChar(self):
+    def test_registrationFailFirstNameIllegalChar(self):
         response = self._client.post(
             '/registration/', {'first_name': self._user6_first_name, 'email': self._user6_email,
             'password1': self._user6_password1, 'password2': self._user6_password2})
-        self.assertContains(response, ERROR_MESSAGES['INVALIDCHARACTERINFIRSTNAME'])
+        self.assertNotIn('_auth_user_id',self._client.session)
 
 
     # Test that you will be directed to the startseite when trying to register while being already logged in
 
-    def atest_registrationRedirectWhenLoggedIn(self):
+    def test_registrationRedirectWhenLoggedIn(self):
         new_user = User.objects.create_user(username=self._user1_email,
                                                email=self._user1_email, password=self._user1_password1,
                                                first_name=self._user1_first_name)
         self._client.login(username=self._user1_email,password=self._user1_password1)
         self.assertIn('_auth_user_id',self._client.session)
         response=self._client.get('/registration/')
-        self.assertRedirects(response,'/')
+        self.assertRedirects(response,'/projekt/')

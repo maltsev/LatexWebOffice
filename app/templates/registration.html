@@ -21,29 +21,36 @@
 <!-- Header -->
 {% block header %}
 	<script src="/static/js/jquery.validate.min.js"></script>
+	<script src="/static/js/jquery.validate.additional-methods.min.js"></script><!-- benötigt um pattern matching (regexp) nutzen zu können -->
+	<script src="/static/js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
+	<script src="/static/js/auth/registration.js"></script><!-- validate einstellungen speziell für die Registrierung -->
 {% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
+<div class="col-md-8 col-md-offset-2">
+<div class="page-header">
+	<h1>Registrierung</h1>
+</div>
 <form class="form-horizontal" id="regform" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
 	<div class="form-group has-feedback">
 		<label for="first_name" class="col-sm-2 control-label" placeholder="Vorname">Vorname</label>
 		<div class="reg-input-group col-sm-10">
-			<input type="text" class="form-control" id="first_name" name="first_name" placeholder="Vorname" aria-describedby="inputError2Status">
+			<input type="text" class="form-control" id="first_name" name="first_name" value="{{ first_name }}" placeholder="Vorname" aria-describedby="inputError2Status">
 			<div class="help-block with-errors"></div>
 		</div>
 	</div>
 	<div class="form-group has-feedback">
 		<label for="email" class="col-sm-2 control-label" placeholder="email">Email</label>
 		<div class="reg-input-group col-sm-10">
-			<input type="email" class="form-control" id="email" name="email" placeholder="Email" aria-describedby="inputError2Status">
+			<input type="email" class="form-control" id="email" name="email" placeholder="Email" value="{{ email }}" aria-describedby="inputError2Status">
 			<div class="help-block with-errors"></div>
 		</div>
 	</div>
 	<div class="form-group has-feedback">
 		<label for="password1" class="col-sm-2 control-label" placeholder="Passwort">Passwort</label>
 		<div class="reg-input-group col-sm-10">
-			<input type="password" class="form-control" id="password1" name="password1" placeholder="Passwort" aria-describedby="inputError2Status">
+			<input type="password" class="form-control" id="password1" name="password1" placeholder="Passwort"  aria-describedby="inputError2Status">
 			<div class="help-block with-errors"></div>
 		</div>
 	</div>
@@ -57,83 +64,9 @@
 
 
 	<div class="col-sm-offset-2">
-		<button type="submit" class="btn btn-lg btn-primary btn-block">Submit</button>
+		<button type="submit" class="btn btn-lg btn-primary btn-block">registrieren</button>
 	</div>
-
 </form>
-
-<script>
-
-// override jquery validate plugin defaults http://stackoverflow.com/a/18754780
-$.validator.setDefaults({
-    highlight: function(element) {
-        $(element).closest('.form-group').removeClass('has-success').addClass('has-error');
-	$(element).closest('.reg-input-group').find('span.fa').remove();
-    	$(element).closest('.reg-input-group').append('<span class="fa glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>');
-    },
-    unhighlight: function(element) {
-        $(element).closest('.form-group').removeClass('has-error').addClass('has-success');
-	$(element).closest('.reg-input-group').find('span.fa').remove();
-    	$(element).closest('.reg-input-group').append('<span class="fa glyphicon glyphicon-ok form-control-feedback" aria-hidden="true"></span>');
-
-    },
-    errorElement: 'span',
-    errorClass: 'help-block',
-    errorPlacement: function(error, element) {
-        if(element.parent('.input-group').length) {
-            error.insertAfter(element.parent());
-        } else {
-            error.insertAfter(element);
-        }
-    }
-});
-
-var a="{{ ERROR_MESSAGES}}".replace(/&quot;/g, "\"").replace(/(?:\r\n|\r|\n)/g,'');
-var ERROR_MESSAGES = JSON.parse(a);
-
-jQuery.extend(jQuery.validator.messages, {
-	required: ERROR_MESSAGES.NOEMPTYFIELDS,
-	email: ERROR_MESSAGES.INVALIDEMAIL,
-});
-
-
-
-
-    $('#regform').validate({
-	    rules:{
-		    first_name:"required",
-		    email:{
-			    required:true,
-			    email:true,
-			    remote:{
-				    url: "/reguserexists/",
-				    type: "post",
-				    data:{
-					    'email':function(){return $('#email').val();}
-				    }
-
-			    }
-
-		    },
-		    password1:"required",
-		    password2:{
-			    required:true,
-			    equalTo:"#password1"
-		    }
-	    },
-	messages: {
-		password2:{
-			equalTo: ERROR_MESSAGES.PASSWORDSDONTMATCH
-		},
-		email:{
-			remote:ERROR_MESSAGES.EMAILALREADYEXISTS,
-		}
-
-	},
-    });
-
-</script>
-
-
+</div>
 
 {% endblock %}

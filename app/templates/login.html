@@ -1,65 +1,57 @@
-<!--
-@author: Timo Dümke 
-@creation: 05.11.2014 - sprint-nr: 1
-@last-change: 20.11.2014 - sprint-nr: 2
--->
-
 {% extends "_wrapper.html" %}
 
 <!-- Header -->
 {% block header %}
+	<script src="/static/js/jquery.validate.min.js"></script>
+	<script src="/static/js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
+	<script src="/static/js/auth/login.js"></script><!-- validate einstellungen speziell für die Registrierung -->
 {% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
 <!-- content area with login -->
-<div id="inhalt">
-    <div id="anmeldebox">
-        <h1>ANMELDEN</h1>
-        <div class="hline_green"></div>
-		<!-- Displaying error messages from Django -->
-        <div class="row">
-            {% if messages %}
-                <ul class="messages"><!-- https://docs.djangoproject.com/en/dev/ref/contrib/messages/ to send messages from server to client -->
-                    {% for message in messages %}
-                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
 
-            <form action="#" method="post" role="form">
-                {% csrf_token %}
-                <div class="form-group">
-                    <ul>
-                        <li class="inputlabel">E-Mail-Adresse</li>
-                        <li class="inputfield">
-                            <input type="email" required class="form-control" name="email" placeholder="Email" value="{{ email }}">
-                        </li>
-                    </ul>
-                </div>
+<div class="col-md-8 col-md-offset-2"> <!-- bootstrap Methode um Sachen zu zentrieren -->
+<div class="page-header">
+	<h1>Login</h1>
+</div>
+{% if messages %} <!-- falls messages vorhanden sind, muss das login/pw falsch sein oder der useraccount ist inaktiv-->
+	{% for message in messages %}
+		<div class="alert alert-warning alert-dismissible fade in" role="alert">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+			{{ message }}
+		</div>
+	{% endfor %}
+	<script>
+		$(document).ready(function() {
+			$('#logininputdiv').addClass('has-error');
+			setTimeout(function(){
+				$('#logininputdiv').removeClass('has-error');
+			},2000);
 
-                <div class="form-group">
-                    <ul>
-                        <li class="inputlabel">Passwort</li>
-                        <li class="inputfield">
-                            <input type="password" required class="form-control" name="password" placeholder="Passwort">
-                        </li>
-                    </ul>
-                </div>
-
-                <button type="submit" id="loginbutton" class="greenbutton btn btn-success">ANMELDEN</button>
-
-                <ul style="float:right;padding-top: 20px;text-align: right;">
-                    <li><a href="/registration/">Noch nicht registriert?</a></li>
-
-                    {% comment %}
-	                    <li><a href="">Passwort vergessen?</a></li>
-	                {% endcomment %}
-                </ul>
-
-                <div class="hline_green" style="margin-top: -60px;float:left;"></div>
-            </form>
-        </div>
-    </div>
+		});
+	</script>
+{% endif %}
+<form class="form-horizontal" id="loginform" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
+	<div id="logininputdiv">
+		<div class="form-group has-feedback">
+			<label for="email" class="col-sm-2 control-label" placeholder="email">Email</label>
+			<div class="reg-input-group col-sm-10">
+				<input type="email" class="form-control" id="email" name="email" placeholder="Email" value="{{ email }}" aria-describedby="inputError2Status">
+				<div class="help-block with-errors"></div>
+			</div>
+		</div>
+		<div class="form-group has-feedback">
+			<label for="password" class="col-sm-2 control-label" placeholder="Passwort">Passwort</label>
+			<div class="reg-input-group col-sm-10">
+				<input type="password" class="form-control" id="password" name="password" placeholder="Passwort" aria-describedby="inputError2Status">
+				<div class="help-block with-errors"></div>
+			</div>
+		</div>
+	</div>
+	<div class="col-sm-offset-2">
+		<button type="submit" class="btn btn-lg btn-primary btn-block">einloggen</button>
+	</div>
+</form>
 </div>
 {% endblock %}

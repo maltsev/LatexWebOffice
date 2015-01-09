@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fri 19 Dec 2014 10:01:04 PM CET
+* Last Modified : Fr 09 Jan 2015 10:52:15 CET
 
 * Author :  mattis
 
@@ -177,7 +177,7 @@ for key, value in available_commands.items():
         parameters.append({'para': {'name': 'files'}})
     available_commands_output.update({key: parameters})
 
-
+@login_required
 def debug(request):
     return render(request, 'documentPoster.html')
 
