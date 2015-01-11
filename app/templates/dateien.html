@@ -8,6 +8,7 @@
 {% extends "_wrapper.html" %}
 
 {% block header %}
+    <link rel="stylesheet" href="/static/css/dateien.css">
 {% endblock %}
 
 <!-- content to embed in wrapper.html as content -->
@@ -88,7 +89,7 @@
 
 <h1>Dateien und Ordner</h1>
 
-<div>
+<div class="filescolumn" style="max-width: 727px">
     <div class="btn-toolbar hidden-xs filestoolbar" role="toolbar">
         <div class="btn-group" role="group">
             <button type="button" class="btn btn-default filestoolbar-open" disabled>Öffnen</button>
@@ -141,18 +142,60 @@
 
     <div class="fileswrapper">
         <ul class="files">
-            <li class="filesitem-folder">Root node 1
+            <li class="filesitem-folder" data-jstree='{"type":"folder"}'>
+                <span class="filesitem-name" title="Verzeichnis">Aufgaben</span>
 	            <ul>
-	                <li class="filesitem-file">Sub node 1</li>
+	                <li class="filesitem-file" data-jstree='{"type":"file"}'>
+                        <span class="filesitem-name" title="text/x-tex, erstellt am 2014-12-12 14:32:09">
+                            Aufgabe 1.tex <span class="filesitem-size">5 KB</span>
+                        </span>
+                        <span class="filesitem-editdate" title="Verändert am 2014-12-21 13:01:13">2014-12-21 13:01:13</span>
+                    </li>
+                    <li class="filesitem-file" data-jstree='{"type":"file"}'>
+                        <span class="filesitem-name" title="text/x-tex, erstellt am 2014-12-12 14:32:09">
+                            Aufgabe 2.tex <span class="filesitem-size">1 KB</span>
+                        </span>
+                        <span class="filesitem-editdate" title="Verändert am 2014-12-30 19:56:23">2014-12-30 19:56:23</span>
+                    </li>
+                    <li class="filesitem-file" data-jstree='{"type":"file"}'>
+                        <span class="filesitem-name" title="text/x-tex, erstellt am 2014-12-12 14:32:09">
+                            Aufgabe 3.tex <span class="filesitem-size">12 KB</span>
+                        </span>
+                        <span class="filesitem-editdate" title="Verändert am 2014-12-25 23:01:50">2014-12-25 23:01:50</span>
+                    </li>
 	            </ul>
             </li>
-            <li class="filesitem-file">Root node 2</li>
+            <li class="filesitem-folder" data-jstree='{"type":"emptyFolder"}'>
+                <span class="filesitem-name" title="Verzeichnis">Vorlesungen</span>
+            </li>
+            <li class="filesitem-file" data-jstree='{"type":"file"}'>
+                <span class="filesitem-name" title="text/x-tex, erstellt am 2014-12-12 14:32:09">
+                    main.tex <span class="filesitem-size">40 KB</span>
+                </span>
+                <span class="filesitem-editdate" title="Verändert am 2014-12-20 04:15:01">2014-12-20 04:15:01</span>
+            </li>
+            <li class="filesitem-file" data-jstree='{"type":"pdf"}'>
+                <span class="filesitem-name" title="application/pdf, erstellt am 2014-12-12 14:32:09">
+                    main.pdf <span class="filesitem-size">143 KB</span>
+                </span>
+                <span class="filesitem-editdate" title="Verändert am 2014-12-20 04:15:01">2014-12-20 04:15:01</span>
+            </li>
         </ul>
     </div>
 
     <script>
         $(function () {
-            $('.fileswrapper').jstree();
+            $('.fileswrapper').jstree({
+                types: {
+                    default: {icon: "glyphicon glyphicon-file"},
+                    folder: {icon: "glyphicon glyphicon-folder-open"},
+                    emptyFolder: {icon: "glyphicon glyphicon-folder-close"},
+                    file: {icon: "glyphicon glyphicon-file"},
+                    pdf: {icon: "glyphicon glyphicon-book"}
+                },
+
+                plugins: ["types"]
+            });
         });
     </script>
 </div>
