@@ -7,7 +7,9 @@
 {% extends "_wrapper.html" %}
 
 <!-- Header -->
-{% block header %}{% endblock %}
+{% block header %}
+    <link rel="stylesheet" href="/static/css/projekt.css">
+{% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
@@ -53,7 +55,7 @@
 
 <h1>Übersicht über die Projekte</h1>
 
-<div>
+<div class="projectscolumn" style="max-width: 820px">
     <div class="btn-toolbar hidden-xs projecttoolbar" role="toolbar">
         <div class="btn-group" role="group">
             <button type="button" class="btn btn-default projektoolbar-open" disabled>Öffnen</button>
@@ -110,8 +112,27 @@
 
     <div class="projectswrapper">
         <ul class="projects">
-            <li class="projectitem">Root node 1</li>
-            <li class="projectitem">Root node 2</li>
+            <li class="projectitem">
+                <span class="projectitem-name">LatexWebOffice</span>
+                <span class="projectitem-createdate" title="Erstellt am 2014-12-12 14:32:09">2014-12-12</span>
+                <span class="projectitem-author">test@test.com</span>
+            </li>
+            <li class="projectitem">
+                <span class="projectitem-name">Rechnerstrukturen</span>
+                <span class="projectitem-createdate" title="Erstellt am 2014-11-30 11:12:01">2014-11-30</span>
+                <span class="projectitem-author">test@test.com</span>
+            </li>
+            <li class="projectitem">
+                <span class="projectitem-name">Diskrete Strukturen</span>
+                <span class="projectitem-createdate" title="Erstellt am 2013-05-02 20:02:01">2013-05-02</span>
+                <span class="projectitem-author">test@test.com</span>
+            </li>
+
+            <li class="projectitem">
+                <span class="projectitem-name">Numerische Lineare Algebra und Analysis</span>
+                <span class="projectitem-createdate" title="Erstellt am 2013-05-02 20:02:01">2013-05-02</span>
+                <span class="projectitem-author">test@test.com</span>
+            </li>
         </ul>
     </div>
 

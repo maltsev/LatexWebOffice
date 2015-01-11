@@ -1,0 +1,38 @@
+.projectswrapper {
+    border-radius: 4px;
+    background: #fafafa;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.projectitem-name {
+    display: inline-block;
+    min-width: 40%;
+    padding-right: 5px;
+}
+
+.projectitem-createdate {
+    color: #95a5a6;
+    min-width: 20%;
+    display: inline-block;
+    padding-right: 5px;
+}
+
+.projectitem-author {
+    color: #95a5a6;
+}
+
+.projectswrapper .jstree-icon {
+    display: none;
+}
+
+.projectswrapper .jstree-node {
+    background: none;
+}
+
+.projectswrapper .jstree-anchor {
+    padding: 5px 10px;
+    height: auto;
+    border-radius: 4px;
+    display: block;
+}
