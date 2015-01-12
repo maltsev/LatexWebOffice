@@ -28,6 +28,9 @@ $(document).ready(function() {
 		editor.setTheme('ace/theme/clouds');
 		editor.getSession().setMode('ace/mode/latex');
 		editor.setOptions({'enableBasicAutocompletion': true});
+		
+		// Vertikale Zeichenbegrenzung (80 Zeichen) ausgeblendet	
+		editor.setShowPrintMargin(false);
 
 		// automatisches Setzen von Klammern
 		editor.on('change', autoBraceCompletion);

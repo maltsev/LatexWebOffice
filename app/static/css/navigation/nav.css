@@ -9,6 +9,10 @@ body{
 }
 .navbar a.navbar-brand {padding: 9px 15px 8px; }
 
+.navbar-nav{
+	margin:0px;
+}
+
 .navbar-nav>li>a{
 	padding-bottom:18.5px;
 }
