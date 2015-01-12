@@ -31,6 +31,7 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 1px 5px rgba(0,0,0,.075);
 height: 100%;
 }
 body,html{
+color: grey;
 height: 100%;
 }
 ul.nav li {
@@ -43,12 +44,30 @@ background-color: Transparent;
 border: 0;
 border-right: 1px solid lightgrey;
 }
-ul.nav li button:hover{
-background: lightgrey;
-}		
-.icon-bar{
+.navbar-toggle{
+margin-bottom: 0;
+}
+.navbar-default .navbar-toggle {
+border-color: lightgrey;
+}
+.icon-bar-color{
+background-color: green;
+}
+ul.nav li button{
+background-color: Transparent;
+}
+.navbar-default .navbar-toggle:focus {
+background-color: Transparent;
+}
+.navbar-default .navbar-toggle:hover{
 background: lightgrey;
 }	
+.navbar-default .navbar-toggle .icon-bar {
+background-color: lightgrey;
+}
+.navbar-default:hover .navbar-toggle:hover .icon-bar {
+background-color: grey;
+}
 </style>
 {% endblock %}
 
@@ -69,7 +88,7 @@ background: lightgrey;
 						 <nav class="navbar navbar-default symbolbar_bg">
 	      <div class="container-fluid">
 		<div class="navbar-header" style="float: left;text-align: left;width: 100%;margin-left: 0;">
-		  <button type="button" style="float: left;" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#editorsymbols" aria-expanded="false" aria-controls="editorsymbols">
+		  <button type="button" id="editormenu" style="float: left;" class="navbar-toggle collapsed beg" data-toggle="collapse" data-target="#editorsymbols" aria-expanded="false" aria-controls="editorsymbols">
 		    Menü
 			<span class="sr-only">Toggle navigation</span>
 		    <span class="icon-bar"></span>
@@ -225,6 +244,6 @@ background: lightgrey;
 	-->
 
 <!-- verwendeter Editor: ACE Editor -->
-<div style="min-height: 80%;" id="editor"></div>
+<div style="min-height: 80%;height:auto !important;" id="editor"></div>
 </div>
 {% endblock %}
