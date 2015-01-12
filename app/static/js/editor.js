@@ -27,6 +27,7 @@ $(document).ready(function() {
 		editor = ace.edit('editor');
 		editor.setTheme('ace/theme/clouds');
 		editor.getSession().setMode('ace/mode/latex');
+		editor.getSession().setUseWrapMode(true);
 		editor.setOptions({'enableBasicAutocompletion': true});
 		
 		// Vertikale Zeichenbegrenzung (80 Zeichen) ausgeblendet	
