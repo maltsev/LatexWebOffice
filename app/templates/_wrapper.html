@@ -27,6 +27,7 @@
 	<title>LatexWebOffice</title>
 	<link rel="icon" type="image/png" href="/favicon.png" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+
 	<!-- Stylesheets -->	
 	<link rel="stylesheet" href="/static/bootstrap/css/bootstrapflat.min.css">
 	<link rel="stylesheet" href="/static/css/navigation/nav.css">
@@ -36,11 +37,9 @@
 	<script src="/static/js/jquery.min.js"></script>
 	<script src="/static/js/jquery.cookie.js"></script>
 	<script src="/static/bootstrap/js/bootstrap.min.js"></script>
-    	<script src="/static/jstree/jstree.min.js"></script>
+	<script src="/static/jstree/jstree.min.js"></script>
 	<script src="/static/js/nav/nav.js"></script>
 	<script>var ERROR_MESSAGES=JSON.parse("{{ ERROR_MESSAGES }}".replace(/&quot;/g, "\"").replace(/(?:\r\n|\r|\n)/g,''));</script> <!-- Standard Fehlermeldungen vom Server (kann nicht in den static Ordner) -->
-
-
 
 	<!-- seitenspezifische Header -->
 	{% block header %}{% endblock %}
