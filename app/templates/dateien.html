@@ -194,7 +194,11 @@
                     pdf: {icon: "glyphicon glyphicon-book"}
                 },
 
-                plugins: ["types"]
+                core: {
+                    "check_callback" : true
+                },
+
+                plugins: ["types", "dnd"]
             });
         });
     </script>
