@@ -32,6 +32,9 @@ def faq(request):
 def editor(request):
     return render(request, 'editor.html')
 
+def editortest(request):
+    return render(request, 'editortest.html')
+
 @login_required
 def projekt(request):
     return render(request, 'projekt.html')

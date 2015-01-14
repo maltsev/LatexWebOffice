@@ -19,9 +19,8 @@
 import zipfile
 import shutil
 import os
-import mimetypes
 
-from app.common.constants import ERROR_MESSAGES
+from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE
 from app.common import util
 from app.models.folder import Folder
 from app.models.project import Project
@@ -53,7 +52,7 @@ class ProjectTestClass(ViewTestCase):
         :return: None
         """
 
-        #self.tearDownFiles()
+        # self.tearDownFiles()
 
 
     def test_projectCreate(self):
@@ -281,7 +280,6 @@ class ProjectTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
-
 
 
     def test_projectRm(self):
@@ -620,10 +618,10 @@ class ProjectTestClass(ViewTestCase):
         response = self.client.post('/documents/', request)
         zip_file.close()
 
-        projectobj=Project.objects.get(author=self._user1,name=self._newname1)
+        projectobj = Project.objects.get(author=self._user1, name=self._newname1)
 
         # Teste, dass der Server eine positive Antwort geschickt hat
-        serveranswer = {'id': projectobj.id, 'name': self._newname1, 'rootid':projectobj.rootFolder.id}
+        serveranswer = {'id': projectobj.id, 'name': self._newname1, 'rootid': projectobj.rootFolder.id}
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
         # Teste, dass das Projekt existiert
@@ -671,7 +669,7 @@ class ProjectTestClass(ViewTestCase):
 
         # Stelle sicher, dass das Projekt nicht mit dem Inhalt aus der zip Datei
         # überschrieben wurde
-        self.assertFalse(Folder.objects.filter(root=self._user1_project1.rootFolder,name='Ordner 1'))
+        self.assertFalse(Folder.objects.filter(root=self._user1_project1.rootFolder, name='Ordner 1'))
 
 
         # Die Binärdatei sollte eine ILLEGALFILETYPE Fehlermeldung hervorrufen
@@ -789,7 +787,7 @@ class ProjectTestClass(ViewTestCase):
 
         # überprüfe die Antwort des Servers
         # Content-Type sollte application/zip sein
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.zip'])
+        self.assertEqual(response['Content-Type'], ZIPMIMETYPE)
         # Content-Length sollte mit gesendet worden sein
         self.assertIn('Content-Length', response)
 
@@ -855,7 +853,7 @@ class ProjectTestClass(ViewTestCase):
 
         # überprüfe die Antwort des Servers
         # Content-Type sollte application/zip sein
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.zip'])
+        self.assertEqual(response['Content-Type'], ZIPMIMETYPE)
         # Content-Length sollte mit gesendet worden sein
         self.assertIn('Content-Length', response)
 

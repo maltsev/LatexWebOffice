@@ -179,6 +179,7 @@ for key, value in available_commands.items():
         parameters.append({'para': {'name': 'files'}})
     available_commands_output.update({key: parameters})
 
+
 @login_required
 def debug(request):
     return render(request, 'documentPoster.html')
@@ -261,7 +262,6 @@ def execute(request):
                                                                                    objecttype=PlainTextFile)
                     if not rights:
                         return failurereturn
-
                 elif objType == ProjectTemplate:
                     # Überprüfe, ob Vorlage existiert und der User darauf Rechte hat
                     emptystring, failurereturn = util.checkIfTemplateExistsAndUserHasRights(objId, user, request)

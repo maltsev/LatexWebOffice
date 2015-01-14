@@ -324,7 +324,7 @@ def exportZip(request, user, folderid):
     response['Content-Length'] = file_dl_size
     response['Content-Encoding'] = STANDARDENCODING
 
-    filename_header = 'filename=%s' % zip_file_name
+    filename_header = 'filename=%s' % ('\"' + zip_file_name + '\"')
 
     response['Content-Disposition'] = 'attachment; ' + filename_header
 
