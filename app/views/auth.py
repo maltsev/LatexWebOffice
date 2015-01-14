@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Mi 14 Jan 2015 11:36:28 CET
+* Last Modified : Mi 14 Jan 2015 11:44:00 CET
 
 * Author :  maltsev
 
@@ -106,7 +106,6 @@ def registration(request):
         if not validEmail(email):
             messages.error(request, ERROR_MESSAGES['INVALIDEMAIL'])
             foundErrors = True
-            print('invalid email')
         # passwords may not contain any spaces
         if ' ' in password1:
             messages.error((request), ERROR_MESSAGES['NOSPACESINPASSWORDS'])
