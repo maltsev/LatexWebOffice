@@ -9,6 +9,8 @@
 
 {% block header %}
     <link rel="stylesheet" href="/static/css/dateien.css">
+    <script src="/static/js/general.js"></script>
+    <script src="/static/js/dateien.js"></script>
 {% endblock %}
 
 <!-- content to embed in wrapper.html as content -->
@@ -198,7 +200,7 @@
                     "check_callback" : true
                 },
 
-                plugins: ["types", "dnd"]
+                plugins: ["types", "dnd", "state"]
             });
         });
     </script>
