@@ -16,3 +16,8 @@ python34
 >>> print(django.get_version())  
 1.7
 ```
+
+
+create database latexweboffice;
+grant usage on *.* to latexweboffice@localhost identified by '123456';
+grant all privileges on latexweboffice.* to latexweboffice@localhost ;
