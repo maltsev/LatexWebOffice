@@ -31,8 +31,6 @@ from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
-from app.models.file.pdf import PDF
-from app.models.project import Project
 from app.tests.server.views.viewtestcase import ViewTestCase
 
 
@@ -757,7 +755,7 @@ class FileTestClass(ViewTestCase):
         self.assertEqual(response['Content-Length'], str(util.getFileSize(file_content)))
 
         # Content-Disposition sollte 'attachment; filename='test_bin.bin'' sein
-        self.assertEqual(response['Content-Disposition'], ('attachment; filename=' + self._user1_binary1.name))
+        self.assertEqual(response['Content-Disposition'], ('attachment; filename=\"' + self._user1_binary1.name) + '\"')
 
         # erstelle ein temporäres Verzeichnis um den filestream als Datei zu speichern
         tmp_dir = tempfile.mkdtemp()
@@ -794,7 +792,7 @@ class FileTestClass(ViewTestCase):
         ori_file.close()
 
         # Content-Disposition sollte 'attachment; filename='test_bin.bin'' sein
-        self.assertEqual(response['Content-Disposition'], ('attachment; filename=' + self._user1_tex1.name))
+        self.assertEqual(response['Content-Disposition'], ('attachment; filename=\"' + self._user1_tex1.name + '\"'))
 
         # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Download einer Datei als user1 mit der fileid einer .tex Datei die user2 gehört
