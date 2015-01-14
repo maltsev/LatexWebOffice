@@ -1,6 +1,5 @@
 /*
- * @author: Thore Thießen
- * @coauthor: Ingolf Bracht
+ * @author: Thore Thießen, Ingolf Bracht
  * @creation: 04.12.2014 - sprint-nr: 2
  * @last-change: 11.01.2015 - sprint-nr: 4
  */
@@ -8,14 +7,19 @@
 // speichert die ID der Knoten-Komponente des derzeitig zu erstellenden Projektes
 var creatingNodeID = null;
 
+var selectedNodeID = "";
 var prevSelectedNodeID 	= "";
+
+/*
+ * Referenziert eine bestehende JSTree-Instanz (ohne eine neue zu erzeugen)
+ * (zu verwenden, um darauf knotenspezifische Methoden anzuwenden)
+ */
+var treeInst;
 
 /*
  * Initialisiert den JSTree und die Menü-Einträge.
  */
 $(document).ready(function() {
-	
-	var selectedNodeID 		= "";
 	
 	/*
 	 * Erzeugt eine neue JSTree-Instanz
@@ -35,7 +39,7 @@ $(document).ready(function() {
 	 * Referenziert eine bestehende JSTree-Instanz (ohne eine neue zu erzeugen)
 	 * (zu verwenden, um darauf knotenspezifische Methoden anzuwenden)
 	 */
-	var treeInst = $('.projectswrapper').jstree();
+	treeInst = $('.projectswrapper').jstree();
 	
 	
 	// ----------------------------------------------------------------------------------------------------
@@ -45,13 +49,8 @@ $(document).ready(function() {
 	// Auswahl-Listener
 	tree.bind('select_node.jstree',function(e,data) {
 		
-		console.log('selected: '+data.node.id);
-		
 		// Deselektion (die der Selection-ID zugehörige Knoten-Komponente wurde erneut selektiert)
 		if(selectedNodeID===data.node.id) {
-			
-			// deaktiviert die selektionsabhängigen Schaltflächen (=> 'Erstellen' und 'Import' bleiben aktiviert)
-			setMenuButtonsEnabled(false,false);
 			
 			// deselektiert die betroffene Knoten-Komponente
 			treeInst.deselect_node(data.node);
@@ -62,20 +61,14 @@ $(document).ready(function() {
 		// Selektion (eine Knoten-Komponente werde selektiert, deren ID nicht mit der Selection-ID übereinstimmt)
 		else {
 			
-			// wenn zuvor keine Knoten-Komponenten ausgewählt war (Aktivierung von Schaltflächen notwendig), ...
-			if(selectedNodeID==="") {
-				// ... werden sämtliche Schaltflächen aktiviert
-				setMenuButtonsEnabled(true,true);
-			}
-			
 			// aktualisiert die Selection-ID gemäß der ausgewählten Knoten-Komponente
 			selectedNodeID = data.node.id;
 			prevSelectedNodeID = data.node.id;
 			
 		}
 		
-		node = data.instance.get_node(data.selected[0]);
-		
+		// aktualisiert die Aktivierungen der Menü-Schaltflächen
+		updateMenuButtons();
 	});
 	
 	// ----------------------------------------------------------------------------------------------------
@@ -103,15 +96,6 @@ $(document).ready(function() {
 				// TODO (serverseitiges Öffnen)
 				
 				break;
-    	      	
-			// Escape-Taste (Abbruch 'Erstellen' bzw. 'Umbenennen')
-			case 27:
-				
-				// setzt die Erstellungs-ID zurück
-				//creatingNodeID = null;
-				console.log("ESCAPE!!!!");
-				
-				break;
 			
 			// Entf-Taste (Löschen)
 			case 46:
@@ -127,13 +111,26 @@ $(document).ready(function() {
 	// Umbenennungs-Listener (für 'Erstellen' und 'Umbenennen')
 	tree.bind('rename_node.jstree',function(e) {
 		
-		// wenn der Name eines neuen Projektes bestätigt wurde (= Erstellen)
+		// wenn die Eingabe des Namens eines neuen Projektes bestätigt wurde (= Erstellen eines Projektes), ...
 		if(creatingNodeID!=null) {
-			// erzeugt severseitig ein neues Projekt mit dem festgelegten Namen
-			createProject(treeInst.get_text(creatingNodeID));
+			
+			// ... und kein Name eingegeben wurde, ...
+			if(treeInst.get_text(creatingNodeID)==="") {
+				console.log("here");
+				// ... wird das Erstellungs-Vorgang abgebrochen
+				treeInst.delete_node(creatingNodeID);
+				creatingNodeID = null;
+				updateMenuButtons();
+			}
+			// ... und ein Name eingegeben wurde, ...
+			else
+				// ... wird severseitig ein neues Projekt mit dem festgelegten Namen erzeugt
+				createProject(treeInst.get_text(creatingNodeID));
 		}
 		// wenn der neue Name für ein bestehendes Projekt bestätigt wurde (= Umbenennen)
 		else {
+			// benennt das betroffene Projekt serverseitig um
+			renameProject(treeInst.get_selected().name);
 		}
 		
 	});
@@ -156,15 +153,13 @@ $(document).ready(function() {
 	// 'Erstellen'-Schaltfläche
 	$('.projecttoolbar-new').on("click", function() {
 		
-		var treeInst = $('.projectswrapper').jstree();
-		
 		// erzeugt eine neue Knoten-Komponente
-		creatingNodeID = treeInst.create_node("#","neues Projekt");
+		creatingNodeID = treeInst.create_node("#","");
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
 		treeInst.edit(creatingNodeID,"");
 		
-		// deaktiviert temporär sämtliche Menü-Schaltflächen
-		setMenuButtonsEnabled(false,true);
+		// aktualisiert die Aktivierungen der Menü-Schaltflächen (vollständige Deaktivierung)
+		updateMenuButtons();
 		
 		// sobald der Bearbeitungsmodus beendet (s. Umbenennungs-Listener) wird,
 		// wird createProject() zum serverseitigen Erstellen eines entsprechenden Projektes aufgerufen
@@ -180,20 +175,15 @@ $(document).ready(function() {
 	// 'Umbenennen'-Schaltfläche
 	$('.projecttoolbar-rename').on("click", function() {
 		
+		// versetzt die ausgewählte Knoten-Komponente in den Bearbeitungsmodus
+		treeInst.edit(treeInst.get_selected());
+		
 		renameProject();
-		
-		// TEMP
-		console.log('umbenennen');
-		
-		// TODO
 		
 	});
 	
 	// 'Duplizieren'-Schaltfläche
 	$('.projecttoolbar-duplicate').on("click", function() {
-		
-		// TEMP
-		console.log('duplizieren');
 		
 		// TODO
 		
@@ -202,9 +192,6 @@ $(document).ready(function() {
 	// 'in Vorlage umwandeln'-Schaltfläche
 	$('.projecttoolbar-converttotemplate').on("click", function() {
 		
-		// TEMP
-		console.log('in Vorlage umwandeln');
-		
 		// TODO
 		
 	});
@@ -212,18 +199,12 @@ $(document).ready(function() {
 	// 'Export'-Schaltfläche
 	$('.projecttoolbar-export').on("click", function() {
 		
-		// TEMP
-		console.log('export');
-		
 		// TODO
 		
 	});
 	
 	// 'Import'-Schaltfläche
 	$('.projecttoolbar-import').on("click", function() {
-		
-		// TEMP
-		console.log('import');
 		
 		// TODO
 		
@@ -257,19 +238,25 @@ function createProject(name) {
 			'command': 'projectcreate',
 			'name': name
 		}, function(result,data) {
-			// wenn ein entsprechendes Projekt erstellt wurde, ...
+			// wenn ein entsprechendes Projekt erstellt wurde, ist der Erstellungs-Vorgang abgeschlossen
 			if(result) {
-				// ... ist der Erstellungs-Vorgang abgeschlossen und die Erstellungs-ID wird zurückgesetzt
+				
+				// übernimmt die Daten des erzeugten Projektes in die angelegte Knoten-Komponente
+				fillNode(creatingNodeID,data.response);
+				
+				// setzt die Erstellungs-ID zurück
 				creatingNodeID = null;
-				// TEMP
-				console.log('Projekt erfolgreich erstellt');
+				
+				// aktualisiert die Aktivierungen der Menü-Schaltflächen (temporäre vollständige Deaktivierung wird aufgehoben)
+				updateMenuButtons();
 			}
 			// wenn ein entsprechendes Projekt nicht angelegt werden konnte, ...
 			else {
 				// ... wird die Knoten-Komponente zur Angabe eines neuen Namens erneut in den Bearbeitungsmodus versetzt (s. Umbenennungs-Listener)
-				$('.projectswrapper').jstree().edit(creatingNodeID,"");
+				treeInst.edit(creatingNodeID,"");
+				
 				// TEMP
-				console.log(data.response);
+				alert(data.response);
 			}
 	});
 	
@@ -280,8 +267,6 @@ function createProject(name) {
  * Löscht das momentan ausgewählte Projekt.
  */
 function deleteProject() {
-	
-	var treeInst = $('.projectswrapper').jstree();
 	
 	documentsJsonRequest({
 			'command': 'projectrm',
@@ -294,8 +279,8 @@ function deleteProject() {
 				treeInst.delete_node(treeInst.get_selected()[0]);
 				selectedNodeID = "";
 				
-				// deaktiviert die selektionsabhängigen Schaltflächen (=> 'Erstellen' und 'Import' bleiben aktiviert)
-				setMenuButtonsEnabled(false,false);
+				// aktualisiert die Aktivierungen der Menü-Schaltflächen
+				updateMenuButtons();
 			}
 	});
 	
@@ -303,68 +288,124 @@ function deleteProject() {
 
 /*
  * Benennt das übergebene Projekt nach dem angegebenen Namen um.
- *
- * @param project Projekt, welches umbenannt werden soll
+ * 
  * @param name neuer Name für das übergebene Projekt
  *
  */
-function renameProject() {
+function renameProject(name) {
 	
-	var treeInst = $('.projectswrapper').jstree();
-	
-	// versetzt die ausgewählte Knoten-Komponente in den Bearbeitungsmodus
-	treeInst.edit(treeInst.get_selected());
-	
-	// TODO
+	/*
+	documentsJsonRequest({
+			'command': 'projectrm',
+			'id': treeInst.get_selected()[0],
+			'name' : name
+		}, function(result,data) {
+			// wenn das ausgewählte Projekt erfolgreich umbenannt wurde, ist der Umbenennungs-Vorgang abgeschlossen
+			if(result) {
+				console.log('Umbenennung erfolgreich');
+			}
+			// wenn das ausgewählte Projekt für den übergebenen Namen nicht umbenannt werden konnte, ...
+			else {
+				// ... wird die Knoten-Komponente zur Angabe eines neuen Namens erneut in den Bearbeitungsmodus versetzt (s. Umbenennungs-Listener)
+				treeInst.edit(treeInst.get_selected()[0],"");
+				
+				// TEMP
+				alert(data.response);
+			}
+	});
+	*/
 	
 }
 
 
 
 /*
- * Setzt die Aktivierung sämtlicher Menü-Schaltflächen.
- *
- * @param enabled <code>true</code>, um die Menü-Schaltflächen zu aktivieren - <code>false</code>, um sie zu deaktivieren
- * @param strict <code>true</code>, um die Aktivierung sämtlicher Menü-Schaltflächen zu setzen -
- *               <code>false</code>, um die nicht von einer konkreten Selektion abhängigen Schaltflächen ('Erstellen' und 'Import') unbetrachtet zu lassen
+ * Fügt eine neue Knoten-Komponente anhand des übergebenen Projektes hinzu.
+ * 
+ * @param project Projekt, anhand dessen Daten eine neue Knoten-Komponente hinzugefügt werden soll
  */
-function setMenuButtonsEnabled(enabled,strict) {
+function addNode(project) {
 	
-	$('.projecttoolbar-open').prop("disabled", !enabled);
-	$('.projecttoolbar-delete').prop("disabled", !enabled);
-	$('.projecttoolbar-rename').prop("disabled", !enabled);
-	$('.projecttoolbar-duplicate').prop("disabled", !enabled);
-	$('.projecttoolbar-converttotemplate').prop("disabled", !enabled);
-	$('.projecttoolbar-export').prop("disabled", !enabled);
-	
-	if(strict) {
-		$('.projecttoolbar-new').prop("disabled", !enabled);
-		$('.projecttoolbar-import').prop("disabled", !enabled);
-	}
+	// fügt eine neue Knoten-Komponente hinzu und füllt deren Attribute mit den Werten des übergebenen Projektes
+	fillNode(treeInst.create_node("#",""),project);
 }
-/**
+
+/*
+ * Füllt die Attribute der übergebenen Knoten-Komponente mit den Werten des angegebenen Projektes.
+ * 
+ * @param node Knoten-Komponente, deren Attribute gemäß des angegebenen Projektes gesetzt werden sollen
+ * @param porject Projekt, anhand dessen Daten die Attribute der übergebenen Knoten-Komponente gesetzt werden sollen
+ */
+function fillNode(node,project) {
+	
+	// setzt die Bezeichnung der Knoten-Komponente auf den Namen des übergebenen Projektes
+	treeInst.set_text(node,project.name);
+	// setzt die ID der Knoten-Komponente auf die des übergebenen Projektes
+	treeInst.set_id(node,project.id);
+	
+	// TODO
+	// setzt die weiteren Attribute des Projektes
+	//node.data("author","");
+	//node.attr("createdate",data.response[i].createtime);
+	//node.attr("rootid",data.response[i].rootid);
+}
+
+/*
  * Initialisiert die Anzeige der Projekte des Benutzers.
  */
 function initProjects() {
-	
-	var treeInst = $('.projectswrapper').jstree();
 	
 	documentsJsonRequest({
 			'command': 'listprojects'
 		}, function(result,data) {
 			if(result) {
 				// legt für jedes Projekt eine Knoten-Komponente an
-				for(var i=0; i<data.response.length; ++i) {
-					var node = treeInst.create_node("#",data.response[i].name);
-					treeInst.set_id(node,data.response[i].id);
-					//console.log("--------------"+treeInst.get_node(node).attr("id"));
-					//node.data("author","");
-					//node.attr("createdate",data.response[i].createtime);
-					//node.attr("rootid",data.response[i].rootid);
-				}
+				for(var i=0; i<data.response.length; ++i)
+					addNode(data.response[i]);
 			}
 	});
 	
-	// deaktiviert die selektionsabhängigen Schaltflächen (=> 'Erstellen' und 'Import' bleiben aktiviert)
-	setMenuButtonsEnabled(false,false);
+	// aktualisiert die Aktivierungen der Menü-Schaltflächen
+	updateMenuButtons();
+}
+
+/*
+ * Aktualisiert die Aktivierungen der Menü-Schaltflächen.
+ */
+function updateMenuButtons() {
+	
+	// flag für die Aktivierung der nicht-selektionsabhängigen Schaltflächen ('Erstellen' und 'Import')
+	var basic;
+	// flag für die Aktivierung der selektionsabhängigen Schaltflächen
+	var remain;
+	
+	// Editierungsmodus
+	if(creatingNodeID!=null) {
+		// keine Aktivierungen
+		basic  = false;
+		remain = false;
+	}
+	// Selektion
+	else if(selectedNodeID!="") {
+		console.log("select");
+		// vollständig Aktivierung
+		basic  = true;
+		remain = true;
+	}
+	else {
+		console.log("deselect");
+		// Aktivierung der nicht-selektionsabhängigen Schaltflächen
+		basic  = true;
+		remain = false;
+	}
+	
+	// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
+	$('.projecttoolbar-open').prop("disabled", !remain);
+	$('.projecttoolbar-new').prop("disabled", !basic);
+	$('.projecttoolbar-delete').prop("disabled", !remain);
+	$('.projecttoolbar-rename').prop("disabled", !remain);
+	$('.projecttoolbar-duplicate').prop("disabled", !remain);
+	$('.projecttoolbar-converttotemplate').prop("disabled", !remain);
+	$('.projecttoolbar-export').prop("disabled", !remain);
+	$('.projecttoolbar-import').prop("disabled", !basic);
 }
