@@ -4,7 +4,7 @@
 
 * Creation Date : 06-11-2014
 
-* Last Modified : Sat 10 Jan 2015 12:45:43 AM CET
+* Last Modified : Mi 14 Jan 2015 11:32:38 CET
 
 * Author : mattis
 
@@ -104,13 +104,13 @@ class AuthRegistrationTestClass(TestCase):
 
         # user 1 data -> everything correct
         self._user1_first_name = 'usereins'
-        self._user1_email = 'user1@test.de'
+        self._user1_email = 'user1@test'
         self._user1_password1 = 'test123'
         self._user1_password2 = 'test123'
 
         # user 2 data -> incorrect email address (username)
         self._user2_first_name = 'userzwei'
-        self._user2_email = 'user2@test'
+        self._user2_email = 'user2@test.'
         self._user2_password1 = 'test1234'
         self._user2_password2 = 'test1234'
 

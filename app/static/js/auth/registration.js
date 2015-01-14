@@ -17,8 +17,7 @@ $(document).ready(function() {
                         }
                     }
 
-                }
-
+                },
             },
             password1: {
 		    required:true,

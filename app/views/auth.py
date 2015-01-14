@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Fr 09 Jan 2015 13:53:25 CET
+* Last Modified : Mi 14 Jan 2015 11:36:28 CET
 
 * Author :  maltsev
 
@@ -106,6 +106,7 @@ def registration(request):
         if not validEmail(email):
             messages.error(request, ERROR_MESSAGES['INVALIDEMAIL'])
             foundErrors = True
+            print('invalid email')
         # passwords may not contain any spaces
         if ' ' in password1:
             messages.error((request), ERROR_MESSAGES['NOSPACESINPASSWORDS'])
@@ -145,8 +146,5 @@ def userexists(request):
 
 # Helper function to check if a email address is valid
 def validEmail(email):
-    try:
-        validate_email(email)
-        return True
-    except ValidationError:
-        return False
+    regex_email=re.compile("^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+    return regex_email.match(email)
