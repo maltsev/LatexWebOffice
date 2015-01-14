@@ -33,7 +33,7 @@ $(document).ready(function() {
 											 					"author" : "",
 														  		"createdate" : "",
 														  		"rootid" : ""}},
-											 "plugins" : ["dnd","state"]});
+											 "plugins" : ["state"]});
 	
 	/*
 	 * Referenziert eine bestehende JSTree-Instanz (ohne eine neue zu erzeugen)
