@@ -14,59 +14,55 @@
 <script src="/static/js/ace/ace.js"></script>
 <script src="/static/js/ace/ext-language_tools.js"></script>
 <script src="/static/js/editor.js"></script>
+<link href="/static/bootstrap/css/bootstrap.icon-large.min.css" rel="stylesheet">
+
 <style type="text/css">
 .symbolbar_bg{
-background-image:-webkit-linear-gradient(top,#fff 0,#f8f8f8 100%);
-background-image:-o-linear-gradient(top,#fff 0,#f8f8f8 100%);
-background-image:-webkit-gradient(linear,left top,left bottom,from(#fff),to(#f8f8f8));
-background-image:linear-gradient(to bottom,#fff 0,#f8f8f8 100%);
-filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#fff8f8f8', GradientType=0);
-filter:progid:DXImageTransform.Microsoft.gradient(enabled=false);
-background-repeat:repeat-x;
-border-radius:4px;
--webkit-box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 1px 5px rgba(0,0,0,.075);
-box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 1px 5px rgba(0,0,0,.075);
+background: #95a5a6;
+padding: 0;
+min-height: 50px;
 }
 .container-fluid{
 height: 100%;
 }
 body,html{
-color: grey;
+color: white;
 height: 100%;
 }
-ul.nav li {
-float: left;
-}
-ul.nav li button{
+
+
+#editorsymbols button{
+margin-left: 1px;
 height: 50px;
 width: 50px;
-background-color: Transparent;
 border: 0;
-border-right: 1px solid lightgrey;
+border-right: 3px solid white;
 }
-.navbar-toggle{
+#toggle .navbar-toggle{
 margin-bottom: 0;
 }
-.navbar-default .navbar-toggle {
-border-color: lightgrey;
-}
-.icon-bar-color{
-background-color: green;
+.navbar-default #toggle .navbar-toggle {
+margin-top: 5px;
+margin-bottom: 5px;
+border-color: white;
 }
 ul.nav li button{
 background-color: Transparent;
 }
-.navbar-default .navbar-toggle:focus {
+.navbar-default #toggle .navbar-toggle:focus {
 background-color: Transparent;
 }
-.navbar-default .navbar-toggle:hover{
-background: lightgrey;
+.navbar-default #toggle .navbar-toggle:hover{
+background: #798d8f;
 }	
-.navbar-default .navbar-toggle .icon-bar {
-background-color: lightgrey;
+.navbar-default #toggle .navbar-toggle .icon-bar {
+background-color: white;
 }
-.navbar-default:hover .navbar-toggle:hover .icon-bar {
-background-color: grey;
+.navbar-default:hover #toggle .navbar-toggle:hover .icon-bar {
+background-color: white;
+}
+.btn-group{
+border: 0;
 }
 </style>
 {% endblock %}
@@ -87,7 +83,7 @@ background-color: grey;
 	</div>
 						 <nav class="navbar navbar-default symbolbar_bg">
 	      <div class="container-fluid">
-		<div class="navbar-header" style="float: left;text-align: left;width: 100%;margin-left: 0;">
+		<div id="toggle" style="float: left;text-align: left;width: 100%;margin-left: 0;">
 		  <button type="button" id="editormenu" style="float: left;" class="navbar-toggle collapsed beg" data-toggle="collapse" data-target="#editorsymbols" aria-expanded="false" aria-controls="editorsymbols">
 		    Menü
 			<span class="sr-only">Toggle navigation</span>
@@ -95,72 +91,108 @@ background-color: grey;
 		    <span class="icon-bar"></span>
 		    <span class="icon-bar"></span>
 		  </button>
-		
+		</div>
 
 	
-		</div>
 		<div id="editorsymbols" class="navbar-collapse collapse">
-		  <ul class="nav navbar-nav">
+		  <div class="btn-group" role="group">
+            <button type="button" class="btn btn-default" title="Zurück zur Dateiübersicht des Projekts" onClick="confirmExit()">
+						<i class="fa fa-angle-left"></i> <!-- Zurück zur Dateiübersicht des Projekts --> 										
+			</button>
+            <button type="button" class="btn btn-default" title="Speichern">
+				<i class="fa fa-floppy-o"></i> 
+			</button>
+            <button type="button" class="btn btn-default" title="Zurück">
+				<i class="fa fa-undo"></i> <!-- Zurück --> 
+			</button>
+			<button type="button" class="btn btn-default" title="Vor">
+					<i class="fa fa-repeat"></i> <!-- Vor -->
+			</button>       
+			<button type="button" class="btn btn-default" title="Ausschneiden">
+				<i class="fa fa-scissors"></i> <!-- Ausschneiden -->
+			</button> 
+			<button type="button" class="btn btn-default" title="Kopieren">
+				<i class="fa fa-files-o"></i> <!-- Kopieren -->
+			</button>
+			<button type="button" class="btn btn-default" title="Einfügen">
+				<i class="fa fa-clipboard"></i> <!-- Einfügen -->
+			</button> 
+			<button type="button" class="btn btn-default" title="PDF-Export">
+				<i class="fa fa-file-pdf-o"></i> <!-- PDF-Export -->
+			</button> 
+			<button type="button" class="btn btn-default" title="Grafik einfügen">
+				<i class="fa fa-file-image-o"></i> <!-- Grafik einfügen -->
+			</button> 
+			<button type="button" class="btn btn-default" title="Erstelle eine Tabelle" onClick="createTable()">
+				<i class="fa fa-table"></i>
+			</button> 
+			<button type="button" class="btn btn-default" title="PDF und TEX">
+				<i class="fa fa-refresh"></i> <!-- parallele Anzeige von TEX und PDF-Ausgabe -->
+			</button> 
+			</div>
+			</div>
+
+		<!--<div id="editorsymbols" class="navbar-collapse collapse">!-->
+		 <!-- <ul class="nav navbar-nav">
 				<li>
 					<button id="backtoprojekt" type="button" title="Zurück zur Dateiübersicht des Projekts" onClick="confirmExit()">						
-						<i class="fa fa-angle-left"></i> <!-- Zurück zur Dateiübersicht des Projekts 	 -->										
 					</button>
 				</li>
 				<li>
 					<button id="save" type="button" title="Speichern">
-						<i class="fa fa-floppy-o"></i> 
+						<i class="icon-large icon-signal"></i>
 					</button>
 				</li>
 				<li>
 					<button id="undo" type="button" title="Zurück">
-						<i class="fa fa-undo"></i> <!-- Zurück -->
+						<i class="fa fa-undo"></i> <!-- Zurück 
 					</button>
 				</li>
 				<li>
 					<button id="redo" type="button" title="Vor">
-						<i class="fa fa-repeat"></i> <!-- Vor -->
+						<i class="fa fa-repeat"></i> <!-- Vor 
 					</button>
 				</li>
 				<li>
 					<button id="cut" type="button" title="Ausschneiden">
-						<i class="fa fa-scissors"></i> <!-- Ausschneiden -->
+						
 					</button>
 				</li>
 				<li>
 					<button id="copy" type="button" title="Kopieren">
-						<i class="fa fa-files-o"></i> <!-- Kopieren -->
+						
 					</button>
 				</li>
 				<li>
 					<button id="paste" type="button" title="Einfügen">
-						<i class="fa fa-clipboard"></i> <!-- Einfügen -->
+						
 					</button>
 				</li>
 				<li>
 					<button id="compile" type="button" title="PDF Export">
-						<i class="fa fa-file-pdf-o"></i> <!-- PDF-Export -->
+						<i class="fa fa-file-pdf-o"></i> <!-- PDF-Export 
 					</button>
 				</li>
 				<li>
 					<button id="insertImage" type="button" title="Grafik einfügen">
-						<i class="fa fa-file-image-o"></i> <!-- Grafik einfügen -->
+						<i class="fa fa-file-image-o"></i> <!-- Grafik einfügen 
 					</button>
 				</li>
 				<li>
-					<button type="button" class="btn btn-default" aria-label="Left Align" title="Erstelle eine Tabelle" onClick="createTable()">
-						<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> <!-- Button für den Tabellenassistent -->
+					<button type="button" class="btn btn-default" aria-label="Left Align" >
+						<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>  Button für den Tabellenassistent 
 					</button>
 				</li>
 				<li>
 					<button id="switchView" type="button" title="PDF und TEX">
-						<i class="fa fa-refresh"></i> <!-- parallele Anzeige von TEX und PDF-Ausgabe -->
+						<i class="fa fa-refresh"></i>  parallele Anzeige von TEX und PDF-Ausgabe 
 					</button>
 				</li>
 		
 		    
-		  </ul>
+		  </ul>!-->
 		 
-		</div><!--/.nav-collapse -->
+		<!--</div>-<!--/.nav-collapse --> 
 	      </div>
 	    </nav>
 						<!--
