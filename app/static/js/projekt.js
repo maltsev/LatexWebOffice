@@ -1,7 +1,7 @@
 /*
- * @author: Thore Thießen, Ingolf Bracht
+ * @author: Thore Thießen, Ingolf Bracht, Munzir Mohamed
  * @creation: 04.12.2014 - sprint-nr: 2
- * @last-change: 11.01.2015 - sprint-nr: 4
+ * @last-change: 15.01.2015 - sprint-nr: 4
  */
 
 // speichert die ID der Knoten-Komponente des derzeitig zu erstellenden Projektes
@@ -198,14 +198,15 @@ $(document).ready(function() {
 	
 	// 'Export'-Schaltfläche
 	$('.projecttoolbar-export').on("click", function() {
-		
-		// TODO
+
+		exportZip();
 		
 	});
 	
 	// 'Import'-Schaltfläche
 	$('.projecttoolbar-import').on("click", function() {
 		
+		importZip();
 		// TODO
 		
 	});
@@ -317,7 +318,29 @@ function renameProject(name) {
 	
 }
 
+/*
+ * Exportiert ein Projekt als Zip und bietet diese zum Download an.
+ * @param id ID des Projektes
+ *
+ */
+function exportZip(id) {
+    documentsRedirect({
+        'command' : 'exportzip',
+        'id' : treeInst.get_selected()[0],
+        'name' : name
+    }, function(result,data) {
+        if(result) {
+            console.log('Export Done!')
+            }
+        }
+    );
+}
 
+/*
+ *Importieren eines Projektes aus einer ZIP-Datei.
+ *
+ *
+ */
 
 /*
  * Fügt eine neue Knoten-Komponente anhand des übergebenen Projektes hinzu.
