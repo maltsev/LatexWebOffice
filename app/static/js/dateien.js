@@ -1,212 +1,178 @@
 ﻿/*
-@author: Timo Dümke, Ingolf Bracht
+@author: Timo Dümke, Ingolf Bracht, Kirill Maltsev
 @creation: 12.12.2014 - sprint-nr: 3
-@last-change: 14.01.2015 - sprint-nr: 4
+@last-change: 15.01.2015 - sprint-nr: 4
 */
+$(function () {
+    // ID des vorliegenden Projektes
+	var projectId = parseInt(location.hash.substr(1), 10);
+	if (! projectId) {
+	    backToProject();
+	    return;
+	}
 
-// ID der Knoten-Komponente des derzeitig zu erstellenden Projektes
-var creatingNodeID = null;
-// ID des vorliegenden Projektes
-var projectID;
-// ID der momentan ausgewählten Knoten-Komponente
-var selectedNodeID = "";
+    documentsJsonRequest({command: "listfiles", id: projectId}, function(result, data) {
+	    if (! result) {
+            alert(ERROR_MESSAGES.PROJECTNOTEXIST);
+            return;
+	    }
 
-/*
- * Referenziert eine bestehende JSTree-Instanz (ohne eine neue zu erzeugen)
- * (zu verwenden, um darauf knotenspezifische Methoden anzuwenden)
- */
-var treeInst;
+        renderProject(data.response);
+    });
 
-/*
- * Initialisiert den JSTree sowie die Menü-Einträge und listet die Verzeichnisstruktur auf.
- */
-$(document).ready(function() {
 
-	// ermittelt die Projekt-ID aus der URL
-	projectID = parseInt(location.hash.substr(1));
-	
-	/*
-	 * Erzeugt eine neue JSTree-Instanz
-	 * (zu verwenden, um darauf instanz-spezifische Methoden (z.B. für Listener) anzuwenden)
-	 *
-	 * Plugins:	'state' zum browser-seitigen Speichern der geöffneten und ausgewählten Knoten-Komponenten
-	 * 					(notwendig, da beim Aktualisieren der Seite die Auswahl verloren geht, die Menü-Einträge jedoch ggf. aktiviert bleiben)
-	 */
-	var tree = $('.fileswrapper').jstree({
-				types: {
-                    default: {icon: "glyphicon glyphicon-file"},
-                    folder: {icon: "glyphicon glyphicon-folder-open"},
-                    emptyFolder: {icon: "glyphicon glyphicon-folder-close"},
-                    file: {icon: "glyphicon glyphicon-file"},
-                    pdf: {icon: "glyphicon glyphicon-book"}
-                },
 
-                core: {
-                    "check_callback" : true, "multiple" : false
-                },
+	// -------------------------------------------------------------------------
+	//                              MENÜ-EINTRÄGE
+	// -------------------------------------------------------------------------
 
-                plugins: ["types", "dnd", "state"]
+    // "Öffnen"-Schaltfläche
+	$(".filestoolbar-open").click(function() {
+
+	});
+
+	// "Erstellen"-Schaltfläche
+	$(".filestoolbar-new").click(function() {
+
+	});
+
+	// "Löschen"-Schaltfläche
+	$(".filestoolbar-delete").click(function() {
+
+	});
+
+	// "Umbenennen"-Schaltfläche
+	$(".filestoolbar-rename").click(function() {
+
+	});
+
+	// "Verschieben"-Schaltfläche
+	$(".filestoolbar-move").click(function() {
+
+	});
+
+	// "Herunterladen"-Schaltfläche
+	$(".filestoolbar-download").click(function() {
+
+	});
+
+	// "Hochladen"-Schaltfläche
+	$(".filestoolbar-upload").click(function() {
+
+	});
+
+
+
+
+
+
+    // folder: {icon: "glyphicon glyphicon-folder-open"},
+    // emptyFolder: {icon: "glyphicon glyphicon-folder-close"},
+    // file: {icon: "glyphicon glyphicon-file"},
+    // pdf: {icon: "glyphicon glyphicon-book"}
+
+
+    function renderProject(data) {
+        var tree = $(".fileswrapper").jstree({
+            core: {
+                check_callback: true,
+                multiple: false,
+                data: convertRawDataToJsTreeData(data)
+            },
+
+            plugins: ["types", "dnd", "state"]
+        });
+
+        tree.on({
+        	// Auswahl-Listener
+            "select_node.jstree": function (e, data) {
+
+            },
+
+	        // Doppelklick-Listener
+            "dblclick.jstree": function (e, data) {
+
+            },
+
+	        // Tasten-Listener
+            "keydown": function (e, data) {
+
+            },
+        });
+    }
+
+
+
+    function convertRawDataToJsTreeData(rawData) {
+        var jsTreeData = [];
+
+        $.each(rawData.folders || [], function (i, folder) {
+            jsTreeData.push({
+                id: "folder" + folder.id,
+                text: folder.name,
+                icon: "glyphicon glyphicon-folder-open",
+                li_attr: {"class": "filesitem-folder"},
+                children: convertRawDataToJsTreeData(folder)
             });
-	
-	/*
-	 * Referenziert eine bestehende JSTree-Instanz (ohne eine neue zu erzeugen)
-	 * (zu verwenden, um darauf knotenspezifische Methoden anzuwenden)
-	 */
-	treeInst = $('.projectswrapper').jstree();
-	
-	// ----------------------------------------------------------------------------------------------------
-	//                                               LISTENER                                              
-	// ----------------------------------------------------------------------------------------------------
-	
-	// Auswahl-Listener
-	tree.bind('select_node.jstree',function(e,data) {
-	});
-	
-	// ----------------------------------------------------------------------------------------------------
-	
-	// Doppelklick-Listener
-	tree.bind("dblclick.jstree",function(e) {
-	});
-	
-	// ----------------------------------------------------------------------------------------------------
-	
-	// Tasten-Listener
-	tree.bind('keydown',function(e) {
-	});
-	
-	// ----------------------------------------------------------------------------------------------------
-	
-	// wenn eine ungültige Projekt-ID vorliegt, ...
-	if(isNaN(projectID)) {
-		// ... wird zur Projekt-Übersicht weitergeleitet
-		backToProject();
-	}
-	// wenn eine gültige Projekt-ID vorliegt, ...
-	else {
-		// ... wird die Anzeige der Dateien und ihrer Verzeichnisstruktur des zugehörigen Projektes initialisiert
-		initFiles();
-	}
-	
-	// ----------------------------------------------------------------------------------------------------
-	//                                             MENÜ-EINTRÄGE                                           
-	// ----------------------------------------------------------------------------------------------------
-	
-	// 'Öffnen'-Schaltfläche
-	$('.filestoolbar-open').on("click", function() {
-		
-		// TODO
-		
-	});
-	
-	// 'Erstellen'-Schaltfläche
-	$('.filestoolbar-new').on("click", function() {
-		
-		// TODO
-		
-	});
-	
-	// 'Löschen'-Schaltfläche
-	$('.filestoolbar-delete').on("click", function() {
-		
-		// TODO
-		
-	});
-	
-	// 'Umbenennen'-Schaltfläche
-	$('.filestoolbar-rename').on("click", function() {
-		
-		// TODO
-		
-	});
-	
-	// 'Verschieben'-Schaltfläche
-	$('.filestoolbar-move').on("click", function() {
-		
-		// TODO
-		
-	});
-	
-	// 'Herunterladen'-Schaltfläche
-	$('.filestoolbar-download').on("click", function() {
-		
-		// TODO
-		
-	});
-	
-	// 'Hochladen'-Schaltfläche
-	$('.filestoolbar-upload').on("click", function() {
-		
-		// TODO
-		
-	});
+        });
 
+        $.each(rawData.files || [], function (i, file) {
+            jsTreeData.push({
+                id: "file" + file.id,
+                text: file.name,
+                icon: "glyphicon glyphicon-file",
+                li_attr: {"class": "filesitem-file"}
+            });
+        });
+
+        return jsTreeData;
+    }
+
+
+    /*
+     * Leitet den Benutzer zurück zur Projektverwaltung.
+     */
+    function backToProject() {
+        // TODO: auf das richtige Projekt verweisen?
+        window.location.replace("/projekt/");
+    }
+
+
+    /*
+     * Aktualisiert die Aktivierungen der Menü-Schaltflächen.
+     */
+    function updateMenuButtons() {
+
+        // flag für die Aktivierung der nicht-selektionsabhängigen Schaltflächen ("Erstellen" und "Hochladen")
+        var basic;
+        // flag für die Aktivierung der selektionsabhängigen Schaltflächen
+        var remain;
+
+        // Editierungsmodus
+        if(creatingNodeID!=null) {
+            // keine Aktivierungen
+            basic  = false;
+            remain = false;
+        }
+        // Selektion
+        else if(selectedNodeID!="") {
+            // vollständig Aktivierung
+            basic  = true;
+            remain = true;
+        }
+        else {
+            // Aktivierung der nicht-selektionsabhängigen Schaltflächen
+            basic  = true;
+            remain = false;
+        }
+
+        // setzt die Aktivierungen der einzelnen Menü-Schaltflächen
+        $(".filestoolbar-open").prop("disabled", !remain);
+        $(".filestoolbar-new").prop("disabled", !basic);
+        $(".filestoolbar-delete").prop("disabled", !remain);
+        $(".filestoolbar-rename").prop("disabled", !remain);
+        $(".filestoolbar-move").prop("disabled", !remain);
+        $(".filestoolbar-download").prop("disabled", !remain);
+        $(".filestoolbar-upload").prop("disabled", !basic);
+    }
 });
-
-
-
-
-/*
- * Leitet den Benutzer zurück zur Projektverwaltung.
- */
-function backToProject() {
-	// TODO: auf das richtige Projekt verweisen?
-	window.location.replace('/projekt/');
-}
-
-/*
- * Initialisiert die Anzeige der Dateien und ihrer Verzeichnisstruktur des Benutzers.
- */
-function initFiles() {
-	
-	documentsJsonRequest({
-			'command': 'listfiles',
-			'id': projectID
-		}, function(result,data) {
-			if(result) {
-				// legt für jedes Projekt eine Knoten-Komponente an
-				for(var i=0; i<data.response.length; ++i)
-					addNode(data.response[i]);
-			}
-	});
-	
-	// aktualisiert die Aktivierungen der Menü-Schaltflächen
-	updateMenuButtons();
-}
-
-/*
- * Aktualisiert die Aktivierungen der Menü-Schaltflächen.
- */
-function updateMenuButtons() {
-	
-	// flag für die Aktivierung der nicht-selektionsabhängigen Schaltflächen ('Erstellen' und 'Hochladen')
-	var basic;
-	// flag für die Aktivierung der selektionsabhängigen Schaltflächen
-	var remain;
-	
-	// Editierungsmodus
-	if(creatingNodeID!=null) {
-		// keine Aktivierungen
-		basic  = false;
-		remain = false;
-	}
-	// Selektion
-	else if(selectedNodeID!="") {
-		// vollständig Aktivierung
-		basic  = true;
-		remain = true;
-	}
-	else {
-		// Aktivierung der nicht-selektionsabhängigen Schaltflächen
-		basic  = true;
-		remain = false;
-	}
-	
-	// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
-	$('.filestoolbar-open').prop("disabled", !remain);
-	$('.filestoolbar-new').prop("disabled", !basic);
-	$('.filestoolbar-delete').prop("disabled", !remain);
-	$('.filestoolbar-rename').prop("disabled", !remain);
-	$('.filestoolbar-move').prop("disabled", !remain);
-	$('.filestoolbar-download').prop("disabled", !remain);
-	$('.filestoolbar-upload').prop("disabled", !basic);
-}
