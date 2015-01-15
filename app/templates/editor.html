@@ -1,5 +1,5 @@
 <!--
-@author: Franziska Everinghoff, Timo Dümke
+@author: Franziska Everinghoff, Timo Dümke, Martin Kolaczek
 @creation: 20.11.2014 - sprint-nr: 2
 @last-change: 17.12.2014 - sprint-nr: 3
 -->
@@ -16,7 +16,8 @@
 <script src="/static/js/editor.js"></script>
 <link href="/static/bootstrap/css/bootstrap.icon-large.min.css" rel="stylesheet">
 <script src="/static/js/general.js"></script>
-
+<script data-jsfiddle="common" src="/static/handsontable/dist/handsontable.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="/static/handsontable/dist/handsontable.css">
 <style type="text/css">
 .symbolbar_bg{
 background: #95a5a6;
@@ -78,8 +79,60 @@ border: 0;
 							<p onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')"> Nein</p>
 						</div>
 						 <div id="dialog_tabelle_erstellen" title="Tabelle erstellen" style="display: none;">	
-		<p>Bitte geben Sie die Eckdaten der Tabelle ein</p>
-		<p onClick=""> Erstellen</p>
+		          <div id="example">
+
+
+
+        <script data-jsfiddle="example">
+			var data = [
+			[,,,],
+			[,,,],
+			];
+
+
+          var container = document.getElementById('example');
+          var hot = new Handsontable(container,
+          {
+            data: data,
+            minSpareRows: 1,
+            colHeaders: true,
+			rowHeaders: true,
+            contextMenu: true
+          });
+		  
+		  
+		  data1 = hot.getData();
+		  hot.setDataAtCell( 2, 2, data1[5][3]);
+
+        </script>
+      </div>
+	    <form name="myform">
+			<textarea name="inputtext"></textarea>
+			<input type="button" value="Latex-Tabelle erzeugen" onClick="addtext();">
+		</form>
+		<script language="javascript" type="text/javascript">
+			function addtext() {
+			var header = "";
+			for (var i =  0; i < hot.countCols();i++)
+				header += "l";
+			
+			var fulltable = "";
+			for (var j = 0; j < hot.countRows()-1;j++)
+				{
+					var rowcontent = "";
+					for (var i =  0; i < hot.countCols()-1;i++)
+						rowcontent += hot.getDataAtCell(j,i)+"&";
+				rowcontent += hot.getDataAtCell(j,i++)+"\\\\"
+				
+				fulltable += rowcontent +"\n";
+			}
+			document.myform.inputtext.value = "\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
+			+ fulltable+"\\end{tabular}\n"+"\\end{table}" ;
+			}
+		</script>
+
+
+		<p onClick="">Übernehmen</p>
 		<p onClick=" $( '#dialog_tabelle_erstellen' ).dialog('destroy')"> Abbrechen</p>
 	</div>
 						 <nav class="navbar navbar-default symbolbar_bg">
