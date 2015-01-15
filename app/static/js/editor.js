@@ -12,11 +12,12 @@ var editor;
 
 /// Änderungen im Editor gespeichert?
 var changesSaved = true;
-
+	
 /**
  * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
  */
 $(document).ready(function() {
+	
 	// Datei-ID abfragen
 	id = parseInt(location.hash.substr(1));
 	if (isNaN(id))
@@ -56,14 +57,14 @@ $(document).ready(function() {
 		$('#compile').click(function() {
 			compile(id);
 		});
-
-		// Dokument laden
+		
 		loadFile(id);
 	}
 });
 
 // Dialogfenster Editor zurück
 function confirmExit() {
+	saveFile(id);
 	$('#dialog_editor_verlassen').dialog();
 }
 
