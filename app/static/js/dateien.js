@@ -32,8 +32,21 @@ $(document).ready(function() {
 	 * Plugins:	'state' zum browser-seitigen Speichern der geöffneten und ausgewählten Knoten-Komponenten
 	 * 					(notwendig, da beim Aktualisieren der Seite die Auswahl verloren geht, die Menü-Einträge jedoch ggf. aktiviert bleiben)
 	 */
-	var tree = $('.projectswrapper').jstree({"core"    : {"check_callback" : true,"multiple" : false},
-											 "plugins" : ["dnd","state"]});
+	var tree = $('.fileswrapper').jstree({
+				types: {
+                    default: {icon: "glyphicon glyphicon-file"},
+                    folder: {icon: "glyphicon glyphicon-folder-open"},
+                    emptyFolder: {icon: "glyphicon glyphicon-folder-close"},
+                    file: {icon: "glyphicon glyphicon-file"},
+                    pdf: {icon: "glyphicon glyphicon-book"}
+                },
+
+                core: {
+                    "check_callback" : true, "multiple" : false
+                },
+
+                plugins: ["types", "dnd", "state"]
+            });
 	
 	/*
 	 * Referenziert eine bestehende JSTree-Instanz (ohne eine neue zu erzeugen)

@@ -184,26 +184,6 @@
             </li>
         </ul>
     </div>
-
-    <script>
-        $(function () {
-            $('.fileswrapper').jstree({
-                types: {
-                    default: {icon: "glyphicon glyphicon-file"},
-                    folder: {icon: "glyphicon glyphicon-folder-open"},
-                    emptyFolder: {icon: "glyphicon glyphicon-folder-close"},
-                    file: {icon: "glyphicon glyphicon-file"},
-                    pdf: {icon: "glyphicon glyphicon-book"}
-                },
-
-                core: {
-                    "check_callback" : true
-                },
-
-                plugins: ["types", "dnd", "state"]
-            });
-        });
-    </script>
 </div>
 
 {% endblock %}
