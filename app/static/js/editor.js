@@ -227,3 +227,26 @@ function compile(id) {
 				});
 	});
 }
+
+/**
+ * liest die Tabelle aus und fügt sie in das Textfeld des Editors ein
+ */
+
+function table_readout_input() {
+	var header = "";
+	for (var i =  0; i < hot.countCols();i++)
+		header += "l";
+		
+	var fulltable = "";
+		for (var j = 0; j < hot.countRows()-1;j++)
+		{
+			var rowcontent = "";
+			for (var i =  0; i < hot.countCols()-1;i++)
+				rowcontent += hot.getDataAtCell(j,i)+"&";
+				rowcontent += hot.getDataAtCell(j,i++)+"\\\\"
+				fulltable += rowcontent +"\n";
+		}
+		editor = ace.edit('editor');
+		editor.insert("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
+		+ fulltable+"\\end{tabular}\n"+"\\end{table}\n");
+}
