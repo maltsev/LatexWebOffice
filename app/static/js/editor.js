@@ -72,6 +72,77 @@ function createTable() {
 	$('#dialog_tabelle_erstellen').dialog();
 }
 
+function insertImage(){
+	var folderid;
+	//get folder id
+	documentsJsonRequest({
+			'command': 'fileinfo',
+			'id': id,
+		}, function(result, data) {
+			if (result)
+			{
+				getFiles(data.response.folderid);
+			}
+	});
+
+}
+var filelist = [];
+function getFiles(folderid){
+	filelist.push("");
+	documentsJsonRequest({
+			'command': 'listfiles',
+			'id': folderid,
+		}, function(result, data) {
+			if (result)
+			{
+				var arr = data.response.files;
+
+				for(var i=0;i<arr.length;i++){
+					var obj = arr[i];
+					if(obj.mimetype.indexOf("image") > -1){
+						filelist.push(obj.name);
+					};
+				}
+				generateFileSelection();
+			}
+	});
+}
+
+function generateFileSelection(){
+	var myDiv = document.getElementById("selectionList");
+	
+	//Create and append select list
+	var selectList = document.createElement("select");
+	selectList.id = "mySelect";
+	selectList.onchange = function () {
+		includeSelectedFile(this);
+	};
+	myDiv.appendChild(selectList);
+
+	//Create and append the options
+	for (var i = 0; i < filelist.length; i++) {
+		var option = document.createElement("option");
+		option.value = filelist[i];
+		option.text = filelist[i];
+		selectList.appendChild(option);
+	}
+}
+function includeSelectedFile(a){
+	editor.insert("\\includegraphics[width=0.7\\textwidth]{"+a.value+"}");
+}
+
+function includeImagePath(id){
+		documentsJsonRequest({
+			'command': 'fileinfo',
+			'id': id,
+		}, function(result, data) {
+			if (result)
+			{
+				editor.setValue("\\includegraphics[width=0.7\\textwidth]{"+data.response.filename+"}", 0);
+				//editor.getSelection().selectTo(0, 0);
+			}
+	});
+}
 
 /// Klammern, welche automatisch geschlossen werden sollen
 var braces = {
@@ -109,7 +180,7 @@ function backToProject() {
  * @param id ID der Datei
  */
 function loadFile(id) {
-	/**documentsDataRequest({
+	documentsDataRequest({
 			'command': 'downloadfile',
 			'id': id
 		}, function(result, data) {
@@ -119,7 +190,7 @@ function loadFile(id) {
 				changesSaved = true;
 			} else
 				backToProject();
-	});**/
+	});
 }
 
 /**
