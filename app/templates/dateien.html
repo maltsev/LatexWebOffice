@@ -147,7 +147,7 @@
     {% verbatim %}
     <script id="template_filesitem-file" type="text/template">
         <span class="filesitem-name" title="{{= it.mimetype }}, created {{= it.createTime }}">
-            {{= it.name }} <span class="filesitem-size">{{= it.size }} KB</span>
+            <span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
         </span>
         <span class="filesitem-editdate" title="Modified {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
     </script>
@@ -155,7 +155,9 @@
 
     {% verbatim %}
     <script id="template_filesitem-folder" type="text/template">
-        <span class="filesitem-name" title="Verzeichnis">{{= it.name }}</span>
+        <span class="filesitem-name" title="Verzeichnis">
+            <span class="filesitem-nameWrapper">{{= it.name }}</span>
+        </span>
     </script>
     {% endverbatim %}
 

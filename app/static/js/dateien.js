@@ -41,7 +41,23 @@ $(function () {
 
 	// "Umbenennen"-Schaltfläche
 	$(".filestoolbar-rename").click(function() {
+        var newName = prompt("Geben Sie den neuen Name ein:");
+        if (! newName) {
+            return;
+        }
 
+        var selectedNode = $("#" + tree.jstree().get_selected()),
+            commandName = selectedNode.hasClass("filesitem-folder") ? "renamedir" : "renamefile",
+            itemId = selectedNode.data("file-id") || selectedNode.data("folder-id");
+
+        documentsJsonRequest({command: commandName, id: itemId, name: newName}, function(result, data) {
+            if (! result) {
+                alert(data.response);
+                return;
+            }
+
+            $(".filesitem-nameWrapper", selectedNode).text(newName);
+        });
 	});
 
 	// "Verschieben"-Schaltfläche
