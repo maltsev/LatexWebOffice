@@ -13,6 +13,12 @@ var editor;
 /// Änderungen im Editor gespeichert?
 var changesSaved = true;
 	
+/// Grafikassistentdropdownmenue
+var dropdownWindow = false;
+
+/// Grafikassistent Selectionid
+var selectionid = 0;
+
 /**
  * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
  */
@@ -89,6 +95,7 @@ function insertImage(){
 }
 var filelist = [];
 function getFiles(folderid){
+	filelist = [];
 	filelist.push("");
 	documentsJsonRequest({
 			'command': 'listfiles',
@@ -104,7 +111,10 @@ function getFiles(folderid){
 						filelist.push(obj.name);
 					};
 				}
+				if (!dropdownWindow){
 				generateFileSelection();
+				dropdownWindow = true;
+				}
 			}
 	});
 }
@@ -114,9 +124,10 @@ function generateFileSelection(){
 	
 	//Create and append select list
 	var selectList = document.createElement("select");
-	selectList.id = "mySelect";
+	selectList.id = "mySelect" + selectionid;
 	selectList.onchange = function () {
 		includeSelectedFile(this);
+		selectList.style.display = "none";
 	};
 	myDiv.appendChild(selectList);
 
@@ -127,9 +138,11 @@ function generateFileSelection(){
 		option.text = filelist[i];
 		selectList.appendChild(option);
 	}
+	selectionid += 1;
 }
 function includeSelectedFile(a){
 	editor.insert("\\includegraphics[width=0.7\\textwidth]{"+a.value+"}");
+	dropdownWindow = false;
 }
 
 function includeImagePath(id){
