@@ -11,14 +11,7 @@ $(function () {
 	    return;
 	}
 
-    documentsJsonRequest({command: "listfiles", id: projectId}, function(result, data) {
-	    if (! result) {
-            alert(ERROR_MESSAGES.PROJECTNOTEXIST);
-            return;
-	    }
-
-        renderProject(data.response);
-    });
+    reloadProject();
 
 
 
@@ -63,7 +56,16 @@ $(function () {
 
 
 
+    function reloadProject() {
+        documentsJsonRequest({command: "listfiles", id: projectId}, function(result, data) {
+            if (! result) {
+                alert(ERROR_MESSAGES.PROJECTNOTEXIST);
+                return;
+            }
 
+            renderProject(data.response);
+        });
+    }
 
 
     // folder: {icon: "glyphicon glyphicon-folder-open"},
@@ -71,17 +73,26 @@ $(function () {
     // file: {icon: "glyphicon glyphicon-file"},
     // pdf: {icon: "glyphicon glyphicon-book"}
 
-
+    var tree = null;
     function renderProject(data) {
-        var tree = $(".fileswrapper").jstree({
+        var jsTreeData = convertRawDataToJsTreeData(data);
+
+        if (tree) {
+            tree.jstree(true).settings.core.data = jsTreeData;
+            tree.jstree(true).refresh();
+            return;
+        }
+
+        tree = $(".fileswrapper").jstree({
             core: {
                 check_callback: true,
                 multiple: false,
-                data: convertRawDataToJsTreeData(data)
+                data: jsTreeData
             },
 
             plugins: ["types", "dnd", "state"]
         });
+
 
         tree.on({
         	// Auswahl-Listener
@@ -100,6 +111,7 @@ $(function () {
             },
         });
     }
+
 
 
 
