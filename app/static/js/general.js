@@ -100,3 +100,13 @@ function documentsRedirect(param) {
 
 	form.submit();
 }
+
+/**
+ * Formatiert absolutes Datum als relatives
+ * @param {string} rawDateTime - absolutes Datum
+ * @example Jetzt ist 16-01-2015 17:32. getRelativeTime("16-01-2015 17:56") => "24 minutes ago"
+ * @returns {string} - relatives Datum
+ */
+function getRelativeTime(rawDateTime) {
+    return moment(rawDateTime).fromNow();
+}
