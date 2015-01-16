@@ -130,7 +130,8 @@ $(function () {
     }
 
 
-
+    var fileTemplate = doT.template($("#template_filesitem-file").text()),
+        folderTemplate = doT.template($("#template_filesitem-folder").text());
 
     function convertRawDataToJsTreeData(rawData) {
         var jsTreeData = [];
@@ -138,7 +139,7 @@ $(function () {
         $.each(rawData.folders || [], function (i, folder) {
             jsTreeData.push({
                 id: "folder" + folder.id,
-                text: folder.name,
+                text: folderTemplate(folder),
                 icon: "glyphicon glyphicon-folder-open",
                 li_attr: {"class": "filesitem-folder", "data-folder-id": folder.id},
                 children: convertRawDataToJsTreeData(folder)
@@ -146,9 +147,13 @@ $(function () {
         });
 
         $.each(rawData.files || [], function (i, file) {
+            file.createTime = getRelativeTime(file.createTime);
+            file.lastModifiedTime = getRelativeTime(file.lastModifiedTime);
+            file.size = Math.round(file.size / 1024); // in KB
+
             jsTreeData.push({
                 id: "file" + file.id,
-                text: file.name,
+                text: fileTemplate(file),
                 icon: "glyphicon glyphicon-file",
                 li_attr: {"class": "filesitem-file", "data-file-id": file.id, "data-file-mime": file.mimetype}
             });

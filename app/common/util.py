@@ -269,7 +269,8 @@ def _getFoldersAndFilesJson(folderobj, data={}):
 
     # durchlaufe alle Dateien im aktuellen Ordner Objekt (folderobj)
     for f in files:
-        filelist.append({'id': f.id, 'name': f.name, 'mimetype': f.mimeType})
+        filelist.append({'id': f.id, 'name': f.name, 'mimetype': f.mimeType, 'size': f.size,
+                         'createTime': str(f.createTime), 'lastModifiedTime': str(f.lastModifiedTime)})
 
     # hole alle Unterordner Objekte des aktuelle Ordner Objektes (folderobj)
     folders = Folder.objects.filter(parent=folderobj)
