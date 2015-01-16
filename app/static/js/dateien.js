@@ -111,7 +111,7 @@ $(function () {
                 id: "folder" + folder.id,
                 text: folder.name,
                 icon: "glyphicon glyphicon-folder-open",
-                li_attr: {"class": "filesitem-folder"},
+                li_attr: {"class": "filesitem-folder", "data-folder-id": folder.id},
                 children: convertRawDataToJsTreeData(folder)
             });
         });
@@ -121,7 +121,7 @@ $(function () {
                 id: "file" + file.id,
                 text: file.name,
                 icon: "glyphicon glyphicon-file",
-                li_attr: {"class": "filesitem-file"}
+                li_attr: {"class": "filesitem-file", "data-file-id": file.id}
             });
         });
 
