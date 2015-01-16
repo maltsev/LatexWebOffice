@@ -4,8 +4,16 @@
  * @last-change: 15.01.2015 - sprint-nr: 4
  */
 
-// speichert die ID der Knoten-Komponente des derzeitig zu erstellenden Projektes
+// ID der Knoten-Komponente des derzeitig zu erstellenden Projektes
 var creatingNodeID = null;
+// ID des derzeitig umzubenennenden Projektes
+var renameID = null;
+// Name des derzeitig umzubenennenden Projektes (für etwaiges Zurückbenennen)
+var prevName = null;
+// ID der Knoten-Komponente des derzeitig zu duplizierenden Projektes
+var duplicateNodeID = null;
+// ID des derzeitig zu duplizierenden Projektes
+var duplicateID = null;
 
 var selectedNodeID = "";
 var prevSelectedNodeID 	= "";
@@ -29,10 +37,6 @@ $(document).ready(function() {
 	 * 					(notwendig, da beim Aktualisieren der Seite die Auswahl verloren geht, die Menü-Einträge jedoch ggf. aktiviert bleiben)
 	 */
 	var tree = $('.projectswrapper').jstree({"core"    : {"check_callback" : true,"multiple" : false},
-											 "data"    : {"attr": {
-											 					"author" : "",
-														  		"createdate" : "",
-														  		"rootid" : ""}},
 											 "plugins" : ["state"]});
 	
 	/*
@@ -67,6 +71,10 @@ $(document).ready(function() {
 			
 		}
 		
+		// TEST METADATA
+		//node = treeInst.get_node(selectedNodeID);
+		//console.log("AUTHOR: "+node.author+" ..... CREATETIME: "+node.createtime+" ..... ROOTID: "+node.rootid);
+		
 		// aktualisiert die Aktivierungen der Menü-Schaltflächen
 		updateMenuButtons();
 	});
@@ -86,7 +94,7 @@ $(document).ready(function() {
 	tree.bind('keydown',function(e) {
 		
 		// TEMP
-		console.log(e.keyCode);
+		//console.log(e.keyCode);
 		
 		switch(e.keyCode) {
 			
@@ -116,8 +124,7 @@ $(document).ready(function() {
 			
 			// ... und kein Name eingegeben wurde, ...
 			if(treeInst.get_text(creatingNodeID)==="") {
-				console.log("here");
-				// ... wird das Erstellungs-Vorgang abgebrochen
+				// ... wird der Erstellungs-Vorgang abgebrochen
 				treeInst.delete_node(creatingNodeID);
 				creatingNodeID = null;
 				updateMenuButtons();
@@ -127,10 +134,36 @@ $(document).ready(function() {
 				// ... wird severseitig ein neues Projekt mit dem festgelegten Namen erzeugt
 				createProject(treeInst.get_text(creatingNodeID));
 		}
+		// wenn die EIngabe des Names eines zu duplizierenden Projektes bestätigt wurde (= Duplizieren eines Projektes), ...
+		else if(duplicateID!=null) {
+		
+			// ... und kein Name eingegeben wurde, ...
+			if(treeInst.get_text(duplicateNodeID)==="") {
+				// ... wird der Duplizierungs-Vorgang abgebrochen
+				treeInst.delete_node(duplicateNodeID);
+				duplicateNodeID = null;
+				duplicateID = null;
+				updateMenuButtons();
+			}
+			// ... und ein Name eingegeben wurde, ...
+			else
+				// ... wird serverseitig das zum duplizieren ausgewählte Projekt mit dem festgelegten Namen dupliziert
+				duplicateProject(duplicateID,treeInst.get_text(duplicateNodeID));
+		}
 		// wenn der neue Name für ein bestehendes Projekt bestätigt wurde (= Umbenennen)
-		else {
-			// benennt das betroffene Projekt serverseitig um
-			renameProject(treeInst.get_selected().name);
+		else if(renameID!=null) {
+			
+			// ... und kein Name eingegeben wurde, ...
+			if(treeInst.get_text(renameID)==="") {
+				// ... wird der Umbenennungs-Vorgang abgebrochen
+				treeInst.set_text(renameID,prevName);
+				renameID = null;
+				updateMenuButtons();
+			}
+			// ... und ein Name eingegeben wurde, ...
+			else
+				// ... wird das serverseitige Umbenennen des betroffenen Projektes eingeleitet
+				renameProject(treeInst.get_text(renameID));
 		}
 		
 	});
@@ -175,17 +208,38 @@ $(document).ready(function() {
 	// 'Umbenennen'-Schaltfläche
 	$('.projecttoolbar-rename').on("click", function() {
 		
-		// versetzt die ausgewählte Knoten-Komponente in den Bearbeitungsmodus
-		treeInst.edit(treeInst.get_selected());
+		// Projekt-ID des umzubenennenden Projektes
+		renameID = selectedNodeID;
+		// derzeitiger Name des Projektes (für etwaiges Zurückbenennen)
+		prevName = treeInst.get_text(treeInst.get_node(renameID));
 		
-		renameProject();
+		// versetzt die zugehörige Knoten-Komponente in den Bearbeitungsmodus
+		treeInst.edit(renameID);
+		
+		// aktualisiert die Aktivierungen der Menü-Schaltflächen
+		updateMenuButtons();
+		
+		// sobald der Bearbeitungsmodus beendet (s. Umbenennungs-Listener) wird,
+		// wird renameProject() zum serverseitigen Umbenennen des betroffenen Projektes aufgerufen
 		
 	});
 	
 	// 'Duplizieren'-Schaltfläche
 	$('.projecttoolbar-duplicate').on("click", function() {
 		
-		// TODO
+		// Projekt-ID des zu duplizierenden Projektes
+		duplicateID = selectedNodeID;
+		
+		// erzeugt eine neue Knoten-Komponente
+		duplicateNodeID = treeInst.create_node("#","");
+		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
+		treeInst.edit(duplicateNodeID,"");
+		
+		// aktualisiert die Aktivierungen der Menü-Schaltflächen (vollständige Deaktivierung)
+		updateMenuButtons();
+		
+		// sobald der Bearbeitungsmodus beendet (s. Umbenennungs-Listener) wird,
+		// wird duplicateProject() zum serverseitigen Duplizieren eines entsprechenden Projektes aufgerufen		
 		
 	});
 	
@@ -222,8 +276,7 @@ $(document).ready(function() {
  */
 function openProject() {
 	
-	// TODO (project.rootid statt der mit der Knoten-ID übereinstimmenden project.id)
-	document.location.assign('/dateien/#' + prevSelectedNodeID);
+	document.location.assign('/dateien/#' + treeInst.get_node(prevSelectedNodeID).rootid);
 	
 }
 
@@ -288,33 +341,75 @@ function deleteProject() {
 }
 
 /*
- * Benennt das übergebene Projekt nach dem angegebenen Namen um.
+ * Benennt das betroffene Projekt nach dem angegebenen Namen um.
  * 
  * @param name neuer Name für das übergebene Projekt
- *
  */
 function renameProject(name) {
 	
-	/*
 	documentsJsonRequest({
-			'command': 'projectrm',
-			'id': treeInst.get_selected()[0],
+			'command': 'projectrename',
+			'id': renameID,
 			'name' : name
 		}, function(result,data) {
 			// wenn das ausgewählte Projekt erfolgreich umbenannt wurde, ist der Umbenennungs-Vorgang abgeschlossen
 			if(result) {
-				console.log('Umbenennung erfolgreich');
+				
+				// setzt die Umbenennungs-IDs zurück
+				renameID = null;
+				prevName = null;
+				
+				// aktualisiert die Aktivierungen der Menü-Schaltflächen
+				updateMenuButtons();
 			}
 			// wenn das ausgewählte Projekt für den übergebenen Namen nicht umbenannt werden konnte, ...
 			else {
 				// ... wird die Knoten-Komponente zur Angabe eines neuen Namens erneut in den Bearbeitungsmodus versetzt (s. Umbenennungs-Listener)
-				treeInst.edit(treeInst.get_selected()[0],"");
+				treeInst.edit(renameID,"");
 				
 				// TEMP
 				alert(data.response);
 			}
 	});
-	*/
+	
+}
+
+/*
+ * Dupliziert das, der übergebenen ID entsprechende, Projekt unter dem angegebenen Namen.
+ *
+ * @param projectID ID des zu duplizierenden Projektes
+ * @param name Name für das anzulegende Projekt
+ */
+function duplicateProject(projectID,name) {
+	
+	// dupliziert severseitig das, der übergebenen ID entsprechende, Projekte unter dem angegebenen Namen
+	documentsJsonRequest({
+			'command': 'projectclone',
+			'id': projectID,
+			'name': name
+		}, function(result,data) {
+			// wenn ein entsprechendes Projekt angelegt wurde, ist der Duplizierungs-Vorgang abgeschlossen
+			if(result) {
+				
+				// übernimmt die Daten des angelegten Projektes in die angelegte Knoten-Komponente
+				fillNode(duplicateNodeID,data.response);
+				
+				// setzt die Duplizierungs-IDs zurück
+				duplicateNodeID = null;
+				duplicateID = null;
+				
+				// aktualisiert die Aktivierungen der Menü-Schaltflächen (temporäre vollständige Deaktivierung wird aufgehoben)
+				updateMenuButtons();
+			}
+			// wenn ein entsprechendes Projekt nicht angelegt werden konnte, ...
+			else {
+				// ... wird die Knoten-Komponente zur Angabe eines neuen Namens erneut in den Bearbeitungsmodus versetzt (s. Umbenennungs-Listener)
+				treeInst.edit(duplicateNodeID,"");
+				
+				// TEMP
+				alert(data.response);
+			}
+	});
 	
 }
 
@@ -356,21 +451,22 @@ function addNode(project) {
 /*
  * Füllt die Attribute der übergebenen Knoten-Komponente mit den Werten des angegebenen Projektes.
  * 
- * @param node Knoten-Komponente, deren Attribute gemäß des angegebenen Projektes gesetzt werden sollen
+ * @param node ID der Knoten-Komponente, deren Attribute gemäß des angegebenen Projektes gesetzt werden sollen
  * @param porject Projekt, anhand dessen Daten die Attribute der übergebenen Knoten-Komponente gesetzt werden sollen
  */
-function fillNode(node,project) {
+function fillNode(nodeID,project) {
+	
+	node = treeInst.get_node(nodeID);
 	
 	// setzt die Bezeichnung der Knoten-Komponente auf den Namen des übergebenen Projektes
 	treeInst.set_text(node,project.name);
 	// setzt die ID der Knoten-Komponente auf die des übergebenen Projektes
 	treeInst.set_id(node,project.id);
 	
-	// TODO
 	// setzt die weiteren Attribute des Projektes
-	//node.data("author","");
-	//node.attr("createdate",data.response[i].createtime);
-	//node.attr("rootid",data.response[i].rootid);
+	node.author 	= project.author;
+	node.createtime = project.createtime;
+	node.rootid 	= project.rootid;
 }
 
 /*
@@ -403,20 +499,18 @@ function updateMenuButtons() {
 	var remain;
 	
 	// Editierungsmodus
-	if(creatingNodeID!=null) {
+	if(creatingNodeID!=null || renameID!=null || duplicateID!=null) {
 		// keine Aktivierungen
 		basic  = false;
 		remain = false;
 	}
 	// Selektion
 	else if(selectedNodeID!="") {
-		console.log("select");
 		// vollständig Aktivierung
 		basic  = true;
 		remain = true;
 	}
 	else {
-		console.log("deselect");
 		// Aktivierung der nicht-selektionsabhängigen Schaltflächen
 		basic  = true;
 		remain = false;
