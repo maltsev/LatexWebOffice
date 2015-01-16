@@ -418,11 +418,11 @@ function duplicateProject(projectID,name) {
  * @param id ID des Projektes
  *
  */
-function exportZip(id) {
+function exportZip() {
     documentsRedirect({
         'command' : 'exportzip',
         'id' : treeInst.get_selected()[0],
-        'name' : name
+
     }, function(result,data) {
         if(result) {
             console.log('Export Done!')
