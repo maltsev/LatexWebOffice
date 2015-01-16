@@ -51,7 +51,7 @@
     {% block navbar %}
     <!-- Fixed navbar -->
     <nav class="navbar navbar-default">
-        <div class="container-fluid">
+        <div class="container-fluid container-fluid-header">
 	    <div class="navbar-header">
 		    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar"><!-- bei kleinen Displays soll sich die Buttons der Navigation zusammenziehen und über diesen Button als Dropdown angezeigt werden -->
 		    <span class="sr-only">Toggle navigation</span>
@@ -105,7 +105,7 @@
     <!-- Sämtliche Inhalte sollten innerhalb des containers geschrieben werden. 
 	Daher sollte jede andere HMTL datei diese wrapper_datei erweitern und lediglich den content block überschreiben 
 	-->
-    <div class="container-fluid container-fill">{% block content %}{% endblock %}</div>
+    <div class="container-fluid container-fill container-fluid-content">{% block content %}{% endblock %}</div>
 </body>
 
 </html>
