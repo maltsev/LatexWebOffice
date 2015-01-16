@@ -130,7 +130,6 @@ if 'test' in sys.argv:
         }
     }
 try:
-    pass
-    #from core.latexwebofficeconf import *
+    from core.latexwebofficeconf import *
 except:
     pass

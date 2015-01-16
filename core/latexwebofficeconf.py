@@ -4,7 +4,7 @@
 
 * Creation Date : 06-01-2015
 
-* Last Modified : Di 06 Jan 2015 18:46:58 CET
+* Last Modified : Fr 16 Jan 2015 10:14:53 CET
 
 * Author :  mattis
 
@@ -15,9 +15,10 @@
 * Backlog entry : 
 
 """
-DEBUG = True
+# DEBUG = True
 
-DATABASES = {
+
+'''DATABASES = {
     'default': {
         'ENGINE': 'mysql.connector.django', 
         'NAME': 'latexweboffice',
@@ -27,7 +28,8 @@ DATABASES = {
         'PORT': '3306',
     }
 }
+'''
 
-ALLOWED_HOSTS=["*"]
+#ALLOWED_HOSTS=["*"]
 
 
