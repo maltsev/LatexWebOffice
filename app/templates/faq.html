@@ -3,7 +3,15 @@
 @creation: 08.01.2015 - sprint-nr: 
 @last-change: 08.01.2015 - sprint-nr: 
 -->
-
+<script src="/static/js/jquery.min.js"></script>
+<script language="javascript" type="text/javascript">
+function scrollToPosition(id){
+	var idString = "#"+id;
+	var p = $( idString );
+	var position = p.position();
+	window.scrollTo(0, position.top-60);
+}
+</script> 
 {% extends "_wrapper.html" %}
 
 <!-- Header -->
@@ -19,18 +27,18 @@
 		<div class="hline_green"></div>
 		<!-- FAQ Text -->
 		<p>
-		<p><a href="#1">1. Welche Funktionen bietet das LatexWebOffice?</a></p>
-		<p><a href="#2">2. Wie registriere ich mich?</a></p>
-		<p><a href="#3">3. Wie erstelle ich mein erstes Projekt?</a></p>
-		<p><a href="#4">4. Wie erstelle ich eine Tex-Datei?</a></p>
-		<p><a href="#5">5. Wie füge ich Bilder in meine Datei ein?</a></p>
-		<p><a href="#6">6. Welche Beschränkungen gelten für Uploads?</a></p>
-		<p><a href="#7">7. Kann ich selbst Vorlagen erstellen?</a></p>
-		<p><a href="#8">8. Wie kann ich bestehende Vorlagen nutzen?</a></p>
-		<p><a href="#9">9. Was passiert beim Export eines Projektes?</a></p>
-		<p><a href="#10">10. Werden mobile Endgeräte unterstützt?</a></p>
+		<p><a onclick="scrollToPosition('1');">1. Welche Funktionen bietet das LatexWebOffice?</a></p>
+		<p><a onclick="scrollToPosition('2');">2. Wie registriere ich mich?</a></p>
+		<p><a onclick="scrollToPosition('3');">3. Wie erstelle ich mein erstes Projekt?</a></p>
+		<p><a onclick="scrollToPosition('4');">4. Wie erstelle ich eine Tex-Datei?</a></p>
+		<p><a onclick="scrollToPosition('5');">5. Wie füge ich Bilder in meine Datei ein?</a></p>
+		<p><a onclick="scrollToPosition('6');">6. Welche Beschränkungen gelten für Uploads?</a></p>
+		<p><a onclick="scrollToPosition('7');">7. Kann ich selbst Vorlagen erstellen?</a></p>
+		<p><a onclick="scrollToPosition('8');">8. Wie kann ich bestehende Vorlagen nutzen?</a></p>
+		<p><a onclick="scrollToPosition('9');">9. Was passiert beim Export eines Projektes?</a></p>
+		<p><a onclick="scrollToPosition('10');">10. Werden mobile Endgeräte unterstützt?</a></p>
 
-
+	
 		<p id="1"><b>1. Welche Funktionen bietet das LatexWebOffice?</b></br>
 		Im LatexWebOffice lassen sich Projekte kreieren, Bilddateien hochladen und Latex Dokumente erstellen. </p>
 
