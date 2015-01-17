@@ -12,7 +12,7 @@ $(function () {
 
     // ID zum vorliegenden Projekt
 	var rootFolderId = parseInt(location.hash.substr(1), 10);
-	if (!rootFolderId) {
+	if (! rootFolderId) {
 	    backToProject();
 	    return;
 	}
@@ -29,9 +29,45 @@ $(function () {
 
 	});
 
-	// "Erstellen"-Schaltfläche
-	$(".filestoolbar-new").click(function() {
+	// "Datei Erstellen"-Schaltfläche
+	$(".filestoolbar-newfile").click(function() {
+        var name = prompt("Geben Sie den Tex-Dateiname ein:");
+        if (! name) {
+            return;
+        }
 
+        // Vermeiden "filename.tex.tex" Namen
+        name = name.replace(/\.tex/i, "") + ".tex";
+
+        var selectedFolderId = getSelectedFolderId();
+
+        documentsJsonRequest({command: "createtex", id: selectedFolderId, name: name}, function(result, data) {
+            if (! result) {
+                alert(data.response);
+                return;
+            }
+
+            reloadProject();
+        });
+	});
+
+	// "Verzeichnis Erstellen"-Schaltfläche
+	$(".filestoolbar-newfolder").click(function() {
+        var name = prompt("Geben Sie den Verzeichnisname ein:");
+        if (! name) {
+            return;
+        }
+
+        var selectedFolderId = getSelectedFolderId();
+
+        documentsJsonRequest({command: "createdir", id: selectedFolderId, name: name}, function(result, data) {
+            if (! result) {
+                alert(data.response);
+                return;
+            }
+
+            reloadProject();
+        });
 	});
 
 	// "Löschen"-Schaltfläche
@@ -46,7 +82,7 @@ $(function () {
             return;
         }
 
-        var selectedNode = $("#" + tree.jstree().get_selected()),
+        var selectedNode = getSelectedNode(),
             commandName = selectedNode.hasClass("filesitem-folder") ? "renamedir" : "renamefile",
             itemId = selectedNode.data("file-id") || selectedNode.data("folder-id");
 
@@ -58,11 +94,6 @@ $(function () {
 
             $(".filesitem-nameWrapper", selectedNode).text(newName);
         });
-	});
-
-	// "Verschieben"-Schaltfläche
-	$(".filestoolbar-move").click(function() {
-
 	});
 
 	// "Herunterladen"-Schaltfläche
@@ -176,6 +207,26 @@ $(function () {
         });
 
         return jsTreeData;
+    }
+
+    /*
+     * Gibt das ID des ausgewähltes Verzeichnisses zurück (auch für ausgewählte Dateien)
+     */
+    function getSelectedFolderId() {
+        var selectedNode = getSelectedNode();
+
+        if (selectedNode.hasClass("filesitem-folder")) {
+            var selectedFolder = selectedNode;
+        } else {
+            selectedFolder = selectedNode.closest(".filesitem-folder");
+        }
+
+        return selectedFolder.data("folder-id") || rootFolderId;
+    }
+
+
+    function getSelectedNode() {
+        return $("#" + tree.jstree().get_selected());
     }
 
 
