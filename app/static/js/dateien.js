@@ -31,7 +31,7 @@ $(function () {
 
 	// "Datei Erstellen"-Schaltfläche
 	$(".filestoolbar-newfile").click(function() {
-        var name = prompt("Geben Sie den Tex-Datei Name ein:");
+        var name = prompt("Geben Sie den Tex-Dateiname ein:");
         if (! name) {
             return;
         }
@@ -53,7 +53,21 @@ $(function () {
 
 	// "Verzeichnis Erstellen"-Schaltfläche
 	$(".filestoolbar-newfolder").click(function() {
+        var name = prompt("Geben Sie den Verzeichnisname ein:");
+        if (! name) {
+            return;
+        }
 
+        var selectedFolderId = getSelectedFolderId();
+
+        documentsJsonRequest({command: "createdir", id: selectedFolderId, name: name}, function(result, data) {
+            if (! result) {
+                alert(data.response);
+                return;
+            }
+
+            reloadProject();
+        });
 	});
 
 	// "Löschen"-Schaltfläche
