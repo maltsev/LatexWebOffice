@@ -4,15 +4,20 @@
 @last-change: 15.01.2015 - sprint-nr: 4
 */
 $(function () {
-    // ID des vorliegenden Projektes
-	var projectId = parseInt(location.hash.substr(1), 10);
-	if (! projectId) {
+	// ausgewählter Knoten
+	var selectedNode = null;
+
+	// ob der ausgewählte Knoten eine Datei ist
+	var selectedIsFile;
+
+    // ID zum vorliegenden Projekt
+	var rootFolderId = parseInt(location.hash.substr(1), 10);
+	if (!rootFolderId) {
 	    backToProject();
 	    return;
 	}
 
     reloadProject();
-
 
 
 	// -------------------------------------------------------------------------
@@ -36,7 +41,23 @@ $(function () {
 
 	// "Umbenennen"-Schaltfläche
 	$(".filestoolbar-rename").click(function() {
+        var newName = prompt("Geben Sie den neuen Name ein:");
+        if (! newName) {
+            return;
+        }
 
+        var selectedNode = $("#" + tree.jstree().get_selected()),
+            commandName = selectedNode.hasClass("filesitem-folder") ? "renamedir" : "renamefile",
+            itemId = selectedNode.data("file-id") || selectedNode.data("folder-id");
+
+        documentsJsonRequest({command: commandName, id: itemId, name: newName}, function(result, data) {
+            if (! result) {
+                alert(data.response);
+                return;
+            }
+
+            $(".filesitem-nameWrapper", selectedNode).text(newName);
+        });
 	});
 
 	// "Verschieben"-Schaltfläche
@@ -57,7 +78,7 @@ $(function () {
 
 
     function reloadProject() {
-        documentsJsonRequest({command: "listfiles", id: projectId}, function(result, data) {
+        documentsJsonRequest({command: "listfiles", id: rootFolderId}, function(result, data) {
             if (! result) {
                 alert(ERROR_MESSAGES.PROJECTNOTEXIST);
                 return;
@@ -97,23 +118,36 @@ $(function () {
         tree.on({
         	// Auswahl-Listener
             "select_node.jstree": function (e, data) {
+            	selectedNode = data.node.li_attr;
+            	selectedIsFile = selectedNode.class.indexOf("filesitem-file") >= 0;
+            	updateMenuButtons();
+            },
 
+            // Auswahl-Entfernen-Listener
+            "deselect_node.jstree": function (e, data) {
+            	selectedNode = null;
+            	updateMenuButtons();
             },
 
 	        // Doppelklick-Listener
             "dblclick.jstree": function (e, data) {
-
+            	if (selectedNode.class.indexOf("filesitem-file") >= 0) {
+            		if (selectedNode["data-file-mime"] == "text/x-tex") {
+            			// bei Doppelklick auf TEX-Datei zum Editor gehen
+            			window.location.replace("/editor/#" + selectedNode["data-file-id"]);
+            		}
+            	}
             },
 
 	        // Tasten-Listener
             "keydown": function (e, data) {
-
             },
         });
     }
 
 
-
+    var fileTemplate = doT.template($("#template_filesitem-file").text()),
+        folderTemplate = doT.template($("#template_filesitem-folder").text());
 
     function convertRawDataToJsTreeData(rawData) {
         var jsTreeData = [];
@@ -121,7 +155,7 @@ $(function () {
         $.each(rawData.folders || [], function (i, folder) {
             jsTreeData.push({
                 id: "folder" + folder.id,
-                text: folder.name,
+                text: folderTemplate(folder),
                 icon: "glyphicon glyphicon-folder-open",
                 li_attr: {"class": "filesitem-folder", "data-folder-id": folder.id},
                 children: convertRawDataToJsTreeData(folder)
@@ -129,11 +163,15 @@ $(function () {
         });
 
         $.each(rawData.files || [], function (i, file) {
+            file.createTime = getRelativeTime(file.createTime);
+            file.lastModifiedTime = getRelativeTime(file.lastModifiedTime);
+            file.size = Math.round(file.size / 1024); // in KB
+
             jsTreeData.push({
                 id: "file" + file.id,
-                text: file.name,
+                text: fileTemplate(file),
                 icon: "glyphicon glyphicon-file",
-                li_attr: {"class": "filesitem-file", "data-file-id": file.id}
+                li_attr: {"class": "filesitem-file", "data-file-id": file.id, "data-file-mime": file.mimetype}
             });
         });
 
@@ -149,42 +187,24 @@ $(function () {
         window.location.replace("/projekt/");
     }
 
-
     /*
      * Aktualisiert die Aktivierungen der Menü-Schaltflächen.
      */
     function updateMenuButtons() {
-
         // flag für die Aktivierung der nicht-selektionsabhängigen Schaltflächen ("Erstellen" und "Hochladen")
-        var basic;
-        // flag für die Aktivierung der selektionsabhängigen Schaltflächen
-        var remain;
+        var basic = true;
 
-        // Editierungsmodus
-        if(creatingNodeID!=null) {
-            // keine Aktivierungen
-            basic  = false;
-            remain = false;
-        }
-        // Selektion
-        else if(selectedNodeID!="") {
-            // vollständig Aktivierung
-            basic  = true;
-            remain = true;
-        }
-        else {
-            // Aktivierung der nicht-selektionsabhängigen Schaltflächen
-            basic  = true;
-            remain = false;
-        }
+        // flag für die Aktivierung der selektionsabhängigen Schaltflächen
+        var file = selectedNode != null && selectedIsFile;
+        var folder = selectedNode != null && !selectedIsFile;
 
         // setzt die Aktivierungen der einzelnen Menü-Schaltflächen
-        $(".filestoolbar-open").prop("disabled", !remain);
+        $(".filestoolbar-open").prop("disabled", !file);
         $(".filestoolbar-new").prop("disabled", !basic);
-        $(".filestoolbar-delete").prop("disabled", !remain);
-        $(".filestoolbar-rename").prop("disabled", !remain);
-        $(".filestoolbar-move").prop("disabled", !remain);
-        $(".filestoolbar-download").prop("disabled", !remain);
+        $(".filestoolbar-delete").prop("disabled", !(file || folder));
+        $(".filestoolbar-rename").prop("disabled", !(file || folder));
+        $(".filestoolbar-move").prop("disabled", !(file || folder));
+        $(".filestoolbar-download").prop("disabled", !(file || folder));
         $(".filestoolbar-upload").prop("disabled", !basic);
     }
 });

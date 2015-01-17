@@ -9,6 +9,8 @@
 
 {% block header %}
     <link rel="stylesheet" href="/static/css/dateien.css">
+    <!-- js template engine -->
+    <script src="/static/js/doT.min.js"></script>
     <script src="/static/js/general.js"></script>
     <script src="/static/js/dateien.js"></script>
 {% endblock %}
@@ -141,6 +143,23 @@
             </button>
         </div>
     </div>
+
+    {% verbatim %}
+    <script id="template_filesitem-file" type="text/template">
+        <span class="filesitem-name" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
+            <span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
+        </span>
+        <span class="filesitem-editdate" title="Verändert {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
+    </script>
+    {% endverbatim %}
+
+    {% verbatim %}
+    <script id="template_filesitem-folder" type="text/template">
+        <span class="filesitem-name" title="Verzeichnis">
+            <span class="filesitem-nameWrapper">{{= it.name }}</span>
+        </span>
+    </script>
+    {% endverbatim %}
 
     <div class="fileswrapper"></div>
 </div>
