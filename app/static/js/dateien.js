@@ -167,34 +167,79 @@ $(function () {
                 data: jsTreeData
             },
 
+            dnd: {
+                "inside_pos": "last"
+            },
+
+            types: {
+                "default":{
+                    "icon" : "glyphicon glyphicon-file",
+                    "valid_children": []
+                },
+                "file":{
+                    "icon" : "glyphicon glyphicon-file",
+                    "valid_children": []
+                },
+                "folder":{
+                    "icon" : "glyphicon glyphicon-folder-open",
+                    "valid_children": ["file", "default", "folder"]
+                }
+            },
+
             plugins: ["types", "dnd", "state"]
         });
 
+        var jstree = $(".fileswrapper").jstree(true);
 
         tree.on({
-        	// Auswahl-Listener
+            // Auswahl-Listener
             "select_node.jstree": function (e, data) {
-            	updateMenuButtons();
+                updateMenuButtons();
             },
 
             // Auswahl-Entfernen-Listener
             "deselect_node.jstree": function (e, data) {
-            	updateMenuButtons();
+                updateMenuButtons();
             },
 
-	        // Doppelklick-Listener
+            // Doppelklick-Listener
             "dblclick.jstree": function (e, data) {
                 var selectedNode = getSelectedNode();
-            	if (selectedNode.hasClass("filesitem-file")) {
-            		if (selectedNode.data("file-mime") == "text/x-tex") {
-            			// bei Doppelklick auf TEX-Datei zum Editor gehen
-            			window.location.replace("/editor/#" + selectedNode.data("file-id"));
-            		}
-            	}
+                if (selectedNode.hasClass("filesitem-file")) {
+                    if ($.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1) {
+                        // bei Doppelklick auf TEX-Datei zum Editor gehen
+                        window.location.replace("/editor/#" + selectedNode.data("file-id"));
+                    }
+                }
+            },
+            // Tasten-Listener
+            "keydown": function (e, data) {
             },
 
-	        // Tasten-Listener
-            "keydown": function (e, data) {
+
+            "ready.jstree refresh.jstree": function () {
+                $(".jstree-node").each(function () {
+                    var node = $(this),
+                        type = node.hasClass("filesitem-folder") ? "folder" : "file";
+
+                    jstree.set_type(node, type);
+                });
+            }
+        });
+
+        $(document).on({
+            "dnd_stop.vakata": function (event, data) {
+                var node = jstree.get_node(data.data.nodes[0]),
+                    nodeId = node.li_attr["data-file-id"] || node.li_attr["data-folder-id"],
+                    command = node.type === "folder" ? "movedir" : "movefile",
+                    folderId = parseInt(node.parent.replace("folder", ""), 10) || rootFolderId;
+
+                documentsJsonRequest({command: command, id: nodeId, folderid: folderId}, function(result, data) {
+                    if (! result) {
+                        alert(data.response);
+                        return;
+                    }
+                });
             },
         });
     }
@@ -210,7 +255,6 @@ $(function () {
             jsTreeData.push({
                 id: "folder" + folder.id,
                 text: folderTemplate(folder),
-                icon: "glyphicon glyphicon-folder-open",
                 li_attr: {"class": "filesitem-folder", "data-folder-id": folder.id},
                 children: convertRawDataToJsTreeData(folder)
             });
@@ -224,7 +268,6 @@ $(function () {
             jsTreeData.push({
                 id: "file" + file.id,
                 text: fileTemplate(file),
-                icon: "glyphicon glyphicon-file",
                 li_attr: {"class": "filesitem-file", "data-file-id": file.id, "data-file-mime": file.mimetype}
             });
         });
@@ -237,6 +280,7 @@ $(function () {
      */
     function getSelectedFolderId() {
         var selectedNode = getSelectedNode();
+
         if (selectedNode.hasClass("filesitem-folder")) {
             var selectedFolder = selectedNode;
         } else {
@@ -273,7 +317,7 @@ $(function () {
         var selected = selectedNode != null;
         var folder = selected && selectedNode.hasClass("filesitem-folder");
         var file = selected && selectedNode.hasClass("filesitem-file");
-        var texFile = file && selectedNode.data("file-mime") == "text/x-tex";
+        var texFile = file && $.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1;
 
         // setzt die Aktivierungen der einzelnen Menü-Schaltflächen
         $(".filestoolbar-open").prop("disabled", !texFile);
