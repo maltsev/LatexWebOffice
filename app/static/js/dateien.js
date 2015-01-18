@@ -7,9 +7,6 @@ $(function () {
 	// ausgewählter Knoten
 	var selectedNode = null;
 
-	// ob der ausgewählte Knoten eine Datei ist
-	var selectedIsFile;
-
     // ID zum vorliegenden Projekt
 	var rootFolderId = parseInt(location.hash.substr(1), 10);
 	if (! rootFolderId) {
@@ -26,7 +23,7 @@ $(function () {
 
     // "Öffnen"-Schaltfläche
 	$(".filestoolbar-open").click(function() {
-
+		window.location.replace("/editor/#" + selectedNode["data-file-id"]);
 	});
 
 	// "Datei Erstellen"-Schaltfläche
@@ -72,7 +69,25 @@ $(function () {
 
 	// "Löschen"-Schaltfläche
 	$(".filestoolbar-delete").click(function() {
-
+		if (confirm('Wollen Sie die Auswahl wirklich löschen?')) {
+			if (selectedNode['class'].indexOf('filesitem-file') >= 0) {
+				documentsJsonRequest({
+					'command': 'deletefile',
+					'id': selectedNode['data-file-id']
+				}, function(result, data) {
+					if (result)
+						reloadProject();
+				});
+			} else if (selectedNode['class'].indexOf('filesitem-folder') >= 0) {
+				documentsJsonRequest({
+					'command': 'rmdir',
+					'id': selectedNode['data-folder-id']
+				}, function(result, data) {
+					if (result)
+						reloadProject();
+				});
+			}
+		}
 	});
 
 	// "Umbenennen"-Schaltfläche
@@ -83,7 +98,7 @@ $(function () {
         }
 
         var selectedNode = getSelectedNode(),
-            commandName = selectedNode.hasClass("filesitem-folder") ? "renamedir" : "renamefile",
+            commandName = selectedNode['class'].indexOf('filesitem-folder') >= 0 ? "renamedir" : "renamefile",
             itemId = selectedNode.data("file-id") || selectedNode.data("folder-id");
 
         documentsJsonRequest({command: commandName, id: itemId, name: newName}, function(result, data) {
@@ -150,7 +165,6 @@ $(function () {
         	// Auswahl-Listener
             "select_node.jstree": function (e, data) {
             	selectedNode = data.node.li_attr;
-            	selectedIsFile = selectedNode.class.indexOf("filesitem-file") >= 0;
             	updateMenuButtons();
             },
 
@@ -162,7 +176,7 @@ $(function () {
 
 	        // Doppelklick-Listener
             "dblclick.jstree": function (e, data) {
-            	if (selectedNode.class.indexOf("filesitem-file") >= 0) {
+            	if (selectedNode['class'].indexOf('filesitem-file') >= 0) {
             		if (selectedNode["data-file-mime"] == "text/x-tex") {
             			// bei Doppelklick auf TEX-Datei zum Editor gehen
             			window.location.replace("/editor/#" + selectedNode["data-file-id"]);
@@ -215,7 +229,7 @@ $(function () {
     function getSelectedFolderId() {
         var selectedNode = getSelectedNode();
 
-        if (selectedNode.hasClass("filesitem-folder")) {
+        if (selectedNode['class'].indexOf('filesitem-folder') >= 0) {
             var selectedFolder = selectedNode;
         } else {
             selectedFolder = selectedNode.closest(".filesitem-folder");
@@ -246,16 +260,18 @@ $(function () {
         var basic = true;
 
         // flag für die Aktivierung der selektionsabhängigen Schaltflächen
-        var file = selectedNode != null && selectedIsFile;
-        var folder = selectedNode != null && !selectedIsFile;
+        var selected = selectedNode != null;
+        var folder = selected && selectedNode['class'].indexOf('filesitem-folder') >= 0;
+        var file = selected && selectedNode['class'].indexOf('filesitem-file') >= 0;
+        var texFile = file && selectedNode["data-file-mime"] == "text/x-tex";
 
         // setzt die Aktivierungen der einzelnen Menü-Schaltflächen
-        $(".filestoolbar-open").prop("disabled", !file);
+        $(".filestoolbar-open").prop("disabled", !texFile);
         $(".filestoolbar-new").prop("disabled", !basic);
-        $(".filestoolbar-delete").prop("disabled", !(file || folder));
-        $(".filestoolbar-rename").prop("disabled", !(file || folder));
-        $(".filestoolbar-move").prop("disabled", !(file || folder));
-        $(".filestoolbar-download").prop("disabled", !(file || folder));
+        $(".filestoolbar-delete").prop("disabled", !selected);
+        $(".filestoolbar-rename").prop("disabled", !selected);
+        $(".filestoolbar-move").prop("disabled", !selected);
+        $(".filestoolbar-download").prop("disabled", !selected);
         $(".filestoolbar-upload").prop("disabled", !basic);
     }
 });
