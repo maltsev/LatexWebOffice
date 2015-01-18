@@ -4,9 +4,6 @@
 @last-change: 15.01.2015 - sprint-nr: 4
 */
 $(function () {
-	// ausgewählter Knoten
-	var selectedNode = null;
-
     // ID zum vorliegenden Projekt
 	var rootFolderId = parseInt(location.hash.substr(1), 10);
 	if (! rootFolderId) {
@@ -23,7 +20,8 @@ $(function () {
 
     // "Öffnen"-Schaltfläche
 	$(".filestoolbar-open").click(function() {
-		window.location.replace("/editor/#" + selectedNode["data-file-id"]);
+	    var selectedNode = getSelectedNode();
+		window.location.replace("/editor/#" + selectedNode.data("file-id"));
 	});
 
 	// "Datei Erstellen"-Schaltfläche
@@ -70,18 +68,19 @@ $(function () {
 	// "Löschen"-Schaltfläche
 	$(".filestoolbar-delete").click(function() {
 		if (confirm('Wollen Sie die Auswahl wirklich löschen?')) {
-			if (selectedNode['class'].indexOf('filesitem-file') >= 0) {
+		    var selectedNode = getSelectedNode();
+			if (selectedNode.hasClass("filesitem-file")) {
 				documentsJsonRequest({
 					'command': 'deletefile',
-					'id': selectedNode['data-file-id']
+					'id': selectedNode.data("file-id")
 				}, function(result, data) {
 					if (result)
 						reloadProject();
 				});
-			} else if (selectedNode['class'].indexOf('filesitem-folder') >= 0) {
+			} else if (selectedNode.hasClass("filesitem-folder")) {
 				documentsJsonRequest({
 					'command': 'rmdir',
-					'id': selectedNode['data-folder-id']
+					'id': selectedNode.data("folder-id")
 				}, function(result, data) {
 					if (result)
 						reloadProject();
@@ -98,7 +97,7 @@ $(function () {
         }
 
         var selectedNode = getSelectedNode(),
-            commandName = selectedNode['class'].indexOf('filesitem-folder') >= 0 ? "renamedir" : "renamefile",
+            commandName = selectedNode.hasClass("filesitem-folder") ? "renamedir" : "renamefile",
             itemId = selectedNode.data("file-id") || selectedNode.data("folder-id");
 
         documentsJsonRequest({command: commandName, id: itemId, name: newName}, function(result, data) {
@@ -113,15 +112,16 @@ $(function () {
 
 	// "Herunterladen"-Schaltfläche
 	$(".filestoolbar-download").click(function() {
-		if (selectedNode['class'].indexOf('filesitem-file') >= 0) {
+	    var selectedNode = getSelectedNode();
+		if (selectedNode.hasClass("filesitem-file")) {
 			documentsRedirect({
 				'command': 'downloadfile',
-				'id': selectedNode['data-file-id']
+				'id': selectedNode.data("file-id")
 			});
-		} else if (selectedNode['class'].indexOf('filesitem-folder') >= 0) {
+		} else if (selectedNode.hasClass("filesitem-folder")) {
 			documentsRedirect({
 				'command': 'exportzip',
-				'id': selectedNode['data-folder-id']
+				'id': selectedNode.data("folder-id")
 			});
 		}
 	});
@@ -174,22 +174,21 @@ $(function () {
         tree.on({
         	// Auswahl-Listener
             "select_node.jstree": function (e, data) {
-            	selectedNode = data.node.li_attr;
             	updateMenuButtons();
             },
 
             // Auswahl-Entfernen-Listener
             "deselect_node.jstree": function (e, data) {
-            	selectedNode = null;
             	updateMenuButtons();
             },
 
 	        // Doppelklick-Listener
             "dblclick.jstree": function (e, data) {
-            	if (selectedNode['class'].indexOf('filesitem-file') >= 0) {
-            		if (selectedNode["data-file-mime"] == "text/x-tex") {
+                var selectedNode = getSelectedNode();
+            	if (selectedNode.hasClass("filesitem-file")) {
+            		if (selectedNode.data("file-mime") == "text/x-tex") {
             			// bei Doppelklick auf TEX-Datei zum Editor gehen
-            			window.location.replace("/editor/#" + selectedNode["data-file-id"]);
+            			window.location.replace("/editor/#" + selectedNode.data("file-id"));
             		}
             	}
             },
@@ -238,8 +237,7 @@ $(function () {
      */
     function getSelectedFolderId() {
         var selectedNode = getSelectedNode();
-
-        if (selectedNode['class'].indexOf('filesitem-folder') >= 0) {
+        if (selectedNode.hasClass("filesitem-folder")) {
             var selectedFolder = selectedNode;
         } else {
             selectedFolder = selectedNode.closest(".filesitem-folder");
@@ -269,11 +267,13 @@ $(function () {
         // flag für die Aktivierung der nicht-selektionsabhängigen Schaltflächen ("Erstellen" und "Hochladen")
         var basic = true;
 
+        var selectedNode = getSelectedNode();
+
         // flag für die Aktivierung der selektionsabhängigen Schaltflächen
         var selected = selectedNode != null;
-        var folder = selected && selectedNode['class'].indexOf('filesitem-folder') >= 0;
-        var file = selected && selectedNode['class'].indexOf('filesitem-file') >= 0;
-        var texFile = file && selectedNode["data-file-mime"] == "text/x-tex";
+        var folder = selected && selectedNode.hasClass("filesitem-folder");
+        var file = selected && selectedNode.hasClass("filesitem-file");
+        var texFile = file && selectedNode.data("file-mime") == "text/x-tex";
 
         // setzt die Aktivierungen der einzelnen Menü-Schaltflächen
         $(".filestoolbar-open").prop("disabled", !texFile);
