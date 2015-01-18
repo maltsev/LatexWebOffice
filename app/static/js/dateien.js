@@ -113,7 +113,17 @@ $(function () {
 
 	// "Herunterladen"-Schaltfläche
 	$(".filestoolbar-download").click(function() {
-
+		if (selectedNode['class'].indexOf('filesitem-file') >= 0) {
+			documentsRedirect({
+				'command': 'downloadfile',
+				'id': selectedNode['data-file-id']
+			});
+		} else if (selectedNode['class'].indexOf('filesitem-folder') >= 0) {
+			documentsRedirect({
+				'command': 'exportzip',
+				'id': selectedNode['data-folder-id']
+			});
+		}
 	});
 
 	// "Hochladen"-Schaltfläche
