@@ -32,7 +32,12 @@ $(document).ready(function() {
 	treeInst = $('.projectswrapper').jstree();
 	
 	
-	// 'Ja'-Button des Modals zur zur Bestätigung des Löschvorgangs
+	// Modal zum Bestätigen/Abbrechen des Löschvorgangs
+	$('#modal_deleteConfirmation').on('hidden.bs.modal', function(e) {
+		// fokussiert den JSTree, um nach Abbruch des Löschvorgangs Tasten-Events behandeln zu können
+		tree.focus();
+	});
+	// 'Ja'-Button des Modals zur Bestätigung des Löschvorgangs
 	$('.modal_deleteConfirmation_yes').on("click", function() {
 		deleteProject();
 	});
@@ -134,8 +139,6 @@ $(document).ready(function() {
 		}
 		// wenn der neue Name für ein bestehendes Projekt bestätigt wurde (= Umbenennen)
 		else if(renameID!=null) {
-			
-			console.log("prevName: "+prevName+" ..... newName: "+treeInst.get_text(renameID));
 			
 			// ... und kein oder derselbe Name eingegeben wurde, ...
 			if(treeInst.get_text(renameID)==="" || treeInst.get_text(renameID)===prevName) {
