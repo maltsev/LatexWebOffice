@@ -113,7 +113,7 @@ FILE_ROOT = os.path.join(MEDIA_ROOT, 'files')
 PROJECT_ROOT = os.path.join(MEDIA_ROOT, 'projects')
 TESTFILES_ROOT = os.path.join(BASE_DIR, 'app', 'tests', 'server', 'static')
 
-# Einstellungen fuer die Django Tests
+# Einstellungen für die Django Tests
 if 'test' in sys.argv:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media', 'test')
     FILE_ROOT = os.path.join(MEDIA_ROOT, 'files')
