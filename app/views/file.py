@@ -142,7 +142,8 @@ def moveFile(request, user, fileid, newfolderid):
 
     # Teste ob eine Datei mit dem selben Namen schon existiert
     unique, failurereturn = util.checkIfFileOrFolderIsUnique(fileobj.name, File, folderobj, request)
-    if not unique:
+    # Man darf eine Datei in dieselbes Verzeichnis verschieben (dann passiert einfach nichts)
+    if not unique and folderobj != fileobj.folder:
         return failurereturn
 
     # versuche den neuen Ordner des fileobj zu setzen

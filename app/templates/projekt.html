@@ -9,6 +9,7 @@
 <!-- Header -->
 {% block header %}
     <link rel="stylesheet" href="/static/css/projekt.css">
+    <script src="/static/js/doT.min.js"></script>
     <script src="/static/js/general.js"></script>
     <script src="/static/js/projekt.js"></script>
 {% endblock %}
@@ -16,29 +17,6 @@
 <!-- Inhalt -->
 {% block content %}
 <!-- Dialogboxen -->
-<div id="dialog_noSelection" title="Kein Projekt ausgewählt" style="display: none">
-	<p>Sie haben keine Auswahl getroffen, bitte wählen sie zum <span id="dialog_noSelection_method">
-	</span> ein Projekt aus.</p>
-	<p style="text-align: center">
-		<button id="dialog_noSelection_ok">OK</button>
-	</p>
-</div>
-<div id="dialog_deleteConfirmation" title="Projekt löschen" style="display: none">
-	<p>Sind Sie sicher, dass sie das ausgewählte Projekt löschen wollen?</p>
-	<p style="text-align: center">
-		<button id="dialog_deleteConfirmation_yes">Ja</button>
-		<button id="dialog_deleteConfirmation_no">Nein</button>
-	</p>
-</div>
-<div id="dialog_createProject" title="Projekt erstellen" style="display: none">
-	<p>Bitte geben Sie einen Namen für das neu zu erstellende Projekt an, der Name darf nicht mit dem 
-	eines Ihrer anderen Projekte übereinstimmen:</p>
-	<p id="dialog_createProject_message" class="error invisible"></p>
-	<p style="text-align: center">
-		<input type="text" id="dialog_createProject_name" />
-		<button id="dialog_createProject_ok">OK</button>
-	</p>
-</div>
 <div id="dialog_importZip" title="Projekt aus ZIP importieren" style="display: none">
 	<p>Bitte wählen Sie eine Datei zum Importieren aus!<br />
 	Nur ZIP-Dateien sind erlaubt.</p>
@@ -55,6 +33,28 @@
 	<iframe name="dialog_importZip_dstFrame" class="invisible"></iframe>
 </div>
 
+<div class="modal fade" id="modal_deleteConfirmation" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Projekt löschen</h4>
+      </div>
+      <div class="modal-body">
+        <p>Sind Sie sicher, dass Sie das ausgewählte Projekt löschen wollen?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default modal_deleteConfirmation_yes" data-dismiss="modal">Ja</button>
+        <button type="button" class="btn btn-primary modal_deleteConfirmation_no" data-dismiss="modal">Nein</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="input_popover" data-container="body" data-toggle="popover" data-placement="top" data-content="Geben Sie einen Namen ein:"></div>
+
+<div class="error_popover" data-container="body" data-toggle="popover" data-placement="top"></div>
+
 <h1>Projekte</h1>
 
 <div class="projectscolumn" style="max-width: 820px">
@@ -65,7 +65,7 @@
 
         <div class="btn-group" role="group">
             <button type="button" class="btn btn-default projecttoolbar-new">Erstellen</button>
-            <button type="button" class="btn btn-default projecttoolbar-delete" disabled>Löschen</button>
+            <button type="button" class="btn btn-default projecttoolbar-delete" data-toggle="modal" data-target="#modal_deleteConfirmation" disabled>Löschen</button>
             <button type="button" class="btn btn-default projecttoolbar-rename" disabled>Umbennenen</button>
             <button type="button" class="btn btn-default projecttoolbar-duplicate" disabled>Duplizieren</button>
         </div>
@@ -79,7 +79,7 @@
 
     <div class="btn-toolbar visible-xs-block projecttoolbar" role="toolbar">
         <div class="btn-group" role="group">
-            <button type="button" class="btn btn-default projektoolbar-open" disabled>
+            <button type="button" class="btn btn-default projecttoolbar-open" disabled>
                 <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
             </button>
         </div>
@@ -104,39 +104,15 @@
                 <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
             </button>
             <button type="button" class="btn btn-default projecttoolbar-export" disabled>
-                <span class="glyphicon glyphicon-export" aria-hidden="true"></span>
+                <span class="glyphicon glyphicon-save" aria-hidden="true"></span>
             </button>
             <button type="button" class="btn btn-default projecttoolbar-import">
-                <span class="glyphicon glyphicon-import" aria-hidden="true"></span>
+                <span class="glyphicon glyphicon-open" aria-hidden="true"></span>
             </button>
         </div>
     </div>
 
-    <div class="projectswrapper">
-        <ul class="projects">
-            <li class="projectitem">
-                <span class="projectitem-name">LatexWebOffice</span>
-                <span class="projectitem-createdate" title="Erstellt am 2014-12-12 14:32:09">2014-12-12</span>
-                <span class="projectitem-author">test@test.com</span>
-            </li>
-            <li class="projectitem">
-                <span class="projectitem-name">Rechnerstrukturen</span>
-                <span class="projectitem-createdate" title="Erstellt am 2014-11-30 11:12:01">2014-11-30</span>
-                <span class="projectitem-author">test@test.com</span>
-            </li>
-            <li class="projectitem">
-                <span class="projectitem-name">Diskrete Strukturen</span>
-                <span class="projectitem-createdate" title="Erstellt am 2013-05-02 20:02:01">2013-05-02</span>
-                <span class="projectitem-author">test@test.com</span>
-            </li>
-
-            <li class="projectitem">
-                <span class="projectitem-name">Numerische Lineare Algebra und Analysis</span>
-                <span class="projectitem-createdate" title="Erstellt am 2013-05-02 20:02:01">2013-05-02</span>
-                <span class="projectitem-author">test@test.com</span>
-            </li>
-        </ul>
-    </div>
+    <div class="projectswrapper"></div>
 </div>
 
 {% endblock %}
