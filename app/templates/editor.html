@@ -71,6 +71,13 @@ background-color: white;
 .btn-group{
 border: 0;
 }
+.ace_scrollbar-v{
+overflow: hidden;
+}
+.ace_scroller{
+right: 17px;
+overflow-y: scroll;
+}
 </style>
 {% endblock %}
 
@@ -344,8 +351,7 @@ border: 0;
 	-->
 <!-- verwendeter Editor: ACE Editor -->
 
-<div style="min-height: 80%;height:auto !important;webkit-overflow-scrolling: touch;
-     overflow-y: scroll;" id="editor"></div>
+<div style="min-height: 80%;height:auto !important;overflow: hidden;" id="editor"></div>
 </div>
 
 {% endblock %}
