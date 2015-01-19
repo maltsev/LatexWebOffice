@@ -76,86 +76,14 @@ function confirmExit() {
 
 // Dialogfenster Tabellenassistent
 function createTable() {
-	$('#dialog_tabelle_erstellen').dialog();
+	$('#dialog_tabelle_erstellen').dialog({
+	width:'auto'});
 }
 
-function insertImage(){
-	var folderid;
-	//get folder id
-	documentsJsonRequest({
-			'command': 'fileinfo',
-			'id': id,
-		}, function(result, data) {
-			if (result)
-			{
-				getFiles(data.response.folderid);
-			}
-	});
-
-}
-var filelist = [];
-function getFiles(folderid){
-	filelist = [];
-	filelist.push("");
-	documentsJsonRequest({
-			'command': 'listfiles',
-			'id': folderid,
-		}, function(result, data) {
-			if (result)
-			{
-				var arr = data.response.files;
-
-				for(var i=0;i<arr.length;i++){
-					var obj = arr[i];
-					if(obj.mimetype.indexOf("image") > -1){
-						filelist.push(obj.name);
-					};
-				}
-				if (!dropdownWindow){
-				generateFileSelection();
-				dropdownWindow = true;
-				}
-			}
-	});
-}
-
-function generateFileSelection(){
-	var myDiv = document.getElementById("selectionList");
-	
-	//Create and append select list
-	var selectList = document.createElement("select");
-	selectList.id = "mySelect" + selectionid;
-	selectList.onchange = function () {
-		includeSelectedFile(this);
-		selectList.style.display = "none";
-	};
-	myDiv.appendChild(selectList);
-
-	//Create and append the options
-	for (var i = 0; i < filelist.length; i++) {
-		var option = document.createElement("option");
-		option.value = filelist[i];
-		option.text = filelist[i];
-		selectList.appendChild(option);
-	}
-	selectionid += 1;
-}
-function includeSelectedFile(a){
-	editor.insert("\\includegraphics[width=0.7\\textwidth]{"+a.value+"}");
-	dropdownWindow = false;
-}
-
-function includeImagePath(id){
-		documentsJsonRequest({
-			'command': 'fileinfo',
-			'id': id,
-		}, function(result, data) {
-			if (result)
-			{
-				editor.setValue("\\includegraphics[width=0.7\\textwidth]{"+data.response.filename+"}", 0);
-				//editor.getSelection().selectTo(0, 0);
-			}
-	});
+// Dialogfenster Grafikassistent
+function openInsertImageDialog() {
+	$('#dialog_grafik_einfuegen').dialog({
+	width:'auto'});
 }
 
 /// Klammern, welche automatisch geschlossen werden sollen
@@ -263,3 +191,191 @@ function table_readout_input() {
 		editor.insert("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
 		+ fulltable+"\\end{tabular}\n"+"\\end{table}\n");
 }
+
+
+var tree = null;
+
+$(function () {
+	// ausgewählter Knoten
+	var selectedNode = null;
+
+    // ID zum vorliegenden Projekt
+	var rootFolderId = parseInt(location.hash.substr(1), 10);
+	createJSTree();
+	function createJSTree(){
+		//get folder id
+		documentsJsonRequest({
+				'command': 'fileinfo',
+				'id': rootFolderId,
+			}, function(result, data) {
+				if (result)
+				{
+					rootFolderId = data.response.folderid;
+					reloadProject();
+				}
+		});
+	}
+	
+    function reloadProject() {
+        documentsJsonRequest({command: "listfiles", id: rootFolderId}, function(result, data) {
+            if (! result) {
+                alert(ERROR_MESSAGES.PROJECTNOTEXIST);
+                return;
+            }
+            renderProject(data.response);
+        });
+    }
+
+
+    // folder: {icon: "glyphicon glyphicon-folder-open"},
+    // emptyFolder: {icon: "glyphicon glyphicon-folder-close"},
+    // file: {icon: "glyphicon glyphicon-file"},
+    // pdf: {icon: "glyphicon glyphicon-book"}
+
+    
+    function renderProject(data) {
+        var jsTreeData = convertRawDataToJsTreeData(data);
+
+        if (tree) {
+            tree.jstree(true).settings.core.data = jsTreeData;
+            tree.jstree(true).refresh();
+            return;
+        }
+
+        tree = $(".fileswrapper").jstree({
+            core: {
+                check_callback: true,
+                multiple: true,
+                data: jsTreeData
+            },
+
+            plugins: ["types", "dnd", "state"]
+        });
+
+
+        tree.on({
+        	// Auswahl-Listener
+            "select_node.jstree": function (e, data) {
+            	selectedNode = data.node.li_attr;
+            },
+
+            // Auswahl-Entfernen-Listener
+            "deselect_node.jstree": function (e, data) {
+            	selectedNode = null;
+            },
+
+	        // Doppelklick-Listener
+            "dblclick.jstree": function (e, data) {
+            	if (selectedNode['class'].indexOf('filesitem-file') >= 0) {
+            		if (selectedNode["data-file-mime"] == "text/x-tex") {
+            			// bei Doppelklick auf TEX-Datei zum Editor gehen
+            			window.location.replace("/editor/#" + selectedNode["data-file-id"]);
+            		}
+            	}
+            },
+
+	        // Tasten-Listener
+            "keydown": function (e, data) {
+            },
+        });
+    }
+
+
+    var fileTemplate = doT.template($("#template_filesitem-file").text()),
+        folderTemplate = doT.template($("#template_filesitem-folder").text());
+
+    function convertRawDataToJsTreeData(rawData) {
+        var jsTreeData = [];
+
+        $.each(rawData.folders || [], function (i, folder) {
+            jsTreeData.push({
+                id: "folder" + folder.id,
+                text: folderTemplate(folder),
+                icon: "glyphicon glyphicon-folder-open",
+                li_attr: {"class": "filesitem-folder", "data-folder-id": folder.id},
+                children: convertRawDataToJsTreeData(folder)
+            });
+        });
+
+        $.each(rawData.files || [], function (i, file) {
+            file.createTime = getRelativeTime(file.createTime);
+            file.lastModifiedTime = getRelativeTime(file.lastModifiedTime);
+            file.size = Math.round(file.size / 1024); // in KB
+			if(file.mimetype.indexOf("image") > -1){
+				jsTreeData.push({
+                id: "file" + file.id,
+                text: fileTemplate(file),
+                icon: "glyphicon glyphicon-file",
+                li_attr: {"class": "filesitem-file", "data-file-id": file.id, "data-file-mime": file.mimetype}
+            });
+			}
+ 
+        });
+
+        return jsTreeData;
+    }
+
+    /*
+     * Gibt das ID des ausgewähltes Verzeichnisses zurück (auch für ausgewählte Dateien)
+     */
+    function getSelectedFolderId() {
+        var selectedNode = getSelectedNode();
+
+        if (selectedNode['class'].indexOf('filesitem-folder') >= 0) {
+            var selectedFolder = selectedNode;
+        } else {
+            selectedFolder = selectedNode.closest(".filesitem-folder");
+        }
+
+        return selectedFolder.data("folder-id") || rootFolderId;
+    }
+
+
+    function getSelectedNode() {
+        return $("#" + tree.jstree().get_selected());
+    }
+
+
+    /*
+     * Leitet den Benutzer zurück zur Projektverwaltung.
+     */
+    function backToProject() {
+        // TODO: auf das richtige Projekt verweisen?
+        window.location.replace("/projekt/");
+    }
+
+
+});
+	function insertImageWithID(fileID){
+		documentsJsonRequest({
+				'command': 'fileinfo',
+				'id': fileID,
+			}, function(result, data) {
+				if (result)
+				{
+					if(data.response.mimetype.indexOf("image") > -1){
+						editor.insert("\\includegraphics[width=0.7\\textwidth]{"+data.response.filename+"}"+"\n");
+					};				
+				}
+		});
+
+	}
+	function insertGraphics(){
+		
+		var selectedArray = tree.jstree("get_selected");
+		var substringID = null;
+		for (var i = 0; i < selectedArray.length; i++) {
+			substringID = selectedArray[i].substr(4);
+			if(isInt(substringID) == true){
+				insertImageWithID(substringID);
+				
+			}
+			
+		}
+
+		$( '#dialog_grafik_einfuegen' ).dialog('destroy');
+	}
+	
+	function isInt(n) {
+		return n % 1 === 0;
+	}

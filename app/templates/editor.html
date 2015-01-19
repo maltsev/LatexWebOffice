@@ -9,6 +9,9 @@
 <!-- Header -->
 {% block header %}
 <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/dateien.css">
+<script src="/static/js/doT.min.js"></script>
+<script src="/static/jstree/jstree.min.js"></script>
 
 <!-- Einbindung der Funktionalität vom ACE Editor -->
 <script src="/static/js/ace/ace.js"></script>
@@ -17,7 +20,9 @@
 <link href="/static/bootstrap/css/bootstrap.icon-large.min.css" rel="stylesheet">
 <script src="/static/js/general.js"></script>
 <script data-jsfiddle="common" src="/static/handsontable/dist/handsontable.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="/static/handsontable/dist/handsontable.css">
+<link data-jsfiddle="common" rel="stylesheet" media="screen" href="/static/handsontable/dist/handsontable.css">
+
+
 <style type="text/css">
 .symbolbar_bg{
 background: #95a5a6;
@@ -78,7 +83,32 @@ border: 0;
 							<p onClick="history.back()"> Ja</p>
 							<p onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')"> Nein</p>
 						</div>
-						 <div id="dialog_tabelle_erstellen" title="Tabelle erstellen" style="display: none;">	
+						
+	<div id="dialog_grafik_einfuegen" title="Editor verlassen" style="width: 600px !important; min-height: 200px !important; max-height: 700px !important; height: 400px !important; display: none;">
+							<p>Bitte wählen Sie eine Grafik aus</p>
+								<p > {% verbatim %}
+								<script id="template_filesitem-file" type="text/template">
+									<span class="filesitem-name" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
+										<span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
+									</span>
+									<span class="filesitem-editdate" title="Verändert {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
+								</script>
+								{% endverbatim %}
+
+								{% verbatim %}
+								<script id="template_filesitem-folder" type="text/template">
+									<span class="filesitem-name" title="Verzeichnis">
+										<span class="filesitem-nameWrapper">{{= it.name }}</span>
+									</span>
+								</script>
+								{% endverbatim %}
+								<div id="fileswrapper" class="fileswrapper"></div>
+								</p>
+							<p onClick="insertGraphics()"> Einfügen</p>
+							<p onClick=" $( '#dialog_grafik_einfuegen' ).dialog('destroy')"> Abbrechen</p>
+						</div>					
+	
+	<div id="dialog_tabelle_erstellen" title="Tabelle erstellen" style="display: none;">	
 		          <div id="example">
 
 
@@ -107,7 +137,7 @@ border: 0;
 		<p onClick="table_readout_input();$( '#dialog_tabelle_erstellen' ).dialog('destroy');">Übernehmen</p>
 		<p onClick=" $( '#dialog_tabelle_erstellen' ).dialog('destroy')"> Abbrechen</p>
 	</div>
-						 <nav class="navbar navbar-default symbolbar_bg">
+		<nav class="navbar navbar-default symbolbar_bg">
 	      <div class="container-fluid">
 		<div id="toggle" style="float: left;text-align: left;width: 100%;margin-left: 0;">
 		  <button type="button" id="editormenu" style="float: left;" class="navbar-toggle collapsed beg" data-toggle="collapse" data-target="#editorsymbols" aria-expanded="false" aria-controls="editorsymbols">
@@ -146,7 +176,7 @@ border: 0;
 			<button id="compile" type="button" class="btn btn-default" title="PDF-Export">
 				<i class="fa fa-file-pdf-o"></i> <!-- PDF-Export -->
 			</button> 
-			<button id="insertImage" type="button" class="btn btn-default" title="Grafik einfügen" onClick="insertImage()">
+			<button id="insertImage" type="button" class="btn btn-default" title="Grafik einfügen" onClick="openInsertImageDialog()">
 				<i class="fa fa-file-image-o"></i> <!-- Grafik einfügen -->
 			</button> 
 			<button id="createTable" type="button" class="btn btn-default" title="Erstelle eine Tabelle" onClick="createTable()">
@@ -312,7 +342,6 @@ border: 0;
 		 Ende Menüleiste 2 mit Symbolen 
 	</table>
 	-->
-<div id="selectionList"></div>
 <!-- verwendeter Editor: ACE Editor -->
 
 <div style="min-height: 80%;height:auto !important;" id="editor"></div>
