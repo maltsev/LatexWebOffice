@@ -115,7 +115,8 @@ def moveDir(request, user, folderid, newfolderid):
 
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert
     unique, failurereturn = util.checkIfFileOrFolderIsUnique(folderobj.name, Folder, newparentfolderobj, request)
-    if not unique:
+    # Man darf ein Verzeichnis in dieselbes Verzeichnis verschieben (dann passiert einfach nichts)
+    if not unique and folderobj.parent != newparentfolderobj:
         return failurereturn
 
     # Versuche die Änderung in die Datenbank zu übernehmen
