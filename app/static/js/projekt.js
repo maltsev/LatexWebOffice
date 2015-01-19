@@ -231,8 +231,9 @@ $(document).ready(function() {
 	
 	// 'in Vorlage umwandeln'-Schaltfläche
 	$('.projecttoolbar-converttotemplate').on("click", function() {
-		
-		// TODO
+
+		projectToTemplate();
+
 		
 	});
 	
@@ -401,6 +402,27 @@ function duplicateProject(projectID,name) {
 }
 
 /*
+ * Ein Projekt in eine Vorlage umwandeln.
+ * @param id (ID des Projektes)
+ * @param name Name der zu erzeugenden Vorlage
+ */
+function projectToTemplate(id,name,handler) {
+
+	documentsJsonRequest({
+		'command': 'project2template',
+		'id': treeInst.get_selected()[0],
+		'name': name
+		},
+		function(result,data) {
+			if(result) {
+				document.location.assign('/dateien/#'+data.response.rootid);
+				handler(true,'');
+			} else
+				handler(false,data.response);
+	});
+}
+
+/*
  * Exportiert ein Projekt als Zip und bietet diese zum Download an.
  * @param id ID des Projektes
  *
@@ -466,7 +488,7 @@ function fillNode(nodeID,project) {
 	if(project!=null) {
 		
 		// setzt die ID der Knoten-Komponente auf die des übergebenen Projektes
-		treeInst.set_id(node,project.id);
+		treeInst.set_id(node,project.rootid);
 		
 		// setzt die weiteren Attribute des Projektes
 		node.projectname 		= project.name;
