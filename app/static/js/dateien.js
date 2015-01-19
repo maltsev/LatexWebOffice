@@ -7,7 +7,7 @@ $(function () {
     // ID zum vorliegenden Projekt
 	var rootFolderId = parseInt(location.hash.substr(1), 10);
 	if (! rootFolderId) {
-	    backToProject();
+		window.location.replace("/projekt/");
 	    return;
 	}
 
@@ -21,7 +21,7 @@ $(function () {
     // "Öffnen"-Schaltfläche
 	$(".filestoolbar-open").click(function() {
 	    var selectedNode = getSelectedNode();
-		window.location.replace("/editor/#" + selectedNode.data("file-id"));
+		window.location.assign("/editor/#" + selectedNode.data("file-id"));
 	});
 
 	// "Datei Erstellen"-Schaltfläche
@@ -208,7 +208,7 @@ $(function () {
                 if (selectedNode.hasClass("filesitem-file")) {
                     if ($.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1) {
                         // bei Doppelklick auf TEX-Datei zum Editor gehen
-                        window.location.replace("/editor/#" + selectedNode.data("file-id"));
+                        window.location.assign("/editor/#" + selectedNode.data("file-id"));
                     }
                 }
             },
@@ -295,14 +295,6 @@ $(function () {
         return $("#" + tree.jstree().get_selected());
     }
 
-
-    /*
-     * Leitet den Benutzer zurück zur Projektverwaltung.
-     */
-    function backToProject() {
-        // TODO: auf das richtige Projekt verweisen?
-        window.location.replace("/projekt/");
-    }
 
     /*
      * Aktualisiert die Aktivierungen der Menü-Schaltflächen.
