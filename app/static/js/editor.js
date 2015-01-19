@@ -63,7 +63,9 @@ $(document).ready(function() {
 		$('#compile').click(function() {
 			compile(id);
 		});
-		
+		$('.ace_scroller').on('scroll', function () {
+			$('.ace_gutter').scrollTop($(this).scrollTop());
+		});
 		loadFile(id);
 	}
 });
