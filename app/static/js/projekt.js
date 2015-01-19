@@ -21,7 +21,7 @@ var treeInst;
  * Initialisiert den JSTree und die Menü-Einträge.
  */
 $(document).ready(function() {
-
+	
 	tree = $('.projectswrapper').jstree({"core"    : {"check_callback" : true,"multiple" : false},
 										 "plugins" : ["state"]});
 	
@@ -30,6 +30,12 @@ $(document).ready(function() {
 	 * (zu verwenden, um darauf knotenspezifische Methoden anzuwenden)
 	 */
 	treeInst = $('.projectswrapper').jstree();
+	
+	
+	// 'Ja'-Button des Modals zur zur Bestätigung des Löschvorgangs
+	$('.modal_deleteConfirmation_yes').on("click", function() {
+		deleteProject();
+	});
 	
 	
 	// ----------------------------------------------------------------------------------------------------
@@ -84,7 +90,7 @@ $(document).ready(function() {
 		
 		// Entf-Taste
 		if(e.keyCode===46)
-			deleteProject();
+			$('#modal_deleteConfirmation').modal('show');
 	});
 	
 	// ----------------------------------------------------------------------------------------------------
@@ -178,11 +184,6 @@ $(document).ready(function() {
 	
 	// 'Löschen'-Schaltfläche
 	$('.projecttoolbar-delete').on("click", function() {
-		
-		// 'Ja'-Button des Modals zur zur Bestätigung des Löschvorgangs
-		$('.modal_deleteConfirmation_yes').on("click", function() {
-			deleteProject();
-		});
 		
 	});
 	
