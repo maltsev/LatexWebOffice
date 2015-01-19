@@ -358,7 +358,7 @@ function renameProject(name) {
 				treeInst.edit(renameID,"");
 				
 				// TEMP
-				alert(data.response);
+				showPopover(treeInst.get_node(renameID),data.response);
 			}
 	});
 	
@@ -543,8 +543,9 @@ function selectNode(nodeID) {
  * Zeigt das Popover in relativer Position zur übergebenen Knoten-Komponente an.
  *
  * @param node Knoten-Komponente zu deren Position das Popover relativ angezeigt werden soll
+ * @param error Fehlermeldung, welche durch das Popover dargestellt werden soll
  */
-function showPopover(node) {
+function showPopover(node,error) {
 	
 	if(node!=null) {
 		
@@ -552,9 +553,15 @@ function showPopover(node) {
 		var pos = $('.node_item_'+node.id).position();
 		var height = $('.node_item_'+node.id).height();
 		
+		var popover = $('.input_popover');
+		if(error) {
+			popover = $('.error_popover');
+			popover.popover({content: error});
+		}
+		
 		// zeigt das Popover an und richtet es links über der Knoten-Komponente aus
 		// (Reihenfolge nicht verändern!)
-		$('.input_popover').popover('show');
+		popover.popover('show');
         $('.popover').css('left',pos.left+'px');
         $('.popover').css('top',(pos.top-height*2+5)+'px');
         
