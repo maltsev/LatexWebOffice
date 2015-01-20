@@ -148,7 +148,12 @@ $(document).ready(function() {
 	// ----------------------------------------------------------------------------------------------------
 	//                                             MENÜ-EINTRÄGE                                           
 	// ----------------------------------------------------------------------------------------------------
-	
+
+	// 'Verwenden'-Schaltfläche
+	$('.templatestoolbar-use').on("click", function() {
+        templateToProject();
+	});
+
 	// 'Löschen'-Schaltfläche
 	$('.templatestoolbar-delete').on("click", function() {
 
@@ -179,6 +184,31 @@ $(document).ready(function() {
 //                                           FUNKTIONALITÄTEN                                          
 //                                      (client- und serverseitig)                                     
 // ----------------------------------------------------------------------------------------------------
+
+
+/*Vorlage in ein Projekt umwandeln.
+ *id(ID der Vorlage)
+ *name(Name des zu erzeugenden Projektes)
+ */
+function templateToProject(id,name,handler) {
+
+	documentsJsonRequest({
+		'command': 'template2project',
+		'id': id,
+		'name': name
+		},
+		function(result,data) {
+			if(result) {
+				// Weiterleitung zum erzeugten Projekt
+				document.location.assign('/dateien/#'+data.response.rootid);
+				handler(true,'');
+			} else
+				handler(false,data.response);
+	});
+}
+
+
+
 
 //Löschen ausgewählter Vorlage.
 
