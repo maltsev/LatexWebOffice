@@ -8,7 +8,7 @@
 
 <!-- Header -->
 {% block header %}
-    <link rel="stylesheet" href="/static/css/vorlagen.css">
+    <link rel="stylesheet" href="/static/css/projekt.css">
     <script src="/static/js/doT.min.js"></script>
     <script src="/static/js/general.js"></script>
     <script src="/static/js/vorlagen.js"></script>
@@ -17,24 +17,6 @@
 
 <!-- Inhalt -->
 {% block content %}
-
-<!-- Dialogboxen -->
-<div id="dialog_noSelection" title="Keine Vorlage ausgewählt" style="display: none">
-	<p>Sie haben keine Auswahl getroffen.<br>Bitte wählen Sie zum <span id="dialog_noSelection_method">
-	</span> eine Vorlage aus.</p>
-	<p style="text-align: center">
-		<button id="dialog_noSelection_ok">OK</button>
-	</p>
-</div>
-<div id="dialog_templateToProject" title="Projekt aus Vorlage erzeugen" style="display: none">
-	<p>Bitte geben Sie einen Namen für das neu zu erstellende Projekt an.<br>Dieser darf nicht mit dem 
-	eines Ihrer anderen Projekte übereinstimmen:</p>
-	<p id="dialog_templateToProject_message" class="error invisible"></p>
-	<p style="text-align: center">
-		<input type="text" id="dialog_templateToProject_name" />
-		<button id="dialog_templateToProject_ok">OK</button>
-	</p>
-</div>
 
 <div class="modal fade" id="modal_deleteConfirmation" role="dialog" aria-hidden="true">
   <div class="modal-dialog">
@@ -89,28 +71,28 @@
         </div>
     </div>
 
-    <div class="templateswrapper">
-        <ul class="templates">
-            <li class="templateitem">
-                <span class="templateitem-name">LatexWebOffice</span>
-                <span class="templateitem-createdate" title="Erstellt am 2014-12-12 14:32:09">2014-12-12</span>
-                <span class="templateitem-author">test@test.com</span>
+    <div class="projectswrapper">
+        <ul class="projects">
+            <li class="projectitem">
+                <span class="projectitem-name">LatexWebOffice</span>
+                <span class="projecteitem-createdate" title="Erstellt am 2014-12-12 14:32:09">2014-12-12</span>
+                <span class="projectitem-author">test@test.com</span>
             </li>
-            <li class="templateitem">
-                <span class="templateitem-name">Rechnerstrukturen</span>
-                <span class="templateitem-createdate" title="Erstellt am 2014-11-30 11:12:01">2014-11-30</span>
-                <span class="templateitem-author">test@test.com</span>
+            <li class="projectitem">
+                <span class="projectitem-name">Rechnerstrukturen</span>
+                <span class="projectitem-createdate" title="Erstellt am 2014-11-30 11:12:01">2014-11-30</span>
+                <span class="projectitem-author">test@test.com</span>
             </li>
-            <li class="templateitem">
-                <span class="templateitem-name">Diskrete Strukturen</span>
-                <span class="templateitem-createdate" title="Erstellt am 2013-05-02 20:02:01">2013-05-02</span>
-                <span class="templateitem-author">test@test.com</span>
+            <li class="projectitem">
+                <span class="projectitem-name">Diskrete Strukturen</span>
+                <span class="projectitem-createdate" title="Erstellt am 2013-05-02 20:02:01">2013-05-02</span>
+                <span class="projectitem-author">test@test.com</span>
             </li>
 
-            <li class="templateitem">
-                <span class="templateitem-name">Numerische Lineare Algebra und Analysis</span>
-                <span class="templateitem-createdate" title="Erstellt am 2013-05-02 20:02:01">2013-05-02</span>
-                <span class="templateitem-author">test@test.com</span>
+            <li class="projectitem">
+                <span class="projectitem-name">Numerische Lineare Algebra und Analysis</span>
+                <span class="projectitem-createdate" title="Erstellt am 2013-05-02 20:02:01">2013-05-02</span>
+                <span class="projectitem-author">test@test.com</span>
             </li>
         </ul>
     </div>

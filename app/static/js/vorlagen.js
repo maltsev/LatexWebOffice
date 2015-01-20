@@ -18,14 +18,14 @@ var treeInst;
  */
 $(document).ready(function() {
 
-	tree = $('.templateswrapper').jstree({"core"    : {"check_callback" : true,"multiple" : false},
+	tree = $('.projectswrapper').jstree({"core"    : {"check_callback" : true,"multiple" : false},
 										 "plugins" : ["state"]});
 
 	/*
 	 * Referenziert eine bestehende JSTree-Instanz (ohne eine neue zu erzeugen)
 	 * (zu verwenden, um darauf knotenspezifische Methoden anzuwenden)
 	 */
-	treeInst = $('.templateswrapper').jstree();
+	treeInst = $('.projectswrapper').jstree();
 
 
 	// Modal zum Bestätigen/Abbrechen des Löschvorgangs

@@ -399,6 +399,29 @@ function duplicateProject(projectID,name) {
 }
 
 /*
+ * Wandelt ein Projekt in eine Vorlage um.
+ * id(ID des Projektes)
+ * name(Name der zuerzeugenden Vorlage)
+ */
+
+function projectToTemplate(id,name,handler) {
+
+	documentsJsonRequest({
+		'command': 'project2Template',
+		'id': projectid,
+		'name': templatename
+		},
+		function(result,data) {
+			if(result) {
+				document.location.assign('/vorlagen/#'+data.response.rootid);
+				handler(true,'');
+			} else
+				handler(false,data.response);
+	});
+}
+
+
+/*
  * Exportiert ein Projekt als Zip und bietet diese zum Download an.
  * @param id ID des Projektes
  *
