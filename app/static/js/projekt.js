@@ -466,7 +466,7 @@ function fillNode(nodeID,project) {
 	if(project!=null) {
 		
 		// setzt die ID der Knoten-Komponente auf die des übergebenen Projektes
-		treeInst.set_id(node,project.rootid);
+		treeInst.set_id(node,project.id);
 		
 		// setzt die weiteren Attribute des Projektes
 		node.projectname 		= project.name;
