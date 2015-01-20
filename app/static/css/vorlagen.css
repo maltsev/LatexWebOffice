@@ -1,0 +1,38 @@
+.templateswrapper {
+    border-radius: 4px;
+    background: #fafafa;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.templateitem-name {
+    display: inline-block;
+    min-width: 40%;
+    padding-right: 5px;
+}
+
+.templateitem-createdate {
+    color: #95a5a6;
+    min-width: 20%;
+    display: inline-block;
+    padding-right: 5px;
+}
+
+.templateitem-author {
+    color: #95a5a6;
+}
+
+.templateswrapper .jstree-icon {
+    display: none;
+}
+
+.templateswrapper .jstree-node {
+    background: none;
+}
+
+.templateswrapper .jstree-anchor {
+    padding: 5px 10px;
+    height: auto;
+    border-radius: 4px;
+    display: block;
+}

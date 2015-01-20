@@ -8,7 +8,11 @@
 
 <!-- Header -->
 {% block header %}
-    <link rel="stylesheet" href="/static/css/projekt.css">
+    <link rel="stylesheet" href="/static/css/vorlagen.css">
+    <script src="/static/js/doT.min.js"></script>
+    <script src="/static/js/general.js"></script>
+    <script src="/static/js/vorlagen.js"></script>
+
 {% endblock %}
 
 <!-- Inhalt -->
@@ -31,6 +35,28 @@
 		<button id="dialog_templateToProject_ok">OK</button>
 	</p>
 </div>
+
+<div class="modal fade" id="modal_deleteConfirmation" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Vorlage löschen</h4>
+      </div>
+      <div class="modal-body">
+        <p>Sind Sie sicher, dass Sie die ausgewählte Vorlage löschen wollen?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default modal_deleteConfirmation_yes" data-dismiss="modal">Ja</button>
+        <button type="button" class="btn btn-primary modal_deleteConfirmation_no" data-dismiss="modal">Nein</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="input_popover" data-container="body" data-toggle="popover" data-placement="top" data-content="Geben Sie einen Namen ein:"></div>
+
+<div class="error_popover" data-container="body" data-toggle="popover" data-placement="top"></div>
 
 <h1>Vorlagen</h1>
 
@@ -89,12 +115,8 @@
         </ul>
     </div>
 
-    <script>
-        $(function () {
-            $('.projectswrapper').jstree();
-        });
-    </script>
-</div>
+    <div class="templateswrapper"></div>
 
 </div>
+
 {% endblock %}

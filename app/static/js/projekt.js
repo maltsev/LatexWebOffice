@@ -238,9 +238,7 @@ $(document).ready(function() {
 	
 	// 'Export'-Schaltfläche
 	$('.projecttoolbar-export').on("click", function() {
-
-		exportZip();
-		
+        exportZip();
 	});
 	
 	// 'Import'-Schaltfläche
