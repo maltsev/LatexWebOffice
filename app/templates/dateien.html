@@ -17,6 +17,10 @@
         #jstree-dnd .jstree-icon {
             display: none !important;
         }
+
+        .invisible {
+            display: none;
+        }
     </style>
 {% endblock %}
 
@@ -80,20 +84,20 @@
   <p onClick="removePopup('rename');showPopup('new_name_file');"> Datei umbenennen</p><!--renameFolderAndFiles(getFileId(),'file')renameFolderAndFiles(getFolderId(),'folder')-->
   <p onClick="removePopup('rename');showPopup('new_name_folder');"> Ordner umbenennen</p>
 </div>
-<div id="dialog_uploadFile" title="Datei Hochladen" style="display: none">
-	<p>Bitte wählen Sie Dateien zum Hochladen aus!<br />
-	Erlaubte Dateien (.tex|.jpg|.png|.pdf).</p>
-	<p id="dialog_uploadFile_message" class="error invisible"></p>
+
+<div class="filesdialog-upload" style="display: none" title="Datei Hochladen">
+	<p>Bitte wählen Sie Dateien zum Hochladen aus, erlaubte Dateien sind *.{tex, jpg, png, pdf}:</p>
+	<p class="alert alert-danger invisible filesdialog-upload-message" role="alert"></p>
 	<p style="text-align: center">
-		<form id="dialog_uploadFile_form" action="/documents/" method="post" 
-				target="dialog_uploadFile_dstFrame" enctype="multipart/form-data">
+		<form class="filesdialog-upload-form" action="#" method="post" enctype="multipart/form-data">
 			{% csrf_token %}
 			<input type="hidden" name="command" value="uploadfiles" />
-			<input type="file" name="files" accept="tex|jpg|png|pdf" />
-			<input type="submit" value="Hochladen" />
+			<input class="filesdialog-upload-folderid" type="hidden" name="id" />
+			<input class="filesdialog-upload-files" type="file" name="files" accept="tex|jpg|png|pdf" 
+					multiple />
+			<input class="filesdialog-upload-submit" type="submit" value="Hochladen" />
 		</form>
 	</p>
-	<iframe name="dialog_uploadFile_dstFrame" class="invisible"></iframe>
 </div>
 
 <h1>Dateien und Ordner</h1>
@@ -151,7 +155,7 @@
 
     {% verbatim %}
     <script id="template_filesitem-file" type="text/template">
-        <span class="filesitem-name" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
+        <span class="filesitem-name fadeblock" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
             <span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
         </span>
         <span class="filesitem-editdate" title="Verändert {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
@@ -160,7 +164,7 @@
 
     {% verbatim %}
     <script id="template_filesitem-folder" type="text/template">
-        <span class="filesitem-name" title="Verzeichnis">
+        <span class="filesitem-name fadeblock" title="Verzeichnis">
             <span class="filesitem-nameWrapper">{{= it.name }}</span>
         </span>
     </script>

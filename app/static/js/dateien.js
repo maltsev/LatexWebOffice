@@ -7,7 +7,7 @@ $(function () {
     // ID zum vorliegenden Projekt
 	var rootFolderId = parseInt(location.hash.substr(1), 10);
 	if (! rootFolderId) {
-	    backToProject();
+		window.location.replace("/projekt/");
 	    return;
 	}
 
@@ -21,7 +21,7 @@ $(function () {
     // "Öffnen"-Schaltfläche
 	$(".filestoolbar-open").click(function() {
 	    var selectedNode = getSelectedNode();
-		window.location.replace("/editor/#" + selectedNode.data("file-id"));
+		window.location.assign("/editor/#" + selectedNode.data("file-id"));
 	});
 
 	// "Datei Erstellen"-Schaltfläche
@@ -100,13 +100,18 @@ $(function () {
             commandName = selectedNode.hasClass("filesitem-folder") ? "renamedir" : "renamefile",
             itemId = selectedNode.data("file-id") || selectedNode.data("folder-id");
 
+        if (selectedNode.hasClass("filesitem-file") && newName.indexOf(".") === -1) {
+            alert("Bitte auch die Dateinamenserweiterung eingeben");
+            return;
+        }
+
         documentsJsonRequest({command: commandName, id: itemId, name: newName}, function(result, data) {
             if (! result) {
                 alert(data.response);
                 return;
             }
 
-            $(".filesitem-nameWrapper", selectedNode).text(newName);
+            $("> .jstree-anchor .filesitem-name", selectedNode).text(newName);
         });
 	});
 
@@ -128,7 +133,7 @@ $(function () {
 
 	// "Hochladen"-Schaltfläche
 	$(".filestoolbar-upload").click(function() {
-
+		dialogUploadFile();
 	});
 
 
@@ -141,6 +146,7 @@ $(function () {
             }
 
             renderProject(data.response);
+            updateMenuButtons();
         });
     }
 
@@ -208,7 +214,7 @@ $(function () {
                 if (selectedNode.hasClass("filesitem-file")) {
                     if ($.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1) {
                         // bei Doppelklick auf TEX-Datei zum Editor gehen
-                        window.location.replace("/editor/#" + selectedNode.data("file-id"));
+                        window.location.assign("/editor/#" + selectedNode.data("file-id"));
                     }
                 }
             },
@@ -297,14 +303,6 @@ $(function () {
 
 
     /*
-     * Leitet den Benutzer zurück zur Projektverwaltung.
-     */
-    function backToProject() {
-        // TODO: auf das richtige Projekt verweisen?
-        window.location.replace("/projekt/");
-    }
-
-    /*
      * Aktualisiert die Aktivierungen der Menü-Schaltflächen.
      */
     function updateMenuButtons() {
@@ -314,7 +312,7 @@ $(function () {
         var selectedNode = getSelectedNode();
 
         // flag für die Aktivierung der selektionsabhängigen Schaltflächen
-        var selected = selectedNode != null;
+        var selected = selectedNode.length;
         var folder = selected && selectedNode.hasClass("filesitem-folder");
         var file = selected && selectedNode.hasClass("filesitem-file");
         var texFile = file && $.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1;
@@ -326,6 +324,44 @@ $(function () {
         $(".filestoolbar-rename").prop("disabled", !selected);
         $(".filestoolbar-move").prop("disabled", !selected);
         $(".filestoolbar-download").prop("disabled", !selected);
-        $(".filestoolbar-upload").prop("disabled", !basic);
+        $(".filestoolbar-upload").prop("disabled", file);
+    }
+
+    /**
+     * Zeigt einen Dialog zum Hochladen einer Datei an.
+     */
+    function dialogUploadFile() {
+    	$('.filesdialog-upload-message').addClass('invisible');
+    	$('.filesdialog-upload-files').val('');
+    	$('.filesdialog-upload-folderid').val(getSelectedNode().length ?
+    			getSelectedFolderId() : rootFolderId);
+    	$('.filesdialog-upload-submit').prop('disabled', false);
+    	$('.filesdialog-upload-form').submit(function(event) {
+    		// Formular deaktivieren
+    		event.preventDefault();
+    		$('.filesdialog-upload-submit').prop('disabled', true);
+
+    		// Dateien senden
+    		var form = new FormData(this);
+    		documentsJsonRequest(form, function(result, data) {
+    			reloadProject();
+    			if (result && data.response.failure.length == 0) {
+    				$('.filesdialog-upload').dialog('destroy');
+    			} else {
+    				var msg = $('.filesdialog-upload-message');
+    				msg.text('Fehler beim Hochladen!');
+    				for (var i = 0; i < data.response.failure.length; ++i)
+    					msg.append($('<br />'))
+    							.append($('<b></b>').text(data.response.failure[i].name))
+    							.append(document.createTextNode(': ' + 
+    									data.response.failure[i].reason));
+    				msg.removeClass('invisible');
+
+    				$('.filesdialog-upload-submit').prop('disabled', false);
+    			}
+    		}, false, false);
+    	});
+
+    	$('.filesdialog-upload').dialog({'width': 'auto'});
     }
 });
