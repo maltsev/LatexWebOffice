@@ -38,11 +38,15 @@ $(document).ready(function() {
 		deleteTemplate();
 	});
 
-	// LISTENER
-
+	// ----------------------------------------------------------------------------------------------------
+	//                                               LISTENER                                              
+	// ----------------------------------------------------------------------------------------------------
+	
 	// Auswahl-Listener
 	tree.bind('select_node.jstree',function(e,data) {
-
+		
+		console.log("selection");
+		
 		// Deselektion (die der Selection-ID zugehörige Knoten-Komponente wurde erneut selektiert)
 		if(selectedNodeID===data.node.id) {
 
@@ -68,19 +72,23 @@ $(document).ready(function() {
 		// aktualisiert die Aktivierungen der Menü-Schaltflächen
 		updateMenuButtons();
 	});
-
-	    // Tasten-Listener
-	    tree.bind('keydown',function(e) {
-
-		    // TEMP
-		    //console.log(e.keyCode);
-
-		    // Entf-Taste
-		    if(e.keyCode===46)
-			$('#modal_deleteConfirmation').modal('show');
+	
+	// ----------------------------------------------------------------------------------------------------
+	
+	// Tasten-Listener
+	tree.bind('keydown',function(e) {
+	
+		// TEMP
+		//console.log(e.keyCode);
+		
+		// Entf-Taste
+		if(e.keyCode===46)
+		$('#modal_deleteConfirmation').modal('show');
 	});
-
-	// Umbenennungs-Listener (für 'Erstellen' und 'Umbenennen')
+	
+	// ----------------------------------------------------------------------------------------------------
+	
+	// Umbenennungs-Listener
 	tree.bind('rename_node.jstree',function(e) {
 
 		// blendet das Eingabe-Popover aus
@@ -88,7 +96,7 @@ $(document).ready(function() {
 
 		// wenn die Eingabe des Namens eines neuen Projektes bestätigt wurde (= Erstellen eines Projektes), ...
 		if(creatingNodeID!=null) {
-
+			
 			// ... und kein Name eingegeben wurde, ...
 			if(treeInst.get_text(creatingNodeID)==="") {
 				// ... wird der Erstellungs-Vorgang abgebrochen
@@ -100,7 +108,7 @@ $(document).ready(function() {
 			else
 				// ... wird severseitig ein neues Projekt mit dem festgelegten Namen erzeugt
 				createProject(treeInst.get_text(creatingNodeID));
-			}
+		}
 		// wenn die EIngabe des Names eines zu duplizierenden Projektes bestätigt wurde (= Duplizieren eines Projektes), ...
 		else if(duplicateID!=null) {
 
@@ -137,8 +145,10 @@ $(document).ready(function() {
 
 	});
 
-	//MENÜ-EINTRÄGE
-
+	// ----------------------------------------------------------------------------------------------------
+	//                                             MENÜ-EINTRÄGE                                           
+	// ----------------------------------------------------------------------------------------------------
+	
 	// 'Löschen'-Schaltfläche
 	$('.templatestoolbar-delete').on("click", function() {
 
@@ -163,11 +173,16 @@ $(document).ready(function() {
 		// wird renameTemplate() zum serverseitigen Umbenennen der betroffenen Vorlage aufgerufen
 
 	});
+});
 
-  //FUNKTIONALITÄTEN
-  //Löschen ausgewählter Vorlage.
+// ----------------------------------------------------------------------------------------------------
+//                                           FUNKTIONALITÄTEN                                          
+//                                      (client- und serverseitig)                                     
+// ----------------------------------------------------------------------------------------------------
 
-   function deleteTemplate() {
+//Löschen ausgewählter Vorlage.
+
+function deleteTemplate() {
 
 	documentsJsonRequest({
 			'command': 'templaterm',
@@ -396,4 +411,3 @@ function updateMenuButtons() {
 	$('.templatestoolbar-rename').prop("disabled", !remain);
 
 }
-
