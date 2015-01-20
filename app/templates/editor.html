@@ -80,12 +80,13 @@ border: 0;
 
 	<div id="dialog_editor_verlassen" title="Editor verlassen"style="display: none;">
 							<p>Wollen Sie den Editor wirklich verlassen?</p>
-							<p onClick="history.back()"> Ja</p>
-							<p onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')"> Nein</p>
+							<button onClick="history.back()">Ja</button>
+							<button onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')">Nein</button>
 						</div>
 						
-	<div id="dialog_grafik_einfuegen" title="Editor verlassen" style="width: 600px !important; min-height: 200px !important; max-height: 700px !important; height: 400px !important; display: none;">
-							<p>Bitte wählen Sie eine Grafik aus</p>
+	<div id="dialog_grafik_einfuegen" title="Grafik einfügen" style="width: 600px !important; min-height: 200px !important; max-height: 700px !important; height: 400px !important; display: none;">
+							<p>Bitte wählen Sie eine Grafik aus (Benutzen Sie Strg um mehrere auszuwählen)</p>
+						<!-- Auflisten aller verfügbarer Bilddateien des aktuellen Projekts -->
 								<p > {% verbatim %}
 								<script id="template_filesitem-file" type="text/template">
 									<span class="filesitem-name" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
@@ -103,40 +104,40 @@ border: 0;
 								</script>
 								{% endverbatim %}
 								<div id="fileswrapper" class="fileswrapper"></div>
+								Image Width <input name="imageWidth" type="text" maxlength="3" id="imageWidth" value="70" onkeyup="if (/\D/g.test(this.value)) this.value = this.value.replace(/\D/g,'')"/>%
 								</p>
-							<p onClick="insertGraphics()"> Einfügen</p>
-							<p onClick=" $( '#dialog_grafik_einfuegen' ).dialog('destroy')"> Abbrechen</p>
+						<!-- Auflistung Ende -->
+							<button onClick="insertGraphics()"> Einfügen</button>
+							<button onClick=" $( '#dialog_grafik_einfuegen' ).dialog('destroy')"> Abbrechen</button>
 						</div>					
 	
 	<div id="dialog_tabelle_erstellen" title="Tabelle erstellen" style="display: none;">	
 		          <div id="example">
+					<script data-jsfiddle="example">
+					var data = [
+					[,,,],
+					[,,,],
+					];
 
+					  var container = document.getElementById('example');
+					  var hot = new Handsontable(container,
+					  {
+						data: data,
+						minSpareRows: 1,
+						colHeaders: true,
+						rowHeaders: true,
+						contextMenu: true
+					  });
+					  
+					  ;
 
-
-        <script data-jsfiddle="example">
-			var data = [
-			[,,,],
-			[,,,],
-			];
-
-
-          var container = document.getElementById('example');
-          var hot = new Handsontable(container,
-          {
-            data: data,
-            minSpareRows: 1,
-            colHeaders: true,
-			rowHeaders: true,
-            contextMenu: true
-          });
-		  
-		  ;
-
-        </script>
-      </div>
-		<p onClick="table_readout_input();$( '#dialog_tabelle_erstellen' ).dialog('destroy');">Übernehmen</p>
-		<p onClick=" $( '#dialog_tabelle_erstellen' ).dialog('destroy')"> Abbrechen</p>
-	</div>
+					</script>
+				  </div>
+				<button onClick="table_readout_input();$( '#dialog_tabelle_erstellen' ).dialog('destroy');">Übernehmen</button>
+				<button onClick=" $( '#dialog_tabelle_erstellen' ).dialog('destroy')"> Abbrechen</button>
+			</div>
+			
+			
 		<nav class="navbar navbar-default symbolbar_bg">
 	      <div class="container-fluid">
 		<div id="toggle" style="float: left;text-align: left;width: 100%;margin-left: 0;">

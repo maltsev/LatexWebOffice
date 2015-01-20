@@ -86,7 +86,7 @@ function openInsertImageDialog() {
 	width:'auto'});
 }
 
-/// Klammern, welche automatisch geschlossen werden sollen
+// Klammern, welche automatisch geschlossen werden sollen
 var braces = {
 	'{': '}',
 	'[': ']'
@@ -192,7 +192,9 @@ function table_readout_input() {
 		+ fulltable+"\\end{tabular}\n"+"\\end{table}\n");
 }
 
-
+/**
+* Baumstruktur mittels JSTree erstellen
+*/
 var tree = null;
 
 $(function () {
@@ -257,6 +259,7 @@ $(function () {
         	// Auswahl-Listener
             "select_node.jstree": function (e, data) {
             	selectedNode = data.node.li_attr;
+
             },
 
             // Auswahl-Entfernen-Listener
@@ -286,13 +289,13 @@ $(function () {
 
     function convertRawDataToJsTreeData(rawData) {
         var jsTreeData = [];
-
+		
         $.each(rawData.folders || [], function (i, folder) {
             jsTreeData.push({
                 id: "folder" + folder.id,
                 text: folderTemplate(folder),
                 icon: "glyphicon glyphicon-folder-open",
-                li_attr: {"class": "filesitem-folder", "data-folder-id": folder.id},
+                li_attr: {"class": "filesitem-folder", "data-folder-id": folder.id, "folder-name": folder.name},
                 children: convertRawDataToJsTreeData(folder)
             });
         });
@@ -346,36 +349,89 @@ $(function () {
 
 
 });
-	function insertImageWithID(fileID){
-		documentsJsonRequest({
-				'command': 'fileinfo',
-				'id': fileID,
-			}, function(result, data) {
-				if (result)
-				{
-					if(data.response.mimetype.indexOf("image") > -1){
-						editor.insert("\\includegraphics[width=0.7\\textwidth]{"+data.response.filename+"}"+"\n");
-					};				
-				}
-		});
-
-	}
-	function insertGraphics(){
-		
-		var selectedArray = tree.jstree("get_selected");
-		var substringID = null;
-		for (var i = 0; i < selectedArray.length; i++) {
-			substringID = selectedArray[i].substr(4);
-			if(isInt(substringID) == true){
-				insertImageWithID(substringID);
-				
-			}
-			
-		}
-
-		$( '#dialog_grafik_einfuegen' ).dialog('destroy');
-	}
 	
-	function isInt(n) {
-		return n % 1 === 0;
+/**
+* Einfügen des Dateipfades in die tex Datei
+*/
+var imageWidth;
+function insertImageWithID(fileID, filePath){
+	documentsJsonRequest({
+			'command': 'fileinfo',
+			'id': fileID,
+		}, function(result, data) {
+			if (result)
+			{
+				if(data.response.mimetype.indexOf("image") > -1){
+					imageWidth = document.getElementById("imageWidth").value / 100;
+					editor.insert("\\includegraphics[width="+imageWidth+"\\textwidth]{"+filePath+data.response.filename+"}"+"\n"); 
+				};				
+			}
+	});
+
+}
+
+/**
+* Aufruf durch dialog_grafik_einfuegen
+* iteriert durch die im HTML Quellcode aufgebaute JSTree Struktur im 
+* fileswrapper div element
+*/
+function insertGraphics(){
+	
+	var selectedArray = tree.jstree("get_selected");
+	var substringID = null;
+	var selectedFile;
+	var filePath;
+	var currElement;
+	
+	//für alle selektierten items
+	for (var i = 0; i < selectedArray.length; i++) {
+		filePath = "";
+		selectedFile = selectedArray[i]; //eg. file10
+		substringID = selectedFile.substr(4); //eg. 10
+		if(isInt(substringID) == true){
+
+			//suche im fileswrapper div nach allen li elementen
+			$('#fileswrapper li').each(function(i)
+			{
+				//wenn die id des elements mit dem selektierten element übereinstimmt
+			   if(selectedFile == $(this).attr('id')){
+					//setze als aktuelles element, das hierarchisch in der DOM Struktur nächstgelegende ul element
+					currElement = $(this).closest("ul");
+
+					//iteriere durch die schleife solange bis das oberste ul element erreicht wurde
+					//currElement.closest("li").attr('class') ist in dem fall nicht mehr definiert
+					//da es über dem obersten ul element kein li element mehr gibt
+					while(true){
+					
+						if (typeof currElement.closest("li").attr('class') !== 'undefined') {
+							//prüfe ob aktuell übergeordnetes li element ein ordner ist
+							//wenn ja füge den ordner namen zum dateipfad hinzu
+							if(currElement.closest("li").attr('class').indexOf("filesitem-folder") > -1){
+								currElement = currElement.closest("li");
+								filePath = currElement.attr('folder-name')+ "/" + filePath;
+								currElement = currElement.closest("ul");
+							}
+						} else{
+							break;
+						}
+
+					}
+					
+					//wenn die schleife beendet wurde rufe die methode mit der file id auf und dem entsprechenden pfad
+					insertImageWithID(substringID, filePath);
+			   }
+			});
+		}
+		
 	}
+	//deselektiere alle items und schließe den dialog
+	tree.jstree("deselect_all");
+	$( '#dialog_grafik_einfuegen' ).dialog('destroy');
+}
+
+/**
+* prüfe ob eine variable vom typ integer ist
+*/
+function isInt(n) {
+	return n % 1 === 0;
+}
