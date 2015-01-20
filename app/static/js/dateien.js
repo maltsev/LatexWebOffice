@@ -106,7 +106,7 @@ $(function () {
                 return;
             }
 
-            $(".filesitem-nameWrapper", selectedNode).text(newName);
+            $("> .jstree-anchor .filesitem-name", selectedNode).text(newName);
         });
 	});
 
