@@ -49,7 +49,7 @@
 		{% csrf_token %}
 		<input type="hidden" name="command" value="importzip"/>
 		<div class="form-group has-feedback">
-			<label for="projektzipfile" class="col-sm-3 control-label">Projekt</label>
+			<label for="projektzipfile" class="col-sm-3 control-label">Projekt (als zip)</label>
 			<div class="col-sm-9">
 				<input type="file" name="files" class="form-control" id="files">
 			</div>
@@ -62,7 +62,7 @@
 		</div>
 
 		<div class="modal-footer col-sm-offset-2">
-			<button type="submit" class="btn btn-lg btn-primary">hochladen</button>
+			<button type="submit" class="btn btn-primary">hochladen</button>
 		</div>
 	</form>
       </div>
