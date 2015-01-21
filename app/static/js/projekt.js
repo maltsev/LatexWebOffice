@@ -11,6 +11,8 @@ var deletingNodeID = null;			// ID des derzeitig zu löschenden Projektes
 var duplicateNodeID = null;			// ID der Knoten-Komponente des derzeitig zu duplizierenden Projektes
 var duplicateID = null;				// ID des derzeitig zu duplizierenden Projektes
 
+var editMode = false;				// gibt an, ob sich eine der Knoten-Komponenten derzeitig im Editierungsmodus befindet
+
 /*
  * Position und Höhe der selektierten Knoten-Komponente sind zu speichern,
  * da diese durch den Editierungsmodus temporär ihre html-Repräsentation verliert
@@ -138,7 +140,7 @@ $(document).ready(function() {
 		//console.log(e.keyCode);
 		
 		// Entf-Taste
-		if(e.keyCode===46) {
+		if(e.keyCode===46 && !editMode) {
 			deletingNodeID = selectedNodeID;
 			$('#modal_deleteConfirmation').modal('show');
 		}
@@ -151,6 +153,8 @@ $(document).ready(function() {
 		
 		// blendet das Eingabe-Popover aus
 		$('.input_popover').popover('hide');
+		
+		editMode = false;
 		
 		// wenn die Eingabe des Namens eines neuen Projektes bestätigt wurde (= Erstellen eines Projektes), ...
 		if(creatingNodeID!=null) {
@@ -511,6 +515,8 @@ function addNode(project) {
  * @param text Text-Vorgabe zur Editierung
  */
 function editNode(nodeID,text) {
+	
+	editMode = true;
 	
 	// zeigt das Eingabe-Popover in relativer Position zur betroffenen Knoten-Komponente an
 	showPopover(treeInst.get_node(nodeID));
