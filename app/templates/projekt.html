@@ -12,26 +12,12 @@
     <script src="/static/js/doT.min.js"></script>
     <script src="/static/js/general.js"></script>
     <script src="/static/js/projekt.js"></script>
+    <script src="/static/js/jquery.validate.min.js"></script>
+    <script src="/static/js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
 {% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
-<!-- Dialogboxen -->
-<div id="dialog_importZip" title="Projekt aus ZIP importieren" style="display: none">
-	<p>Bitte wählen Sie eine Datei zum Importieren aus!<br />
-	Nur ZIP-Dateien sind erlaubt.</p>
-	<p id="dialog_importZip_message" class="error invisible"></p>
-	<p style="text-align: center">
-		<form id="dialog_importZip_form" action="/documents/" method="post" 
-				target="dialog_importZip_dstFrame" enctype="multipart/form-data">
-			{% csrf_token %}
-			<input type="hidden" name="command" value="importzip" />
-			<input type="file" name="files" accept="application/zip" />
-			<input type="submit" value="Importieren" />
-		</form>
-	</p>
-	<iframe name="dialog_importZip_dstFrame" class="invisible"></iframe>
-</div>
 
 <div class="modal fade" id="modal_deleteConfirmation" role="dialog" aria-hidden="true">
   <div class="modal-dialog">
@@ -46,6 +32,40 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-default modal_deleteConfirmation_yes" data-dismiss="modal">Ja</button>
         <button type="button" class="btn btn-primary modal_deleteConfirmation_no" data-dismiss="modal">Nein</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="projekt-import-modal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="importModalLabel">Projekt importieren</h4>
+      </div>
+      <div class="modal-body">
+	<form class="form-horizontal" action="#" method="post" enctype="multipart/form-data" role="form" data-toggle="validator"  id="projektimportposter">
+		{% csrf_token %}
+		<input type="hidden" name="command" value="importzip"/>
+		<div class="form-group has-feedback">
+			<label for="projektzipfile" class="col-sm-3 control-label">Projekt</label>
+			<div class="col-sm-9">
+				<input type="file" name="files" class="form-control" id="files">
+			</div>
+		</div>
+		<div id='checkboxdiv' class="hidden form-group has-feedback">
+			<label for="overwritecheckbox" class="col-sm-3 control-label">Projekt überschreiben</label>
+			<div class="col-sm-9">
+				<input type="checkbox" name="overwritecheckbox" class="form-control" id="overwritecheckbox">
+			</div>
+		</div>
+
+		<div class="modal-footer col-sm-offset-2">
+			<button type="submit" class="btn btn-lg btn-primary">hochladen</button>
+		</div>
+	</form>
       </div>
     </div>
   </div>
@@ -73,7 +93,7 @@
         <div class="btn-group" role="group">
             <button type="button" class="btn btn-default projecttoolbar-converttotemplate" disabled>in Vorlage umwandeln</button>
             <button type="button" class="btn btn-default projecttoolbar-export" disabled>Export</button>
-            <button type="button" class="btn btn-default projecttoolbar-import">Import</button>
+            <button type="button" class="btn btn-default projecttoolbar-import" data-toggle="modal" data-target="#projekt-import-modal">Import</button>
         </div>
     </div>
 

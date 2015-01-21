@@ -13,6 +13,7 @@ var duplicateID = null;				// ID des derzeitig zu duplizierenden Projektes
 var selectedNodeID = "";
 var prevSelectedNodeID 	= "";
 
+var allprojects=null; // Array von allen Projekten
 
 var tree;
 var treeInst;
@@ -40,6 +41,41 @@ $(document).ready(function() {
 	// 'Ja'-Button des Modals zur Bestätigung des Löschvorgangs
 	$('.modal_deleteConfirmation_yes').on("click", function() {
 		deleteProject();
+	})	
+
+
+	//VALIDATOR	
+	//
+	//falls versucht wird eine zip-datei zu importieren, die den gleichen namen hat, wie ein bestehendes projekt, muss der nutzer bestätigen, 
+	//um das bestehende projekt zu überschreiben
+	$('#files').change(function(){
+		var file = $('#files')[0].files[0];
+		var filename=file.name.substr(0,file.name.lastIndexOf('.'))||file.name; //versucht den Dateinamen ohne Dateiendung herauszufinden
+		console.log(filename);
+	
+		$('#checkboxdiv').addClass('hidden');	
+		for (var i=0;i<allprojects.length;i++){
+			var proj=allprojects[i].name;
+			if (proj==filename){
+				$('#overwritecheckbox').prop("checked", false);
+				$('#checkboxdiv').removeClass('hidden');
+			}
+		}
+	});
+
+	// Aktiviere den validator auf das projektimport formular
+	$('#projektimportposter').validate({
+		rules:{
+			files:{
+				required:true,
+			},
+			overwritecheckbox:{
+				required:true,
+			}
+		},
+		messages:{
+			overwritecheckbox: 'Ein Projekt mit gleichem Namen existiert schon'
+		}
 	});
 	
 	
@@ -244,13 +280,26 @@ $(document).ready(function() {
 	});
 	
 	// 'Import'-Schaltfläche
-	$('.projecttoolbar-import').on("click", function() {
-		
-		importZip();
-		// TODO
-		
+	$('#projektimportposter').on('submit',function(event){
+		var isvalidate=$("#projektimportposter").valid();
+		if (isvalidate)
+		{
+			$('#projekt-import-modal').modal('hide')	//resette das Formular
+			$('#checkboxdiv').addClass('hidden');	
+			$('#overwritecheckbox').prop("checked", true);
+
+			event.preventDefault();
+			var form=new FormData(this);
+			documentsJsonRequest(form,function(result,data){
+				if (result)
+					refreshProjects();
+			},false,false);
+			this.reset();
+		}
+
+
 	});
-	
+
 	refreshProjects();
 	
 });
@@ -516,6 +565,7 @@ function refreshProjects() {
 		'command': 'listprojects'
 		}, function(result,data) {
 			if(result) {
+				allprojects=data.response;
 				// legt für jedes Projekt eine Knoten-Komponente an
 				for(var i=0; i<data.response.length; ++i)
 					addNode(data.response[i]);
