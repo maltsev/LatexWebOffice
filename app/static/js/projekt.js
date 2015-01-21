@@ -1,7 +1,7 @@
 /*
- * @author: Thore Thießen, Ingolf Bracht, Munzir Mohamed
+ * @author: Thore Thießen, Ingolf Bracht, Munzir Mohamed, Kirill Maltsev
  * @creation: 04.12.2014 - sprint-nr: 2
- * @last-change: 15.01.2015 - sprint-nr: 4
+ * @last-change: 22.01.2015 - sprint-nr: 4
  */
 
 var creatingNodeID = null;			// ID der Knoten-Komponente des derzeitig zu erstellenden Projektes
@@ -10,6 +10,8 @@ var prevName = null;				// Name des derzeitig umzubenennenden Projektes (für et
 var deletingNodeID = null;			// ID des derzeitig zu löschenden Projektes
 var duplicateNodeID = null;			// ID der Knoten-Komponente des derzeitig zu duplizierenden Projektes
 var duplicateID = null;				// ID des derzeitig zu duplizierenden Projektes
+
+var editMode = false;				// gibt an, ob sich eine der Knoten-Komponenten derzeitig im Editierungsmodus befindet
 
 /*
  * Position und Höhe der selektierten Knoten-Komponente sind zu speichern,
@@ -28,10 +30,14 @@ var allprojects=null; // Array von allen Projekten
 var tree;
 var treeInst;
 
+var isProjectsPage = true; // false für die Seite mit Vorlagen;
+
 /*
  * Initialisiert den JSTree und die Menü-Einträge.
  */
 $(document).ready(function() {
+
+    isProjectsPage = $(".templateswrapper").length === 0;
 	
 	tree = $('.projectswrapper').jstree({"core"    : {"check_callback" : true,"multiple" : false},
 										 "plugins" : ["state"]});
@@ -138,7 +144,7 @@ $(document).ready(function() {
 		//console.log(e.keyCode);
 		
 		// Entf-Taste
-		if(e.keyCode===46) {
+		if(e.keyCode===46 && !editMode) {
 			deletingNodeID = selectedNodeID;
 			$('#modal_deleteConfirmation').modal('show');
 		}
@@ -151,6 +157,8 @@ $(document).ready(function() {
 		
 		// blendet das Eingabe-Popover aus
 		$('.input_popover').popover('hide');
+		
+		editMode = false;
 		
 		// wenn die Eingabe des Namens eines neuen Projektes bestätigt wurde (= Erstellen eines Projektes), ...
 		if(creatingNodeID!=null) {
@@ -373,9 +381,9 @@ function createProject(name) {
  * Löscht das momentan ausgewählte Projekt.
  */
 function deleteProject() {
-	
+
 	documentsJsonRequest({
-			'command': 'projectrm',
+			'command': isProjectsPage ? 'projectrm' : 'templaterm',
 			'id': deletingNodeID
 		}, function(result,data) {
 			// wenn das ausgewählte Projekt erfolgreich gelöscht wurde
@@ -404,7 +412,7 @@ function deleteProject() {
 function renameProject(name) {
 	
 	documentsJsonRequest({
-			'command': 'projectrename',
+			'command': isProjectsPage ? 'projectrename' : 'templaterename',
 			'id': renameID,
 			'name' : name
 		}, function(result,data) {
@@ -512,6 +520,8 @@ function addNode(project) {
  */
 function editNode(nodeID,text) {
 	
+	editMode = true;
+	
 	// zeigt das Eingabe-Popover in relativer Position zur betroffenen Knoten-Komponente an
 	showPopover(treeInst.get_node(nodeID));
 	// versetzt die betroffene Knoten-Komponente in den Bearbeitungsmodus
@@ -580,7 +590,7 @@ function refreshProjects() {
 	
 	// aktualisiert den JSTree anhand der bestehenden Projekte
 	documentsJsonRequest({
-		'command': 'listprojects'
+		'command': isProjectsPage ? 'listprojects' : 'listtemplates',
 		}, function(result,data) {
 			if(result) {
 				allprojects=data.response;
@@ -687,4 +697,6 @@ function updateMenuButtons() {
 	$('.projecttoolbar-converttotemplate').prop("disabled", !remain);
 	$('.projecttoolbar-export').prop("disabled", !remain);
 	$('.projecttoolbar-import').prop("disabled", !basic);
+
+	$('.templatestoolbar-use').prop("disabled", !remain);
 }
