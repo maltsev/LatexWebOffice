@@ -223,7 +223,7 @@ $(function () {
             },
 
 
-            "ready.jstree refresh.jstree": function () {
+            "ready.jstree refresh.jstree before_open.jstree": function () {
                 $(".jstree-node").each(function () {
                     var node = $(this),
                         type = node.hasClass("filesitem-folder") ? "folder" : "file";

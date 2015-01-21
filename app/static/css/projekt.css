@@ -42,3 +42,10 @@
 
 #overwritecheckbox{
 }
+
+.popover {
+	border-color: #ff0000;
+	color: #ff0000;
+  	border-width: = 3px;
+  	max-height = 25px;
+}

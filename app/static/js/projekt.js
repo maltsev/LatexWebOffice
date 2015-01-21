@@ -7,8 +7,18 @@
 var creatingNodeID = null;			// ID der Knoten-Komponente des derzeitig zu erstellenden Projektes
 var renameID = null;				// ID des derzeitig umzubenennenden Projektes
 var prevName = null;				// Name des derzeitig umzubenennenden Projektes (für etwaiges Zurückbenennen)
+var deletingNodeID = null;			// ID des derzeitig zu löschenden Projektes
 var duplicateNodeID = null;			// ID der Knoten-Komponente des derzeitig zu duplizierenden Projektes
 var duplicateID = null;				// ID des derzeitig zu duplizierenden Projektes
+
+/*
+ * Position und Höhe der selektierten Knoten-Komponente sind zu speichern,
+ * da diese durch den Editierungsmodus temporär ihre html-Repräsentation verliert
+ * und das zugehörige Objekt dadurch nicht mehr angesprochen werden kann,
+ * um das Popover gemäß seiner Position und Höhe entsprechend auszurichten.
+ */
+var selectedHeight = 0;				// Höhe der selektierten Knoten-Komponente (zur Ausrichtung des Popovers)
+var selectedPos = null;				// Position der selektierten Knoten-Komponente (zur Ausrichtung des Popovers)
 
 var selectedNodeID = "";
 var prevSelectedNodeID 	= "";
@@ -102,11 +112,10 @@ $(document).ready(function() {
 			selectedNodeID = data.node.id;
 			prevSelectedNodeID = data.node.id;
 			
+			selectedPos 	= $('.node_item_'+selectedNodeID).position();
+			selectedHeight 	= $('.node_item_'+selectedNodeID).height();
+			
 		}
-		
-		// TEST METADATA
-		//node = treeInst.get_node(selectedNodeID);
-		//console.log("AUTHOR: "+node.author+" ..... CREATETIME: "+node.createtime+" ..... ROOTID: "+node.rootid);
 		
 		// aktualisiert die Aktivierungen der Menü-Schaltflächen
 		updateMenuButtons();
@@ -130,8 +139,10 @@ $(document).ready(function() {
 		//console.log(e.keyCode);
 		
 		// Entf-Taste
-		if(e.keyCode===46)
+		if(e.keyCode===46) {
+			deletingNodeID = selectedNodeID;
 			$('#modal_deleteConfirmation').modal('show');
+		}
 	});
 	
 	// ----------------------------------------------------------------------------------------------------
@@ -223,6 +234,8 @@ $(document).ready(function() {
 	
 	// 'Löschen'-Schaltfläche
 	$('.projecttoolbar-delete').on("click", function() {
+		
+		deletingNodeID = selectedNodeID;
 		
 	});
 	
@@ -364,16 +377,21 @@ function deleteProject() {
 	
 	documentsJsonRequest({
 			'command': 'projectrm',
-			'id': selectedNodeID
+			'id': deletingNodeID
 		}, function(result,data) {
 			// wenn das ausgewählte Projekt erfolgreich gelöscht wurde
 			if(result) {
 				
-				// aktualisiert die Anzeige der Projekte
-				refreshProjects();
+				// entfernt die zugehörige Knoten-Komponente
+				treeInst.delete_node(selectedNodeID);
 				
+				// setzt die Löschung-ID zurück
+				deletingNodeID = null;
 				// setzt die Selektions-ID zurück
 				selectedNodeID = "";
+				
+				// aktualisiert die Aktivierungen der Menü-Schaltflächen
+				updateMenuButtons();
 			}
 	});
 	
@@ -407,7 +425,8 @@ function renameProject(name) {
 				treeInst.edit(renameID,"");
 				
 				// TEMP
-				showPopover(treeInst.get_node(renameID),data.response);
+				alert(data.response);
+				//showPopover(treeInst.get_node(renameID),data.response);
 			}
 	});
 	
@@ -457,7 +476,7 @@ function duplicateProject(projectID,name) {
 function exportZip() {
     documentsRedirect({
         'command' : 'exportzip',
-        'id' : treeInst.get_selected()[0],
+        'id' : treeInst.get_node(prevSelectedNodeID).rootid,
 
     }, function(result,data) {
         if(result) {
@@ -587,6 +606,9 @@ function selectNode(nodeID) {
 	treeInst.deselect_node(treeInst.get_selected());
 	treeInst.select_node(nodeID);
 	selectedNodeID = nodeID;
+	
+	selectedPos 	= $('.node_item_'+selectedNodeID).position();
+	selectedHeight 	= $('.node_item_'+selectedNodeID).height();
 }
 
 /*
@@ -599,11 +621,20 @@ function showPopover(node,error) {
 	
 	if(node!=null) {
 		
+		var popover = $('.input_popover');
+		
+		// zeigt das Popover an und richtet es links über der Knoten-Komponente aus
+		// (Reihenfolge nicht verändern!)
+		popover.popover('show');
+        $('.popover').css('left',selectedPos.left+'px');
+        $('.popover').css('top',(selectedPos.top-selectedHeight*2+5)+'px');
+		
+		/*
 		// Position der übergebenen Knoten-Komponente	
 		var pos = $('.node_item_'+node.id).position();
 		var height = $('.node_item_'+node.id).height();
 		
-		var popover = $('.input_popover');
+		var popover = $('.input_popover');;
 		if(error) {
 			popover = $('.error_popover');
 			popover.popover({content: error});
@@ -612,9 +643,11 @@ function showPopover(node,error) {
 		// zeigt das Popover an und richtet es links über der Knoten-Komponente aus
 		// (Reihenfolge nicht verändern!)
 		popover.popover('show');
-        $('.popover').css('left',pos.left+'px');
-        $('.popover').css('top',(pos.top-height*2+5)+'px');
-        
+        $('.popover').css('left',selectedPos.left+'px');
+        $('.popover').css('top',(selectedPos.top-selectedHeight*2+5)+'px');
+        }
+        console.log($('.popover').css('height'));
+        */
 	}
 }
 

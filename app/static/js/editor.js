@@ -26,6 +26,22 @@ var myLayout;
  * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
  */
 $(document).ready(function() {
+    var width = $(window).width();
+    var height = $(window).height();
+    
+    console.log(width);
+        
+    // Funktion für SplitView, setzt die Breite der Trennlinie
+    myLayout = $('#maincontainer').layout({
+        defaults: {
+            spacing_open: 12,
+            spacing_close: 12,
+        },
+        east: {
+            initClosed: (width<1366?true:false),
+            size: '40%',
+        }
+    });
 	
 	// Datei-ID abfragen
 	id = parseInt(location.hash.substr(1));
@@ -77,18 +93,6 @@ $(document).ready(function() {
 		});
 		loadFile(id);
 	};
-    // Funktion für SplitView, setzt die Breite der Trennlinie
-    $(document).ready(function () {
-            myLayout = $('#maincontainer').layout({
-                defaults: {
-                    spacing_open: 12,
-                    spacing_close: 12,
-                },
-                east: {
-                    size: '40%',
-                }
-            });
-        });
 });
 
 // Dialogfenster Editor zurück
@@ -224,14 +228,50 @@ function table_readout_input() {
 		for (var j = 0; j < hot.countRows()-1;j++)
 		{
 			var rowcontent = "";
-			for (var i =  0; i < hot.countCols()-1;i++)
+			for (var i =  0; i < hot.countCols()-1;i++){
 				rowcontent += hot.getDataAtCell(j,i)+"&";
-				rowcontent += hot.getDataAtCell(j,i++)+"\\\\"
+				}
+				rowcontent += hot.getDataAtCell(j,i++)+"\\\\";
 				fulltable += rowcontent +"\n";
 		}
 		editor = ace.edit('editor');
+		var caption = document.getElementById('table-description').value;
+		if (caption == "") {
+			editor.insert("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
+			+ fulltable+"\\end{tabular}\n"+"\\end{table}\n");
+		} else {
 		editor.insert("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
-		+ fulltable+"\\end{tabular}\n"+"\\end{table}\n");
+		+ fulltable+"\\end{tabular}\n"+"\\caption{"+caption+"}\n"+"\\end{table}\n");
+		}
+
+		var data = [
+									[,,],
+									[,,],
+									[,,],
+									];
+		hot.loadData(data);
+		document.getElementById('table-description').value ="";
+}
+
+function cut_out(){
+	editor = ace.edit('editor');
+	var content = window.clipboardData.getData('Text');
+	editor.insert(content);
+
+}
+
+/**
+ * liest die Tabelle aus und fügt sie in das Textfeld des Editors ein
+ */
+
+function clear_table() {
+			var data = [
+									[,,],
+									[,,],
+									[,,],
+									];
+	hot.loadData(data);
+	document.getElementById('table-description').value ="";
 }
 
 /**

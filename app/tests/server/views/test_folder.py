@@ -389,6 +389,9 @@ class FolderTestClass(ViewTestCase):
         - user1 verschiebt einen Ordner welcher zum einem Projekt von user2 gehört -> Fehler
         - user1 verschiebt einen Ordner mit einer folderID die nicht existiert -> Fehler
         - user1 verschiebt einen Ordner wobei die folderID des Zielordners nicht existiert -> Fehler
+        - user1 verschiebt einen Ordner wobei im Zielordner bereits ein Ordner mit dem selben Namen existiert -> Fehler
+          (dieser Test dient der Überprüfung, ob richtig erkannt wird, dass ein Ordner mit Umlauten im Namen
+           bereits mit dem selben Ordner existiert, bsp. Übungs 01 -> übung 01 sollte einen Fehler liefern)
 
         :return: None
         """
@@ -486,6 +489,26 @@ class FolderTestClass(ViewTestCase):
         # sollte failure als status liefern
         # response sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum Verschieben eines Ordners, wobei im Zielordner bereits ein Ordner mit selben Namen existiert
+        # Testet ob die Überprüfung auf Ordner mit dem selben Namen richtig funktioniert, wobei im Namen Umlaute sind
+        # wird nur ausgeführt wenn keine SQLITE Datenbank benutzt wird, da dies sonst nicht unterstützt wird
+        if not util.isSQLiteDatabse():
+            response = util.documentPoster(self, command='movedir', idpara=self._user1_project4_folder3.id,
+                                           idpara2=self._user1_project4_folder1.id)
+
+            # der parentFolder sollte nicht user1_project4_folder1 sein
+            self.assertNotEqual(Folder.objects.get(id=self._user1_project4_folder3.id).parent,
+                                self._user1_project4_folder1)
+
+            # erwartete Antwort des Servers
+            serveranswer = ERROR_MESSAGES['FOLDERNAMEEXISTS']
+
+            # überprüfe die Antwort des Servers
+            # sollte failure als status liefern
+            # response sollte mit serveranswer übereinstimmen
+            util.validateJsonFailureResponse(self, response.content, serveranswer)
 
     def test_moveDir2(self):
         """Test2 der moveDir() Methode des folder view

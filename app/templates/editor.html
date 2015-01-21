@@ -75,31 +75,53 @@
             <button onClick=" $( '#dialog_grafik_einfuegen' ).dialog('destroy')"> Abbrechen</button>
         </div>	
         
-        <div id="dialog_tabelle_erstellen" title="Tabelle erstellen" style="display: none;">	
-            <div id="example">
-                <script data-jsfiddle="example">
-                    var data = [
-                        [,,,],
-                        [,,,],
-                    ];
-
-				    var container = document.getElementById('example');
-				    var hot = new Handsontable(container,
-				    {
-				        data: data,
-						minSpareRows: 1,
-						colHeaders: true,
-						rowHeaders: true,
-						contextMenu: true
-				    });
-					  
-				    ;
-
-                </script>
-            </div>
-            <button onClick="table_readout_input();$( '#dialog_tabelle_erstellen' ).dialog('destroy');">Übernehmen</button>
-            <button onClick=" $( '#dialog_tabelle_erstellen' ).dialog('destroy')"> Abbrechen</button>
-        </div>
+<!--
+	Menü des Tabellenassistenten
+	@author: Martin Kolaczek
+	// -->
+	<div class="modal fade" id="table-assistent" tabindex="-1" role="dialog" aria-hidden="&times">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="table-assistent-label">Tabellenassistent</h4>
+				</div>
+				<div class="modal-body">
+					<div style='overflow:scroll; width:550px'>
+						<div id="example">
+							<script data-jsfiddle="example">
+								var data = [
+									[,,],
+									[,,],
+									[,,],
+									];
+								var container = document.getElementById('example');
+								var hot = new Handsontable(container,
+								{
+								data: data,
+								minSpareRows: 1,
+								colHeaders: true,
+								rowHeaders: true,
+								contextMenu: true,
+								overflow: scroll
+								});
+							</script>
+						</div>
+					</div>
+					<div class="table-title">
+						<label for="inputTableDescription">Beschriftung</label>
+						<input type="text" class="form-control" id="table-description" placeholder="Die Tabelle beinhaltet ...">
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-danger" onclick="clear_table();">Tabelle löschen</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+					<button type="button" class="btn btn-primary"  onclick="table_readout_input();" data-dismiss="modal">Übernehmen</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
         <nav class="navbar navbar-default symbolbar_bg">
             <div class="container-fluid">
                 <div id="toggle" style="float: left;text-align: left;width: 100%;margin-left: 0;">
@@ -124,15 +146,18 @@
                         <button id="save" type="button" class="btn btn-default" title="Speichern">
                             <i class="fa fa-floppy-o"></i> 
                         </button>
+						
                         <button id="undo" type="button" class="btn btn-default" title="Zurück">
                             <i class="fa fa-undo"></i> <!-- Zurück --> 
                         </button>
                         <button id="redo" type="button" class="btn btn-default" title="Vor">
                             <i class="fa fa-repeat"></i> <!-- Vor -->
-                        </button>       
+                        </button>    
+						
                         <button id="cut" type="button" class="btn btn-default" title="Ausschneiden">
-                            <i class="fa fa-scissors"></i> <!-- Ausschneiden -->
-                        </button> 
+                            <i class="fa fa-scissors"></i>
+                        </button>
+						
                         <button id="copy" type="button" class="btn btn-default" title="Kopieren">
                             <i class="fa fa-files-o"></i> <!-- Kopieren -->
                         </button>
@@ -149,10 +174,10 @@
                                 onClick="openInsertImageDialog()">
                             <i class="fa fa-file-image-o"></i> <!-- Grafik einfügen -->
                         </button> 
-                        <button id="createTable" type="button" class="btn btn-default" title="Erstelle eine Tabelle" 
-                                onClick="createTable()">
-                            <i class="fa fa-table"></i>
-                        </button> 
+						<button type="button" class="btn btn-default" data-toggle="modal" data-target="#table-assistent">
+							<i class="fa fa-table"></i> 
+						</button>
+						<!--
                         <button id="formula" type="button" class="btn btn-default" title="Formeln eingeben" 
                                 onClick="createFormula()">
                             <i class="fa fa-superscript"></i>
@@ -165,14 +190,17 @@
                                 onClick="createQuote()">
                             <i class="fa fa-quote-left"></i>
                         </button> 
+						-->
                         <button id="compile" type="button" class="btn btn-default" title="Tex Datei kompilieren"
                                 onClick="compile()">
                             <i class="fa fa-refresh"></i> <!-- parallele Anzeige von TEX und PDF-Ausgabe -->
                         </button> 
+						<!--
                         <button id="search" type="button" class="btn btn-default" title="Im Textfeld suchen" 
                                 onClick="createSearch()">
                             <i class="fa fa-search"></i>
                         </button> 
+						-->
                     </div>
                 </div>
             </div>
