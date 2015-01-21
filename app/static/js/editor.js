@@ -224,14 +224,43 @@ function table_readout_input() {
 		for (var j = 0; j < hot.countRows()-1;j++)
 		{
 			var rowcontent = "";
-			for (var i =  0; i < hot.countCols()-1;i++)
+			for (var i =  0; i < hot.countCols()-1;i++){
 				rowcontent += hot.getDataAtCell(j,i)+"&";
-				rowcontent += hot.getDataAtCell(j,i++)+"\\\\"
+				}
+				rowcontent += hot.getDataAtCell(j,i++)+"\\\\";
 				fulltable += rowcontent +"\n";
 		}
 		editor = ace.edit('editor');
+		var caption = document.getElementById('table-description').value;
+		if (caption == "") {
+			editor.insert("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
+			+ fulltable+"\\end{tabular}\n"+"\\end{table}\n");
+		} else {
 		editor.insert("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
-		+ fulltable+"\\end{tabular}\n"+"\\end{table}\n");
+		+ fulltable+"\\end{tabular}\n"+"\\caption{"+caption+"}\n"+"\\end{table}\n");
+		}
+
+		var data = [
+									[,,],
+									[,,],
+									[,,],
+									];
+		hot.loadData(data);
+		document.getElementById('table-description').value ="";
+}
+
+/**
+ * liest die Tabelle aus und fügt sie in das Textfeld des Editors ein
+ */
+
+function clear_table() {
+			var data = [
+									[,,],
+									[,,],
+									[,,],
+									];
+	hot.loadData(data);
+	document.getElementById('table-description').value ="";
 }
 
 /**
