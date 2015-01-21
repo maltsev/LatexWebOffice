@@ -14,8 +14,8 @@ body,html {
     height: 100%;
 }
 
-#table-assistent{
-top:20%;
+#table-assistent,grafik-assistent{
+top:60px;
 outline: none;
 }
 
