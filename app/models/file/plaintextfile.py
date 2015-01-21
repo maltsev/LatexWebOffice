@@ -56,5 +56,6 @@ class PlainTextFile(file.File):
 
 @receiver(pre_save, sender=PlainTextFile)
 def plainTextFilePreSave(instance, **kwargs):
-    instance.mimeType = 'text/plain'
+    if not instance.mimeType:
+        instance.mimeType = 'text/plain'
     instance.size = instance.getSize()

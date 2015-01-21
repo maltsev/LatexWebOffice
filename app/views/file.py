@@ -20,6 +20,7 @@ import json
 import mimetypes
 import os
 
+from core import settings
 from django.http import HttpResponse, Http404
 from django.views.static import serve
 
@@ -360,6 +361,7 @@ def getPDF(request, user, fileid):
             # hole den Pfad zur PDF Datei
             filepath = pdfobj.getTempPath()
         else:
-            filepath = '/static/helloworld.pdf'
+            filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
+            print(filepath)
 
     return serve(request, os.path.basename(filepath), os.path.dirname(filepath))

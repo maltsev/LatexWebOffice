@@ -119,7 +119,7 @@ def latexcompile(texid, formatid=0):
     # HTML Format mit htlatex
     elif formatid == '1':
         args['outdirpath'] = out_dir_path + os.sep
-        rc, file_data = htlatex(args, console_output=True)
+        rc, file_data = htlatex(args, console_output=False)
     # HTML Format mit pdf2htmlex
     elif formatid == '2':
         rc, file_data = pdf2htmlex(args, console_output=False)
