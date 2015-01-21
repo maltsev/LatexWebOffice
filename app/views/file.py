@@ -18,14 +18,17 @@
 import logging
 import json
 import mimetypes
+import os
 
 from django.http import HttpResponse, Http404
+from django.views.static import serve
 
 from app.models.folder import Folder
 from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.binaryfile import BinaryFile
+from app.models.file.pdf import PDF
 from app.common import util
 from app.common.compile import latexcompile
 from app.common.constants import ERROR_MESSAGES, STANDARDENCODING
@@ -310,3 +313,53 @@ def latexCompile(request, user, fileid, targetformat=0):
     # Sonst Fehlermeldung an Client
 
     return util.jsonErrorResponse(ERROR_MESSAGES['COMPILATIONERROR'], request)
+
+
+def getPDF(request, user, fileid):
+    """Liefert die URL einer Datei per GET Request.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der tex Datei, von welcher die PDF Datei angefordert wurde
+    :return: URL der Datei
+    """
+
+    # hole das tex Objekt
+    texobj = TexFile.objects.get(id=fileid)
+
+    pdf_data = None
+
+    # wenn bereits eine entsprechende PDF Datei existiert
+    if PDF.objects.filter(name=texobj.name[:-3] + 'pdf', folder=texobj.folder).exists():
+        # hole das PDF Objekt
+        pdfobj = PDF.objects.get(name=texobj.name[:-3] + 'pdf', folder=texobj.folder)
+
+        # wenn die tex Datei nach der Erstellung der PDF Datei verändert wurde
+        if pdfobj.lastModifiedTime < texobj.lastModifiedTime:
+            # kompiliere die tex Datei neu
+            errors, pdf_data = latexcompile(fileid, formatid=0)
+
+            print(errors)
+
+            # wenn das Kompilieren erfolgreich war
+            if pdf_data:
+                # hole das neue PDF Objekt
+                pdfobj = PDF.objects.get(id=pdf_data['id'])
+
+        # hole den Pfad zur PDF Datei
+        filepath = pdfobj.getTempPath()
+    else:
+        # versuche die tex Datei zu kompilieren
+        errors, pdf_data = latexcompile(fileid, formatid=0)
+
+        # wenn das Kompilieren erfolgreich war
+        if pdf_data:
+            # hole das neue PDF Objekt
+            pdfobj = PDF.objects.get(id=pdf_data['id'])
+
+            # hole den Pfad zur PDF Datei
+            filepath = pdfobj.getTempPath()
+        else:
+            filepath = '/static/helloworld.pdf'
+
+    return serve(request, os.path.basename(filepath), os.path.dirname(filepath))

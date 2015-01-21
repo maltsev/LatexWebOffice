@@ -119,10 +119,10 @@ def latexcompile(texid, formatid=0):
     # HTML Format mit htlatex
     elif formatid == '1':
         args['outdirpath'] = out_dir_path + os.sep
-        rc, file_data = htlatex(args, console_output=False)
+        rc, file_data = htlatex(args, console_output=True)
     # HTML Format mit pdf2htmlex
     elif formatid == '2':
-        rc, file_data = pdf2htmlex(args, console_output=True)
+        rc, file_data = pdf2htmlex(args, console_output=False)
     # Ungültige formatid
     else:
         errors = ERROR_MESSAGES['UNKNOWNFORMAT']
@@ -218,8 +218,7 @@ def htlatex(args, console_output):
     html_zip_data = None
 
     # Befehl zur Konvertierung in HTML mit htlatex
-    command = ["htlatex", args['texpath'], "", "", "-d" + args['outdirpath'], '--shell-escape',
-               "-interaction=nonstopmode"]
+    command = ["htlatex", args['texpath'], 'html', "", "-d" + args['outdirpath'], "--interaction=nonstopmode"]
     rc = execute_command(command, console_output=console_output)
 
     # wenn die HTML Datei erstellt werden konnte

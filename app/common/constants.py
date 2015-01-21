@@ -56,6 +56,7 @@ ERROR_MESSAGES = {
     'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
     'NOTEXFILE': 'Keine Tex Datei.',
+    'NOPDFFILE': 'Keine PDF Datei.',
     'ILLEGALFILETYPE': 'Dateityp {0} ist nicht erlaubt',
     'TEMPLATEALREADYEXISTS': 'Eine Vorlage mit dem Namen {0} existiert bereits.',
     'TEMPLATENOTEXIST': 'Vorlage nicht gefunden',
