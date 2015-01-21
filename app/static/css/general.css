@@ -1,3 +1,11 @@
+.filestoolbar {
+    background: #fff;
+}
+
+.filestoolbar .btn-group {
+    margin-bottom: 5px;
+}
+
 /* Fading für lange Namen  */
 .fadeblock {
     position: relative;
@@ -33,4 +41,11 @@
 .jstree-anchor.jstree-clicked .fadeblock:after {
     background: -webkit-linear-gradient(left, rgba(190, 235, 255, 0) 0%, rgba(190, 235, 255, 1) 80%);
     background: linear-gradient(to right, rgba(190, 235, 255, 0) 0%, rgba(190, 235, 255, 1) 80%);
+}
+
+
+/* Scrollable Block */
+.scrollableblock-fixed {
+    position: fixed;
+    z-index: 1;
 }
