@@ -674,7 +674,7 @@ class ProjectTestClass(ViewTestCase):
 
         # Die Binärdatei sollte eine ILLEGALFILETYPE Fehlermeldung hervorrufen
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['ILLEGALFILETYPE']
+        serveranswer = ERROR_MESSAGES['ILLEGALFILETYPE'].format("application/octet-stream")
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein

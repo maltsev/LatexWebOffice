@@ -514,7 +514,7 @@ function getHTML(node) {
 	
 	return  "<div class=\"node_item\">"+
 				"<li class=\"node_item_"+node.id+"\">"+
-					"<span class=\"projectitem-name\">"+node.projectname+"</span>"+
+					"<span class=\"fadeblock projectitem-name\">"+node.projectname+"</span>"+
 					"<span class=\"projectitem-createdate\" title=\"erstellt "+relTime+"\">"+relTime+"</span>"+
 		    		"<span class=\"projectitem-author\">"+node.author+"</span>"+
 		    	"</li>"+

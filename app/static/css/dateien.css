@@ -3,22 +3,31 @@
     background: #fafafa;
     margin-top: 5px;
     padding-bottom: 5px;
+    overflow: hidden;
 }
 
 .filesitem-name {
-    min-width: 25%;
+    width: 35%;
     display: inline-block;
-    padding-right: 5px;
+    padding-right: 35px;
+}
+
+.filesitem-nameWrapper {
+    width: 100%;
+    display: inline-block;
+    overflow: hidden;
 }
 
 .filesitem-editdate {
     color: #95a5a6;
+    vertical-align: top;
 }
 
 .filesitem-size {
     font-size: 10px;
     color: #95a5a6;
     padding-left: 3px;
+    vertical-align: top;
 }
 
 .fileswrapper .jstree-anchor {

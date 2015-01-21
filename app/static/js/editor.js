@@ -19,6 +19,9 @@ var dropdownWindow = false;
 /// Grafikassistent Selectionid
 var selectionid = 0;
 
+// notwendig für jquery-layout
+var myLayout;
+
 /**
  * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
  */
@@ -59,15 +62,33 @@ $(document).ready(function() {
 			saveFile(id);
 		});
 
-		// Button für das Kompilieren belegen
-		$('#compile').click(function() {
-			compile(id);
+		// Button für das PDF Exportieren belegen
+		$('#pdfExport').click(function() {
+			exportFile(id, 0);
 		});
+        
+        // Button für das HTML Exportieren belegen
+		$('#htmlExport').click(function() {
+			exportFile(id, 1);
+		});
+        
 		$('.ace_scroller').on('scroll', function () {
 			$('.ace_gutter').scrollTop($(this).scrollTop());
 		});
 		loadFile(id);
-	}
+	};
+    // Funktion für SplitView, setzt die Breite der Trennlinie
+    $(document).ready(function () {
+            myLayout = $('#maincontainer').layout({
+                defaults: {
+                    spacing_open: 12,
+                    spacing_close: 12,
+                },
+                east: {
+                    size: '40%',
+                }
+            });
+        });
 });
 
 // Dialogfenster Editor zurück
@@ -88,7 +109,7 @@ function openInsertImageDialog() {
 	width:'auto'});
 }
 
-/// Klammern, welche automatisch geschlossen werden sollen
+// Klammern, welche automatisch geschlossen werden sollen
 var braces = {
 	'{': '}',
 	'[': ']'
@@ -132,6 +153,7 @@ function loadFile(id) {
 				editor.setValue(data, 0);
 				editor.getSelection().selectTo(0, 0);
 				changesSaved = true;
+                compile();
 			} else
 				backToProject();
 	});
@@ -147,8 +169,10 @@ function saveFile(id) {
 			'id': id,
 			'content': editor.getValue()
 		}, function(result, data) {
-			if (result)
+			if (result) {
 				changesSaved = true;
+                setMsg('Datei gespeichert');
+            }
 	});
 }
 
@@ -156,12 +180,28 @@ function saveFile(id) {
  * Kompiliert eine Datei und zeigt die PDF an.
  * @param id ID der Datei
  */
-function compile(id) {
-	// TODO: parallele Anzeige TEX/PDF implementieren
+function compile() {
+    // TexID welche dem Editor übergeben wurde
+    id = parseInt(location.hash.substr(1));
+    
+    // URL der PDF Datei
+    // schickt einen GET Request an den Server
+    // dieser kompiliert die tex Datei falls nötig und liefert die URL der PDF Datei
+    var pdf_url = "/documents/?command=getpdf&texid=" + id +"&t=" + Math.random();
+    
+    renderPDF(pdf_url, document.getElementById('pdf-viewer'));
+    setMsg('PDF geladen');
+    }
 
-	documentsJsonRequest({
+/**
+ * Kompiliert eine tex Datei und lädt die entsprechende Datei runter.
+ * @param id ID der Datei
+ */
+function exportFile(id, formatid) {
+    documentsJsonRequest({
 			'command': 'compile',
-			'id': id
+			'id': id,
+            'formatid': formatid,
 		}, function(result, data) {
 			if (result)
 				documentsRedirect({
@@ -184,17 +224,48 @@ function table_readout_input() {
 		for (var j = 0; j < hot.countRows()-1;j++)
 		{
 			var rowcontent = "";
-			for (var i =  0; i < hot.countCols()-1;i++)
+			for (var i =  0; i < hot.countCols()-1;i++){
 				rowcontent += hot.getDataAtCell(j,i)+"&";
-				rowcontent += hot.getDataAtCell(j,i++)+"\\\\"
+				}
+				rowcontent += hot.getDataAtCell(j,i++)+"\\\\";
 				fulltable += rowcontent +"\n";
 		}
 		editor = ace.edit('editor');
+		var caption = document.getElementById('table-description').value;
+		if (caption == "") {
+			editor.insert("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
+			+ fulltable+"\\end{tabular}\n"+"\\end{table}\n");
+		} else {
 		editor.insert("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
-		+ fulltable+"\\end{tabular}\n"+"\\end{table}\n");
+		+ fulltable+"\\end{tabular}\n"+"\\caption{"+caption+"}\n"+"\\end{table}\n");
+		}
+
+		var data = [
+									[,,],
+									[,,],
+									[,,],
+									];
+		hot.loadData(data);
+		document.getElementById('table-description').value ="";
 }
 
+/**
+ * liest die Tabelle aus und fügt sie in das Textfeld des Editors ein
+ */
 
+function clear_table() {
+			var data = [
+									[,,],
+									[,,],
+									[,,],
+									];
+	hot.loadData(data);
+	document.getElementById('table-description').value ="";
+}
+
+/**
+* Baumstruktur mittels JSTree erstellen
+*/
 var tree = null;
 
 $(function () {
@@ -259,6 +330,7 @@ $(function () {
         	// Auswahl-Listener
             "select_node.jstree": function (e, data) {
             	selectedNode = data.node.li_attr;
+
             },
 
             // Auswahl-Entfernen-Listener
@@ -288,13 +360,13 @@ $(function () {
 
     function convertRawDataToJsTreeData(rawData) {
         var jsTreeData = [];
-
+		
         $.each(rawData.folders || [], function (i, folder) {
             jsTreeData.push({
                 id: "folder" + folder.id,
                 text: folderTemplate(folder),
                 icon: "glyphicon glyphicon-folder-open",
-                li_attr: {"class": "filesitem-folder", "data-folder-id": folder.id},
+                li_attr: {"class": "filesitem-folder", "data-folder-id": folder.id, "folder-name": folder.name},
                 children: convertRawDataToJsTreeData(folder)
             });
         });
@@ -348,36 +420,127 @@ $(function () {
 
 
 });
-	function insertImageWithID(fileID){
-		documentsJsonRequest({
-				'command': 'fileinfo',
-				'id': fileID,
-			}, function(result, data) {
-				if (result)
-				{
-					if(data.response.mimetype.indexOf("image") > -1){
-						editor.insert("\\includegraphics[width=0.7\\textwidth]{"+data.response.filename+"}"+"\n");
-					};				
-				}
-		});
 
-	}
-	function insertGraphics(){
-		
-		var selectedArray = tree.jstree("get_selected");
-		var substringID = null;
-		for (var i = 0; i < selectedArray.length; i++) {
-			substringID = selectedArray[i].substr(4);
-			if(isInt(substringID) == true){
-				insertImageWithID(substringID);
-				
+/**
+* Einfügen des Dateipfades in die tex Datei
+*/
+var imageWidth;
+function insertImageWithID(fileID, filePath){
+	documentsJsonRequest({
+			'command': 'fileinfo',
+			'id': fileID,
+		}, function(result, data) {
+			if (result)
+			{
+				if(data.response.mimetype.indexOf("image") > -1){
+					imageWidth = document.getElementById("imageWidth").value / 100;
+					editor.insert("\\includegraphics[width="+imageWidth+"\\textwidth]{"+filePath+data.response.filename+"}"+"\n"); 
+				};				
 			}
-			
-		}
+	});
 
-		$( '#dialog_grafik_einfuegen' ).dialog('destroy');
-	}
+}
+
+/**
+* Aufruf durch dialog_grafik_einfuegen
+* iteriert durch die im HTML Quellcode aufgebaute JSTree Struktur im 
+* fileswrapper div element
+*/
+function insertGraphics(){
 	
-	function isInt(n) {
-		return n % 1 === 0;
+	var selectedArray = tree.jstree("get_selected");
+	var substringID = null;
+	var selectedFile;
+	var filePath;
+	var currElement;
+	
+	//für alle selektierten items
+	for (var i = 0; i < selectedArray.length; i++) {
+		filePath = "";
+		selectedFile = selectedArray[i]; //eg. file10
+		substringID = selectedFile.substr(4); //eg. 10
+		if(isInt(substringID) == true){
+
+			//suche im fileswrapper div nach allen li elementen
+			$('#fileswrapper li').each(function(i)
+			{
+				//wenn die id des elements mit dem selektierten element übereinstimmt
+			   if(selectedFile == $(this).attr('id')){
+					//setze als aktuelles element, das hierarchisch in der DOM Struktur nächstgelegende ul element
+					currElement = $(this).closest("ul");
+
+					//iteriere durch die schleife solange bis das oberste ul element erreicht wurde
+					//currElement.closest("li").attr('class') ist in dem fall nicht mehr definiert
+					//da es über dem obersten ul element kein li element mehr gibt
+					while(true){
+					
+						if (typeof currElement.closest("li").attr('class') !== 'undefined') {
+							//prüfe ob aktuell übergeordnetes li element ein ordner ist
+							//wenn ja füge den ordner namen zum dateipfad hinzu
+							if(currElement.closest("li").attr('class').indexOf("filesitem-folder") > -1){
+								currElement = currElement.closest("li");
+								filePath = currElement.attr('folder-name')+ "/" + filePath;
+								currElement = currElement.closest("ul");
+							}
+						} else{
+							break;
+						}
+
+					}
+					
+					//wenn die schleife beendet wurde rufe die methode mit der file id auf und dem entsprechenden pfad
+					insertImageWithID(substringID, filePath);
+			   }
+			});
+		}
+		
 	}
+	//deselektiere alle items und schließe den dialog
+	tree.jstree("deselect_all");
+	$( '#dialog_grafik_einfuegen' ).dialog('destroy');
+}
+
+function isInt(n) {
+    return n % 1 === 0;
+}
+
+function setMsg(text) {
+    $("#pdfviewer_msg").empty();
+    $("#pdfviewer_msg").fadeIn(0)
+    $("#pdfviewer_msg").html(text).fadeOut(5000);
+}
+
+function renderPDF(url, canvasContainer, options) {
+
+    var options = options || { scale: 1 };
+        
+    function renderPage(page) {
+        var viewport = page.getViewport(options.scale);
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+
+        var renderContext = {
+          canvasContext: ctx,
+          viewport: viewport
+        };
+        //canvas.style.height = '100%';
+        //canvas.style.width = '100%';
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        canvasContainer.appendChild(canvas);
+        
+        canvasContainer.appendChild (document.createElement("hr"));
+        
+        page.render(renderContext);
+    }
+    
+    function renderPages(pdfDoc) {
+        $("#pdf-viewer").html('');
+        for(var num = 1; num <= pdfDoc.numPages; num++)
+            pdfDoc.getPage(num).then(renderPage);
+    }
+
+    //PDFJS.disableWorker = true;
+    PDFJS.workerSrc = '/static/js/pdf.worker.js';    
+    PDFJS.getDocument(url).then(renderPages);
+}

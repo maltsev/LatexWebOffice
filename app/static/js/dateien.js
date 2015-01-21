@@ -100,13 +100,18 @@ $(function () {
             commandName = selectedNode.hasClass("filesitem-folder") ? "renamedir" : "renamefile",
             itemId = selectedNode.data("file-id") || selectedNode.data("folder-id");
 
+        if (selectedNode.hasClass("filesitem-file") && newName.indexOf(".") === -1) {
+            alert("Bitte auch die Dateinamenserweiterung eingeben");
+            return;
+        }
+
         documentsJsonRequest({command: commandName, id: itemId, name: newName}, function(result, data) {
             if (! result) {
                 alert(data.response);
                 return;
             }
 
-            $(".filesitem-nameWrapper", selectedNode).text(newName);
+            $("> .jstree-anchor .filesitem-name", selectedNode).text(newName);
         });
 	});
 

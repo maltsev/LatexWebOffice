@@ -673,7 +673,7 @@ class FileTestClass(ViewTestCase):
         serveranswer = {
             'failure':
                 [
-                    {'name': file1_name, 'reason': ERROR_MESSAGES['ILLEGALFILETYPE']},
+                    {'name': file1_name, 'reason': ERROR_MESSAGES['ILLEGALFILETYPE'].format("application/octet-stream")},
                 ],
             'success':
                 [
