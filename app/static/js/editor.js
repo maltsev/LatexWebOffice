@@ -19,6 +19,9 @@ var dropdownWindow = false;
 /// Grafikassistent Selectionid
 var selectionid = 0;
 
+// notwendig für jquery-layout
+var myLayout;
+
 /**
  * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
  */
@@ -59,15 +62,33 @@ $(document).ready(function() {
 			saveFile(id);
 		});
 
-		// Button für das Kompilieren belegen
-		$('#compile').click(function() {
-			compile(id);
+		// Button für das PDF Exportieren belegen
+		$('#pdfExport').click(function() {
+			exportFile(id, 0);
 		});
+        
+        // Button für das HTML Exportieren belegen
+		$('#htmlExport').click(function() {
+			exportFile(id, 1);
+		});
+        
 		$('.ace_scroller').on('scroll', function () {
 			$('.ace_gutter').scrollTop($(this).scrollTop());
 		});
 		loadFile(id);
-	}
+	};
+    // Funktion für SplitView, setzt die Breite der Trennlinie
+    $(document).ready(function () {
+            myLayout = $('#maincontainer').layout({
+                defaults: {
+                    spacing_open: 12,
+                    spacing_close: 12,
+                },
+                east: {
+                    size: '40%',
+                }
+            });
+        });
 });
 
 // Dialogfenster Editor zurück
@@ -132,6 +153,7 @@ function loadFile(id) {
 				editor.setValue(data, 0);
 				editor.getSelection().selectTo(0, 0);
 				changesSaved = true;
+                compile();
 			} else
 				backToProject();
 	});
@@ -147,8 +169,10 @@ function saveFile(id) {
 			'id': id,
 			'content': editor.getValue()
 		}, function(result, data) {
-			if (result)
+			if (result) {
 				changesSaved = true;
+                setMsg('Datei gespeichert');
+            }
 	});
 }
 
@@ -156,12 +180,28 @@ function saveFile(id) {
  * Kompiliert eine Datei und zeigt die PDF an.
  * @param id ID der Datei
  */
-function compile(id) {
-	// TODO: parallele Anzeige TEX/PDF implementieren
+function compile() {
+    // TexID welche dem Editor übergeben wurde
+    id = parseInt(location.hash.substr(1));
+    
+    // URL der PDF Datei
+    // schickt einen GET Request an den Server
+    // dieser kompiliert die tex Datei falls nötig und liefert die URL der PDF Datei
+    var pdf_url = "/documents/?command=getpdf&texid=" + id +"&t=" + Math.random();
+    
+    renderPDF(pdf_url, document.getElementById('pdf-viewer'));
+    setMsg('PDF geladen');
+    }
 
-	documentsJsonRequest({
+/**
+ * Kompiliert eine tex Datei und lädt die entsprechende Datei runter.
+ * @param id ID der Datei
+ */
+function exportFile(id, formatid) {
+    documentsJsonRequest({
 			'command': 'compile',
-			'id': id
+			'id': id,
+            'formatid': formatid,
 		}, function(result, data) {
 			if (result)
 				documentsRedirect({
@@ -351,7 +391,7 @@ $(function () {
 
 
 });
-	
+
 /**
 * Einfügen des Dateipfades in die tex Datei
 */
@@ -431,9 +471,47 @@ function insertGraphics(){
 	$( '#dialog_grafik_einfuegen' ).dialog('destroy');
 }
 
-/**
-* prüfe ob eine variable vom typ integer ist
-*/
 function isInt(n) {
-	return n % 1 === 0;
+    return n % 1 === 0;
+}
+
+function setMsg(text) {
+    $("#pdfviewer_msg").empty();
+    $("#pdfviewer_msg").fadeIn(0)
+    $("#pdfviewer_msg").html(text).fadeOut(5000);
+}
+
+function renderPDF(url, canvasContainer, options) {
+
+    var options = options || { scale: 1 };
+        
+    function renderPage(page) {
+        var viewport = page.getViewport(options.scale);
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+
+        var renderContext = {
+          canvasContext: ctx,
+          viewport: viewport
+        };
+        //canvas.style.height = '100%';
+        //canvas.style.width = '100%';
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        canvasContainer.appendChild(canvas);
+        
+        canvasContainer.appendChild (document.createElement("hr"));
+        
+        page.render(renderContext);
+    }
+    
+    function renderPages(pdfDoc) {
+        $("#pdf-viewer").html('');
+        for(var num = 1; num <= pdfDoc.numPages; num++)
+            pdfDoc.getPage(num).then(renderPage);
+    }
+
+    //PDFJS.disableWorker = true;
+    PDFJS.workerSrc = '/static/js/pdf.worker.js';    
+    PDFJS.getDocument(url).then(renderPages);
 }

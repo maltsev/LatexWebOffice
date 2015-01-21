@@ -33,6 +33,7 @@ from app.models.projecttemplate import ProjectTemplate
 from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
+from app.models.file.pdf import PDF
 
 
 def jsonDecoder(responseContent):
@@ -137,6 +138,8 @@ def checkIfFileExistsAndUserHasRights(fileid, user, request, objecttype=File):
             error = ERROR_MESSAGES['NOTEXFILE']
         elif objecttype == PlainTextFile and file_exists:
             error = ERROR_MESSAGES['NOPLAINTEXTFILE']
+        elif objecttype == PDF and file_exists:
+            error = ERROR_MESSAGES['NOPDFFILE']
 
         return False, jsonErrorResponse(error, request)
     elif not objecttype.objects.get(id=fileid).folder.getRoot().getProject().author == user:
@@ -369,7 +372,7 @@ def uploadFile(f, folder, request, fromZip=False):
         file.save()
     # sonst ist der Dateityp nicht erlaubt
     else:
-        return False, ERROR_MESSAGES['ILLEGALFILETYPE']
+        return False, ERROR_MESSAGES['ILLEGALFILETYPE'].format(mime)
 
     return True, {'id': file.id, 'name': file.name}
 
