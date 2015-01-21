@@ -1,8 +1,54 @@
-/*
-@author: Ingolf Bracht
-@creation: 14.12.2014 - sprint-nr: 3
-@last-change: 14.12.2014 - sprint-nr: 3
-*/
+/**
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *      Temporäre Datei
+ *
+ *      Vorlagen und Projekte sind fast gleich, deshalb wäre es besser
+ *      projekt.js für die Seite mit den Vorlagen anpassen und nicht eine neue
+ *      copy-paste Datei vorlagen.js erstellen.
+ *
+ *      Die template2project Funktion kann man hier schreiben oder in projekt.js
+ *
+ *      Kirill Maltsev
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 
 var templatesList;
 
@@ -30,26 +76,6 @@ $(document).ready(function() {
 	showTemplates();
 });
 
-/**
- * Listet die Vorlagen des Benutzers auf.
- */
-function showTemplates() {
-
-	documentsJsonRequest({
-		'command': 'listtemplates'
-		},
-		function(result,data) {
-			templatesList.clearData();
-			if(result) {
-				// Vorlagen in die Vorlagen-Liste eintragen
-				for (var i=0;i<data.response.length;++i)
-					if(i<data.response.length-1)
-						templatesList.addData(data.response[i],[],false);
-					else
-						templatesList.addData(data.response[i]);
-			}
-	});
-}
 
 /*
  * Wandelt eine Vorlage in ein Projekt um und leitet zu dessen Datei-Liste weiter.

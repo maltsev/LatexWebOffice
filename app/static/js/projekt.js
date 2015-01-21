@@ -1,7 +1,7 @@
 /*
- * @author: Thore Thießen, Ingolf Bracht, Munzir Mohamed
+ * @author: Thore Thießen, Ingolf Bracht, Munzir Mohamed, Kirill Maltsev
  * @creation: 04.12.2014 - sprint-nr: 2
- * @last-change: 15.01.2015 - sprint-nr: 4
+ * @last-change: 22.01.2015 - sprint-nr: 4
  */
 
 var creatingNodeID = null;			// ID der Knoten-Komponente des derzeitig zu erstellenden Projektes
@@ -30,10 +30,14 @@ var allprojects=null; // Array von allen Projekten
 var tree;
 var treeInst;
 
+var isProjectsPage = true; // false für die Seite mit Vorlagen;
+
 /*
  * Initialisiert den JSTree und die Menü-Einträge.
  */
 $(document).ready(function() {
+
+    isProjectsPage = $(".templateswrapper").length === 0;
 	
 	tree = $('.projectswrapper').jstree({"core"    : {"check_callback" : true,"multiple" : false},
 										 "plugins" : ["state"]});
@@ -377,9 +381,9 @@ function createProject(name) {
  * Löscht das momentan ausgewählte Projekt.
  */
 function deleteProject() {
-	
+
 	documentsJsonRequest({
-			'command': 'projectrm',
+			'command': isProjectsPage ? 'projectrm' : 'templaterm',
 			'id': deletingNodeID
 		}, function(result,data) {
 			// wenn das ausgewählte Projekt erfolgreich gelöscht wurde
@@ -408,7 +412,7 @@ function deleteProject() {
 function renameProject(name) {
 	
 	documentsJsonRequest({
-			'command': 'projectrename',
+			'command': isProjectsPage ? 'projectrename' : 'templaterename',
 			'id': renameID,
 			'name' : name
 		}, function(result,data) {
@@ -586,7 +590,7 @@ function refreshProjects() {
 	
 	// aktualisiert den JSTree anhand der bestehenden Projekte
 	documentsJsonRequest({
-		'command': 'listprojects'
+		'command': isProjectsPage ? 'listprojects' : 'listtemplates',
 		}, function(result,data) {
 			if(result) {
 				allprojects=data.response;
@@ -693,4 +697,6 @@ function updateMenuButtons() {
 	$('.projecttoolbar-converttotemplate').prop("disabled", !remain);
 	$('.projecttoolbar-export').prop("disabled", !remain);
 	$('.projecttoolbar-import').prop("disabled", !basic);
+
+	$('.templatestoolbar-use').prop("disabled", !remain);
 }
