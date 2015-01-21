@@ -62,6 +62,7 @@ class ViewTestCase(TestCase):
         self._user1_project1 = Project.objects.create(name='user1_project1', author=self._user1)
         self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1)
         self._user1_project3 = Project.objects.create(name='user1_project3', author=self._user1)
+        self._user1_project4 = Project.objects.create(name='Übungsprojekt 01', author=self._user1)
 
         # erstelle eine Vorlage als user1
         self._user1_template1 = ProjectTemplate.objects.create(name='user1_template1', author=self._user1)
@@ -114,6 +115,17 @@ class ViewTestCase(TestCase):
                                                          root=self._user1_project1.rootFolder)
         self._user1_project1_folder2_subfolder1.save()
 
+        # erstelle zwei Order für user1, die dem Projekt user1_project4 zugewiesen werden
+        self._user1_project4_folder1 = Folder(name='Übung 01', parent=self._user1_project4.rootFolder,
+                                              root=self._user1_project4.rootFolder)
+        self._user1_project4_folder1.save()
+        self._user1_project4_folder2 = Folder(name='Übung 02', parent=self._user1_project4_folder1,
+                                              root=self._user1_project4.rootFolder)
+        self._user1_project4_folder2.save()
+        self._user1_project4_folder3 = Folder(name='übung 02', parent=self._user1_project4.rootFolder,
+                                              root=self._user1_project4.rootFolder)
+        self._user1_project4_folder3.save()
+
         # erstelle zwei Order für user1, die der Vorlage user1_template1 zugewiesen werden
         # erstelle einen Unterordner in _user1_template1_folder2
         self._user1_template1_folder1 = Folder(name='user1_template1_folder1', parent=self._user1_template1.rootFolder,
@@ -154,10 +166,15 @@ class ViewTestCase(TestCase):
         texfile1_name = 'test_tex_presentation.tex'
         texfile2_name = 'test_tex_simple.tex'
         texfile3_name = 'test_tex_images.tex'
+        texfile4_name = 'test_tex_simple.tex'
+        texfile5_name = 'test_tex_simple.tex'
         binfile1_name = 'test_bin.bin'
         binfile2_name = 'test_jpg.jpg'
         binfile3_name = 'test_png.png'
         zipfile1_name = 'test_utf8_Übung.zip'
+
+        texfile1_name_specialchars = 'Übungsblatt01.tex'
+        texfile2_name_specialchars = 'Übungsblatt02.tex'
 
         # Pfad für die zip
         self._zipfile1_path = os.path.join(settings.TESTFILES_ROOT, zipfile1_name)
@@ -188,6 +205,19 @@ class ViewTestCase(TestCase):
                                    source_code='invalidtex source code')
         self._user1_tex4.save()
 
+        # Erstelle eine .tex Datei für user1 in user1_project4_folder1
+        texfile3.seek(0)
+        self._user1_tex5_source_code = texfile3.read()
+        self._user1_tex5 = TexFile(name=texfile1_name_specialchars, folder=self._user1_project4_folder1,
+                                   source_code=self._user1_tex3_source_code)
+        self._user1_tex5.save()
+
+        # Erstelle eine .tex Datei für user1 in user1_project4_folder1
+        texfile3.seek(0)
+        self._user1_tex6_source_code = texfile3.read()
+        self._user1_tex6 = TexFile(name=texfile2_name_specialchars, folder=self._user1_project4_folder1,
+                                   source_code=self._user1_tex3_source_code)
+        self._user1_tex6.save()
 
         # Erstelle eine Binärdatei für user1 in user1_project1_folder2_subfolder1
         self._user1_binfile1_path = os.path.join(settings.TESTFILES_ROOT, binfile1_name)
@@ -230,6 +260,8 @@ class ViewTestCase(TestCase):
         self._newtex_name2 = 'NeuerTexName2.tex'
         self._newtex_name3 = 'NeuerTexName3.tex'
         self._newtex_name_only_ext = '.tex'
+        self._newtex_name_specialchars1 = 'übungsblatt 01.tex'
+        self._newtex_name_specialchars2 = 'übungsblatt 02.tex'
         self._newbinary_name1 = 'NeuerBinaryName1.bin'
         self._newbinary_name2 = 'NeuerBinaryName2.bin'
         self._newbinary_name3 = 'NeuerBinaryName3.bin'

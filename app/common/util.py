@@ -583,3 +583,6 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, idpara3
 
     # Sende Anfrage an den Server mit dem übergebenem Befehl und den zugehörigen Parametern
     return self.client.post('/documents/', dictionary)
+
+def isSQLiteDatabse():
+    return 'sqlite3' in settings.DATABASES['default']['ENGINE']

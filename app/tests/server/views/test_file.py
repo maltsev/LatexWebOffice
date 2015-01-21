@@ -374,6 +374,10 @@ class FileTestClass(ViewTestCase):
         - user1 benennt eine .tex Datei um mit einem Namen der ungültige Sonderzeichen enthält -> Fehler
         - user1 benennt eine .tex Datei um mit einem Namen der keine Dateiendung besitzt -> Fehler
         - user1 benennt eine .tex Datei um mit einem Namen der nur aus der Dateiendung besteht -> Fehler
+        - user1 benennt eine .tex Datei um mit einem Namen der bereits im selben Ordner existiert -> Fehler
+          (dieser Test dient der Überprüfung, ob richtig erkannt wird, dass eine Datei mit Umlauten im Namen
+           bereits mit dem selben Ordner existiert, bsp. Übungsblatt 01.tex -> übungsblatt 01.tex sollte einen Fehler
+           liefern)
 
         :return: None
         """
@@ -517,6 +521,22 @@ class FileTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum Umbenennen einer .tex Datei mit einem Namen, der bereits im selben Ordner existiert
+        # (Überprüfung ob erkannt wird dass diese Datei bereits existiert, wenn sie Umlaute im Namen hat)
+        # wird nur ausgeführt wenn keine SQLITE Datenbank benutzt wird, da dies sonst nicht unterstützt wird
+        if not util.isSQLiteDatabse():
+            response = util.documentPoster(self, command='renamefile', idpara=self._user1_tex5.id,
+                                           name=self._newtex_name_specialchars1)
+
+            # erwartete Antwort des Servers
+            serveranswer = ERROR_MESSAGES['FILENAMEEXISTS']
+
+            # überprüfe die Antwort des Servers
+            # status sollte failure sein
+            # die Antwort des Servers sollte mit serveranswer übereinstimmen
+            util.validateJsonFailureResponse(self, response.content, serveranswer)
 
     def test_moveFile(self):
         """Test der moveFile() Methode des file view

@@ -350,6 +350,9 @@ class ProjectTestClass(ViewTestCase):
         - user1 benennt ein Projekt um mit einem Namen, der bereits existiert -> Fehler
         - user1 benennt ein Projekt mit einer ungültigen projectid um -> Fehler
         - user1 benennt ein Projekt von user2 um -> Fehler
+        - user1 benennt ein Projekt um mit einem Namen, der bereits existiert -> Fehler
+          (dieser Test dient der Überprüfung, ob richtig erkannt wird, dass ein Projekt mit Umlauten im Namen
+           bereits existiert, bsp. Übungsprojekt 01 -> ÜBUNGSPROJEKT 01 sollte einen Fehler liefern)
 
         :return: None
         """
@@ -465,6 +468,25 @@ class ProjectTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+        # --------------------------------------------------------------------------------------------------------------
+        # Sende Anfrage zum umbenennen eines Projektes mit einem Namen der bereits existiert
+        # Testet ob die Überprüfung auf Projekte mit dem selben Namen richtig funktioniert, wobei im Namen Umlaute sind
+        # wird nur ausgeführt wenn keine SQLITE Datenbank benutzt wird, da dies sonst nicht unterstützt wird
+        if not util.isSQLiteDatabse():
+            response = util.documentPoster(self, command='projectrename', idpara=self._user1_project3.id,
+                                           name=self._user1_project4.name.upper())
+
+            # der Name des Projektes sollte nicht mit project4.name.upper() übereinstimmen
+            self.assertNotEqual(Project.objects.get(id=self._user1_project3.id).name, self._user1_project4.name.upper())
+
+            # erwartete Antwort des Servers
+            serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(self._user1_project2.name.upper())
+
+            # überprüfe die Antwort des Servers
+            # status sollte failure sein
+            # die Antwort des Servers sollte mit serveranswer übereinstimmen
+            util.validateJsonFailureResponse(self, response.content, serveranswer)
+
     def test_listProjects(self):
         """Test der listprojects() Methode aus dem project view
 
@@ -500,7 +522,13 @@ class ProjectTestClass(ViewTestCase):
              'ownerid': self._user1_project3.author.id,
              'ownername': self._user1_project3.author.username,
              'createtime': util.datetimeToString(self._user1_project3.createTime),
-             'rootid': self._user1_project3.rootFolder.id}
+             'rootid': self._user1_project3.rootFolder.id},
+            {'id': self._user1_project4.id,
+             'name': self._user1_project4.name,
+             'ownerid': self._user1_project4.author.id,
+             'ownername': self._user1_project4.author.username,
+             'createtime': util.datetimeToString(self._user1_project4.createTime),
+             'rootid': self._user1_project4.rootFolder.id}
         ]
 
         # überprüfe die Antwort des Servers
