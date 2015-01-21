@@ -41,6 +41,11 @@
 }
 
 #overwritecheckbox{
+	width:25px;
+	outline:initial;
+}
+#overwritecheckboxlabel{
+	text-align:left;
 }
 
 .popover {

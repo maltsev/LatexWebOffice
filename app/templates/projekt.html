@@ -19,6 +19,7 @@
 <!-- Inhalt -->
 {% block content %}
 
+<!-- Modal -->
 <div class="modal fade" id="modal_deleteConfirmation" role="dialog" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -56,10 +57,10 @@
 			</div>
 		</div>
 		<div id='checkboxdiv' class="hidden form-group has-feedback">
-			<label for="overwritecheckbox" class="col-sm-3 control-label">Projekt überschreiben</label>
-			<div class="col-sm-9">
+			<div class="col-sm-offset-3 col-sm-3">
 				<input type="checkbox" name="overwritecheckbox" class="form-control" id="overwritecheckbox">
 			</div>
+			<label for="overwritecheckbox" id="overwritecheckboxlabel" class="col-sm-6 control-label">Wollen sie das bestehende Projekt überschreiben?</label>
 		</div>
 
 		<div class="modal-footer col-sm-offset-2">
