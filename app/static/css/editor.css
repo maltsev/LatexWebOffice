@@ -1,4 +1,4 @@
-﻿.symbolbar_bg {
+.symbolbar_bg {
     background: #95a5a6;
     padding: 0;
     min-height: 50px;
@@ -70,9 +70,6 @@ ul.nav li button {
     overflow: auto;
 } 
 
-.ui-layout-east {
-    initClosed: "true";
-}
 .ui-layout-resizer {
     background: grey;
 } 
