@@ -452,13 +452,13 @@ def getFolderName(folderpath):
 def datetimeToString(date_time):
     """Gibt Zeit-Datum Objekt als String zurück.
 
-    Format YYYY-MM-DD HH:MM:SS
+    Format YYYY-MM-DD HH:MM:SS.MS+HH:MM
 
     :param date_time: Zeit-Datum Objekt
     :return: String
     """
 
-    return date_time.strftime('%Y-%m-%d %H:%M:%S')
+    return str(date_time)
 
 
 def getNewTempFolder():
