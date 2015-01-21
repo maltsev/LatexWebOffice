@@ -51,13 +51,13 @@
   </div>
 </div>
 
-<div class="input_popover" data-container="body" data-toggle="popover" data-placement="top" data-content="Geben Sie einen Namen ein:"></div>
+<div class="input_popover" id="input_popover" data-container="body" data-toggle="popover" data-placement="top" data-content="Geben Sie einen Namen ein:"></div>
 
-<div class="error_popover" data-container="body" data-toggle="popover" data-placement="top"></div>
+<div class="error_popover" id="error_popover" data-container="body" data-toggle="popover" data-placement="top"></div>
 
 <h1>Projekte</h1>
 
-<div class="projectscolumn" style="max-width: 820px">
+<div class="projectscolumn">
     <div class="btn-toolbar hidden-xs projecttoolbar" role="toolbar">
         <div class="btn-group" role="group">
             <button type="button" class="btn btn-default projecttoolbar-open" disabled>Öffnen</button>
@@ -112,7 +112,7 @@
         </div>
     </div>
 
-    <div class="projectswrapper"></div>
+    <div class="projectswrapper" style="max-width: 820px"></div>
 </div>
 
 {% endblock %}
