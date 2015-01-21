@@ -15,9 +15,12 @@
 * Backlog entry : TEK1, 3ED9, DOK8, DO14
 
 """
+import os
+
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import render
+from django.views.static import serve
 
 from app.common import util
 from app.common.constants import ERROR_MESSAGES
@@ -190,7 +193,7 @@ def debug(request):
 # liest den vom Client per POST Data übergebenen Befehl ein
 # und führt die entsprechende Methode aus
 @login_required
-@require_http_methods(['POST'])
+@require_http_methods(['POST', 'GET'])
 def execute(request):
     if request.method == 'POST' and 'command' in request.POST:
 
@@ -270,5 +273,16 @@ def execute(request):
 
         # führe den übergebenen Befehl aus
         return c['command'](request, user, *args)
+    elif request.method == 'GET' and request.GET.get('command'):
+        if request.GET.get('command') == 'getpdf' and request.GET.get('texid'):
+            texid = request.GET.get('texid')
+
+            rights, failurereturn = util.checkIfFileExistsAndUserHasRights(texid, request.user, request,
+                                                                           objecttype=TexFile)
+            if not rights:
+                filepath = '/static/helloworld.pdf'
+                return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
+
+            return file.getPDF(request, request.user, texid)
 
     return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format('unkown'), request)
