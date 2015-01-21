@@ -253,6 +253,13 @@ function table_readout_input() {
 		document.getElementById('table-description').value ="";
 }
 
+function cut_out(){
+	editor = ace.edit('editor');
+	var content = window.clipboardData.getData('Text');
+	editor.insert(content);
+
+}
+
 /**
  * liest die Tabelle aus und fügt sie in das Textfeld des Editors ein
  */
