@@ -427,7 +427,7 @@ function duplicateProject(projectID,name) {
 function exportZip() {
     documentsRedirect({
         'command' : 'exportzip',
-        'id' : treeInst.get_selected()[0],
+        'id' : treeInst.get_node(prevSelectedNodeID).rootid,
 
     }, function(result,data) {
         if(result) {

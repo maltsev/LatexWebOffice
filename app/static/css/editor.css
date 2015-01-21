@@ -65,6 +65,9 @@ ul.nav li button {
     overflow: auto;
 } 
 
+.ui-layout-east {
+    initClosed: "true";
+}
 .ui-layout-resizer {
     background: grey;
 } 

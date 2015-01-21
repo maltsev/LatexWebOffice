@@ -26,6 +26,22 @@ var myLayout;
  * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
  */
 $(document).ready(function() {
+    var width = $(window).width();
+    var height = $(window).height();
+    
+    console.log(width);
+        
+    // Funktion für SplitView, setzt die Breite der Trennlinie
+    myLayout = $('#maincontainer').layout({
+        defaults: {
+            spacing_open: 12,
+            spacing_close: 12,
+        },
+        east: {
+            initClosed: (width<1366?true:false),
+            size: '40%',
+        }
+    });
 	
 	// Datei-ID abfragen
 	id = parseInt(location.hash.substr(1));
@@ -77,18 +93,6 @@ $(document).ready(function() {
 		});
 		loadFile(id);
 	};
-    // Funktion für SplitView, setzt die Breite der Trennlinie
-    $(document).ready(function () {
-            myLayout = $('#maincontainer').layout({
-                defaults: {
-                    spacing_open: 12,
-                    spacing_close: 12,
-                },
-                east: {
-                    size: '40%',
-                }
-            });
-        });
 });
 
 // Dialogfenster Editor zurück
