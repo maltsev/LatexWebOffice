@@ -61,7 +61,6 @@ $(document).ready(function() {
 	$('#files').change(function(){
 		var file = $('#files')[0].files[0];
 		var filename=file.name.substr(0,file.name.lastIndexOf('.'))||file.name; //versucht den Dateinamen ohne Dateiendung herauszufinden
-		console.log(filename);
 	
 		$('#checkboxdiv').addClass('hidden');	
 		for (var i=0;i<allprojects.length;i++){
