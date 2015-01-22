@@ -11,7 +11,7 @@ var deletingNodeID = null;			// ID des derzeitig zu löschenden Projektes
 var duplicateNodeID = null;			// ID der Knoten-Komponente des derzeitig zu duplizierenden Projektes
 var duplicateID = null;				// ID des derzeitig zu duplizierenden Projektes
 var templatizedID = null;			// ID des derzeitig in eine Vorlage umzuwandelnden Projektes
-
+var projectTempID = null;
 var editMode = false;				// gibt an, ob sich eine der Knoten-Komponenten derzeitig im Editierungsmodus befindet
 
 /*
@@ -69,6 +69,17 @@ $(document).ready(function() {
 	$('.modal_projectToTemplate_confirm').on("click", function() {
 		projectToTemplate($('#modal_projectToTemplate_tf').val());
 	});
+
+	// Modal zur Eingabe eines Projektsnamens ('in Projekt umwandeln')
+     $('#modal_templateToProject').on('hidden.bs.modal', function(e) {
+    // fokussiert den JSTree, um nach Abbruch des Verwendens Tasten-Events behandeln zu können
+    tree.focus();
+    });
+
+    // 'Bestätigen'-Button des Modals zur Bestätigung des Projektsnamens
+    $('.modal_templateToProject_confirm').on("click", function() {
+    templateToProject($('#modal_templateToProject_tf').val());
+    });
 
 
 	//VALIDATOR	
@@ -342,13 +353,8 @@ $(document).ready(function() {
 
 	// 'Verwenden'-Schaltfläche
 	$('.templatestoolbar-use').on("click", function() {
-        var projectName = prompt("Geben Sie einen Namen für das zu erzeugende Projekt ein:");
-        if (! projectName) {
-            return;
-        }
-
-        var node = treeInst.get_node(selectedNodeID).id;
-        templateToProject(projectName, selectedNodeID);
+        projectTempID = node.id;
+        $('#modal_templateToProject').modal('show');
 	});
 
 
@@ -562,17 +568,18 @@ function exportZip() {
  * name (Name des zu erzeugenden Projektes, dies darf nicht mit einem vorhandenen Projekt übereinstimmen)
  */
 
- function templateToProject(projectName, templateID) {
+ function templateToProject(name) {
 
 	documentsJsonRequest({
 		'command': 'template2project',
-		'id': templateID,
-		'name': projectName
+		'id': projectTempID,
+		'name': name
 		},
 		function(result,data) {
 			if(result) {
+			    projectTempID = null;
 				// Weiterleitung zum erzeugten Projekt
-				document.location.assign('/projekt/#'+data.response.rootid);
+				document.location.assign('/projekt/');
 
 			} else
 				alert(data.response);
