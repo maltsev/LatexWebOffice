@@ -126,5 +126,13 @@ function documentsRedirect(param) {
  * @returns {string} - relatives Datum
  */
 function getRelativeTime(rawDateTime) {
-    return moment(rawDateTime).fromNow();
+    var dateTime = moment(rawDateTime),
+        now = moment();
+
+    // Kein Zukunftsdatum
+    if (now.diff(dateTime) <= 0) {
+        dateTime = now;
+    }
+
+    return dateTime.fromNow();
 }
