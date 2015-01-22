@@ -211,7 +211,11 @@ function exportFile(id, formatid) {
 				documentsRedirect({
 					'command': 'downloadfile', 
 					'id': data.response.id
-				});
+                });
+            else {
+                    setErrorMsg('Fehler beim Kompilieren');
+            }
+				
 	});
 }
 
@@ -509,10 +513,19 @@ function isInt(n) {
 }
 
 function setMsg(text) {
+    $("#pdfviewer_msg").fadeOut(50);
     $("#pdfviewer_msg").empty();
     $("#pdfviewer_msg").fadeIn(0)
-    $("#pdfviewer_msg").html(text).fadeOut(5000);
+    $("#pdfviewer_msg").html('<p class="text-primary">' + text + '</p>').fadeOut(5000);
 }
+
+function setErrorMsg(text) {
+    $("#pdfviewer_msg").fadeOut(50);
+    $("#pdfviewer_msg").empty();
+    $("#pdfviewer_msg").fadeIn(0)
+    $("#pdfviewer_msg").html('<p class="text-danger">' + text + '</p>');
+}
+
 
 function renderPDF(url, canvasContainer, options) {
 
