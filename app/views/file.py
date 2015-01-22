@@ -308,7 +308,10 @@ def latexCompile(request, user, fileid, targetformat=0):
 
     errors, success = latexcompile(fileid, targetformat)
     if errors:
-        ret = success
+        if success:
+            ret = success
+        else:
+            ret = dict()
         ret['error'] = json.dumps(errors)
         return util.jsonErrorResponse(ret, request)
     if success:

@@ -101,7 +101,7 @@ class FileLatexCompileTestClass(ViewTestCase):
         response = util.documentPoster(self, command='compile', idpara=texobj2.id, idpara3=0)
 
         # erwartete Antwort des Servers
-        serveranswer = '["Syntax-Fehler: Es konnte kein g\\u00fcltiges \\\\end gefunden werden."]'
+        serveranswer = {'error': '["Syntax-Fehler: Es konnte kein g\\u00fcltiges \\\\end gefunden werden."]'}
 
         # überprüfe die Antwort des Servers
         # sollte failure als status liefern

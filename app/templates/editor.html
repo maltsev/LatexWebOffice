@@ -5,7 +5,11 @@
     <!-- Einbindung der SplitView Funktionalität -->
     <!-- benötigt jquery.min.js und jquery-ui.min.js -->
     <script type="text/javascript" src="/static/js/jqueryui-layout.js"></script>
+	<script src="/static/js/jquery.validate.min.js"></script>
+	<script src="/static/js/jquery.validate.additional-methods.min.js"></script><!-- benötigt um pattern matching (regexp) nutzen zu können -->
+	<script src="/static/js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
 
+	
     <!-- Einbindung der Icons für den Editor -->
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 
@@ -42,13 +46,22 @@
 				<button onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')">Nein</button>
             </div>
             
-        <div id="dialog_grafik_einfuegen" title="Grafik einfügen" 
-             style="width: 600px !important; min-height: 200px !important; 
-                    max-height: 700px !important; height: 400px !important; 
-                    display: none;">
-            <p>Bitte wählen Sie eine Grafik aus (Benutzen Sie Strg um mehrere auszuwählen)</p>
-            <!-- Auflisten aller verfügbarer Bilddateien des aktuellen Projekts -->
-            <p > {% verbatim %}
+	<!--
+	Menü des Graphikassistenten
+	@author: Franzi Everinghoff, Martin Kolaczek
+	// -->
+	<div class="modal fade" id="graphik-assistent" tabindex="-1" role="dialog" aria-hidden="&times">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="table-assistent-label">Graphikassistent</h4>
+				</div>
+				<div class="modal-body">
+				{% verbatim %}
+				<div>
+						Bitte wählen Sie eine oder mehrere Graphiken aus.
+				</div>
                 <script id="template_filesitem-file" type="text/template">
                     <span class="filesitem-name" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
                         <span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
@@ -65,14 +78,41 @@
 				</script>
             {% endverbatim %}
             <div id="fileswrapper" class="fileswrapper"></div>
-                Image Width <input name="imageWidth" type="text" maxlength="3" 
-                                   id="imageWidth" value="70" 
-                                   onkeyup="if (/\D/g.test(this.value)) this.value = this.value.replace(/\D/g,'')"/>%
-            </p>
-            <!-- Auflistung Ende -->
-            <button onClick="insertGraphics()"> Einfügen</button>
-            <button onClick=" $( '#dialog_grafik_einfuegen' ).dialog('destroy')"> Abbrechen</button>
-        </div>	
+			
+					
+
+<form class="form-horizontal" id="regform" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
+	<div class="form-group has-feedback">
+		<label for="scaling" class="col-sm-2 control-label" placeholder="1.0">Skalierung</label>
+		<div class="reg-input-group col-sm-10">
+			<input type="numeric" class="form-control" id="first_name" name="first_name" value="{{ first_name }}" placeholder="1.0" aria-describedby="inputError2Status">
+			<div class="help-block with-errors"></div>
+		</div>
+	</div>
+</form>
+
+			
+				<div class="row">
+					<div class="col-md-3" >
+						<label for="beispielFeldName2">Skalierung</label>
+						<input type="digit" class="form-control" id="imageWidth" placeholder="1.0">
+					</div>
+
+					<div class="col-md-9">
+						<label for="inputTableDescription">Beschriftung</label>
+						<input type="text" class="form-control" id="table-description" placeholder="Die Graphik zeigt ...">
+					</div>
+				</div>
+			</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+					<button type="button" class="btn btn-primary"  onclick="insertGraphics();" data-dismiss="modal">Übernehmen</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+
         
 <!--
 	Menü des Tabellenassistenten
@@ -174,16 +214,18 @@
 			     <span class="caret"></span>
                         </button>
 		        <ul class="dropdown-menu">
-				<li><a id="export_html" onClick="return false;" href="#">HTML (htlatex)</a></li>
-				<!--<li><a id="export_html_pdf" href="#">HTML (pdf2htmlEx)</a></li>-->
-				<li><a id="export_dvi" onClick="return false;" href="#">DVI</a></li>
-				<li><a id="export_ps" onClick="return false;" href="#">PS</a></li>
+
+				<li><a id="export_html" style="cursor:pointer;">HTML</a></li>
+				<!--<li><a id="export_html_pdf" style="cursor:pointer;">HTML (pdf2htmlEx)</a></li>-->
+				<li><a id="export_dvi" style="cursor:pointer;">DVI</a></li>
+				<li><a id="export_ps" style="cursor:pointer;">PS</a></li>
 			</ul>
 		    	</div>
-                        <button id="insertImage" type="button" class="btn btn-default" title="Grafik einfügen" 
-                                onClick="openInsertImageDialog()">
-                            <i class="fa fa-file-image-o"></i> <!-- Grafik einfügen -->
-                        </button> 
+						
+						<button type="button" class="btn btn-default" data-toggle="modal" data-target="#graphik-assistent">
+							<i class="fa fa-image"></i> 
+						</button>
+                        
 						<button type="button" class="btn btn-default" data-toggle="modal" data-target="#table-assistent">
 							<i class="fa fa-table"></i> 
 						</button>
@@ -233,3 +275,24 @@
 
 <!-- Body Ende -->
 {% endblock %}
+<script>
+$(document).ready(function() {
+    $('#integerForm').formValidation({
+        framework: 'bootstrap',
+        icon: {
+            valid: 'glyphicon glyphicon-ok',
+            invalid: 'glyphicon glyphicon-remove',
+            validating: 'glyphicon glyphicon-refresh'
+        },
+        fields: {
+            number: {
+                validators: {
+                    integer: {
+                        message: 'The value is not an integer'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
