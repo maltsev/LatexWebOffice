@@ -22,6 +22,9 @@ var selectionid = 0;
 // notwendig für jquery-layout
 var myLayout;
 
+// Zeit bis der Editor nach einer Änderung der Fenstergröße aktualisiert wird
+var editorResizeTimeout = 250;
+
 /**
  * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
  */
@@ -40,7 +43,16 @@ $(document).ready(function() {
         east: {
             initClosed: (width<1366?true:false),
             size: '40%',
-        }
+        },
+        
+        // Editor automatisch an Fenstergröße anpassen
+        onresize: function () {
+            setTimeout(
+                function() {
+                    editor.resize();
+                },
+                editorResizeTimeout);
+        },
     });
 	
 	// Datei-ID abfragen
@@ -72,20 +84,21 @@ $(document).ready(function() {
 			if (!changesSaved)
 				return('Ungespeicherte Änderungen, wollen Sie den Editor wirklich verlassen?');
 		});
+        
+        // Editor automatisch an Fenstergröße anpassen
+        $(window).bind('resize', function () { 
+            setTimeout(function(){editor.resize();}, editorResizeTimeout);
+        });
 
+        
 		// Button für das Speichern belegen
 		$('#save').click(function() {
-			saveFile(id);
+			editor.resize();
 		});
 
 		// Button für das PDF Exportieren belegen
 		$('#pdfExport').click(function() {
 			exportFile(id, 0);
-		});
-        
-        // Button für das HTML Exportieren belegen
-		$('#htmlExport').click(function() {
-			exportFile(id, 1);
 		});
         
 		$('.ace_scroller').on('scroll', function () {
