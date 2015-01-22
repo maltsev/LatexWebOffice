@@ -65,6 +65,7 @@ $(document).ready(function() {
 	//falls versucht wird eine zip-datei zu importieren, die den gleichen namen hat, wie ein bestehendes projekt, muss der nutzer bestätigen, 
 	//um das bestehende projekt zu überschreiben
 	$('#files').change(function(){
+		refreshProjects()		
 		var file = $('#files')[0].files[0];
 		var filename=file.name.substr(0,file.name.lastIndexOf('.'))||file.name; //versucht den Dateinamen ohne Dateiendung herauszufinden
 	
