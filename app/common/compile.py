@@ -25,6 +25,7 @@ from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE
 from app.models.file.pdf import PDF
 from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
+from app.models.file.plaintextfile import PlainTextFile
 from app.common import util
 from core.settings import BASE_DIR
 
@@ -134,7 +135,6 @@ def latexcompile(texid, formatid=0):
 
         # log-Datei
         log_path = os.path.join(out_dir_path, tex_name[:-3] + "log")
-
         # ... und eine log-Datei erzeugt wurde
         if os.path.exists(log_path):
             # durchsucht die erzeugte log-Datei und gibt deren entsprechende Fehlermeldungen zurück
@@ -174,22 +174,44 @@ def latexmk(args, console_output):
     # Rückgabe
     file_data = None
 
-    # setze das verwendete Django Model
+    # setze das verwendete Django Model und speichere die log Datei
     if args['format'][1:] == 'pdf':
         objecttype = PDF
     else:
         objecttype = BinaryFile
+
+    # speichere die log Datei für pdf, ps und dvi export
+    if args['format'][1:] == ('pdf' or 'ps' or 'dvi'):
+        log_path = os.path.join(args['outdirpath'], args['texobj'].name[:-3] + "log")
+        if os.path.join(log_path):
+            logfile = open(log_path, 'r')
+            logfile.seek(0)
+            old_log = PlainTextFile.objects.filter(name=args['texobj'].name[:-3] + '<log>',
+                                                   folder=args['texobj'].folder)
+            if old_log.exists():
+                old_log[0].delete()
+
+            logObj = PlainTextFile.objects.create(name=args['texobj'].name[:-3] + '<log>',
+                                                  folder=args['texobj'].folder,
+                                                  source_code=logfile.read(),
+                                                  size=util.getFileSize(logfile))
+            logfile.close()
 
     # Name der Ziel-Datei
     file_name = args['texobj'].name[:-3] + args['format'][1:]
     # Pfad der Ziel-Datei
     file_path = os.path.join(args['outdirpath'], file_name)
 
+    # altePDF
+    file_src = objecttype.objects.filter(name=file_name, folder=args['texobj'].folder)
+
+    if file_src.exists():
+        file_data = {'id': file_src[0].id, 'name': file_src[0].name}
+
     # wenn die Ziel-Datei erzeugt werden konnte
     if os.path.isfile(file_path):
 
         # löscht die etwaig bestehende Datei aus der Datenbank
-        file_src = objecttype.objects.filter(name=file_name, folder=args['texobj'].folder)
         if file_src.exists():
             file_src[0].delete()
 
@@ -226,7 +248,6 @@ def htlatex(args, console_output):
         # erstelle die zip Datei aus der HTML Datei
         args['outputfilename'] = args['texobj'].name[:-4] + '_html.zip'
         html_zip_data = createZipFile(args)
-
     return rc, html_zip_data
 
 

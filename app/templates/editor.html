@@ -174,10 +174,10 @@
 			     <span class="caret"></span>
                         </button>
 		        <ul class="dropdown-menu">
-				<li><a id="export_html" href="#">HTML (htlatex)</a></li>
+				<li><a id="export_html" onClick="return false;" href="#">HTML (htlatex)</a></li>
 				<!--<li><a id="export_html_pdf" href="#">HTML (pdf2htmlEx)</a></li>-->
-				<li><a id="export_dvi" href="#">DVI</a></li>
-				<li><a id="export_ps" href="#">PS</a></li>
+				<li><a id="export_dvi" onClick="return false;" href="#">DVI</a></li>
+				<li><a id="export_ps" onClick="return false;" href="#">PS</a></li>
 			</ul>
 		    	</div>
                         <button id="insertImage" type="button" class="btn btn-default" title="Grafik einfügen" 
@@ -229,6 +229,7 @@
         <div id="pdf-viewer"></div>
     <!-- PDF Viewer Container Ende -->
     </div>
+    <div id="compile_log" class="ui-layout-south"></div>
 
 <!-- Body Ende -->
 {% endblock %}

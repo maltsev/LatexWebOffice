@@ -30,6 +30,7 @@ from app.models.projecttemplate import ProjectTemplate
 from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
+from app.models.file.pdf import PDF
 from app.models.project import Project
 from app.models.folder import Folder
 
@@ -121,6 +122,10 @@ available_commands = {
         'command': file.latexCompile,
         'parameters': [{'para': globalparas['id'], 'type': TexFile},
                        {'para': globalparas['formatid']}]
+    },
+    'getlog': {
+        'command': file.getLog,
+        'parameters': [{'para': globalparas['id'], 'type': TexFile}]
     },
     'createdir': {
         'command': folder.createDir,
@@ -275,15 +280,16 @@ def execute(request):
         # führe den übergebenen Befehl aus
         return c['command'](request, user, *args)
     elif request.method == 'GET' and request.GET.get('command'):
-        if request.GET.get('command') == 'getpdf' and request.GET.get('texid'):
-            texid = request.GET.get('texid')
+        command = request.GET.get('command')
+        fileid = request.GET.get('id')
 
-            rights, failurereturn = util.checkIfFileExistsAndUserHasRights(texid, request.user, request,
-                                                                           objecttype=TexFile)
+        if command == 'getpdf' and fileid:
+            rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, request.user, request,
+                                                                           objecttype=PDF)
             if not rights:
                 filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
                 return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
 
-            return file.getPDF(request, request.user, texid)
+            return file.getPDF(request, request.user, fileid)
 
     return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format('unknown'), request)
