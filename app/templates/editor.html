@@ -34,7 +34,7 @@
 {% block content %}
 
     <!-- Editor Container -->
-    <div class="ui-layout-center">
+    <div class="ui-layout-center" id='centerdiv'>
         <div id="inhalt" style="min-height: 100%; height: 100%;">
             <div id="dialog_editor_verlassen" title="Editor verlassen"style="display: none;">
 				<p>Wollen Sie den Editor wirklich verlassen?</p>
@@ -167,9 +167,19 @@
                         <button id="pdfExport" type="button" class="btn btn-default" title="PDF-Export">
                             <i class="fa fa-file-pdf-o"></i> <!-- PDF-Export -->
                         </button>
-                        <button id="htmlExport" type="button" class="btn btn-default" title="HTML-Export">
+
+			<div class="btn-group">
+                        <button id="htmlExport2" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="HTML-Export">
                             <i class="fa fa-file-code-o"></i> <!-- HTML-Export -->
+			     <span class="caret"></span>
                         </button>
+		        <ul class="dropdown-menu">
+				<li><a id="export_html" href="#">HTML (htlatex)</a></li>
+				<!--<li><a id="export_html_pdf" href="#">HTML (pdf2htmlEx)</a></li>-->
+				<li><a id="export_dvi" href="#">DVI</a></li>
+				<li><a id="export_ps" href="#">PS</a></li>
+			</ul>
+		    	</div>
                         <button id="insertImage" type="button" class="btn btn-default" title="Grafik einfügen" 
                                 onClick="openInsertImageDialog()">
                             <i class="fa fa-file-image-o"></i> <!-- Grafik einfügen -->
