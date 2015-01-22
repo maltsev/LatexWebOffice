@@ -213,15 +213,15 @@ $(function () {
                 var selectedNode = getSelectedNode();
                 if (selectedNode.hasClass("filesitem-file")) {
                     if ($.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1) {
-                        // bei Doppelklick auf TEX-Datei zum Editor gehen
+                        // bei Doppelklick auf TEX(T)-Datei zum Editor gehen
                         window.location.assign("/editor/#" + selectedNode.data("file-id"));
                     }
                 }
             },
+
             // Tasten-Listener
             "keydown": function (e, data) {
             },
-
 
             "ready.jstree refresh.jstree before_open.jstree": function () {
                 $(".jstree-node").each(function () {
@@ -315,10 +315,11 @@ $(function () {
         var selected = selectedNode.length;
         var folder = selected && selectedNode.hasClass("filesitem-folder");
         var file = selected && selectedNode.hasClass("filesitem-file");
-        var texFile = file && $.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1;
+        var textFile = file && 
+        		$.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1;
 
         // setzt die Aktivierungen der einzelnen Menü-Schaltflächen
-        $(".filestoolbar-open").prop("disabled", !texFile);
+        $(".filestoolbar-open").prop("disabled", !textFile);
         $(".filestoolbar-new").prop("disabled", !basic);
         $(".filestoolbar-delete").prop("disabled", !selected);
         $(".filestoolbar-rename").prop("disabled", !selected);
