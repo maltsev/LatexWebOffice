@@ -1,8 +1,10 @@
-.filestoolbar {
+.filestoolbar,
+.projecttoolbar {
     background: #fff;
 }
 
-.filestoolbar .btn-group {
+.filestoolbar .btn-group,
+.projecttoolbar .btn-group{
     margin-bottom: 5px;
 }
 
@@ -21,7 +23,7 @@
 
 .filesitem-name.fadeblock:after {
     top: 2px;
-    right: 31px;
+    right: 36px;
     height: 20px;
     width: 25px;
 }

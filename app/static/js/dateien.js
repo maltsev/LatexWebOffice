@@ -20,8 +20,7 @@ $(function () {
 
     // "Öffnen"-Schaltfläche
 	$(".filestoolbar-open").click(function() {
-	    var selectedNode = getSelectedNode();
-		window.location.assign("/editor/#" + selectedNode.data("file-id"));
+		openSelectedNode();
 	});
 
 	// "Datei Erstellen"-Schaltfläche
@@ -67,26 +66,7 @@ $(function () {
 
 	// "Löschen"-Schaltfläche
 	$(".filestoolbar-delete").click(function() {
-		if (confirm('Wollen Sie die Auswahl wirklich löschen?')) {
-		    var selectedNode = getSelectedNode();
-			if (selectedNode.hasClass("filesitem-file")) {
-				documentsJsonRequest({
-					'command': 'deletefile',
-					'id': selectedNode.data("file-id")
-				}, function(result, data) {
-					if (result)
-						reloadProject();
-				});
-			} else if (selectedNode.hasClass("filesitem-folder")) {
-				documentsJsonRequest({
-					'command': 'rmdir',
-					'id': selectedNode.data("folder-id")
-				}, function(result, data) {
-					if (result)
-						reloadProject();
-				});
-			}
-		}
+		deleteSelectedNode();
 	});
 
 	// "Umbenennen"-Schaltfläche
@@ -210,18 +190,21 @@ $(function () {
 
             // Doppelklick-Listener
             "dblclick.jstree": function (e, data) {
-                var selectedNode = getSelectedNode();
-                if (selectedNode.hasClass("filesitem-file")) {
-                    if ($.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1) {
-                        // bei Doppelklick auf TEX-Datei zum Editor gehen
-                        window.location.assign("/editor/#" + selectedNode.data("file-id"));
-                    }
-                }
-            },
-            // Tasten-Listener
-            "keydown": function (e, data) {
+            	openSelectedNode();
             },
 
+            // Tasten-Listener
+            "keydown": function (e, data) {
+            	/*
+            	// ENTER-Taste
+            	if (e.keyCode === 13)
+            		openSelectedNode();
+            	*/
+
+            	// ENTF-Taste
+            	if (e.keyCode === 46)
+        			deleteSelectedNode();
+            },
 
             "ready.jstree refresh.jstree before_open.jstree": function () {
                 $(".jstree-node").each(function () {
@@ -250,6 +233,50 @@ $(function () {
         });
     }
 
+    /**
+     * Öffnet den ausgewählten Knoten im Editor.
+     */
+    function openSelectedNode() {
+    	var node = getSelectedNode();
+
+    	// ist ein Knoten ausgewählt?
+    	if (node.length) {
+    		// Text- oder TEX-Datei?
+    		if ($.inArray(node.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1)
+    		window.location.assign("/editor/#" + node.data("file-id"));
+    	}
+    }
+
+    /**
+     * Löscht den ausgewählten Knoten im jsTree.
+     */
+    function deleteSelectedNode() {
+    	var node = getSelectedNode();
+
+    	// ist ein Knoten ausgewählt?
+    	if (node.length) {
+    		// TODO: Bootstrap-Modal
+		    if (confirm('Wollen Sie die Auswahl wirklich löschen?')) {
+				if (node.hasClass("filesitem-file")) {
+					documentsJsonRequest({
+						'command': 'deletefile',
+						'id': node.data("file-id")
+					}, function(result, data) {
+						if (result)
+							reloadProject();
+					});
+				} else if (node.hasClass("filesitem-folder")) {
+					documentsJsonRequest({
+						'command': 'rmdir',
+						'id': node.data("folder-id")
+					}, function(result, data) {
+						if (result)
+							reloadProject();
+					});
+				}
+			}
+    	}
+    }
 
     var fileTemplate = doT.template($("#template_filesitem-file").text()),
         folderTemplate = doT.template($("#template_filesitem-folder").text());
@@ -306,25 +333,26 @@ $(function () {
      * Aktualisiert die Aktivierungen der Menü-Schaltflächen.
      */
     function updateMenuButtons() {
+        var selectedNode = getSelectedNode();
+
         // flag für die Aktivierung der nicht-selektionsabhängigen Schaltflächen ("Erstellen" und "Hochladen")
         var basic = true;
-
-        var selectedNode = getSelectedNode();
 
         // flag für die Aktivierung der selektionsabhängigen Schaltflächen
         var selected = selectedNode.length;
         var folder = selected && selectedNode.hasClass("filesitem-folder");
         var file = selected && selectedNode.hasClass("filesitem-file");
-        var texFile = file && $.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1;
+        var textFile = file && 
+        		$.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1;
 
         // setzt die Aktivierungen der einzelnen Menü-Schaltflächen
-        $(".filestoolbar-open").prop("disabled", !texFile);
+        $(".filestoolbar-open").prop("disabled", !textFile);
         $(".filestoolbar-new").prop("disabled", !basic);
         $(".filestoolbar-delete").prop("disabled", !selected);
         $(".filestoolbar-rename").prop("disabled", !selected);
         $(".filestoolbar-move").prop("disabled", !selected);
         $(".filestoolbar-download").prop("disabled", !selected);
-        $(".filestoolbar-upload").prop("disabled", file);
+        $(".filestoolbar-upload").prop("disabled", !basic);
     }
 
     /**
@@ -335,6 +363,7 @@ $(function () {
     	$('.filesdialog-upload-files').val('');
     	$('.filesdialog-upload-folderid').val(getSelectedNode().length ?
     			getSelectedFolderId() : rootFolderId);
+    	console.log($('.filesdialog-upload-folderid').val());
     	$('.filesdialog-upload-submit').prop('disabled', false);
     	$('.filesdialog-upload-form').submit(function(event) {
     		// Formular deaktivieren
