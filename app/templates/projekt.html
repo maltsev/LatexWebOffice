@@ -14,9 +14,10 @@
     <script src="/static/js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
 {% endblock %}
 
+
+
 <!-- Inhalt -->
 {% block content %}
-
 <!-- Modal -->
 <div class="modal fade" id="modal_deleteConfirmation" role="dialog" aria-hidden="true">
   <div class="modal-dialog">
@@ -37,6 +38,7 @@
 </div>
 
 <!-- Modal -->
+{% include "errormodal.html" with  modalerrorid='projectimporterror' %}
 <div class="modal fade" id="projekt-import-modal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -58,13 +60,34 @@
 			<div class="col-sm-offset-3 col-sm-3">
 				<input type="checkbox" name="overwritecheckbox" class="form-control" id="overwritecheckbox">
 			</div>
-			<label for="overwritecheckbox" id="overwritecheckboxlabel" class="col-sm-6 control-label">Wollen sie das bestehende Projekt überschreiben?</label>
+			<label for="overwritecheckbox" id="overwritecheckboxlabel" class="col-sm-6 control-label">Wollen Sie das bestehende Projekt überschreiben?</label>
 		</div>
 
 		<div class="modal-footer col-sm-offset-2">
-			<button type="submit" class="btn btn-primary">hochladen</button>
+			<button type="submit" class="btn btn-primary">Hochladen</button>
 		</div>
 	</form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modal_projectToTemplate" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Projekt in Vorlage umwandeln</h4>
+      </div>
+      <div class="modal-body">
+        <p>Geben Sie einen Namen für die zu erstellende Vorlage ein:</p>
+        <p style="text-align: center">
+        	<input type="text" class="textfield" id="modal_projectToTemplate_tf"/>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default modal_projectToTemplate_confirm" data-dismiss="modal">Bestätigen</button>
+        <button type="button" class="btn btn-primary modal_projectToTemplate_cancel" data-dismiss="modal">Abbrechen</button>
       </div>
     </div>
   </div>

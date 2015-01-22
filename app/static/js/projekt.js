@@ -10,6 +10,7 @@ var prevName = null;				// Name des derzeitig umzubenennenden Projektes (für et
 var deletingNodeID = null;			// ID des derzeitig zu löschenden Projektes
 var duplicateNodeID = null;			// ID der Knoten-Komponente des derzeitig zu duplizierenden Projektes
 var duplicateID = null;				// ID des derzeitig zu duplizierenden Projektes
+var templatizedID = null;			// ID des derzeitig in eine Vorlage umzuwandelnden Projektes
 
 var editMode = false;				// gibt an, ob sich eine der Knoten-Komponenten derzeitig im Editierungsmodus befindet
 
@@ -57,7 +58,17 @@ $(document).ready(function() {
 	// 'Ja'-Button des Modals zur Bestätigung des Löschvorgangs
 	$('.modal_deleteConfirmation_yes').on("click", function() {
 		deleteProject();
-	})	
+	})
+	
+	// Modal zur Eingabe eines Vorlagennamens ('in Vorlage umwandeln')
+	$('#modal_projectToTemplate').on('hidden.bs.modal', function(e) {
+		// fokussiert den JSTree, um nach Abbruch des Verwendens Tasten-Events behandeln zu können
+		tree.focus();
+	});
+	// 'Bestätigen'-Button des Modals zur Bestätigung des Vorlagennamens
+	$('.modal_projectToTemplate_confirm').on("click", function() {
+		projectToTemplate($('#modal_projectToTemplate_tf').val());
+	});
 
 
 	//VALIDATOR	
@@ -65,6 +76,7 @@ $(document).ready(function() {
 	//falls versucht wird eine zip-datei zu importieren, die den gleichen namen hat, wie ein bestehendes projekt, muss der nutzer bestätigen, 
 	//um das bestehende projekt zu überschreiben
 	$('#files').change(function(){
+		refreshProjects()		
 		var file = $('#files')[0].files[0];
 		var filename=file.name.substr(0,file.name.lastIndexOf('.'))||file.name; //versucht den Dateinamen ohne Dateiendung herauszufinden
 	
@@ -175,7 +187,7 @@ $(document).ready(function() {
 				// ... wird severseitig ein neues Projekt mit dem festgelegten Namen erzeugt
 				createProject(treeInst.get_text(creatingNodeID));
 			}
-		// wenn die EIngabe des Names eines zu duplizierenden Projektes bestätigt wurde (= Duplizieren eines Projektes), ...
+		// wenn die Eingabe des Names eines zu duplizierenden Projektes bestätigt wurde (= Duplizieren eines Projektes), ...
 		else if(duplicateID!=null) {
 		
 			// ... und kein Name eingegeben wurde, ...
@@ -287,13 +299,13 @@ $(document).ready(function() {
 	
 	// 'in Vorlage umwandeln'-Schaltfläche
 	$('.projecttoolbar-converttotemplate').on("click", function() {
-	    var templateName = prompt("Geben Sie den Vorlagename ein:");
-	    if (! templateName) {
-	        return;
-	    }
-
-	    var node = treeInst.get_node(selectedNodeID);
-		project2template(templateName, node.id);
+	
+		// Projekt-ID des umzuwandelnden Projektes
+		templatizedID = selectedNodeID;
+		
+		// öffnet das Modal zur Eingabe eines Vorlagennamens
+		$('#modal_projectToTemplate').modal('show');
+		
 	});
 	
 	// 'Export'-Schaltfläche
@@ -317,8 +329,10 @@ $(document).ready(function() {
 			documentsJsonRequest(form,function(result,data){
 				if (result)
 					refreshProjects();
-				else
-					alert(data.response)
+				else {
+					$('#projectimporterrorbody').html(data.response);
+					$('#projectimporterror').modal('show');
+				}
 			},false,false);
 			this.reset();
 		}
@@ -343,22 +357,6 @@ function openProject() {
 	document.location.assign('/dateien/#' + treeInst.get_node(prevSelectedNodeID).rootid);
 	
 }
-
-
-function project2template(templateName, projectId) {
-    documentsJsonRequest({
-        'command': 'project2template',
-        'name': templateName,
-        'id': projectId
-    }, function(result, data) {
-        if (result) {
-            document.location.assign('/vorlagen/');
-	    } else {
-            alert(data.response);
-	    }
-	});
-}
-
 
 /*
  * Erstellt ein neues Projekt mit dem übergebenen Namen.
@@ -495,6 +493,36 @@ function duplicateProject(projectID,name) {
 			}
 	});
 	
+}
+
+/*
+ * Wandelt das momentan ausgewählte Projekt in eine Vorlage um.
+ *
+ * @param name Name für die zu erzeugende Vorlage
+ */ 
+function projectToTemplate(name) {
+	
+	// wandelt severseitig das, der übergebenen ID entsprechende, Projekt in eine Vorlage unter dem angegebenen Namen um
+	documentsJsonRequest({
+			'command': 'project2template',
+			'id': templatizedID,
+			'name': name
+		}, function(result,data) {
+			// wenn eine entsprechende Vorlage angelegt wurde, ist der Umwandlungs-Vorgang abgeschlossen
+			if(result) {
+				
+				// setzt die Umwandlungs-IDs zurück
+				templatizedID = null;
+				
+				// Weiterleitung zu Vorlagen
+				document.location.assign('/vorlagen/');
+			}
+			// wenn eine entsprechende Vorlage nicht angelegt werden konnte, ...
+			else {
+				// TEMP
+				alert(data.response);
+			}
+	});
 }
 
 /*
