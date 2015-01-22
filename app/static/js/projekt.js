@@ -72,13 +72,13 @@ $(document).ready(function() {
 
 	// Modal zur Eingabe eines Projektsnamens ('in Projekt umwandeln')
      $('#modal_templateToProject').on('hidden.bs.modal', function(e) {
-    // fokussiert den JSTree, um nach Abbruch des Verwendens Tasten-Events behandeln zu können
-    tree.focus();
+        // fokussiert den JSTree, um nach Abbruch des Verwendens Tasten-Events behandeln zu können
+        tree.focus();
     });
 
     // 'Bestätigen'-Button des Modals zur Bestätigung des Projektsnamens
     $('.modal_templateToProject_confirm').on("click", function() {
-    templateToProject($('#modal_templateToProject_tf').val());
+        templateToProject($('#modal_templateToProject_tf').val());
     });
 
 
@@ -567,22 +567,22 @@ function exportZip() {
  * id (ID der Vorlage, aus der ein Projekt erzeugt wird)
  * name (Name des zu erzeugenden Projektes, dies darf nicht mit einem vorhandenen Projekt übereinstimmen)
  */
-
- function templateToProject(name) {
-
+function templateToProject(name) {
 	documentsJsonRequest({
-		'command': 'template2project',
-		'id': projectTempID,
-		'name': name
-		},
-		function(result,data) {
+            'command': 'template2project',
+            'id': projectTempID,
+            'name': name
+        },
+
+        function(result,data) {
 			if(result) {
 			    projectTempID = null;
 				// Weiterleitung zum erzeugten Projekt
 				document.location.assign('/projekt/');
 
-			} else
+			} else {
 				alert(data.response);
+            }
 	});
 }
 
