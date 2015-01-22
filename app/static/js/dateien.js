@@ -304,10 +304,16 @@ $(function () {
     	$('.filesdialog-upload-message').addClass('invisible');
 
     	$('.filesdialog-upload-files').val('');
+    	$('.filesdialog-upload-files').unbind();
+    	$('.filesdialog-upload-files').change(function() {
+    		$('.filesdialog-upload-do').prop('disabled', 
+    				$('.filesdialog-upload-files').val() == '');
+    	});
+
     	$('.filesdialog-upload-folderid').val(node.length ?
     			getSelectedFolderId() : rootFolderId);
 
-    	$('.filesdialog-upload-do').prop('disabled', false);
+    	$('.filesdialog-upload-do').prop('disabled', true);
     	$('.filesdialog-upload-do').unbind();
 		$('.filesdialog-upload-do').click(function() {
 			$('.filesdialog-upload-form').submit();
