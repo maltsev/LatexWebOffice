@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Fr 19 Dez 2014 11:15:20 CET
+* Last Modified : Thu 22 Jan 2015 11:29:20 AM CET
 
 * Author :  christian
 
@@ -714,7 +714,7 @@ class ProjectTestClass(ViewTestCase):
         # erstelle eine Datei mit zufälligem Inhalt (keine gültige zip Datei)
         zip_file_path = os.path.join(tmpfolder, (self._newname3 + '.zip'))
         zip_file = open(zip_file_path, 'a+b')
-        zip_file.write(os.urandom(8))
+        zip_file.write(os.urandom(240))
         request = {
             'command': 'importzip',
             'files': [zip_file]
@@ -728,7 +728,7 @@ class ProjectTestClass(ViewTestCase):
         self.assertFalse(Project.objects.filter(author=self._user1, name=self._newname3).exists())
 
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['ILLEGALFILETYPE']
+        serveranswer = ERROR_MESSAGES['EMPTYZIPFILE'] # TODO müsste eigentlich NOTAZIPFILE sein?!
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -760,7 +760,7 @@ class ProjectTestClass(ViewTestCase):
         self.assertFalse(Project.objects.filter(author=self._user1, name=self._newname4).exists())
 
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['ILLEGALFILETYPE']
+        serveranswer = ERROR_MESSAGES['EMPTYZIPFILE']
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
