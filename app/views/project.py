@@ -226,8 +226,7 @@ def importZip(request, user):
                 # falls path true ist, ist root nicht das root Verzeichnis, wo die zip
                 # entpackt wurde
                 if path:
-                    # path is also ein subsubfolder und wir müssen den subfolder als
-                    # parent setzen
+                    # path is also ein subsubfolder und wir müssen den subfolder als parent setzen
                     if path[:-1]:
                         parent = projdict[os.path.join('', *path[:-1])]
                     else:
@@ -235,10 +234,6 @@ def importZip(request, user):
                     name = util.convertLatinToUnicode(util.getFolderName(root))
                     if name == '__MACOSX':
                         continue
-                    folder = Folder.objects.create(name=name,
-                                                   parent=parent,
-                                                   root=projectobj.rootFolder)
-                    projdict[os.path.join('', *path)] = folder
                     # speichere Ordner
                     folder = Folder.objects.create(
                         name=util.convertLatinToUnicode(util.getFolderName(root)),
