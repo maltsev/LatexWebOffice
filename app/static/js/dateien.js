@@ -306,10 +306,10 @@ $(function () {
      * Aktualisiert die Aktivierungen der Menü-Schaltflächen.
      */
     function updateMenuButtons() {
+        var selectedNode = getSelectedNode();
+
         // flag für die Aktivierung der nicht-selektionsabhängigen Schaltflächen ("Erstellen" und "Hochladen")
         var basic = true;
-
-        var selectedNode = getSelectedNode();
 
         // flag für die Aktivierung der selektionsabhängigen Schaltflächen
         var selected = selectedNode.length;
@@ -324,7 +324,7 @@ $(function () {
         $(".filestoolbar-rename").prop("disabled", !selected);
         $(".filestoolbar-move").prop("disabled", !selected);
         $(".filestoolbar-download").prop("disabled", !selected);
-        $(".filestoolbar-upload").prop("disabled", file);
+        $(".filestoolbar-upload").prop("disabled", !basic);
     }
 
     /**
@@ -335,6 +335,7 @@ $(function () {
     	$('.filesdialog-upload-files').val('');
     	$('.filesdialog-upload-folderid').val(getSelectedNode().length ?
     			getSelectedFolderId() : rootFolderId);
+    	console.log($('.filesdialog-upload-folderid').val());
     	$('.filesdialog-upload-submit').prop('disabled', false);
     	$('.filesdialog-upload-form').submit(function(event) {
     		// Formular deaktivieren
