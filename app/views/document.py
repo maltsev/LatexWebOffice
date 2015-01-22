@@ -22,6 +22,7 @@ from django.views.decorators.http import require_http_methods
 from django.shortcuts import render
 from django.views.static import serve
 
+from core import settings
 from app.common import util
 from app.common.constants import ERROR_MESSAGES
 from app.views import file, folder, project, template
@@ -280,9 +281,9 @@ def execute(request):
             rights, failurereturn = util.checkIfFileExistsAndUserHasRights(texid, request.user, request,
                                                                            objecttype=TexFile)
             if not rights:
-                filepath = '/static/helloworld.pdf'
+                filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
                 return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
 
             return file.getPDF(request, request.user, texid)
 
-    return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format('unkown'), request)
+    return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format('unknown'), request)
