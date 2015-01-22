@@ -54,3 +54,7 @@
   	border-width: = 3px;
   	max-height = 25px;
 }
+
+.textfield {
+	width: 100%;
+}
