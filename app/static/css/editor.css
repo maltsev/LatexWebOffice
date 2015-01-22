@@ -19,7 +19,6 @@ body,html {
     height: 50px;
     width: 50px;
     border: 0;
-    border-right: 3px solid white;
 }
 
 #table-assistent,#grafik-assistent{

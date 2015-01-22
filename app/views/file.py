@@ -325,6 +325,8 @@ def getPDF(request, user, fileid):
     :return: URL der Datei
     """
 
+    filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
+
     # hole das tex Objekt
     texobj = TexFile.objects.get(id=fileid)
 
@@ -339,8 +341,6 @@ def getPDF(request, user, fileid):
         if pdfobj.lastModifiedTime < texobj.lastModifiedTime:
             # kompiliere die tex Datei neu
             errors, pdf_data = latexcompile(fileid, formatid=0)
-
-            print(errors)
 
             # wenn das Kompilieren erfolgreich war
             if pdf_data:
@@ -360,8 +360,6 @@ def getPDF(request, user, fileid):
 
             # hole den Pfad zur PDF Datei
             filepath = pdfobj.getTempPath()
-        else:
-            filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
-            print(filepath)
+
 
     return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
