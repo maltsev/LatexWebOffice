@@ -42,13 +42,22 @@
 				<button onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')">Nein</button>
             </div>
             
-        <div id="dialog_grafik_einfuegen" title="Grafik einfügen" 
-             style="width: 600px !important; min-height: 200px !important; 
-                    max-height: 700px !important; height: 400px !important; 
-                    display: none;">
-            <p>Bitte wählen Sie eine Grafik aus (Benutzen Sie Strg um mehrere auszuwählen)</p>
-            <!-- Auflisten aller verfügbarer Bilddateien des aktuellen Projekts -->
-            <p > {% verbatim %}
+	<!--
+	Menü des Graphikassistenten
+	@author: Franzi Everinghoff, Martin Kolaczek
+	// -->
+	<div class="modal fade" id="graphik-assistent" tabindex="-1" role="dialog" aria-hidden="&times">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="table-assistent-label">Graphikassistent</h4>
+				</div>
+				<div class="modal-body">
+<p > {% verbatim %}
+				<div>
+						Bitte wählen Sie eine oder mehrere Graphiken aus.
+				</div>
                 <script id="template_filesitem-file" type="text/template">
                     <span class="filesitem-name" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
                         <span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
@@ -65,14 +74,24 @@
 				</script>
             {% endverbatim %}
             <div id="fileswrapper" class="fileswrapper"></div>
-                Image Width <input name="imageWidth" type="text" maxlength="3" 
+                Skalierung: <input name="imageWidth" type="text" maxlength="3" 
                                    id="imageWidth" value="70" 
                                    onkeyup="if (/\D/g.test(this.value)) this.value = this.value.replace(/\D/g,'')"/>%
             </p>
-            <!-- Auflistung Ende -->
-            <button onClick="insertGraphics()"> Einfügen</button>
-            <button onClick=" $( '#dialog_grafik_einfuegen' ).dialog('destroy')"> Abbrechen</button>
-        </div>	
+					<div class="table-title">
+						<label for="inputTableDescription">Beschriftung</label>
+						<input type="text" class="form-control" id="table-description" placeholder="Die Graphik zeigt ...">
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+					<button type="button" class="btn btn-primary"  onclick="insertGraphics();" data-dismiss="modal">Übernehmen</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+
         
 <!--
 	Menü des Tabellenassistenten
@@ -180,10 +199,11 @@
 				<li><a id="export_ps" href="#">PS</a></li>
 			</ul>
 		    	</div>
-                        <button id="insertImage" type="button" class="btn btn-default" title="Grafik einfügen" 
-                                onClick="openInsertImageDialog()">
-                            <i class="fa fa-file-image-o"></i> <!-- Grafik einfügen -->
-                        </button> 
+						
+						<button type="button" class="btn btn-default" data-toggle="modal" data-target="#graphik-assistent">
+							<i class="fa fa-image"></i> 
+						</button>
+                        
 						<button type="button" class="btn btn-default" data-toggle="modal" data-target="#table-assistent">
 							<i class="fa fa-table"></i> 
 						</button>
