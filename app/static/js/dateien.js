@@ -248,35 +248,112 @@ $(function () {
     }
 
     /**
-     * Löscht den ausgewählten Knoten im jsTree.
+     * Zeigt einen Dialog zum Löschen des ausgewählten Knotens an.
      */
     function deleteSelectedNode() {
     	var node = getSelectedNode();
 
     	// ist ein Knoten ausgewählt?
     	if (node.length) {
-    		// TODO: Bootstrap-Modal
-		    if (confirm('Wollen Sie die Auswahl wirklich löschen?')) {
-				if (node.hasClass("filesitem-file")) {
+    		var isFile = node.hasClass("filesitem-file");
+    		$('.filesdialog-delete-title').text('Löschen ' + (isFile ? 'der Datei' : 'des Ordners')
+    				+ ' bestätigen');
+    		$('.filesdialog-delete-text').text('Sind Sie sicher, dass Sie ' + (isFile ? 
+    				'die ausgewählte Datei' : 'den ausgewählten Ordner') + ' löschen wollen?');
+
+    		$('.filesdialog-delete-yes').unbind();
+    		$('.filesdialog-delete-yes').click(node, function(event) {
+    			if (event.data.hasClass("filesitem-file")) {
 					documentsJsonRequest({
 						'command': 'deletefile',
-						'id': node.data("file-id")
+						'id': event.data.data("file-id")
 					}, function(result, data) {
-						if (result)
+						if (result) {
 							reloadProject();
+							tree.focus();
+						}
 					});
-				} else if (node.hasClass("filesitem-folder")) {
+				} else if (event.data.hasClass("filesitem-folder")) {
 					documentsJsonRequest({
 						'command': 'rmdir',
-						'id': node.data("folder-id")
+						'id': event.data.data("folder-id")
 					}, function(result, data) {
-						if (result)
+						if (result) {
 							reloadProject();
+							tree.focus();
+						}
 					});
 				}
-			}
+    		});
+
+    		$('.filesdialog-delete-no').unbind();
+    		$('.filesdialog-delete-no').click(function() {
+    			tree.focus();
+    		});
+
+    		$('.filesdialog-delete').modal('show');
     	}
     }
+
+    /**
+     * Zeigt einen Dialog zum Hochladen einer Datei an.
+     */
+    function dialogUploadFile() {
+    	var node = getSelectedNode();
+
+    	$('.filesdialog-upload-message').addClass('invisible');
+
+    	$('.filesdialog-upload-files').val('');
+    	$('.filesdialog-upload-folderid').val(node.length ?
+    			getSelectedFolderId() : rootFolderId);
+
+    	$('.filesdialog-upload-do').prop('disabled', false);
+    	$('.filesdialog-upload-do').unbind();
+		$('.filesdialog-upload-do').click(function() {
+			$('.filesdialog-upload-form').submit();
+		});
+
+		$('.filesdialog-upload-abort').unbind();
+		$('.filesdialog-upload-abort').click(function() {
+			tree.focus();
+		});
+
+		$('.filesdialog-upload-form').unbind();
+    	$('.filesdialog-upload-form').submit(function(event) {
+    		// Formular deaktivieren
+    		event.preventDefault();
+    		$('.filesdialog-upload-do').prop('disabled', true);
+
+    		// Dateien senden
+    		var form = new FormData(this);
+    		documentsJsonRequest(form, function(result, data) {
+    			reloadProject();
+    			if (result && data.response.failure.length == 0) {
+    				$('.filesdialog-upload').modal('hide');
+    				tree.focus();
+    			} else {
+    				var msg = $('.filesdialog-upload-message');
+    				msg.text('Fehler beim Hochladen!');
+    				if (data.response.failure)
+	    				for (var i = 0; i < data.response.failure.length; ++i)
+	    					msg.append($('<br />'))
+	    							.append($('<b></b>').text(data.response.failure[i].name))
+	    							.append(document.createTextNode(': ' + 
+	    								data.response.failure[i].reason));
+    				else
+    					msg.append($('<br />'))
+								.append(document.createTextNode(data.response));
+    				msg.removeClass('invisible');
+
+    				$('.filesdialog-upload-files').val('');
+    				$('.filesdialog-upload-do').prop('disabled', false);
+    			}
+    		}, false, false);
+    	});
+
+    	$('.filesdialog-upload').modal('show');
+    }
+
 
     var fileTemplate = doT.template($("#template_filesitem-file").text()),
         folderTemplate = doT.template($("#template_filesitem-folder").text());
@@ -347,50 +424,11 @@ $(function () {
 
         // setzt die Aktivierungen der einzelnen Menü-Schaltflächen
         $(".filestoolbar-open").prop("disabled", !textFile);
-        $(".filestoolbar-new").prop("disabled", !basic);
+        $(".filestoolbar-newfile").prop("disabled", !basic);
+        $(".filestoolbar-newfolder").prop("disabled", !basic);
         $(".filestoolbar-delete").prop("disabled", !selected);
         $(".filestoolbar-rename").prop("disabled", !selected);
-        $(".filestoolbar-move").prop("disabled", !selected);
         $(".filestoolbar-download").prop("disabled", !selected);
         $(".filestoolbar-upload").prop("disabled", !basic);
-    }
-
-    /**
-     * Zeigt einen Dialog zum Hochladen einer Datei an.
-     */
-    function dialogUploadFile() {
-    	$('.filesdialog-upload-message').addClass('invisible');
-    	$('.filesdialog-upload-files').val('');
-    	$('.filesdialog-upload-folderid').val(getSelectedNode().length ?
-    			getSelectedFolderId() : rootFolderId);
-    	console.log($('.filesdialog-upload-folderid').val());
-    	$('.filesdialog-upload-submit').prop('disabled', false);
-    	$('.filesdialog-upload-form').submit(function(event) {
-    		// Formular deaktivieren
-    		event.preventDefault();
-    		$('.filesdialog-upload-submit').prop('disabled', true);
-
-    		// Dateien senden
-    		var form = new FormData(this);
-    		documentsJsonRequest(form, function(result, data) {
-    			reloadProject();
-    			if (result && data.response.failure.length == 0) {
-    				$('.filesdialog-upload').dialog('destroy');
-    			} else {
-    				var msg = $('.filesdialog-upload-message');
-    				msg.text('Fehler beim Hochladen!');
-    				for (var i = 0; i < data.response.failure.length; ++i)
-    					msg.append($('<br />'))
-    							.append($('<b></b>').text(data.response.failure[i].name))
-    							.append(document.createTextNode(': ' + 
-    									data.response.failure[i].reason));
-    				msg.removeClass('invisible');
-
-    				$('.filesdialog-upload-submit').prop('disabled', false);
-    			}
-    		}, false, false);
-    	});
-
-    	$('.filesdialog-upload').dialog({'width': 'auto'});
     }
 });

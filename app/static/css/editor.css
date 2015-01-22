@@ -90,3 +90,15 @@ hr {
     background-color: #2C3E50;
     height: 5px;
 }
+
+div#pdfviewer_msg{
+    height:50px;
+    width:250px;
+    position:absolute;
+    top:0;
+    right:20px;
+    color: #ead;
+    text-align: right;
+    vertical-align: middle;
+    line-height: 50px;
+}
