@@ -334,6 +334,7 @@ $(document).ready(function() {
 				}
 			},false,false);
 			this.reset();
+			$('#projektimportposter>div').removeClass('has-success');
 		}
 
 
