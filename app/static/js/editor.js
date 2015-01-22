@@ -33,6 +33,7 @@ $(document).ready(function() {
     var height = $(window).height();
     
     console.log(width);
+
         
     // Funktion für SplitView, setzt die Breite der Trennlinie
     myLayout = $('#maincontainer').layout({
@@ -67,7 +68,7 @@ $(document).ready(function() {
 		editor.getSession().setMode('ace/mode/latex');
 		editor.getSession().setUseWrapMode(true);
 		editor.setOptions({'enableBasicAutocompletion': true,autoScrollEditorIntoView: true});
-		
+
 		// Vertikale Zeichenbegrenzung (80 Zeichen) ausgeblendet	
 		editor.setShowPrintMargin(false);
 
@@ -101,6 +102,19 @@ $(document).ready(function() {
 			exportFile(id, 0);
 		});
         
+        // Button für das HTML Exportieren belegen
+		$('#export_html').click(function() {
+			exportFile(id, 1);
+		});
+		//$('#export_html_pdf').click(function() {
+		//	exportFile(id, 2);
+		//});
+		$('#export_dvi').click(function() {
+			exportFile(id, 3);
+		});
+		$('#export_ps').click(function() {
+			exportFile(id, 4);
+		});
 		$('.ace_scroller').on('scroll', function () {
 			$('.ace_gutter').scrollTop($(this).scrollTop());
 		});

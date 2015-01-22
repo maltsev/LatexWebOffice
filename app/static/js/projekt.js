@@ -340,6 +340,18 @@ $(document).ready(function() {
 
 	});
 
+	// 'Verwenden'-Schaltfläche
+	$('.templatestoolbar-use').on("click", function() {
+        var projectName = prompt("Geben Sie einen Namen für das zu erzeugende Projekt ein:");
+        if (! projectName) {
+            return;
+        }
+
+        var node = treeInst.get_node(selectedNodeID).id;
+        templateToProject(projectName, selectedNodeID);
+	});
+
+
 	refreshProjects();
 	
 });
@@ -544,6 +556,28 @@ function exportZip() {
     );
 }
 
+/*
+ * Wandelt eine Vorlage in ein Projekt um
+ * id (ID der Vorlage, aus der ein Projekt erzeugt wird)
+ * name (Name des zu erzeugenden Projektes, dies darf nicht mit einem vorhandenen Projekt übereinstimmen)
+ */
+
+ function templateToProject(projectName, templateID) {
+
+	documentsJsonRequest({
+		'command': 'template2project',
+		'id': templateID,
+		'name': projectName
+		},
+		function(result,data) {
+			if(result) {
+				// Weiterleitung zum erzeugten Projekt
+				document.location.assign('/projekt/#'+data.response.rootid);
+
+			} else
+				alert(data.response);
+	});
+}
 
 /*
  * Fügt eine neue Knoten-Komponente anhand des übergebenen Projektes hinzu.

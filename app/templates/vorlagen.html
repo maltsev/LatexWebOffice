@@ -1,5 +1,5 @@
 <!--
-@author: Ingolf Bracht, Kirill Maltsev, Thore Thießen
+@author: Ingolf Bracht, Kirill Maltsev, Thore Thießen, Munzir Mohamed
 @creation: 14.12.2014 - sprint-nr: 3
 @last-change: 22.01.2015 - sprint-nr: 4
 -->
@@ -17,25 +17,7 @@
 <!-- Inhalt -->
 {% block content %}
 
-<!-- Dialogboxen -->
-<div id="dialog_noSelection" title="Keine Vorlage ausgewählt" style="display: none">
-	<p>Sie haben keine Auswahl getroffen.<br>Bitte wählen Sie zum <span id="dialog_noSelection_method">
-	</span> eine Vorlage aus.</p>
-	<p style="text-align: center">
-		<button id="dialog_noSelection_ok">OK</button>
-	</p>
-</div>
-<div id="dialog_templateToProject" title="Projekt aus Vorlage erzeugen" style="display: none">
-	<p>Bitte geben Sie einen Namen für das neu zu erstellende Projekt an.<br>Dieser darf nicht mit dem 
-	eines Ihrer anderen Projekte übereinstimmen:</p>
-	<p id="dialog_templateToProject_message" class="error invisible"></p>
-	<p style="text-align: center">
-		<input type="text" id="dialog_templateToProject_name" />
-		<button id="dialog_templateToProject_ok">OK</button>
-	</p>
-</div>
-
-
+<!-- Bootstrap-Modal für Projekte/Vorlagen Löschen -->
 <div class="modal fade" id="modal_deleteConfirmation" role="dialog" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -53,6 +35,41 @@
     </div>
   </div>
 </div>
+
+
+<!-- Bootstrap-Popover für Projekte/Vorlagen Umbenennen -->
+<div class="input_popover" id="input_popover" data-container="body" data-toggle="popover" data-placement="top" data-content="Geben Sie einen Namen ein:"></div>
+
+<div class="error_popover" id="error_popover" data-container="body" data-toggle="popover" data-placement="top"></div>
+
+
+<!-- Bootstrap-Modal für Vorlagen in Projekte Umwandeln -->
+<div class="modal fade" id="modal_templateToProject" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Projekt aus Vorlage erzeugen</h4>
+            </div>
+            <div class="modal-body">
+                <p>Bitte geben Sie einen Namen für das neu zu erstellende Projekt an.<br>Dieser darf nicht mit dem
+	            eines Ihrer anderen Projekte übereinstimmen:</p>
+                <form class="form-templateToProject" role="form" id="templateToProjectForm">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Geben Sie einen Namen ein." id="templateToProjectInput">
+                        <span class="input-group-btn">
+                            <button type="submit" class="btn btn-primary" id="templateToProjectButton">Verwenden</button>
+                        </span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Verwerfen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <h1>Vorlagen</h1>
 
