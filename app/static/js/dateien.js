@@ -334,13 +334,18 @@ $(function () {
     			} else {
     				var msg = $('.filesdialog-upload-message');
     				msg.text('Fehler beim Hochladen!');
-    				for (var i = 0; i < data.response.failure.length; ++i)
+    				if (data.response.failure)
+	    				for (var i = 0; i < data.response.failure.length; ++i)
+	    					msg.append($('<br />'))
+	    							.append($('<b></b>').text(data.response.failure[i].name))
+	    							.append(document.createTextNode(': ' + 
+	    								data.response.failure[i].reason));
+    				else
     					msg.append($('<br />'))
-    							.append($('<b></b>').text(data.response.failure[i].name))
-    							.append(document.createTextNode(': ' + 
-    									data.response.failure[i].reason));
+								.append(document.createTextNode(data.response));
     				msg.removeClass('invisible');
 
+    				$('.filesdialog-upload-files').val('');
     				$('.filesdialog-upload-do').prop('disabled', false);
     			}
     		}, false, false);
