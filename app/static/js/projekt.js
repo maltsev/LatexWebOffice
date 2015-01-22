@@ -287,9 +287,13 @@ $(document).ready(function() {
 	
 	// 'in Vorlage umwandeln'-Schaltfläche
 	$('.projecttoolbar-converttotemplate').on("click", function() {
-		
-		// TODO
-		
+	    var templateName = prompt("Geben Sie den Vorlagename ein:");
+	    if (! templateName) {
+	        return;
+	    }
+
+	    var node = treeInst.get_node(selectedNodeID);
+		project2template(templateName, node.id);
 	});
 	
 	// 'Export'-Schaltfläche
@@ -339,6 +343,22 @@ function openProject() {
 	document.location.assign('/dateien/#' + treeInst.get_node(prevSelectedNodeID).rootid);
 	
 }
+
+
+function project2template(templateName, projectId) {
+    documentsJsonRequest({
+        'command': 'project2template',
+        'name': templateName,
+        'id': projectId
+    }, function(result, data) {
+        if (result) {
+            document.location.assign('/vorlagen/');
+	    } else {
+            alert(data.response);
+	    }
+	});
+}
+
 
 /*
  * Erstellt ein neues Projekt mit dem übergebenen Namen.
