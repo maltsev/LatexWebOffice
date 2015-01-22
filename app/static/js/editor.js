@@ -94,7 +94,7 @@ $(document).ready(function() {
         
 		// Button für das Speichern belegen
 		$('#save').click(function() {
-			editor.resize();
+			saveFile(id);
 		});
 
 		// Button für das PDF Exportieren belegen
