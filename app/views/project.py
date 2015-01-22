@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 19 Dez 2014 14:41:34 CET
+* Last Modified : Thu 22 Jan 2015 11:10:45 AM CET
 
 * Author :  christian
 
@@ -176,8 +176,10 @@ def importZip(request, user):
     # überprüfe ob es sich um eine gültige .zip Datei handelt
     # und ob die zip Datei kleiner als 150 bytes ist
     # zip Datei ohne Inhalt ist 105 bytes gross
-    if not zipfile.is_zipfile(zip_file_path) or not os.path.getsize(zip_file_path) > 105:
-        return util.jsonErrorResponse(ERROR_MESSAGES['ILLEGALFILETYPE'], request)
+    if not os.path.getsize(zip_file_path) > 105 :
+        return util.jsonErrorResponse(ERROR_MESSAGES['EMPTYZIPFILE'],request)
+    if not zipfile.is_zipfile(zip_file_path) :
+        return util.jsonErrorResponse(ERROR_MESSAGES['NOTAZIPFILE'], request)
 
     extract_path = os.path.join(tmpfolder, 'extracted')
     # erstelle einen Unterorder 'extracted'

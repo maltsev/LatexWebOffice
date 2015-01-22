@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fri 19 Dec 2014 07:23:52 PM CET
+* Last Modified : Thu 22 Jan 2015 11:06:45 AM CET
 
 * Author :  christian
 
@@ -58,6 +58,8 @@ ERROR_MESSAGES = {
     'NOTEXFILE': 'Keine Tex Datei.',
     'NOPDFFILE': 'Keine PDF Datei.',
     'ILLEGALFILETYPE': 'Dateityp {0} ist nicht erlaubt',
+    'NOTAZIPFILE' : 'Ungültige zip-Datei',
+    'EMPTYZIPFILE' : 'Leere zip-Datei',
     'TEMPLATEALREADYEXISTS': 'Eine Vorlage mit dem Namen {0} existiert bereits.',
     'TEMPLATENOTEXIST': 'Vorlage nicht gefunden',
     'UNKNOWNFORMAT': 'Unbekanntes Ausgabeformat'

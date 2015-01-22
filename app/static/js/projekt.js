@@ -313,6 +313,8 @@ $(document).ready(function() {
 			documentsJsonRequest(form,function(result,data){
 				if (result)
 					refreshProjects();
+				else
+					alert(data.response)
 			},false,false);
 			this.reset();
 		}
@@ -493,11 +495,6 @@ function exportZip() {
     );
 }
 
-/*
- *Importieren eines Projektes aus einer ZIP-Datei.
- *
- *
- */
 
 /*
  * Fügt eine neue Knoten-Komponente anhand des übergebenen Projektes hinzu.
