@@ -314,8 +314,10 @@ $(document).ready(function() {
 			documentsJsonRequest(form,function(result,data){
 				if (result)
 					refreshProjects();
-				else
-					alert(data.response)
+				else {
+					$('#projectimporterrorbody').html(data.response);
+					$('#projectimporterror').modal('show');
+				}
 			},false,false);
 			this.reset();
 		}
