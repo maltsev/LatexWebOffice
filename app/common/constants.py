@@ -86,7 +86,8 @@ ALLOWEDMIMETYPES = {
         'application/pdf': PDF,
         'application/postscript': BinaryFile,
         'application/x-dvi': BinaryFile,
-        'application/zip': BinaryFile
+        'application/zip': BinaryFile,
+        'application/CDFV2-corrupt': BinaryFile
     }
 }
 

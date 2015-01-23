@@ -283,6 +283,10 @@ def execute(request):
         command = request.GET.get('command')
         fileid = request.GET.get('id')
 
+        if not fileid.isdigit():
+            filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
+            return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
+
         if command == 'getpdf' and fileid:
             rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, request.user, request,
                                                                            objecttype=PDF)

@@ -221,11 +221,16 @@ function compile() {
                 'id': id,
                 'formatid': 0,
             }, function(result, data) {
+                var pdfid = data.response.id 
+                
+                if (!pdfid) {
+                    pdfid = -1
+                }
                 // URL der PDF Datei
                 // schickt einen GET Request an den Server
                 // dieser liefert die PDF Datei, falls vorhanden
                 // sonst wird eine default PDF geschickt
-                pdf_url = "/documents/?command=getpdf&id=" + data.response.id +"&t=" + Math.random();
+                pdf_url = "/documents/?command=getpdf&id=" + pdfid +"&t=" + Math.random();
                 // Anzeige der PDF Datei
                 renderPDF(pdf_url, document.getElementById('pdf-viewer'));
 
