@@ -39,7 +39,7 @@
 {% block content %}
 
     <!-- Editor Container -->
-    <div class="ui-layout-center" id='centerdiv'>
+    <div class="ui-layout-center" style="overflow: hidden;" id='centerdiv'>
         <div id="inhalt" style="min-height: 100%; height: 100%;">
             <div id="dialog_editor_verlassen" title="Editor verlassen"style="display: none;">
 				<p>Wollen Sie den Editor wirklich verlassen?</p>
@@ -282,7 +282,7 @@
         <div id="pdf-viewer"></div>
     <!-- PDF Viewer Container Ende -->
     </div>
-    <div id="compile_log" class="ui-layout-south"></div>
+    <div id="compile_log" style="display: none;" ></div>
 
 <!-- Body Ende -->
 {% endblock %}
