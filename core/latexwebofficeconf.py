@@ -15,21 +15,21 @@
 * Backlog entry : 
 
 """
-# DEBUG = True
+DEBUG = True
 
 
-'''DATABASES = {
+DATABASES = {
     'default': {
         'ENGINE': 'mysql.connector.django', 
         'NAME': 'latexweboffice',
         'USER': 'latexweboffice',
-        'PASSWORD': '123456',
+        'PASSWORD': 'ingoistschuld',
         'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
         'PORT': '3306',
     }
 }
-'''
 
-#ALLOWED_HOSTS=["*"]
+
+ALLOWED_HOSTS=["*"]
 
 
