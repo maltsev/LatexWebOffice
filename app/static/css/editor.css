@@ -102,3 +102,8 @@ div#pdfviewer_msg{
     vertical-align: middle;
     line-height: 50px;
 }
+
+#compile_log{
+	padding-left:10px;
+	padding-right:10px;
+}
