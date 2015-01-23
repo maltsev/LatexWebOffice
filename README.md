@@ -38,7 +38,8 @@ Alias /static/ /var/www/LatexWebOffice/app/static/
 	Options  +Indexes
 </Directory>
 
-WSGIDaemonProcess latexweboffice python-path=/home/latexweboffice/Env/python3webofficeenv/lib/python3.4/site-packages
+# http://blog.dscpl.com.au/2014/09/setting-lang-and-lcall-when-using.html
+WSGIDaemonProcess latexweboffice lang='de_DE.UTF-8' locale='de_DE.UTF-8' python-path=/home/latexweboffice/Env/python3webofficeenv/lib/python3.4/site-packages
 WSGIProcessGroup latexweboffice        
 WSGIScriptAlias / /var/www/LatexWebOffice/core/wsgi.py
 
