@@ -745,7 +745,7 @@ function showPopover(node,error) {
 		// (Reihenfolge nicht verändern!)
 		popover.popover('show');
         $('.popover').css('left',getSelectedNodeObject().position().left+'px');
-        $('.popover').css('top',(getSelectedNodeObject().position().top-getSelectedNodeObject().height()*2+5)+'px');
+        $('.popover').css('top',(getSelectedNodeObject().position().top-43)+'px');
 	}
 }
 
