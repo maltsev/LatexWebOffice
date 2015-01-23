@@ -468,7 +468,13 @@ function insertImageWithID(fileID, filePath){
 			if (result)
 			{
 				if(data.response.mimetype.indexOf("image") > -1){
-					imageWidth = document.getElementById("imageWidth").value / 100;
+					imageWidth = document.getElementById("imageWidth").value;
+					if( imageWidth == ""){
+						imageWidth = "1.0";
+						} else {
+						imageWidth = document.getElementById("imageWidth").value;
+					}
+					
 					editor.insert("\\includegraphics[width="+imageWidth+"\\textwidth]{"+filePath+data.response.filename+"}"+"\n"); 
 				};				
 			}
