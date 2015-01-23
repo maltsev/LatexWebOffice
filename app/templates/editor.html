@@ -31,7 +31,11 @@
     
     <!-- Stylesheet für Editor Einstellungen -->
     <link href="/static/css/editor.css" rel="stylesheet">
-
+	<style type="text/css">
+	.ace_content{
+	 padding-bottom: 20px;
+	 }
+	 </style>
 <!-- Header Ende -->
 {% endblock %}
 
@@ -282,7 +286,7 @@
         <div id="pdf-viewer"></div>
     <!-- PDF Viewer Container Ende -->
     </div>
-    <div id="compile_log" style="display: none;" ></div>
+    <div id="compile_log" class="ui-layout-south"></div>
 
 <!-- Body Ende -->
 {% endblock %}
