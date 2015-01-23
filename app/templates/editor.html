@@ -8,7 +8,8 @@
 	<script src="/static/js/jquery.validate.min.js"></script>
 	<script src="/static/js/jquery.validate.additional-methods.min.js"></script><!-- benötigt um pattern matching (regexp) nutzen zu können -->
 	<script src="/static/js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
-
+	<script src="/static/js/auth/scaling.js"></script><!-- validate einstellungen speziell für die Registrierung -->
+	
 	
     <!-- Einbindung der Icons für den Editor -->
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
@@ -81,27 +82,37 @@
 			
 					
 
-<form class="form-horizontal" id="regform" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
-	<div class="form-group has-feedback">
-		<label for="scaling" class="col-sm-2 control-label" placeholder="1.0">Skalierung</label>
-		<div class="reg-input-group col-sm-10">
-			<input type="numeric" class="form-control" id="first_name" name="first_name" value="{{ first_name }}" placeholder="1.0" aria-describedby="inputError2Status">
-			<div class="help-block with-errors"></div>
-		</div>
-	</div>
-</form>
+
 
 			
 				<div class="row">
-					<div class="col-md-3" >
-						<label for="beispielFeldName2">Skalierung</label>
-						<input type="digit" class="form-control" id="imageWidth" placeholder="1.0">
+					<div class="col-md-2" >
+						<form class="form-horizontal" id="scale" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
+							<div class="form-group has-feedback">
+								<label for="first_name"  placeholder="1.0">Skalierung</label>
+								<div >
+									<input type="text" class="form-control" id="imageWidth" name="value" value="{{ value }}" placeholder="1.0" aria-describedby="inputError2Status">
+									<div class="help-block with-errors"></div>
+								</div>
+							</div>
+						</form>
 					</div>
+					
 
-					<div class="col-md-9">
-						<label for="inputTableDescription">Beschriftung</label>
+					
+					<!--
+					<div class="col-md-10" >
+						<form class="form-horizontal" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
+							<div class="form-group has-feedback">
+						<label for="inputTableDescription" >Beschriftung</label>
+								<div>
 						<input type="text" class="form-control" id="table-description" placeholder="Die Graphik zeigt ...">
-					</div>
+									<div class="help-block with-errors"></div>
+								</div>
+							</div>
+						</form>
+					</div>-->
+					
 				</div>
 			</div>
 				<div class="modal-footer">

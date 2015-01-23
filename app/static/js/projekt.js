@@ -296,6 +296,8 @@ $(document).ready(function() {
 		
 		// erzeugt eine neue Knoten-Komponente
 		duplicateNodeID = addNode(null);
+		// selektiert die erzeugte Knoten-Komponente
+		selectNode(duplicateNodeID);
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
 		editNode(duplicateNodeID,"");
 		
@@ -723,7 +725,7 @@ function showPopover(node,error) {
 		// (Reihenfolge nicht verändern!)
 		popover.popover('show');
         $('.popover').css('left',selectedPos.left+'px');
-        $('.popover').css('top',(selectedPos.top-selectedHeight*2+5)+'px');
+        $('.popover').css('top',(selectedPos.top-43)+'px');
 		
 		/*
 		// Position der übergebenen Knoten-Komponente	
