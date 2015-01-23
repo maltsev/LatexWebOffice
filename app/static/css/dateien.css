@@ -34,3 +34,8 @@
     display: inline-block;
     width: 96%;
 }
+
+.popover {
+	border-color: #000000;
+	color: #000000;
+}

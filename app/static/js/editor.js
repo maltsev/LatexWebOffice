@@ -31,10 +31,7 @@ var editorResizeTimeout = 250;
 $(document).ready(function() {
     var width = $(window).width();
     var height = $(window).height();
-    
-    console.log(width);
-
-        
+            
     // Funktion für SplitView, setzt die Breite der Trennlinie
     myLayout = $('#maincontainer').layout({
         defaults: {
@@ -44,6 +41,10 @@ $(document).ready(function() {
         east: {
             initClosed: (width<1366?true:false),
             size: '40%',
+        },
+        south: {
+            initClosed: true,
+            size: '35%',
         },
         
         // Editor automatisch an Fenstergröße anpassen
@@ -91,7 +92,6 @@ $(document).ready(function() {
             setTimeout(function(){editor.resize();}, editorResizeTimeout);
         });
 
-        
 		// Button für das Speichern belegen
 		$('#save').click(function() {
 			saveFile(id);
@@ -209,20 +209,55 @@ function saveFile(id) {
 
 /**
  * Kompiliert eine Datei und zeigt die PDF an.
- * @param id ID der Datei
  */
 function compile() {
-    // TexID welche dem Editor übergeben wurde
-    id = parseInt(location.hash.substr(1));
-    
-    // URL der PDF Datei
-    // schickt einen GET Request an den Server
-    // dieser kompiliert die tex Datei falls nötig und liefert die URL der PDF Datei
-    var pdf_url = "/documents/?command=getpdf&texid=" + id +"&t=" + Math.random();
-    
-    renderPDF(pdf_url, document.getElementById('pdf-viewer'));
-    setMsg('PDF geladen');
+    // Kompiliere nur wenn der Text im Editor nicht leer ist
+    if (editor.getValue() != '') {
+        var pdf_url = null;
+        // TexID welche dem Editor übergeben wurde
+        id = parseInt(location.hash.substr(1));
+        documentsJsonRequest({
+                'command': 'compile',
+                'id': id,
+                'formatid': 0,
+            }, function(result, data) {
+                // URL der PDF Datei
+                // schickt einen GET Request an den Server
+                // dieser liefert die PDF Datei, falls vorhanden
+                // sonst wird eine default PDF geschickt
+                pdf_url = "/documents/?command=getpdf&id=" + data.response.id +"&t=" + Math.random();
+                // Anzeige der PDF Datei
+                renderPDF(pdf_url, document.getElementById('pdf-viewer'));
+
+                if (result) {
+                    setMsg("Kompilieren erfolgreich");
+                    setLogText('Kompilieren erfolgreich, keine Log Datei vorhanden.');
+                }
+                else {
+                    setErrorMsg("Fehler beim Kompilieren");
+                    setCompileLog();
+                }
+        });
     }
+}
+
+/**
+ * Lädt die Log Datei vom LatexCompiler herunter und zeigt diese im Log Bereich an
+ */
+function setCompileLog() {    
+    documentsJsonRequest({
+        'command': 'getlog',
+        'id': id
+    }, function(result, data) { 
+        if (result) {
+            setLogText(data.response.log.replace(/(\r\n|\n|\r)/gm, "<br>"));
+        }
+        else {
+            setLogText(ERROR_MESSAGES.NOLOGFILE);
+        }
+    });
+    //$("#compile_log").scrollTop($("#compile_log")[0].scrollHeight);
+}
 
 /**
  * Kompiliert eine tex Datei und lädt die entsprechende Datei runter.
@@ -240,9 +275,9 @@ function exportFile(id, formatid) {
 					'id': data.response.id
                 });
             else {
-                    setErrorMsg('Fehler beim Kompilieren');
-            }
-				
+                setErrorMsg('Fehler beim Kompilieren');
+                setCompileLog();
+            }	
 	});
 }
 
@@ -559,6 +594,10 @@ function setErrorMsg(text) {
     $("#pdfviewer_msg").html('<p class="text-danger">' + text + '</p>');
 }
 
+function setLogText(text) {
+    $("#compile_log").empty();
+    $("#compile_log").html(text)
+}
 
 function renderPDF(url, canvasContainer, options) {
 

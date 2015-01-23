@@ -62,7 +62,8 @@ ERROR_MESSAGES = {
     'EMPTYZIPFILE' : 'Leere zip-Datei',
     'TEMPLATEALREADYEXISTS': 'Eine Vorlage mit dem Namen {0} existiert bereits.',
     'TEMPLATENOTEXIST': 'Vorlage nicht gefunden',
-    'UNKNOWNFORMAT': 'Unbekanntes Ausgabeformat'
+    'UNKNOWNFORMAT': 'Unbekanntes Ausgabeformat',
+    'NOLOGFILE': 'Keine Log Datei vorhanden.',
 }
 
 ALLOWEDMIMETYPES = {

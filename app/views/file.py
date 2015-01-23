@@ -308,11 +308,16 @@ def latexCompile(request, user, fileid, targetformat=0):
 
     errors, success = latexcompile(fileid, targetformat)
     if errors:
-        return util.jsonErrorResponse(json.dumps(errors), request)
+        if success:
+            ret = success
+        else:
+            ret = dict()
+        ret['error'] = json.dumps(errors)
+        return util.jsonErrorResponse(ret, request)
     if success:
         return util.jsonResponse(success, True, request)
-    # Sonst Fehlermeldung an Client
 
+    # Sonst Fehlermeldung an Client
     return util.jsonErrorResponse(ERROR_MESSAGES['COMPILATIONERROR'], request)
 
 
@@ -325,41 +330,33 @@ def getPDF(request, user, fileid):
     :return: URL der Datei
     """
 
-    filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
+    # PDF Objekt
+    pdfobj = PDF.objects.get(id=fileid)
+
+    # Pfad zur PDF Datei
+    filepath = pdfobj.getTempPath()
+
+    return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
+
+def getLog(request, user, fileid):
+    """Liefert die Log Datei vom Kompilieren einer Tex Datei.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der tex Datei, von welcher die PDF Datei angefordert wurde
+    :return: HttpResponse (JSON)
+    """
 
     # hole das tex Objekt
     texobj = TexFile.objects.get(id=fileid)
 
-    pdf_data = None
+    logfilename = texobj.name[:-3] + '<log>'
 
-    # wenn bereits eine entsprechende PDF Datei existiert
-    if PDF.objects.filter(name=texobj.name[:-3] + 'pdf', folder=texobj.folder).exists():
-        # hole das PDF Objekt
-        pdfobj = PDF.objects.get(name=texobj.name[:-3] + 'pdf', folder=texobj.folder)
+    logobj = PlainTextFile.objects.filter(name=logfilename, folder=texobj.folder)
 
-        # wenn die tex Datei nach der Erstellung der PDF Datei verändert wurde
-        if pdfobj.lastModifiedTime < texobj.lastModifiedTime:
-            # kompiliere die tex Datei neu
-            errors, pdf_data = latexcompile(fileid, formatid=0)
-
-            # wenn das Kompilieren erfolgreich war
-            if pdf_data:
-                # hole das neue PDF Objekt
-                pdfobj = PDF.objects.get(id=pdf_data['id'])
-
-        # hole den Pfad zur PDF Datei
-        filepath = pdfobj.getTempPath()
+    if logobj.exists:
+        log = logobj[0].source_code
     else:
-        # versuche die tex Datei zu kompilieren
-        errors, pdf_data = latexcompile(fileid, formatid=0)
+        log = ERROR_MESSAGES['NOLOGFILE']
 
-        # wenn das Kompilieren erfolgreich war
-        if pdf_data:
-            # hole das neue PDF Objekt
-            pdfobj = PDF.objects.get(id=pdf_data['id'])
-
-            # hole den Pfad zur PDF Datei
-            filepath = pdfobj.getTempPath()
-
-
-    return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
+    return util.jsonResponse({'log': log}, True, request)

@@ -225,10 +225,11 @@
 			     <span class="caret"></span>
                         </button>
 		        <ul class="dropdown-menu">
-				<li><a id="export_html" href="#">HTML (htlatex)</a></li>
-				<!--<li><a id="export_html_pdf" href="#">HTML (pdf2htmlEx)</a></li>-->
-				<li><a id="export_dvi" href="#">DVI</a></li>
-				<li><a id="export_ps" href="#">PS</a></li>
+
+				<li><a id="export_html" style="cursor:pointer;">HTML</a></li>
+				<!--<li><a id="export_html_pdf" style="cursor:pointer;">HTML (pdf2htmlEx)</a></li>-->
+				<li><a id="export_dvi" style="cursor:pointer;">DVI</a></li>
+				<li><a id="export_ps" style="cursor:pointer;">PS</a></li>
 			</ul>
 		    	</div>
 						
@@ -281,6 +282,7 @@
         <div id="pdf-viewer"></div>
     <!-- PDF Viewer Container Ende -->
     </div>
+    <div id="compile_log" class="ui-layout-south"></div>
 
 <!-- Body Ende -->
 {% endblock %}
