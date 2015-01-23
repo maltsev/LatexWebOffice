@@ -20,11 +20,20 @@ function prettySize(bytes) {
  * Setzt eine AJAX-Anfrage für eine JSON-Antwort an /documents/ ab.
  * @param param Paramter für die Anfrage (command, id, …)
  * @param handler Handler für die Antwort als function(bool result, object data)
+ * @param contentType Content-Type
+ * @param processData param als Objekt mit den Parmetern behandeln
  */
-function documentsJsonRequest(param, handler) {
+function documentsJsonRequest(param, handler, contentType, processData) {
+	contentType = typeof contentType !== 'undefined' ?
+			contentType : 'application/x-www-form-urlencoded; charset=UTF-8';
+	processData = typeof processData !== 'undefined' ?
+			processData : true;
 	jQuery.ajax('/documents/', {
 		'type': 'POST',
 		'data': param,
+		'cache': false,
+		'contentType': contentType,
+		'processData': processData,
 		'headers': {
 			'X-CSRFToken': $.cookie('csrftoken')
 		},
@@ -53,11 +62,20 @@ function documentsJsonRequest(param, handler) {
  * Setzt eine AJAX-Anfrage für eine Binär-Antwort an /documents/ ab.
  * @param param Paramter für die Anfrage (command, id, …)
  * @param handler Handler für die Antwort als function(bool result, data)
+ * @param contentType Content-Type
+ * @param processData param als Objekt mit den Parmetern behandeln
  */
-function documentsDataRequest(param, handler) {
+function documentsDataRequest(param, handler, contentType, processData) {
+	contentType = typeof contentType !== 'undefined' ?
+			contentType : 'application/x-www-form-urlencoded; charset=UTF-8';
+	processData = typeof processData !== 'undefined' ?
+			processData : true;
 	jQuery.ajax('/documents/', {
 		'type': 'POST',
 		'data': param,
+		'cache': false,
+		'contentType': contentType,
+		'processData': processData,
 		'headers': {
 			'X-CSRFToken': $.cookie('csrftoken')
 		},
@@ -99,4 +117,22 @@ function documentsRedirect(param) {
 	});
 
 	form.submit();
+}
+
+/**
+ * Formatiert absolutes Datum als relatives
+ * @param {string} rawDateTime - absolutes Datum
+ * @example Jetzt ist 16-01-2015 17:32. getRelativeTime("16-01-2015 17:56") => "24 minutes ago"
+ * @returns {string} - relatives Datum
+ */
+function getRelativeTime(rawDateTime) {
+    var dateTime = moment(rawDateTime),
+        now = moment();
+
+    // Kein Zukunftsdatum
+    if (now.diff(dateTime) <= 0) {
+        dateTime = now;
+    }
+
+    return dateTime.fromNow();
 }

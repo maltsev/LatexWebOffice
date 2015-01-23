@@ -8,219 +8,456 @@
 
 * Author : ingo
 
-* Coauthors :
+* Coauthors : christian
 
-* Sprintnumber : 2
+* Sprintnumber : 2, 4
 
 * Backlog entry : TEK1
 
 """
-import ntpath, os, re, shutil, subprocess, tempfile, time
-from app.common.constants import ERROR_MESSAGES
-from app.models.file.file import File
+import ntpath
+import os
+import shutil
+import subprocess
+import tempfile
+
+from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE
 from app.models.file.pdf import PDF
 from app.models.file.texfile import TexFile
-from app.models.folder import Folder
-from app.models.project import Project
+from app.models.file.binaryfile import BinaryFile
+from app.models.file.plaintextfile import PlainTextFile
+from app.common import util
 from core.settings import BASE_DIR
 
-#
-# Kompiliert die, der übergebenen ID entsprechende, tex-Datei unter Einbindung der zugehörigen Dateien in eine pdf-Datei und gibt deren ID und Name zurück.
-# Sofern ein Kompilieren erfolgen konnte, werden die ID und der Name der erzeugten pdf-Datei zurückgegeben - andernfalls None.
-# Falls beim Kompilieren Fehler auftraten, werden zudem die entsprechenden Fehlermeldungen als Zeichenketten zurückgegeben - andernfalls ist dieser Wert None.
-# Hierbei wird zum Kompilieren das Perl-Script latexmk.pl verwendet.
-#
-# @param texid Id der tex-Datei, welche kompiliert werden soll
-#
-# @return ein Tupel aus folgenden Komponenten:
-#         1. Liste der Fehlermeldungen, welche beim Kompilieren geworfen wurden oder None, falls keine Fehler auftraten
-#         2. Array der ID und des Namens der erzeugten pdf-Datei oder None, sofern keine pdf-Datei erzeugt werden konnte
-#
-def compile(texid):
-    oldwd = os.getcwd()
-    # tex-File der übergebenen ID
-    tex_fle  = TexFile.objects.get(id=texid)
-    # Verzeichnis der tex-Datei
-    tex_dir  = tex_fle.folder
-    # root-Verzeichnis der tex-Datei
-    root     = tex_dir.getRoot()
-    # Pfad des root-Verzeichnisses
-    root_pth = root.getTempPath()
 
-    # Dateien und Verzeichnisse des root-Verzeichnisses
-    fs = root.getFilesAndFoldersRecursively()
-    # legt die Verzeichnisstruktur temporär an
-    for f in fs :
-        f.getTempPath()
+def latexcompile(texid, formatid=0):
+    """Kompiliert eine tex Datei mit der übergebenen texid in das entsprechende Ausgabeformat (formatid).
+
+    formatid:   0 - PDF
+                1 - HTML mit htlatex (Rückgabe als zip Datei)
+                2 - HTML mit pdf2htmlEX (Rückgabe als zip Datei)
+                3 - DVI
+                4 - PS
+
+    Zum Kompilieren wird das Perl-Script latexmk.pl verwendet (nutzt texlive), bzw. für HTML wird htlatex genutzt.
+
+    Latexmk:
+    http://users.phys.psu.edu/~collins/software/latexmk-jcc/
+
+    :param texid: Id der tex Datei
+    :param formatid: Id des Ausgabeformates
+    :return: Tupel aus folgenden Komponenten:
+        1. Liste der Fehlermeldungen, welche beim Kompilieren geworfen wurden oder None, falls keine Fehler auftraten
+        2. Array der ID und des Namens der erzeugten pdf-Datei oder None, sofern keine pdf-Datei erzeugt werden konnte
+    """
+
+    # sichere das alte Arbeitsverzeichnis
+    oldwd = os.getcwd()
+
+    # tex-File der übergebenen ID
+    texobj = TexFile.objects.get(id=texid)
+
+    # Verzeichnis der tex-Datei
+    tex_dir = texobj.folder
+
+    # root-Verzeichnis der tex-Datei
+    rootobj = tex_dir.getRoot()
+
+    # Pfad des root-Verzeichnisses
+    # es werden alle Dateien und Ordner des Projektes in einen temporären Ordner kopiert
+    root_path = rootobj.dumpFolder()
 
     # temporärer Pfad der, der übergebenen tex-ID entsprechenden, tex-Datei
-    tex_pth     = tex_fle.getTempPath()
+    tex_path = texobj.getTempPath()
+
     # Datei-Name der übergebenen tex-Datei
-    tex_nme     = ntpath.basename(tex_pth)
+    tex_name = texobj.name
+
     # Verzeichnis-Pfad der übergebenen tex-Datei
-    tex_dir_pth = ntpath.dirname(tex_pth)
+    tex_dir_path = ntpath.dirname(tex_path)
 
     # erzeugt ein temporäres Ausgabe-Verzeichnis im Verzeichnis der übergebenen tex-Datei
-    out_dir_pth = tempfile.mkdtemp('','',tex_dir_pth)
+    out_dir_path = tempfile.mkdtemp(dir=tex_dir_path)
 
-    # ----------------------------------------------------------------------------------------------------
-    #                                             KOMPILIERUNG
-    # ----------------------------------------------------------------------------------------------------
     # wechselt in das Verzeichnis der tex-Datei
-    os.chdir(tex_dir_pth)
+    os.chdir(texobj.folder.getTempPath())
 
-    # kompiliert die tex-Datei gemäß der gesetzten Argumente:
+    formatid = str(formatid)
+    rc = 0
+    file_data = {}
+    errors = None
+
+    # Parameter für die Kompilierung
     # '-f' führt die Kompilieren auch unter auftretenden Fehlern so möglich durch
-    # '-interaction=nonstopmode' unterbindet die Unterbrechung des Kompiliervorgangs für eine manuelle Eingabeaufforderung (falls eines der ausführenden Programm einen Fehler festgestellt hat)
+    # '-interaction=nonstopmode' unterbindet die Unterbrechung des Kompiliervorgangs für eine
+    # manuelle Eingabeaufforderung (falls eines der ausführenden Programm einen Fehler festgestellt hat)
     # '-outdir=FOO' Verzeichnis für die Ausgabe-Dateien
     # '-bibtex' bbl-Dateien werden über bibtex erzeugt, sofern notwendig
     # '-pdf' pdf-Datei wird über pdflatex aus der angegebenen tex-Datei erzeugt
-    w = tempfile.TemporaryFile()
-    rc = subprocess.call(["perl", latexmk_path(),"-f","-interaction=nonstopmode","-outdir="+out_dir_pth,"-bibtex","-pdf",tex_pth],
-                          stdout=w,
-                          stderr=subprocess.STDOUT, bufsize=0)
 
-    w.close()
-    #rc.wait()
+    # mögliche Formate der Kompilierung
+    latexmk_formatargs = {
+        '0': '-pdf',
+        '3': '-dvi',
+        '4': '-ps'
+    }
 
-    # ----------------------------------------------------------------------------------------------------
-    #                                        RÜCKGABEWERT PDF-DATEN
-    # ----------------------------------------------------------------------------------------------------
-    pdf_data = None
+    # verwendeter Latex Compiler
+    compilerargs = 'pdflatex --shell-escape %O %S'
 
-    # Name der Ziel-pdf-Datei
-    pdf_nme  = tex_nme[:-3]+"pdf"
-    # Pfad der Ziel-pdf-Datei
-    pdf_pth = os.path.join(out_dir_pth,pdf_nme)
+    args = {
+        'texobj': texobj,
+        'texpath': texobj.getTempPath(),
+        'format': '',
+        'outdirpath': out_dir_path,
+        'compilerargs': compilerargs
+    }
 
-    # wenn die Ziel-pdf-Datei erzeugt werden konnte
-    if os.path.exists(pdf_pth) :
-
-        # löscht die etwaig bestehende pdf-Version der tex-Datei aus der Datenbank
-        pdf_src = PDF.objects.filter(name=pdf_nme,folder=tex_dir)
-        if pdf_src!=None :
-            if len(pdf_src)==1 :
-                PDF.objects.get(id=pdf_src[0].id).delete()
-
-        pdf_file = open(pdf_pth,'rb')
-        # erzeugt das PDF-Model aus der pdf-Datei
-        pdf = PDF.objects.createFromFile(name=pdf_nme,folder=tex_dir,file=pdf_file)
-        pdf_file.close()
-
-        # Rückgabewert
-        pdf_data = {'id':pdf.id,'name':pdf.name}
-
-    # ----------------------------------------------------------------------------------------------------
-    #                                     RÜCKGABEWERT FEHLERMELDUNGEN
-    # ----------------------------------------------------------------------------------------------------
-    errors = None
+    # wenn die tex Datei mit latexmk kompiliert werden soll
+    if formatid in latexmk_formatargs:
+        args['format'] = latexmk_formatargs[formatid]
+        rc, file_data = latexmk(args, console_output=False)
+    # HTML Format mit htlatex
+    elif formatid == '1':
+        args['outdirpath'] = out_dir_path + os.sep
+        rc, file_data = htlatex(args, console_output=False)
+    # HTML Format mit pdf2htmlex
+    elif formatid == '2':
+        rc, file_data = pdf2htmlex(args, console_output=False)
+    # Ungültige formatid
+    else:
+        errors = ERROR_MESSAGES['UNKNOWNFORMAT']
 
     # wenn beim Kompilier-Prozess ein Fehler aufgetreten ist ...
-    if rc!=0 :
-
+    if rc != 0:
         # Fehlermeldungen
         errors = []
 
         # log-Datei
-        log_path = os.path.join(out_dir_pth,tex_nme[:-3]+"log")
-
+        log_path = os.path.join(out_dir_path, tex_name[:-3] + "log")
         # ... und eine log-Datei erzeugt wurde
-        if os.path.exists(log_path) :
+        if os.path.exists(log_path):
             # durchsucht die erzeugte log-Datei und gibt deren entsprechende Fehlermeldungen zurück
             errors = get_Errors(log_path)
 
         # ... und keine log-Datei erzeugt wurde
-        else :
+        else:
             # gibt eine allgemeine Fehlermeldung mit dem return code des Kompilierprozesses zurück
-            errors.append(ERROR_MESSAGES['COMPILATIONERROR']+': return code '+str(rc))
+            errors.append(ERROR_MESSAGES['COMPILATIONERROR'] + ': return code ' + str(rc))
 
-    # ----------------------------------------------------------------------------------------------------
-
+    # stelle das vorherige Arbeitsverzeichnis wieder her
     os.chdir(oldwd)
-    # entfernt das temporäre root-Verzeichnis und sämtliche Unterordner
-    shutil.rmtree(root_pth)
+
+    # entferne das temporäre root-Verzeichnis und sämtliche Unterordner
+    shutil.rmtree(root_path)
 
     # Rückgabe
     # 1. Liste mit während des Kompilieren aufgetretenen Fehlermeldungen oder None, falls keine Fehler aufgetreten
     # 2. Array mit ID und Name der erzeugten pdf-Datei oder None, falls keine pdf-Datei erzeugt werden konnte
-    return (errors,pdf_data)
+    return errors, file_data
 
-#
-# Liefert eine Liste der Fehlermeldungen der log-Datei des übergebenen Datei-Pfades.
-#
-# @param log_path Pfad der log-Datei deren Fehlermeldungen zurückgegeben werden sollen
-#
-# @return eine Liste der Fehlermeldungen der übergebenen log-Datei
-#
+
+def latexmk(args, console_output):
+    """Kompiliert eine tex Datei mit dem latexmk Script und den entsprechenden Parametern
+
+    :param args Parameter für die Ausführung
+    :param console_output aktiviert die Ausgabe des Programmaufrufs in der Konsole
+    :return: returncode des Programmaufrufs, id und name der erstellten Datei
+    """
+
+    command = ["perl", latexmk_path(), "-f", "-interaction=nonstopmode", "-outdir=" + args['outdirpath'], "-bibtex",
+               '-pdflatex=' + args['compilerargs'], args['format'], args['texpath']]
+
+    # kompiliert die tex-Datei gemäß der gesetzten Argumente:
+    rc = execute_command(command, console_output=console_output)
+
+    # Rückgabe
+    file_data = None
+
+    # setze das verwendete Django Model und speichere die log Datei
+    if args['format'][1:] == 'pdf':
+        objecttype = PDF
+    else:
+        objecttype = BinaryFile
+
+    # speichere die log Datei für pdf, ps und dvi export
+    if args['format'][1:] == ('pdf' or 'ps' or 'dvi'):
+        log_path = os.path.join(args['outdirpath'], args['texobj'].name[:-3] + "log")
+        if os.path.join(log_path):
+            logfile = open(log_path, 'r')
+            logfile.seek(0)
+            old_log = PlainTextFile.objects.filter(name=args['texobj'].name[:-3] + '<log>',
+                                                   folder=args['texobj'].folder)
+            if old_log.exists():
+                old_log[0].delete()
+
+            logObj = PlainTextFile.objects.create(name=args['texobj'].name[:-3] + '<log>',
+                                                  folder=args['texobj'].folder,
+                                                  source_code=logfile.read(),
+                                                  size=util.getFileSize(logfile))
+            logfile.close()
+
+    # Name der Ziel-Datei
+    file_name = args['texobj'].name[:-3] + args['format'][1:]
+    # Pfad der Ziel-Datei
+    file_path = os.path.join(args['outdirpath'], file_name)
+
+    # altePDF
+    file_src = objecttype.objects.filter(name=file_name, folder=args['texobj'].folder)
+
+    if file_src.exists():
+        file_data = {'id': file_src[0].id, 'name': file_src[0].name}
+
+    # wenn die Ziel-Datei erzeugt werden konnte
+    if os.path.isfile(file_path):
+
+        # löscht die etwaig bestehende Datei aus der Datenbank
+        if file_src.exists():
+            file_src[0].delete()
+
+        file = open(file_path, 'rb')
+        mimetype = util.getMimetypeFromFile(file, file_name)
+        # erzeugt das Model aus der Datei
+        fileobj = objecttype.objects.createFromFile(name=file_name, folder=args['texobj'].folder, file=file,
+                                                    mimeType=mimetype)
+        file.close()
+
+        # Rückgabewert
+        file_data = {'id': fileobj.id, 'name': fileobj.name}
+
+    return rc, file_data
+
+
+def htlatex(args, console_output):
+    """Kompiliert eine tex Datei mit htlatex in das HTML Format.
+
+    :param args Parameter für die Ausführung
+    :param console_output aktiviert die Ausgabe des Programmaufrufs in der Konsole
+    :return: returncode des Programmaufrufs, id und name der erstellten Datei
+    """
+
+    # Rückgabe
+    html_zip_data = None
+
+    # Befehl zur Konvertierung in HTML mit htlatex
+    command = ["htlatex", args['texpath'], 'html', "", "-d" + args['outdirpath'], "--interaction=nonstopmode"]
+    rc = execute_command(command, console_output=console_output)
+
+    # wenn die HTML Datei erstellt werden konnte
+    if os.path.isfile(os.path.join(args['outdirpath'], args['texobj'].name[:-3] + 'html')):
+        # erstelle die zip Datei aus der HTML Datei
+        args['outputfilename'] = args['texobj'].name[:-4] + '_html.zip'
+        html_zip_data = createZipFile(args)
+    return rc, html_zip_data
+
+
+def pdf2htmlex(args, console_output):
+    """Kompiliert eine tex Datei mit pdf2htmlEX in das HTML Format.
+
+    :param args Parameter für die Ausführung
+    :param console_output aktiviert die Ausgabe des Programmaufrufs in der Konsole
+    :return: returncode des Programmaufrufs, id und name der erstellten Datei
+    """
+
+    # Rückgabe
+    html_zip_data = None
+
+    # Temp Ordner für die Erstellung der PDF Datei
+    pdf_tmp_folder = util.getNewTempFolder()
+
+    # Parameter für die PDF Kompilierung
+    pdf_args = {
+        'texobj': args['texobj'],
+        'texpath': args['texpath'],
+        'format': '-pdf',
+        'outdirpath': pdf_tmp_folder,
+        'compilerargs': args['compilerargs']
+    }
+
+    # kompiliere die tex Datei als PDF
+    rc, pdf_file_data = latexmk(pdf_args, console_output=console_output)
+
+    # Name der PDF-Datei
+    pdf_name = args['texobj'].name[:-3] + 'pdf'
+    # Pfad der PDF-Datei
+    pdf_path = os.path.join(pdf_tmp_folder, pdf_name)
+
+    # wenn die Ziel-Datei erzeugt werden konnte
+    if os.path.isfile(pdf_path):
+        # löscht die etwaig bestehende PDF Datei aus der Datenbank
+        pdf_src = PDF.objects.filter(id=pdf_file_data['id'])
+        if pdf_src.exists():
+            pdf_src[0].delete()
+    else:
+        return rc, None
+
+    debug = '0'
+    if console_output:
+        debug = '1'
+
+    # Befehl zur Konvertierung in HTML mit pdf2htmlEX
+    command = ['pdf2htmlEX', '--clean-tmp', '1', '--debug', debug, '--embed', 'cfijo', '--dest-dir',
+               args['outdirpath'], pdf_path]
+    rc = execute_command(command, console_output=console_output)
+
+    # wenn die HTML Datei erstellt werden konnte
+    if os.path.isfile(os.path.join(args['outdirpath'], args['texobj'].name[:-3] + 'html')):
+        # erstelle die zip Datei aus der HTML Datei
+        args['outputfilename'] = args['texobj'].name[:-4] + '_pdf-html.zip'
+        html_zip_data = createZipFile(args)
+
+    # lösche den tmp Ordner der PDF Datei
+    if os.path.isdir(pdf_tmp_folder):
+        shutil.rmtree(pdf_tmp_folder)
+
+    return rc, html_zip_data
+
+
 def get_Errors(log_path):
+    """Liefert eine Liste der Fehlermeldungen der log-Datei des übergebenen Datei-Pfades.
+
+    :param log_path: Pfad der log-Datei deren Fehlermeldungen zurückgegeben werden sollen
+    :return: eine Liste der Fehlermeldungen der übergebenen log-Datei
+    """
 
     errors = []
 
-    log = open(log_path,"r")
+    log = open(log_path, "r")
 
     # durchläuft sämtliche Zeilen der log-Datei
-    for l in log :
+    for l in log:
 
         line = str.lower(l)
 
         # ----------------------------------------------------------------------------------------------------
-        #                                         FILE NOT FOUND ERROR
+        # FILE NOT FOUND ERROR
         # ----------------------------------------------------------------------------------------------------
         # bestimmt die Index-Position von 'file' in der aktuell betrachteten Zeile
         index_file = line.find('file')
         # falls 'file' in der aktuell betrachteten Zeile enthalten ist
-        if 'latex' in line and index_file!=-1 :
+        if 'latex' in line and index_file != -1:
             # bestimmt die Index-Position von 'not found' in der aktuell betrachteten Zeile
             index_notf = line.find('not found')
             # falls 'not found' in der aktuell betrachteten Zeile enthalten ist
-            if index_notf!=-1 :
+            if index_notf != -1:
                 # extrahiert den Namen der fehlenden Datei aus der aktuell betrachteten Zeile
-                filename = line[index_file+len('file')+2 : index_notf-2]
-                error    = ERROR_MESSAGES['COMPILATIONERROR_FILENOTFOUND']+': Die Datei \''+filename+'\' konnte nicht gefunden werden.'
+                filename = line[index_file + len('file') + 2: index_notf - 2]
+                error = ERROR_MESSAGES['COMPILATIONERROR_FILENOTFOUND'] + \
+                        ': Die Datei \'' + filename + '\' konnte nicht gefunden werden.'
                 # bestimmt die Index-Position von 'line' in der aktuell betrachteten Zeile
                 index_line = line.find('line')
                 # falls 'line' in der aktuell betrachteten Zeile enthalten ist
-                if index_line!=-1 :
+                if index_line != -1:
                     # extrahiert die Zeilennummer für die fehlende Datei aus der aktuell betrachteten Zeile
-                    line_no = line[index_line+len('line')+1 : len(line)-2]
-                    error  += ' (Zeile '+line_no+')'
+                    line_no = line[index_line + len('line') + 1: len(line) - 2]
+                    error += ' (Zeile ' + line_no + ')'
                 # fügt die ermittelte Fehlermeldung hinzu
                 errors.append(error)
 
         # ----------------------------------------------------------------------------------------------------
         #                                             SYNTAX ERROR
         # ----------------------------------------------------------------------------------------------------
-        if 'job aborted' in line :
-            if 'no legal \end found' in line :
-                errors.append(ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR']+': Es konnte kein gültiges \end gefunden werden.')
+        if 'job aborted' in line:
+            if 'no legal \end found' in line:
+                errors.append(
+                    ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR'] + ': Es konnte kein gültiges \end gefunden werden.')
         # undefiniertes Steuerzeichen
-        if 'undefined control sequence' in line :
-            error = ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR']+': Undefiniertes Steuerzeichen.'
+        if 'undefined control sequence' in line:
+            error = ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR'] + ': Undefiniertes Steuerzeichen.'
             # extrahiert die Zeilennummer für das undefinierte Steuerzeichen aus der nächsten log-Zeile
             nxt_line = str(log.readline())
             line_no = nxt_line[2:nxt_line.find(' ')]
-            error  += ' (Zeile '+line_no+')'
+            error += ' (Zeile ' + line_no + ')'
             # fügt die ermittelte Fehlermeldung hinzu
             errors.append(error)
 
         # ----------------------------------------------------------------------------------------------------
         #                                          CITATION UNDEFINED
         # ----------------------------------------------------------------------------------------------------
-        if "citation" in line :
+        if "citation" in line:
             errors.append(ERROR_MESSAGES['COMPILATIONERROR_CITATIONUNDEFINED'])
 
     log.close()
 
     # bei unbehandelten Fehlern wird eine allgemeine Kompilierungsfehlermeldung zurückgegeben
-    if len(errors)==0 :
+    if len(errors) == 0:
         errors.append(ERROR_MESSAGES['COMPILATIONERROR'])
-
     return errors
 
-#
-# Liefert den Dateipfad zum Latexmk-Script.
-#
-# @return den Dateipfad zum Latexmk-Script
-#
+
 def latexmk_path():
-    return os.path.join(BASE_DIR,"app","common","latexmk.pl")
+    """Liefert den Dateipfad zum Latexmk-Script.
+
+    :return: Dateipfad zum Latexmk-Script
+    """
+
+    return os.path.join(BASE_DIR, "app", "common", "latexmk.pl")
+
+
+def execute_command(args, console_output=False):
+    """Führt einen Befehl mit den zugehörigen Parametern aus.
+
+    :param args: Liste mit dem auszuführenden Befehl und den zugehörigen Parametern
+    :return: return code des Programmaufrufs
+    """
+
+    if console_output:
+        return subprocess.call(args)
+    else:
+        return subprocess.call(args, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, bufsize=0)
+
+
+def htlatex_script(parameter, console_output=False):
+    """htlatex Skript aus texlive (unter Linux in /usr/bin/htlatex)
+
+    :param parameter: notwendige Paramater für die Ausführung des htlatex Skripts
+    :param console_output aktiviert die Ausgabe des Programmaufrufs in der Konsole
+    :return: return code der Ausführung
+    """
+
+    code = r'\makeatletter\def\HCode{\futurelet\HCode\HChar}\def\HChar{\ifx"\HCode\def\HCode"##1"{\Link##1}\expandafter\
+    HCode\else\expandafter\Link\fi}\def\Link#1.a.b.c.{\g@addto@macro\@documentclasshook{\RequirePackage[#1,html]' \
+           '{tex4ht}}\let\HCode\documentstyle\def\documentstyle{\let\documentstyle\HCode\expandafter\def\csname tex4ht\
+           endcsname{#1,html}\def\HCode####1{\documentstyle[tex4ht,}\@ifnextchar[{\HCode}{\documentstyle[tex4ht]}}}' \
+           '\makeatother\HCode ' + parameter['2'] + r'.a.b.c.\input '
+    execute_command(['latex', parameter['5'], code, parameter['1']], console_output)
+    execute_command(['latex', parameter['5'], code, parameter['1']], console_output)
+    execute_command(['latex', parameter['5'], code, parameter['1']], console_output)
+    execute_command(['tex4ht', r'-f/' + parameter['1'], r'-i~/tex4ht.dir/texmf/tex4ht/ht-fonts/' + parameter['3']],
+                    console_output)
+    return execute_command(['t4ht', r'-f/' + parameter['1'], parameter['4']], console_output)
+
+
+def createZipFile(args):
+    """Erstellt eine zip Datei aus der HTML Datei.
+
+    :param args: Argumente welche für die Erstellung der zip Datei notwendig sind, z.B. Pfadangaben
+    :return: id und name der erstellten Datei
+    """
+
+    # Temp Ordner zur Speicherung der zip Datei
+    tmp_folder = util.getNewTempFolder()
+
+    # Name der zip Datei test.tex -> test_pdf-html.zip|test_html.zip
+    zip_file_name = args['outputfilename']
+    zip_file_path = os.path.join(tmp_folder, zip_file_name)
+
+    # überprüfe, ob die zip Datei bereits existiert, falls ja dann lösche diese
+    binsrcobj = BinaryFile.objects.filter(name=zip_file_name, folder=args['texobj'].folder)
+    if binsrcobj.exists():
+        binsrcobj[0].delete()
+
+    # erstelle die zip Datei aus dem Ordner
+    util.createZipFromFolder(args['outdirpath'], zip_file_path)
+
+    # speichere die zip Datei in der Datenbank
+    binary_file = open(zip_file_path, 'rb')
+    binaryobj = BinaryFile.objects.createFromFile(name=zip_file_name, file=binary_file,
+                                                  folder=args['texobj'].folder, mimeType=ZIPMIMETYPE)
+    binary_file.close()
+
+    # lösche den temp Ordner
+    if os.path.isdir(tmp_folder):
+        shutil.rmtree(tmp_folder)
+
+    return {'id': binaryobj.id, 'name': binaryobj.name}

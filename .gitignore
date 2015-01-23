@@ -10,7 +10,6 @@ __pycache__/
 env/
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 lib/
@@ -74,3 +73,6 @@ tags
 *.swo
 
 /media/
+
+# user specific settings
+latexwebofficeconf.py

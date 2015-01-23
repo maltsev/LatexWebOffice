@@ -1,0 +1,41 @@
+.fileswrapper {
+    border-radius: 4px;
+    background: #fafafa;
+    padding-bottom: 5px;
+    overflow: hidden;
+}
+
+.filesitem-name {
+    width: 35%;
+    display: inline-block;
+    padding-right: 40px;
+}
+
+.filesitem-nameWrapper {
+    width: 100%;
+    display: inline-block;
+    overflow: hidden;
+}
+
+.filesitem-editdate {
+    color: #95a5a6;
+    vertical-align: top;
+}
+
+.filesitem-size {
+    font-size: 10px;
+    color: #95a5a6;
+    padding-left: 3px;
+    vertical-align: top;
+}
+
+.fileswrapper .jstree-anchor {
+    border-radius: 4px;
+    display: inline-block;
+    width: 96%;
+}
+
+.popover {
+	border-color: #000000;
+	color: #000000;
+}

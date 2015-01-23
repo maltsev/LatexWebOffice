@@ -29,9 +29,11 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
-TEMPLATE_CONTEXT_PROCESSORS += ('app.contextprocessors.settingsprocessor.error_messages',)
+TEMPLATE_CONTEXT_PROCESSORS += ('app.contextprocessors.settingsprocessor.Error_messages',
+                                'app.contextprocessors.settingsprocessor.Available_commands',
+                                'app.contextprocessors.settingsprocessor.Global_paras',)
 
 # Application definition
 
@@ -104,6 +106,7 @@ LOGIN_URL = '/login/'
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'app', 'static')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -127,3 +130,7 @@ if 'test' in sys.argv:
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
+try:
+    from core.latexwebofficeconf import *
+except:
+    pass

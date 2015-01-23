@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Mi 12 Nov 2014 09:16:05 CET
+* Last Modified : Mi 14 Jan 2015 11:44:00 CET
 
 * Author :  maltsev
 
@@ -25,6 +25,7 @@ from core.settings import LOGIN_URL
 from app.common.constants import ERROR_MESSAGES
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.views.decorators.csrf import csrf_exempt
 from django.template import Template, context, RequestContext
 import re
 
@@ -38,7 +39,7 @@ import re
 #  @param request The HttpRequest Object
 def login(request):
     if request.user.is_authenticated():
-        return redirect('/')
+        return redirect('/projekt/')
 
     email = ''
     if request.method == 'POST':
@@ -50,7 +51,7 @@ def login(request):
         if user is not None:
             if user.is_active:
                 auth.login(request, user)
-                return redirect('/')
+                return redirect('/projekt/')
             else:
                 messages.error(request, ERROR_MESSAGES['INACTIVEACCOUNT'].format(email))
 
@@ -77,7 +78,7 @@ def logout(request):
 def registration(request):
 
     if request.user.is_authenticated():
-        return redirect('/')
+        return redirect('/projekt/')
 
     email = ''
     first_name = ''
@@ -91,10 +92,6 @@ def registration(request):
         # boolean, true if there are errors in the user data
         foundErrors = False
 
-        # regular expression for first_name
-        # should only contain ASCII characters 33 - 126 (hex: 21 - 7E)
-        # and german special characters äöüß, no spaces allowed
-        regex_first_name = re.compile('^[\x21-\x7EÄÖÜäöüß´°]*$')
 
         # validation checks
         # no empty fields
@@ -108,11 +105,6 @@ def registration(request):
         # no valid email format
         if not validEmail(email):
             messages.error(request, ERROR_MESSAGES['INVALIDEMAIL'])
-            foundErrors = True
-        # first name may only contain standard ASCII characters
-        # and some german special characters
-        if not regex_first_name.match(first_name):
-            messages.error(request, ERROR_MESSAGES['INVALIDCHARACTERINFIRSTNAME'])
             foundErrors = True
         # passwords may not contain any spaces
         if ' ' in password1:
@@ -132,17 +124,26 @@ def registration(request):
             if user is not None:
                 if user.is_active:
                     auth.login(request, user)
-                    return redirect('/')
+                    return redirect('/projekt/')
             else:
                 messages.error(request, ERROR_MESSAGES['LOGINORREGFAILED'])
 
     return render_to_response('registration.html', {'first_name': first_name, 'email': email}, context_instance=RequestContext(request))
 
 
+@csrf_exempt
+#Überprüft, ob eine Emailadresse bereits registiert ist. Falls sie registiert ist, wird false zurückgesendet. Andernfalls true.
+def userexists(request):
+    from django.http import HttpResponse
+    if request.method=='POST' and request.POST.get('email'):
+        if  User.objects.filter(username=request.POST.get('email')).exists():
+            return HttpResponse("false")
+
+    return HttpResponse('true')
+
+
+
 # Helper function to check if a email address is valid
 def validEmail(email):
-    try:
-        validate_email(email)
-        return True
-    except ValidationError:
-        return False
+    regex_email=re.compile("^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+    return regex_email.match(email)

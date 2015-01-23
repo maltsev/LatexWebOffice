@@ -1,0 +1,61 @@
+.projectswrapper {
+    border-radius: 4px;
+    background: #fafafa;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.projectitem-name {
+    display: inline-block;
+    width: 40%;
+    padding-right: 5px;
+}
+
+.projectitem-createdate {
+    color: #95a5a6;
+    width: 20%;
+    min-width: 110px;
+    display: inline-block;
+    padding-right: 5px;
+    vertical-align: top;
+}
+
+.projectitem-author {
+    color: #95a5a6;
+    vertical-align: top;
+}
+
+.projectswrapper .jstree-icon {
+    display: none;
+}
+
+.projectswrapper .jstree-node {
+    background: none;
+}
+
+.projectswrapper .jstree-anchor {
+    padding: 5px 10px;
+    height: auto;
+    border-radius: 4px;
+    display: block;
+}
+
+#overwritecheckbox{
+	width:25px;
+	outline:initial;
+}
+#overwritecheckboxlabel{
+	text-align:left;
+}
+
+.popover {
+	border-color: #000000;
+	color: #000000;
+}
+
+.textfield {
+	width: 100%;
+}
+#files {
+	height:initial;
+}

@@ -1,22 +1,30 @@
 <!--
-@author: Martin Koláček, Franziska Everinghoff
+@author: Martin Koláček, Franziska Everinghoff, Kirill Maltsev, Thore Thießen
 @creation: 03.11.2014 - sprint-nr: 1
-@last-change: 20.11.2014 - sprint-nr: 2
+@last-change: 08.01.2015 - sprint-nr: 4
 -->
 
 <!-- embedding file: _wrapper.html -->
 {% extends "_wrapper.html" %}
 
 {% block header %}
-<link rel="stylesheet" href="/static/css/listselector.css">
-<link rel="stylesheet" href="/static/css/menuleiste.css">
-<script src="/static/js/listselector.js"></script>
-<script src="/static/js/dateien.js"></script>
+    <link rel="stylesheet" href="/static/css/dateien.css">
+    <!-- js template engine -->
+    <script src="/static/js/doT.min.js"></script>
+    <script src="/static/js/dateien.js"></script>
+    <style>
+        #jstree-dnd .jstree-icon {
+            display: none !important;
+        }
+
+        .invisible {
+            display: none;
+        }
+    </style>
 {% endblock %}
 
 <!-- content to embed in wrapper.html as content -->
 {% block content %}
-<h1>Übersicht über die Dateien</h1>
 <!-- Fehlermeldungen als Dialoge -->
 <div id="dialog_keine_rechte_loeschen" title="Löschen fehlgeschlagen" style="display: none;">
   <p>Sie haben nicht ausreichend Rechte, um diese Aktion durchzuführen.
@@ -75,61 +83,190 @@
   <p onClick="removePopup('rename');showPopup('new_name_file');"> Datei umbenennen</p><!--renameFolderAndFiles(getFileId(),'file')renameFolderAndFiles(getFolderId(),'folder')-->
   <p onClick="removePopup('rename');showPopup('new_name_folder');"> Ordner umbenennen</p>
 </div>
-<div id="dialog_uploadFile" title="Datei Hochladen" style="display: none">
-	<p>Bitte wählen Sie Dateien zum Hochladen aus!<br />
-	Erlaubte Dateien (.tex|.jpg|.png|.pdf).</p>
-	<p id="dialog_uploadFile_message" class="error invisible"></p>
-	<p style="text-align: center">
-		<form id="dialog_uploadFile_form" action="/documents/" method="post" 
-				target="dialog_uploadFile_dstFrame" enctype="multipart/form-data">
-			{% csrf_token %}
-			<input type="hidden" name="command" value="uploadfiles" />
-			<input type="file" name="files" accept="tex|jpg|png|pdf" />
-			<input type="submit" value="Hochladen" />
-		</form>
-	</p>
-	<iframe name="dialog_uploadFile_dstFrame" class="invisible"></iframe>
-</div>
-<div id="inhalt">
 
-    {% comment %}
-        Stub Page
-    {% endcomment %}
-	
-	<div id="menu">
-	
-		<ul>
-		  <li id="open" onClick="openEditor()" class="topmenu">
-			<a>Öffnen</a>
-		  </li>
-		  <li class="topmenu">
-			<a href="">Erstellen</a>
-		  </li>
-		  <li class="topmenu">
-			<a id="upload" href="">Hochladen</a>
-		  </li>
-		  <li class="topmenu">
-			<a id="download" href="#">Herunterladen</a>
-		  </li>
-		  <li onClick="showPopup('rename')" class="topmenu">
-			<a>Umbenennen</a>
-		  </li>
-		  <li class="topmenu">
-			<a href="">Verschieben</a>
-		  </li>
-		  <li onClick="showPopup('remove')" class="topmenu">
-			<a>Löschen</a>
-		  </li>
-		</ul>
-		<ul>
-		
+<!-- Löschen-Bestätigen-Dialog -->
+<div class="modal fade filesdialog-delete" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title filesdialog-delete-title"></h4>
+			</div>
+			<div class="modal-body">
+				<p class="filesdialog-delete-text"></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default filesdialog-delete-yes" data-dismiss="modal">
+					Ja
+				</button>
+				<button type="button" class="btn btn-primary filesdialog-delete-no" data-dismiss="modal">
+					Nein
+				</button>
+			</div>
+		</div>
 	</div>
-	<div id="dateien">
-	
+</div>
+
+<!-- Hochladen-Dialog -->
+<div class="modal fade filesdialog-upload" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title">Dateien hochladen</h4>
+			</div>
+			<div class="modal-body">
+				<p>
+					Bitte wählen Sie Dateien zum Hochladen aus, erlaubte Dateien sind *.{tex, jpg, png, 
+					pdf}:
+				</p>
+				<p class="alert alert-danger invisible filesdialog-upload-message" role="alert"></p>
+				<form class="filesdialog-upload-form" action="#" method="post" 
+						enctype="multipart/form-data">
+					{% csrf_token %}
+					<input type="hidden" name="command" value="uploadfiles" />
+					<input class="filesdialog-upload-folderid" type="hidden" name="id" />
+					<input class="filesdialog-upload-files" type="file" name="files" 
+							accept="tex|jpg|png|pdf" multiple />
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default filesdialog-upload-do">
+					Hochladen
+				</button>
+				<button type="button" class="btn btn-primary filesdialog-delete-abort" data-dismiss="modal">
+					Abbrechen
+				</button>
+			</div>
+		</div>
 	</div>
-	
-    
 </div>
+
+<div class="input_popover" id="input_popover" data-container="body" data-toggle="popover" data-placement="top" data-content="Geben Sie einen Namen ein:"></div>
+
+<h1>Dateien und Ordner</h1>
+
+<div class="filescolumn">
+    <div class="scrollableblock">
+        <div class="btn-toolbar hidden-xs filestoolbar" role="toolbar">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default filestoolbar-open" disabled>Öffnen</button>
+            </div>
+
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default filestoolbar-newfile">Datei erstellen</button>
+                <button type="button" class="btn btn-default filestoolbar-newfolder">Verzeichnis erstellen</button>
+                <button type="button" class="btn btn-default filestoolbar-delete" disabled>Löschen</button>
+                <button type="button" class="btn btn-default filestoolbar-rename" disabled>Umbennenen</button>
+            </div>
+
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default filestoolbar-download" disabled>Herunterladen</button>
+                <button type="button" class="btn btn-default filestoolbar-upload">Hochladen</button>
+            </div>
+        </div>
+
+        <div class="btn-toolbar visible-xs-block filestoolbar" role="toolbar">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default filestoolbar-open" disabled>
+                    <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+                </button>
+            </div>
+
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default filestoolbar-newfile">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                </button>
+                <button type="button" class="btn btn-default filestoolbar-newfolder">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                </button>
+                <button type="button" class="btn btn-default filestoolbar-delete" disabled>
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                </button>
+                <button type="button" class="btn btn-default filestoolbar-rename" disabled>
+                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                </button>
+            </div>
+
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default filestoolbar-download" disabled>
+                    <span class="glyphicon glyphicon-save" aria-hidden="true"></span>
+                </button>
+                <button type="button" class="btn btn-default filestoolbar-upload">
+                    <span class="glyphicon glyphicon-open" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {% verbatim %}
+    <script id="template_filesitem-file" type="text/template">
+        <span class="filesitem-name fadeblock" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
+            <span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
+        </span>
+        <span class="filesitem-editdate" title="Verändert {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
+    </script>
+    {% endverbatim %}
+
+    {% verbatim %}
+    <script id="template_filesitem-folder" type="text/template">
+        <span class="filesitem-name fadeblock" title="Verzeichnis">
+            <span class="filesitem-nameWrapper">{{= it.name }}</span>
+        </span>
+    </script>
+    {% endverbatim %}
+
+    <div class="fileswrapper" style="max-width: 823px"></div>
 </div>
+
+<!--
+
+<ul class="files">
+            <li class="filesitem-folder" data-jstree='{"type":"folder"}'>
+                <span class="filesitem-name" title="Verzeichnis">Aufgaben</span>
+	            <ul>
+	                <li class="filesitem-file" data-jstree='{"type":"file"}'>
+                        <span class="filesitem-name" title="text/x-tex, erstellt am 2014-12-12 14:32:09">
+                            Aufgabe 1.tex <span class="filesitem-size">5 KB</span>
+                        </span>
+                        <span class="filesitem-editdate" title="Verändert am 2014-12-21 13:01:13">2014-12-21 13:01:13</span>
+                    </li>
+                    <li class="filesitem-file" data-jstree='{"type":"file"}'>
+                        <span class="filesitem-name" title="text/x-tex, erstellt am 2014-12-12 14:32:09">
+                            Aufgabe 2.tex <span class="filesitem-size">1 KB</span>
+                        </span>
+                        <span class="filesitem-editdate" title="Verändert am 2014-12-30 19:56:23">2014-12-30 19:56:23</span>
+                    </li>
+                    <li class="filesitem-file" data-jstree='{"type":"file"}'>
+                        <span class="filesitem-name" title="text/x-tex, erstellt am 2014-12-12 14:32:09">
+                            Aufgabe 3.tex <span class="filesitem-size">12 KB</span>
+                        </span>
+                        <span class="filesitem-editdate" title="Verändert am 2014-12-25 23:01:50">2014-12-25 23:01:50</span>
+                    </li>
+	            </ul>
+            </li>
+            <li class="filesitem-folder" data-jstree='{"type":"emptyFolder"}'>
+                <span class="filesitem-name" title="Verzeichnis">Vorlesungen</span>
+            </li>
+            <li class="filesitem-file" data-jstree='{"type":"file"}'>
+                <span class="filesitem-name" title="text/x-tex, erstellt am 2014-12-12 14:32:09">
+                    main.tex <span class="filesitem-size">40 KB</span>
+                </span>
+                <span class="filesitem-editdate" title="Verändert am 2014-12-20 04:15:01">2014-12-20 04:15:01</span>
+            </li>
+            <li class="filesitem-file" data-jstree='{"type":"pdf"}'>
+                <span class="filesitem-name" title="application/pdf, erstellt am 2014-12-12 14:32:09">
+                    main.pdf <span class="filesitem-size">143 KB</span>
+                </span>
+                <span class="filesitem-editdate" title="Verändert am 2014-12-20 04:15:01">2014-12-20 04:15:01</span>
+            </li>
+        </ul>
+
+-->
+
 {% endblock %}
 <!-- end of content to embed -->

@@ -39,6 +39,20 @@ class ProjectManager(models.Manager):
 
         return project
 
+    def cloneProject(self, **kwargs):
+        if 'project' not in kwargs:
+            raise AttributeError('Project ist nicht eingegeben')
+
+        project = kwargs['project']
+
+        newProjectName = kwargs['name']
+
+        newProject = self.create(name=newProjectName, author=project.author)
+
+        folder.Folder.objects.copy(project.rootFolder, newProject.rootFolder)
+
+        return newProject
+
 
 class Project(projecttemplate.ProjectTemplate):
     objects = ProjectManager()

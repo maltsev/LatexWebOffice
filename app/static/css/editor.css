@@ -1,0 +1,109 @@
+.symbolbar_bg {
+    background: #95a5a6;
+    padding: 0;
+    min-height: 50px;
+}
+.container-fluid {
+    height: 100%;
+}
+.container-fluid-content {
+    padding-left:0px; padding-right:0px;
+}
+body,html {
+    color: grey;
+    height: 100%;
+}
+
+#editorsymbols button {
+    margin-left: 1px;
+    height: 50px;
+    width: 50px;
+    border: 0;
+}
+
+#table-assistent,#graphik-assistent{
+top:60px;
+outline: none;
+}
+
+#toggle .navbar-toggle {
+    margin-bottom: 0;
+}
+.navbar-default #toggle .navbar-toggle {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border-color: white;
+}
+ul.nav li button {
+    background-color: Transparent;
+}
+.navbar-default #toggle .navbar-toggle:focus {
+    background-color: Transparent;
+}
+.navbar-default #toggle .navbar-toggle:hover {
+    background: #798d8f;
+}	
+.navbar-default #toggle .navbar-toggle .icon-bar {
+    background-color: white;
+}
+.navbar-default:hover #toggle .navbar-toggle:hover .icon-bar {
+    background-color: white;
+}
+.btn-group {
+    border: 0;
+}
+
+.editorbtn-group .btn {
+    border-radius: 0px;
+}
+
+.ace_content {
+    overflow-y: hidden;
+}
+
+.ace_scrollbar-v {
+    overflow-y: scroll;
+}
+
+/* Einstellungen für jquery-layout (SplitView) */
+.ui-layout-pane {  
+    background: #FFF; 
+    border: 0px solid #BBB; 
+    padding: 0px; 
+    overflow: auto;
+} 
+
+.ui-layout-resizer {
+    background: grey;
+} 
+
+.ui-layout-toggler {
+    background: #2C3E50; 
+}
+
+canvas {
+    display: block;
+}
+
+hr {
+    color: #2C3E50;
+    background-color: #2C3E50;
+    height: 5px;
+}
+
+div#pdfviewer_msg{
+    height:50px;
+    width:250px;
+    position:absolute;
+    top:0;
+    right:20px;
+    color: #ead;
+    text-align: right;
+    vertical-align: middle;
+    line-height: 50px;
+}
+
+#compile_log{
+	padding-left:10px;
+	padding-right:10px;
+}

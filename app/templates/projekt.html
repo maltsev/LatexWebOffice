@@ -1,88 +1,162 @@
 <!--
-@author: Thore Thießen
+@author: Thore Thießen, Kirill Maltsev
 @creation: 04.12.2014 - sprint-nr: 2
-@last-change: 12.12.2014 - sprint-nr: 3
+@last-change: 12.12.2014 - sprint-nr: 4
 -->
 
 {% extends "_wrapper.html" %}
 
 <!-- Header -->
 {% block header %}
-<link rel="stylesheet" href="/static/css/menuleiste.css">
-<link rel="stylesheet" href="/static/css/listselector.css">
-<script src="/static/js/listselector.js"></script>
-<script src="/static/js/projekt.js"></script>
+    <link rel="stylesheet" href="/static/css/projekt.css"> 
+    <script src="/static/js/projekt.js"></script>
+    <script src="/static/js/jquery.validate.min.js"></script>
+    <script src="/static/js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
 {% endblock %}
+
+
 
 <!-- Inhalt -->
 {% block content %}
-<!-- Dialogboxen -->
-<div id="dialog_noSelection" title="Kein Projekt ausgewählt" style="display: none">
-	<p>Sie haben keine Auswahl getroffen, bitte wählen sie zum <span id="dialog_noSelection_method">
-	</span> ein Projekt aus.</p>
-	<p style="text-align: center">
-		<button id="dialog_noSelection_ok">OK</button>
-	</p>
-</div>
-<div id="dialog_deleteConfirmation" title="Projekt löschen" style="display: none">
-	<p>Sind Sie sicher, dass sie das ausgewählte Projekt löschen wollen?</p>
-	<p style="text-align: center">
-		<button id="dialog_deleteConfirmation_yes">Ja</button>
-		<button id="dialog_deleteConfirmation_no">Nein</button>
-	</p>
-</div>
-<div id="dialog_createProject" title="Projekt erstellen" style="display: none">
-	<p>Bitte geben Sie einen Namen für das neu zu erstellende Projekt an, der Name darf nicht mit dem 
-	eines Ihrer anderen Projekte übereinstimmen:</p>
-	<p id="dialog_createProject_message" class="error invisible"></p>
-	<p style="text-align: center">
-		<input type="text" id="dialog_createProject_name" />
-		<button id="dialog_createProject_ok">OK</button>
-	</p>
-</div>
-<div id="dialog_importZip" title="Projekt aus ZIP importieren" style="display: none">
-	<p>Bitte wählen Sie eine Datei zum Importieren aus!<br />
-	Nur ZIP-Dateien sind erlaubt.</p>
-	<p id="dialog_importZip_message" class="error invisible"></p>
-	<p style="text-align: center">
-		<form id="dialog_importZip_form" action="/documents/" method="post" 
-				target="dialog_importZip_dstFrame" enctype="multipart/form-data">
-			{% csrf_token %}
-			<input type="hidden" name="command" value="importzip" />
-			<input type="file" name="files" accept="application/zip" />
-			<input type="submit" value="Importieren" />
-		</form>
-	</p>
-	<iframe name="dialog_importZip_dstFrame" class="invisible"></iframe>
+<!-- Modal -->
+<div class="modal fade" id="modal_deleteConfirmation" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Projekt löschen</h4>
+      </div>
+      <div class="modal-body">
+        <p>Sind Sie sicher, dass Sie das ausgewählte Projekt löschen wollen?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default modal_deleteConfirmation_yes" data-dismiss="modal">Ja</button>
+        <button type="button" class="btn btn-primary modal_deleteConfirmation_no" data-dismiss="modal">Nein</button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<h1>Übersicht über die Projekte</h1>
-<div id="inhalt">
-	<div id="menu">
-		<ul>
-			<li class="topmenu">
-				<a id="open" href="#">Öffnen</a>
-			</li>
-			<li class="topmenu">
-				<a id="create" href="#">Erstellen</a>
-			</li>
-			<li class="topmenu">
-				<a id="delete" href="#">Löschen</a>
-			</li>
-			<li class="topmenu">
-				<a href="#">Umbenennen</a>
-			</li>
-			<li class="topmenu">
-				<a id="export" href="#">Export</a>
-			</li>
-			<li class="topmenu">
-				<a id="importzip" href="#">Import</a>
-			</li>
-			<li class="topmenu">
-				<a href="#">Freigeben</a>
-			</li>
-		</ul>
-	</div>
-	<div id="projekte"></div>
+<!-- Modal -->
+{% include "errormodal.html" with  modalerrorid='projectimporterror' %}
+<div class="modal fade" id="projekt-import-modal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="importModalLabel">Projekt importieren</h4>
+      </div>
+      <div class="modal-body">
+	<form class="form-horizontal" action="#" method="post" enctype="multipart/form-data" role="form" data-toggle="validator"  id="projektimportposter">
+		{% csrf_token %}
+		<input type="hidden" name="command" value="importzip"/>
+		<div class="form-group has-feedback">
+			<label for="projektzipfile" class="col-sm-3 control-label">Projekt (als zip)</label>
+			<div class="col-sm-9">
+				<input type="file" name="files" class="form-control" id="files">
+			</div>
+		</div>
+		<div id='checkboxdiv' class="hidden form-group has-feedback">
+			<div class="col-sm-offset-3 col-sm-3">
+				<input type="checkbox" name="overwritecheckbox" class="form-control" id="overwritecheckbox">
+			</div>
+			<label for="overwritecheckbox" id="overwritecheckboxlabel" class="col-sm-6 control-label">Wollen Sie das bestehende Projekt überschreiben?</label>
+		</div>
+
+		<div class="modal-footer col-sm-offset-2">
+			<button type="submit" class="btn btn-primary">Hochladen</button>
+		</div>
+	</form>
+      </div>
+    </div>
+  </div>
 </div>
+
+<div class="modal fade" id="modal_projectToTemplate" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Projekt in Vorlage umwandeln</h4>
+      </div>
+      <div class="modal-body">
+        <p>Geben Sie einen Namen für die zu erstellende Vorlage ein:</p>
+        <p style="text-align: center">
+        	<input type="text" class="textfield" id="modal_projectToTemplate_tf"/>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default modal_projectToTemplate_confirm" data-dismiss="modal">Bestätigen</button>
+        <button type="button" class="btn btn-primary modal_projectToTemplate_cancel" data-dismiss="modal">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="input_popover" id="input_popover" data-container="body" data-toggle="popover" data-placement="top" data-content="Geben Sie einen Namen ein:"></div>
+
+<div class="error_popover" id="error_popover" data-container="body" data-toggle="popover" data-placement="top"></div>
+
+<h1>Projekte</h1>
+
+<div class="projectscolumn">
+    <div class="scrollableblock">
+        <div class="btn-toolbar hidden-xs projecttoolbar" role="toolbar">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default projecttoolbar-open" disabled>Öffnen</button>
+            </div>
+
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default projecttoolbar-new">Erstellen</button>
+                <button type="button" class="btn btn-default projecttoolbar-delete" data-toggle="modal" data-target="#modal_deleteConfirmation" disabled>Löschen</button>
+                <button type="button" class="btn btn-default projecttoolbar-rename" disabled>Umbennenen</button>
+                <button type="button" class="btn btn-default projecttoolbar-duplicate" disabled>Duplizieren</button>
+            </div>
+
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default projecttoolbar-converttotemplate" disabled>in Vorlage umwandeln</button>
+                <button type="button" class="btn btn-default projecttoolbar-export" disabled>Export</button>
+                <button type="button" class="btn btn-default projecttoolbar-import" data-toggle="modal" data-target="#projekt-import-modal">Import</button>
+            </div>
+        </div>
+
+        <div class="btn-toolbar visible-xs-block projecttoolbar" role="toolbar">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default projecttoolbar-open" disabled>
+                    <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+                </button>
+            </div>
+
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default projecttoolbar-new">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                </button>
+                <button type="button" class="btn btn-default projecttoolbar-delete" disabled>
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                </button>
+                <button type="button" class="btn btn-default projecttoolbar-rename" disabled>
+                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                </button>
+                <button type="button" class="btn btn-default projecttoolbar-duplicate" disabled>
+                    <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
+                </button>
+            </div>
+
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default projecttoolbar-converttotemplate" disabled>
+                    <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+                </button>
+                <button type="button" class="btn btn-default projecttoolbar-export" disabled>
+                    <span class="glyphicon glyphicon-save" aria-hidden="true"></span>
+                </button>
+                <button type="button" class="btn btn-default projecttoolbar-import">
+                    <span class="glyphicon glyphicon-open" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="projectswrapper" style="max-width: 820px"></div>
+</div>
+
 {% endblock %}

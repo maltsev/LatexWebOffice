@@ -16,22 +16,20 @@
 
 """
 from app.models.folder import Folder
-from app.models.project import Project
-from app.models.file.file import File
-from app.models.file.texfile import TexFile
-from app.models.file.plaintextfile import PlainTextFile
-from app.models.file.binaryfile import BinaryFile
 from app.common import util
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE
-from django.conf import settings
-from django.db import transaction
-import mimetypes, os, io
+from app.common.constants import ERROR_MESSAGES
 
 
-# erstellt einen neuen Ordner im angegebenen Verzeichnis
-# benötigt: id:parentdirid, name:directoryname
-# liefert: HTTP Response (Json)
 def createDir(request, user, parentdirid=0, directoryname=""):
+    """Erstellt einen neuen Ordner im angegebenen Verzeichnis.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param parentdirid: Id des übergeordneten Ordners
+    :param directoryname: Name des zu erstellenden Ordners
+    :return: HttpResponse (JSON)
+    """
+
     # hole das übergeordnete Ordner Objekt
     parentdirobj = Folder.objects.get(id=parentdirid)
 
@@ -47,13 +45,18 @@ def createDir(request, user, parentdirid=0, directoryname=""):
         return util.jsonResponse({'id': newfolder.id, 'name': newfolder.name, 'parentid': parentdirobj.id,
                                   'parentname': parentdirobj.name}, True, request)
     except:
-        return util.jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
-# löscht den Ordner mit der angegebenen ID
-# benötigt: id:folderid
-# liefert: HTTP Response (Json)
 def rmDir(request, user, folderid):
+    """Löscht den Ordner mit der angegebenen Id.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param folderid: Id des zu löschenden Ordners
+    :return: HttpResponse (JSON)
+    """
+
     # hole das Ordner Objekt
     folderobj = Folder.objects.get(id=folderid)
 
@@ -66,16 +69,21 @@ def rmDir(request, user, folderid):
         folderobj.delete()
         return util.jsonResponse({}, True, request)
     except:
-        return util.jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
-# benennt den Ordner mit der angegebenen ID um
-# benötigt: id:folderid, name:newdirectoryname
-# liefert: HTTP Response (Json)
 def renameDir(request, user, folderid, newdirectoryname):
+    """Benennt den Ordner mit der angegebenen Id um.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param folderid: Id des Ordners, welcher umbenannt werden soll
+    :param newdirectoryname: neuer Name des Ordners
+    :return: HttpResponse (JSON)
+    """
+
     # hole das Ordner Objekt
     folder = Folder.objects.get(id=folderid)
-
 
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert
     unique, failurereturn = util.checkIfFileOrFolderIsUnique(newdirectoryname, Folder, folder.parent, request)
@@ -88,17 +96,18 @@ def renameDir(request, user, folderid, newdirectoryname):
         folder.save()
         return util.jsonResponse({'id': folder.id, 'name': folder.name}, True, request)
     except:
-        return util.jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
-# verschiebt den Ordner mit der angegebenen id in den neuen Ordner mit der newfolderid
-# benötigt: id: folderid, folderid: newfolderid
-# liefert HTTP Response (Json)
 def moveDir(request, user, folderid, newfolderid):
-    # Überprüfe ob Ziel Ordner existiert, und der Benutzer die entsprechenden Rechte besitzt
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(newfolderid, user, request)
-    if not rights:
-        return failurereturn
+    """Verschiebt den Ordner mit der angegebenen id in den neuen Ordner mit der newfolderid.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param folderid: Id des Ordners, der verschoben werden soll
+    :param newfolderid: Id des Ordners, in welchen der Ordner mit der folderid verschoben werden soll
+    :return: HttpResponse (JSON)
+    """
 
     # hole die beiden Ordner Objekte
     folderobj = Folder.objects.get(id=folderid)
@@ -106,7 +115,8 @@ def moveDir(request, user, folderid, newfolderid):
 
     # Teste ob Ordnername in diesem Verzeichnis bereits existiert
     unique, failurereturn = util.checkIfFileOrFolderIsUnique(folderobj.name, Folder, newparentfolderobj, request)
-    if not unique:
+    # Man darf ein Verzeichnis in dieselbes Verzeichnis verschieben (dann passiert einfach nichts)
+    if not unique and folderobj.parent != newparentfolderobj:
         return failurereturn
 
     # Versuche die Änderung in die Datenbank zu übernehmen
@@ -123,14 +133,18 @@ def moveDir(request, user, folderid, newfolderid):
                                   'rootid': folderobj.root.id},
                                  True, request)
     except:
-        return util.jsonErrorResponse(ERROR_MESSAGES['UNKOWNERROR'], request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
-# liefert eine Übersicht der Dateien/Unterordner eines Ordners (bzw. Projektes)
-# benötigt: id:folderid
-# liefert: HTTP Response (Json)
-# Beispiel response: {type: 'folder', name: 'folder1', id=1, content: {type :
 def listFiles(request, user, folderid):
+    """Liefert eine Übersicht der Dateien/Unterordner eines Ordners (bzw. Projektes).
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param folderid: Id des Ordners, von dem die enthaltenen Dateien und Unterordner aufgelistet werden sollen
+    :return: HttpResponse (JSON)
+    """
+
     # hole das Ordner Objekt
     current_folderobj = Folder.objects.get(id=folderid)
 

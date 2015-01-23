@@ -1,0 +1,53 @@
+.filestoolbar,
+.projecttoolbar {
+    background: #fff;
+}
+
+.filestoolbar .btn-group,
+.projecttoolbar .btn-group{
+    margin-bottom: 5px;
+}
+
+/* Fading für lange Namen  */
+.fadeblock {
+    position: relative;
+    overflow-x: hidden;
+}
+
+.fadeblock:after {
+    content: '';
+    position: absolute;
+    background: -webkit-linear-gradient(left, rgba(250, 250, 250, 0) 0%, rgba(250, 250, 250, 1) 80%);
+    background: linear-gradient(to right, rgba(250, 250, 250, 0) 0%, rgba(250, 250, 250, 1) 80%);
+}
+
+.filesitem-name.fadeblock:after {
+    top: 2px;
+    right: 36px;
+    height: 20px;
+    width: 25px;
+}
+
+.projectitem-name.fadeblock:after {
+    top: 1px;
+    right: 0;
+    height: 23px;
+    width: 30px;
+}
+
+.jstree-anchor.jstree-hovered .fadeblock:after {
+    background: -webkit-linear-gradient(left, rgba(231, 244, 249, 0) 0%, rgba(231, 244, 249, 1) 80%);
+    background: linear-gradient(to right, rgba(231, 244, 249, 0) 0%, rgba(231, 244, 249, 1) 80%);
+}
+
+.jstree-anchor.jstree-clicked .fadeblock:after {
+    background: -webkit-linear-gradient(left, rgba(190, 235, 255, 0) 0%, rgba(190, 235, 255, 1) 80%);
+    background: linear-gradient(to right, rgba(190, 235, 255, 0) 0%, rgba(190, 235, 255, 1) 80%);
+}
+
+
+/* Scrollable Block */
+.scrollableblock-fixed {
+    position: fixed;
+    z-index: 1;
+}

@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Tue 16 Dec 2014 05:11:47 PM CET
+* Last Modified : Thu 22 Jan 2015 11:06:45 AM CET
 
 * Author :  christian
 
@@ -39,7 +39,7 @@ ERROR_MESSAGES = {
     'MISSINGPARAMETER': 'Fehlender Parameter: {0}',
     'FILENOTCREATED': 'Datei konnte nicht erstellt werden.',
     'EMPTYTEXNOTCREATED': 'main.tex Datei konnte im neuen Projekt nicht erstellt werden.',
-    'PROJECTALREADYEXISTS': 'Ein Projekt mit dem Namen \"{0}\" existiert bereits.',
+    'PROJECTALREADYEXISTS': 'Ein Projekt mit dem Namen {0} existiert bereits.',
     'NOTENOUGHRIGHTS': 'Nutzer hat für diese Aktion nicht ausreichend Rechte',
     'FOLDERNAMEEXISTS': 'Dieses Verzeichnis existiert schon',
     'FILENAMEEXISTS': 'Diese Datei existiert schon',
@@ -55,9 +55,15 @@ ERROR_MESSAGES = {
     'PROJECTNOTEXIST': 'Projekt nicht gefunden',
     'INVALIDNAME': 'Unerlaubtes Zeichen verwendet',
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
-    'ILLEGALFILETYPE': 'Dateityp ist nicht erlaubt',
-    'TEMPLATEALREADYEXISTS': 'Eine Vorlage mit dem Namen \"{0}\" existiert bereits.',
+    'NOTEXFILE': 'Keine Tex Datei.',
+    'NOPDFFILE': 'Keine PDF Datei.',
+    'ILLEGALFILETYPE': 'Dateityp {0} ist nicht erlaubt',
+    'NOTAZIPFILE' : 'Ungültige zip-Datei',
+    'EMPTYZIPFILE' : 'Leere zip-Datei',
+    'TEMPLATEALREADYEXISTS': 'Eine Vorlage mit dem Namen {0} existiert bereits.',
     'TEMPLATENOTEXIST': 'Vorlage nicht gefunden',
+    'UNKNOWNFORMAT': 'Unbekanntes Ausgabeformat',
+    'NOLOGFILE': 'Keine Log Datei vorhanden.',
 }
 
 ALLOWEDMIMETYPES = {
@@ -77,10 +83,16 @@ ALLOWEDMIMETYPES = {
         'image/gif': Image,
         'application/tga': Image,
 
-        'application/pdf': PDF
+        'application/pdf': PDF,
+        'application/postscript': BinaryFile,
+        'application/x-dvi': BinaryFile,
+        'application/zip': BinaryFile,
+        'application/CDFV2-corrupt': BinaryFile
     }
 }
 
+ZIPMIMETYPE = 'application/zip'
+STANDARDENCODING = 'utf-8'
 
 # Ungültige Zeichen für Dateien und Ordner
 INVALIDCHARS = '<>;|"\/?*'

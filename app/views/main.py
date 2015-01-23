@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Mo 15 Dez 2014 13:38:16 CET
+* Last Modified : Do 22 Jan 2015 14:51:26 CET
 
 * Author :  maltsev
 
@@ -19,15 +19,14 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 
-@login_required
 def index(request):
     return render(request, 'index.html')
 
 def impressum(request):
     return render(request, 'impressum.html')
 
-def hilfe(request):
-    return render(request, 'hilfe.html')
+def faq(request):
+    return render(request, 'faq.html')
 
 @login_required
 def editor(request):

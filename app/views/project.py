@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Thu 18 Dec 2014 06:03:06 PM CET
+* Last Modified : Thu 22 Jan 2015 11:10:45 AM CET
 
 * Author :  christian
 
@@ -16,7 +16,6 @@
 
 """
 
-import mimetypes
 import os
 import tempfile
 import zipfile
@@ -24,26 +23,24 @@ import shutil
 import logging
 
 from django.http import HttpResponse, Http404
+from django.db import transaction
 
 from app.models.folder import Folder
 from app.models.project import Project
 from app.common import util
-from app.common.constants import ERROR_MESSAGES
-from django.db import transaction
+from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE, STANDARDENCODING
 
 
 def projectCreate(request, user, projectname):
-    """Erstellt ein neues Projekt mit dem Namen 'projectname'
+    """Erstellt ein neues Projekt mit dem Namen 'projectname'.
 
     Es wird ein neues Projekt in der Datenbank angelegt.
     Durch das Projektmodell wird automatisch eine leere main.tex Datei im Hauptverzeichnis erstellt.
-    Als Antwort wird der Projektname und die ProjektID des erstellten Projektes geliefert.
-    Beispiel: 'response': {'name': 'user1_project1', 'id': 1}
 
-    :param request: vom Client gesendete Anfrage, wird unverändert zurückgesendet
-    :param user: eingeloggter user, für den die Anfrage ausgeführt werden soll
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
     :param projectname: Name des neuen Projektes
-    :return: HTTP Response (JSON)
+    :return: HttpResponse (JSON)
     """
 
     # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
@@ -60,15 +57,39 @@ def projectCreate(request, user, projectname):
     return util.jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
 
 
-# löscht ein vorhandenes Projekt eines Benutzers
-# benötigt: id:projectid
-# liefert: HTTP Response (Json)
-def projectRm(request, user, projectid):
+def projectClone(request, user, projectid, newprojectname):
+    """Erstellt eine Kopie eines Projektes mit dem Namen newprojectname
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param projectid: Id des Projektes, welches geklont werden soll
+    :param newprojectname: Name des neuen Projektes
+    :return: HttpResponse (JSON)
     """
-    :param request:
-    :param user:
-    :param projectid:
-    :return:
+
+    # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
+    if Project.objects.filter(name__iexact=newprojectname.lower(), author=user).exists():
+        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(newprojectname), request)
+    else:
+        # hole des aktuelle Projekt Objekt
+        projectobj = Project.objects.get(id=projectid, author=user)
+
+        # versuche das Projekt in der Datenbank zu erstellen
+        try:
+            newproject = Project.objects.cloneProject(project=projectobj, name=newprojectname)
+        except:
+            return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+
+    # gib die Id und den Namen des erstellte Projektes zurück
+    return util.jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
+
+def projectRm(request, user, projectid):
+    """Löscht ein vorhandenes Projekt eines Benutzers.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param projectid: Id des Projektes welches gelöscht werden soll
+    :return: HttpResponse (JSON)
     """
 
     # hole das zu löschende Projekt
@@ -83,6 +104,15 @@ def projectRm(request, user, projectid):
 
 
 def projectRename(request, user, projectid, newprojectname):
+    """Benennt ein Projekt um.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param projectid: Id des Projektes welches umbenannt werden soll
+    :param newprojectname: neuer Name des Projektes
+    :return: HttpResponse (JSON)
+    """
+
     # hole das Projekt, welches umbenannt werden soll
     projectobj = Project.objects.get(id=projectid)
     # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
@@ -98,11 +128,14 @@ def projectRename(request, user, projectid, newprojectname):
             return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
 
-# liefert eine Übersicht aller Projekte eines Benutzers
-# benötigt: nichts
-# liefert: HTTP Response (Json)
-# Beispiel response:
 def listProjects(request, user):
+    """Liefert eine Übersicht aller Projekte eines Benutzers.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :return: HttpResponse (JSON)
+    """
+
     availableprojects = Project.objects.filter(author=user)
 
     if availableprojects is None:
@@ -114,9 +147,14 @@ def listProjects(request, user):
     return util.jsonResponse(json_return, True, request)
 
 
-# importiert ein Projekt aus einer vom Client übergebenen zip Datei
-# liefert: HTTP Response (Json)
 def importZip(request, user):
+    """Importiert ein Projekt aus einer vom Client übergebenen zip Datei.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :return: HttpResponse (JSON)
+    """
+
     # Teste ob auch Dateien gesendet wurden
     if not request.FILES and not request.FILES.getlist('files'):
         return util.jsonErrorResponse(ERROR_MESSAGES['NOTALLPOSTPARAMETERS'], request)
@@ -138,8 +176,10 @@ def importZip(request, user):
     # überprüfe ob es sich um eine gültige .zip Datei handelt
     # und ob die zip Datei kleiner als 150 bytes ist
     # zip Datei ohne Inhalt ist 105 bytes gross
-    if not zipfile.is_zipfile(zip_file_path) or not os.path.getsize(zip_file_path) > 105:
-        return util.jsonErrorResponse(ERROR_MESSAGES['ILLEGALFILETYPE'], request)
+    if not os.path.getsize(zip_file_path) > 105 :
+        return util.jsonErrorResponse(ERROR_MESSAGES['EMPTYZIPFILE'],request)
+    if not zipfile.is_zipfile(zip_file_path) :
+        return util.jsonErrorResponse(ERROR_MESSAGES['NOTAZIPFILE'], request)
 
     extract_path = os.path.join(tmpfolder, 'extracted')
     # erstelle einen Unterorder 'extracted'
@@ -154,7 +194,7 @@ def importZip(request, user):
 
 
     # Erstelle das neue Projekt mit einen Namen, welcher ungültig ist.
-    projectobj = Project.objects.create(name=project_name+'<old', author=user)
+    projectobj = Project.objects.create(name=project_name + '<old', author=user)
 
     # Lösche main.tex die vom Projekt angelegt wurde
     projectobj.rootFolder.getMainTex().delete()
@@ -167,15 +207,16 @@ def importZip(request, user):
     parent = None
     folder = projectobj.rootFolder
 
-    # Tiefe des Verzeichnis, wo der die zip entpackt wurde
+    # Tiefe des Verzeichnis, wo die zip entpackt wurde
     rootdepth = len(extract_path.split(os.sep))
 
     # durchlaufe alle Ordner/Unterordner in extracted
     # und erstelle die jeweiligen Objekte in der Datenbank
     # Dateien werden über die util.uploadfiles() Methode erstellt
-    returnmsg = util.jsonResponse({'id': projectobj.id, 'name': project_name, 'rootid':projectobj.rootFolder.id}, True, request)
+    returnmsg = util.jsonResponse({'id': projectobj.id, 'name': project_name, 'rootid': projectobj.rootFolder.id}, True,
+                                  request)
 
-    failed=False
+    failed = False
 
     try:
         with transaction.atomic():
@@ -185,16 +226,14 @@ def importZip(request, user):
                 # falls path true ist, ist root nicht das root Verzeichnis, wo die zip
                 # entpackt wurde
                 if path:
-                    # path is also ein subsubfolder und wir müssen den subfolder als
-                    # parent setzen
+                    # path is also ein subsubfolder und wir müssen den subfolder als parent setzen
                     if path[:-1]:
                         parent = projdict[os.path.join('', *path[:-1])]
                     else:
                         parent = projectobj.rootFolder
-                    folder = Folder.objects.create(name=util.convertLatinToUnicode(util.getFolderName(root)),
-                                                   parent=parent,
-                                                   root=projectobj.rootFolder)
-                    projdict[os.path.join('', *path)] = folder
+                    name = util.convertLatinToUnicode(util.getFolderName(root))
+                    if name == '__MACOSX':
+                        continue
                     # speichere Ordner
                     folder = Folder.objects.create(
                         name=util.convertLatinToUnicode(util.getFolderName(root)),
@@ -209,7 +248,7 @@ def importZip(request, user):
                         raise TypeError
     except TypeError:
         projectobj.delete()  # bei Fehler muss noch das Projekt selbst gelöscht werden
-        failed=True
+        failed = True
 
     if not failed:
         # prüfe ob ein Projekt mit dem gleichen Namen bereits existiert
@@ -219,7 +258,7 @@ def importZip(request, user):
         # Es ist Aufgabe des Clients, vorher eine Abfrage anzuzeigen
         if Project.objects.filter(name__iexact=project_name.lower(), author=user).exists():
             Project.objects.get(name__iexact=project_name.lower(), author=user).delete()
-        projectobj.name=project_name
+        projectobj.name = project_name
         projectobj.save()
 
 
@@ -229,19 +268,22 @@ def importZip(request, user):
     return returnmsg
 
 
-# liefert ein vom Client angefordertes Projekt in Form einer zip Datei als Filestream
-# benötigt: id:folderid
-# liefert: filestream (404 im Fehlerfall)
 def exportZip(request, user, folderid):
+    """Liefert ein vom Client angefordertes Projekt in Form einer zip Datei als Filestream.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param folderid: Id des Ordners, welcher als zip Datei exportiert werden soll (rootId für komplettes Projekt)
+    :return: filestream (404 im Fehlerfall)
+    """
+
     # setze das logging level auf ERROR
-    # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben
-    # wird
+    # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben wird
     logger = logging.getLogger('django.request')
     previous_level = logger.getEffectiveLevel()
     logger.setLevel(logging.ERROR)
 
-    # Überprüfe ob das Projekt, und der Benutzer die entsprechenden Rechte
-    # besitzt
+    # Überprüfe ob das Projekt, und der Benutzer die entsprechenden Rechte besitzt
     rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
         folderid, user, request)
     if not rights:
@@ -275,17 +317,11 @@ def exportZip(request, user, folderid):
     # lese die Dateigröße der zip Datei ein
     file_dl_size = str(os.stat(zip_file_path).st_size)
 
-    # setze den mimetype
-    ctype, encoding = mimetypes.guess_type(zip_file_path)
-
-    if ctype is None:
-        ctype = 'application/octet-stream'
-    response['Content-Type'] = ctype
+    response['Content-Type'] = ZIPMIMETYPE
     response['Content-Length'] = file_dl_size
-    if encoding is not None:
-        response['Content-Encoding'] = encoding
+    response['Content-Encoding'] = STANDARDENCODING
 
-    filename_header = 'filename=%s' % zip_file_name
+    filename_header = 'filename=%s' % ('\"' + zip_file_name + '\"')
 
     response['Content-Disposition'] = 'attachment; ' + filename_header
 

@@ -1,73 +1,72 @@
 <!--
-@author: Franziska Everinghoff 
-@creation: 06.11.2014 - sprint-nr: 1
-@last-change: 20.11.2014 - sprint-nr: 2
+
+* Purpose :
+
+* Creation Date :
+
+* Last Modified :
+
+* Author : mattis
+
+* Coauthors :   
+
+* Sprintnumber : 1,4
+
+* Backlog entry : 
+
 -->
 
 {% extends "_wrapper.html" %}
 
 <!-- Header -->
 {% block header %}
-<script>var ERROR_MESSAGES = JSON.parse("{{ ERROR_MESSAGES}}".replace(/&#39;/g, "\""));</script>
-<script src="/static/js/inputvalidation.js"></script>
+	<script src="/static/js/jquery.validate.min.js"></script>
+	<script src="/static/js/jquery.validate.additional-methods.min.js"></script><!-- benötigt um pattern matching (regexp) nutzen zu können -->
+	<script src="/static/js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
+	<script src="/static/js/auth/registration.js"></script><!-- validate einstellungen speziell für die Registrierung -->
 {% endblock %}
 
 <!-- Inhalt -->
 {% block content %}
-<div id="inhalt">
-    <div id="registrierungsbox">
-        <h1>REGISTRIEREN</h1>
-        <div class="hline_green"></div>
-		<!-- Anzeigen der Fehlermeldung -->
-        <div class="row">
-            {% comment %}
-            Stub Page
-            {% endcomment %}
-
-            {% if messages %}
-                <ul class="messages"><!-- https://docs.djangoproject.com/en/dev/ref/contrib/messages/ Senden der Meldungen vom Server zum Client -->
-                    {% for message in messages %}
-                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-
-            <form action="#" method="post" role="form">
-            {% csrf_token %}
-			<!-- Eingabefelder für Vorname, Mailadresse, Passwort und Passwort wdh.-->
-            <div class="form-group">
-		        <ul>
-		        <li class="inputlabel">Vorname</li>
-			<li class="inputfield"><input type="text" required class="form-control" name="first_name" placeholder="Vorname" value="{{first_name}}"></li>
-			     </ul>
-            </div>
-		
-            <div class="form-group">
-		        <ul>
-		        <li class="inputlabel">E-Mail-Adresse</li>
-			<li class="inputfield"><input type="email" required class="form-control" name="email" placeholder="Email" value="{{email}}"></li>
-			     </ul>
-            </div>
-
-            <div class="form-group">
-		        <ul>
-		        <li class="inputlabel">Passwort</li>
-		        <li class="inputfield"><input type="password" required id="password1" class="form-control" name="password1" placeholder="Passwort"></li>
-		        </ul>
-            </div>
-
-            <div class="form-group">
-              <ul>
-              <li class="inputlabel">Passwort wiederholen</li>
-              <li class="inputfield"><input type="password" required id="password2" class="form-control" name="password2" placeholder="Passwort wiederholen"></li>
-			  </ul>
-		  </div>
-
-            <button type="submit" class="greenbutton btn btn-success">Registrieren</button>
-            <div class="hline_green" style="margin-top: -60px;float:left;"></div>
-            </form>
-
-        </div>
-    </div>
+<div class="col-md-8 col-md-offset-2">
+<div class="page-header">
+	<h1>Registrierung</h1>
 </div>
+<form class="form-horizontal" id="regform" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
+	<div class="form-group has-feedback">
+		<label for="first_name" class="col-sm-2 control-label" placeholder="Vorname">Vorname</label>
+		<div class="reg-input-group col-sm-10">
+			<input type="text" class="form-control" id="first_name" name="first_name" value="{{ first_name }}" placeholder="Vorname" aria-describedby="inputError2Status">
+			<div class="help-block with-errors"></div>
+		</div>
+	</div>
+	<div class="form-group has-feedback">
+		<label for="email" class="col-sm-2 control-label" placeholder="email">Email</label>
+		<div class="reg-input-group col-sm-10">
+			<input type="email" class="form-control" id="email" name="email" placeholder="Email" value="{{ email }}" aria-describedby="inputError2Status">
+			<div class="help-block with-errors"></div>
+		</div>
+	</div>
+	<div class="form-group has-feedback">
+		<label for="password1" class="col-sm-2 control-label" placeholder="Passwort">Passwort</label>
+		<div class="reg-input-group col-sm-10">
+			<input type="password" class="form-control" id="password1" name="password1" placeholder="Passwort"  aria-describedby="inputError2Status">
+			<div class="help-block with-errors"></div>
+		</div>
+	</div>
+	<div class="form-group has-feedback">
+		<label for="password2" class="col-sm-2 control-label" placeholder="Passwort">Passwort wiederholen</label>
+		<div class="reg-input-group col-sm-10">
+			<input type="password" class="form-control" id="password2" name="password2" placeholder="Passwort" aria-describedby="inputError2Status">
+			<div class="help-block with-errors"></div>
+		</div>
+	</div>
+
+
+	<div class="col-sm-offset-2">
+		<button type="submit" class="btn btn-lg btn-primary btn-block">registrieren</button>
+	</div>
+</form>
+</div>
+
 {% endblock %}

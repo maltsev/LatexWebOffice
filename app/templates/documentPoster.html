@@ -2,6 +2,11 @@
 
 <!-- Header -->
 {% block header %}
+
+<script>
+var AVAILABLE_COMMANDS = JSON.parse("{{ AVAILABLE_COMMANDS }}".replace(/&#39;/g, "\"")); 
+
+</script>
 <style type="text/css">
 pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
 .string { color: green; }
@@ -15,94 +20,160 @@ pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
 <!-- Inhalt -->
 {% block content %}
 <!-- content area with login -->
-<div id='inhalt'>
-    <form id="poster">{% csrf_token %} command:
-        <input id="command" , name="command" type="text" value="" />
-        <br> name:
-        <input id="name" , name="name" type="text" value="" />
-        <br> id:
-        <input id="id" , name="id" type="text" value="" />
-        <br> folderid:
-        <input id="folderid" , name="folderid" type="text" value="" />
-        <br> content:
-        <input id="content" , name="content" type="text" value="" />
-        <br> files:
-        <input type="file" name="files" id="files" multiple>
-        <input type="submit" value="Send" />
+<div class="col-md-12" id='inhalt'>
+    <form id="poster">{% csrf_token %} 
+	    <div class="form-group">
+	    <label for="command"> Command</label>
+		<select class="form-control" name="command" id="command" size="5">
+		</select>
+	    </div>
+		<div id="div-name" class="hider form-group">
+	    <label for="name">Name</label>
+            <input class="form-control" id="name" , name="name" type="text" value="" />
+		</div>
+		<div id="div-id" class="hider form-group">
+	    <label for="id">Id</label>
+            <input id="id" class="form-control" name="id" type="text" value="" />
+		</div>
+        <div id="div-formatid" class="hider form-group">
+	    <label for="id">Formatid</label>
+            <input id="formatid" class="form-control" name="formatid" type="text" value="" />
+		</div>
+		<div id="div-folderid" class="hider form-group">
+	    <label for="folderid">Folderid</label>
+            <input id="folderid" class="form-control" name="folderid" type="text" value="" />
+		</div>
+		<div id="div-content" class="hider form-group">
+	    <label for="content">Content </label>
+            <input id="content" class="form-control" name="content" type="text" value="" />
+		</div>
+		<div id="div-files" class="hider form-group">
+	    <label for="files">files</label>
+            <input type="file" name="files" class="form-control" id="files" multiple>
+		</div>
+		<div class="form-group">
+        <input type="submit" class="form-control btn btn-default" value="Send" />
+		</div>
     </form>
 
     <pre id='response'>
     </pre>
+<script>
+    //Die commands sortieren, sodass man sie in der liste leicht wiederfinden kann
+    sortedCommandKeys = []
+    for (cmd in AVAILABLE_COMMANDS) sortedCommandKeys.push(cmd);
+    sortedCommandKeys.sort();
+    //Jeder command wird als option eingefügt
+    for (var i = 0; i < sortedCommandKeys.length; ++i) {
+        cmd = sortedCommandKeys[i]
+        $("#command")
+            .append('<option value=' + cmd + '>' + cmd + '</option>');
+    }
 
-    <script>
-	function syntaxHighlight(json) {// http://stackoverflow.com/questions/4810841/how-can-i-pretty-print-json-using-javascript
-	    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-	    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-		var cls = 'number';
-		if (/^"/.test(match)) {
-		    if (/:$/.test(match)) {
-			cls = 'key';
-		    } else {
-			cls = 'string';
-		    }
-		} else if (/true|false/.test(match)) {
-		    cls = 'boolean';
-		} else if (/null/.test(match)) {
-		    cls = 'null';
-		}
-		return '<span class="' + cls + '">' + match + '</span>';
-	    });
-	}
-        $('#poster')
-            .submit(function(e) {
-                e.preventDefault();
+    //Falls ein command angeklickt werden, sollen parameter, die nicht benötigt werden, ausgeblendet werden
+    $("#command")
+        .change(function(key, value) {
+            $("select option:selected")
+                .each(function() {
+                    var str = $(this)
+                        .text();
+                    var paras = AVAILABLE_COMMANDS[str];
+                    var inputs = $(".hider");
+                    inputs.each(function() {
+                        //   this.hide()
+                        $("#" + this.id)
+                            .hide()
 
-                var data = new FormData(this); // <-- 'this' is your form element
+                    });
+                    //Die Parameter, die benötigt werden, sollen eingeblendet werden
+                    for (input in AVAILABLE_COMMANDS[str]) {
+                        $("#div-" + AVAILABLE_COMMANDS[str][input]['para']['name'])
+                            .show()
+                    }
 
-                $.ajax({
-                    url: '/documents/',
-                    data: data,
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    type: 'POST',
-                    success: function(data, status, xhr) { //http://stackoverflow.com/questions/16086162/handle-file-download-from-ajax-post
+                });
 
-                        // check for a filename
-                        var filename = "";
-                        var disposition = xhr.getResponseHeader('Content-Disposition');
-                        if (disposition && disposition.indexOf('attachment') !== -1) {
-                            var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-                            var matches = filenameRegex.exec(disposition);
-                            if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
-                        }
-                        var type = xhr.getResponseHeader('Content-Type');
-                        var blob = new Blob([response], {
-                            type: type
+        })
+        .change();
+
+
+
+
+    function syntaxHighlight(json) { // http://stackoverflow.com/questions/4810841/how-can-i-pretty-print-json-using-javascript
+        json = json.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        return json.replace(
+            /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+            function(match) {
+                var cls = 'number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'key';
+                    } else {
+                        cls = 'string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+    }
+    $('#poster')
+        .submit(function(e) {
+            e.preventDefault();
+
+            var data = new FormData(this); // <-- 'this' is your form element
+            console.log(data);
+
+            $.ajax({
+                url: '/documents/',
+                data: data,
+                cache: false,
+                contentType: false,
+                processData: false,
+                type: 'POST',
+                success: function(data, status, xhr) { //http://stackoverflow.com/questions/16086162/handle-file-download-from-ajax-post
+
+                    // check for a filename
+                    var filename = "";
+                    var disposition = xhr.getResponseHeader('Content-Disposition');
+                    if (disposition && disposition.indexOf('attachment') !== -1) {
+                        var $inputs = $('#poster :input');
+
+                        // not sure if you wanted this, but I thought I'd add it.
+                        // get an associative array of just the values.
+                        var params = {};
+                        $inputs.each(function() {
+                            params[this.name] = $(this).val();
                         });
-                        var URL = window.URL || window.webkitURL;
-                        var downloadUrl = URL.createObjectURL(blob);
-                        if (filename) {
-                            // use HTML5 a[download] attribute to specify filename
-                            var a = document.createElement("a");
-                            // safari doesn't support this yet
-                            if (typeof a.download === 'undefined') {
-                                window.location = downloadUrl;
-                            } else {
-                                a.href = downloadUrl;
-                                a.download = filename;
-                                document.body.appendChild(a);
-                                a.click();
-                            }
-                        } else {}
+
+
+                        var form = $('<form method="POST" action="' + '/documents/' + '">');
+                        $.each(params, function(k, v) {
+                            console.log(k, v);
+                            form.append($('<input type="hidden" name="' + k +
+                                '" value="' + v + '">'));
+                        });
+                        $('body').append(form);
+                        form.submit();
+                    } else {
 
                         console.log(data)
                         $('#response')
-                            .html(syntaxHighlight(JSON.stringify(data.response, null, '\t')))
+                            .html('<b>Status: </b>' + data.status + '<br>' + '<b>Response: </b><br>' +
+                            syntaxHighlight(JSON.stringify(data.response, null, '\t')) +
+                                '<p><b>Request: </b><br>' + syntaxHighlight(JSON.stringify(
+                                    data.request, null, '\t')) + '</p>'
+                            );
                     }
-                });
+                }
             });
-    </script>
+        });
+</script>
+    
 </div>
 {% endblock %}
 

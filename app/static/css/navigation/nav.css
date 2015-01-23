@@ -1,0 +1,21 @@
+body{
+	padding-top:60px;
+}
+
+.navbar-brand>img{
+	height:50px;
+	padding-bottom:12px;
+}
+.navbar a.navbar-brand {padding: 9px 15px 8px; }
+
+.navbar-nav{
+	margin:0px;
+}
+
+.navbar-nav>li>a{
+	padding-bottom:18.5px;
+}
+.navbar{
+	border-radius: 0px;
+	margin-bottom: 0px;
+}
