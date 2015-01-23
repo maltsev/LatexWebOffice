@@ -42,7 +42,7 @@ $(function () {
 
     // "Öffnen"-Schaltfläche
 	$(".filestoolbar-open").click(function() {
-	    var selectedNode = getSelectedNode();
+	    var selectedNode = getSelectedNodeObject();
 		window.location.assign("/editor/#" + selectedNode.data("file-id"));
 	});
 
@@ -55,8 +55,8 @@ $(function () {
 		if(treeInst.get_selected().length!=0 && !(getSelectedNodeObject().hasClass("filesitem-file") && selectedFolderID===rootFolderId))
 			par = "folder"+selectedFolderID;
 		
-		// erzeugt eine neue Knoten-Komponente im ausgewählten Verzeichnis
-		creatingFileNodeID = treeInst.create_node(par,"");
+		// erzeugt eine neue Knoten-Komponente (als Datei) im ausgewählten Verzeichnis
+		creatingFileNodeID = treeInst.create_node(par,{"type": "file"});
 		// selektiert die erzeugte Knoten-Komponente
 		selectNode(creatingFileNodeID);
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
@@ -79,8 +79,8 @@ $(function () {
 		if(treeInst.get_selected().length!=0 && !(getSelectedNodeObject().hasClass("filesitem-file") && selectedFolderID===rootFolderId))
 			par = "folder"+selectedFolderID;
 		
-		// erzeugt eine neue Knoten-Komponente im ausgewählten Verzeichnis
-		creatingFolderNodeID = treeInst.create_node(par,"");
+		// erzeugt eine neue Knoten-Komponente (als Verzeichnis) im ausgewählten Verzeichnis
+		creatingFolderNodeID = treeInst.create_node(par,{"type": "folder"});
 		// selektiert die erzeugte Knoten-Komponente
 		selectNode(creatingFolderNodeID);
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
@@ -246,9 +246,9 @@ $(function () {
 		// Doppelklick-Listener
 		tree.bind("dblclick.jstree",function(e) {
 			
-			var selectedNode = getSelectedNodeObject();
+			var selectedNode = $("#"+prevSelectedNodeID);
 			if(selectedNode.hasClass("filesitem-file")) {
-				if($.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1) {
+				if($.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"])!=-1) {
 					// bei Doppelklick auf TEX-Datei zum Editor gehen
 					window.location.assign("/editor/#" + selectedNode.data("file-id"));
 				}
