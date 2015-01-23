@@ -49,10 +49,8 @@
 }
 
 .popover {
-	border-color: #ff0000;
-	color: #ff0000;
-  	border-width: = 3px;
-  	max-height = 25px;
+	border-color: #000000;
+	color: #000000;
 }
 
 .textfield {
