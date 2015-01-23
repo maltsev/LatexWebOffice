@@ -86,11 +86,11 @@
 
 			
 				<div class="row">
-					<div class="col-md-2" >
-						<form class="form-horizontal" id="scale" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
+					<div class="col-sm-2" >
+						<form class="form-horizontal" id="scale" data-toggle="validator" action="#" method="post" role="form">
 							<div class="form-group has-feedback">
-								<label for="first_name"  placeholder="1.0">Skalierung</label>
-								<div >
+								<label for="value" class="control-label"  placeholder="1.0">Skalierung</label>
+								<div class="reg-input-group">
 									<input type="text" class="form-control" id="imageWidth" name="value" value="{{ value }}" placeholder="1.0" aria-describedby="inputError2Status">
 									<div class="help-block with-errors"></div>
 								</div>
@@ -286,24 +286,3 @@
 
 <!-- Body Ende -->
 {% endblock %}
-<script>
-$(document).ready(function() {
-    $('#integerForm').formValidation({
-        framework: 'bootstrap',
-        icon: {
-            valid: 'glyphicon glyphicon-ok',
-            invalid: 'glyphicon glyphicon-remove',
-            validating: 'glyphicon glyphicon-refresh'
-        },
-        fields: {
-            number: {
-                validators: {
-                    integer: {
-                        message: 'The value is not an integer'
-                    }
-                }
-            }
-        }
-    });
-});
-</script>
