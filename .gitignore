@@ -75,4 +75,4 @@ tags
 /media/
 
 # user specific settings
-latexwebofficeconf.py
+core/latexwebofficeconf.py
