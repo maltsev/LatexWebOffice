@@ -211,6 +211,7 @@ function saveFile(id) {
  * Kompiliert eine Datei und zeigt die PDF an.
  */
 function compile() {
+    setLogText('');
     // Kompiliere nur wenn der Text im Editor nicht leer ist
     if (editor.getValue() != '') {
         var pdf_url = null;
