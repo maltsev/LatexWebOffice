@@ -17,7 +17,7 @@
 """
 DEBUG = True
 
-
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'mysql.connector.django', 
@@ -28,7 +28,7 @@ DATABASES = {
         'PORT': '3306',
     }
 }
-
+'''
 
 ALLOWED_HOSTS=["*"]
 
