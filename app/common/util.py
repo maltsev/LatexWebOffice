@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fri 19 Dec 2014 10:02:46 PM CET
+* Last Modified : Fr 23 Jan 2015 11:18:15 CET
 
 * Author :  christian
 
@@ -368,9 +368,12 @@ def uploadFile(f, folder, request, fromZip=False):
                 return False, ERROR_MESSAGES['DATABASEERROR']
     # wenn der Mimetype eine erlaubte Plaintext Datei ist
     elif mime in ALLOWEDMIMETYPES['plaintext']:
-        file = ALLOWEDMIMETYPES['plaintext'][mime].objects.create(name=name, source_code=f.read().decode('utf-8'),
-                                                                  folder=folder, mimeType=mime)
-        file.save()
+        try:
+            file = ALLOWEDMIMETYPES['plaintext'][mime].objects.create(name=name, source_code=f.read().decode('utf-8'),
+                                                                      folder=folder, mimeType=mime)
+            file.save()
+        except:
+            return False, ERROR_MESSAGES['DATABASEERROR']
     # sonst ist der Dateityp nicht erlaubt
     else:
         return False, ERROR_MESSAGES['ILLEGALFILETYPE'].format(mime)
