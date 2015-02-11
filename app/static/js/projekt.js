@@ -80,8 +80,14 @@ $(document).ready(function() {
     $('.modal_templateToProject_confirm').on("click", function() {
         templateToProject($('#modal_templateToProject_tf').val());
     });
-
-
+	$('.modal_share_confirm').on("click", function(e) {
+		// Aktion nach Klicken des Share Buttons
+		
+	});
+	$('.modal_deny_confirm').on("click", function(e) {
+		// Aktion nach Klicken des deny Buttons
+		
+	});
 	//VALIDATOR	
 	//
 	//falls versucht wird eine zip-datei zu importieren, die den gleichen namen hat, wie ein bestehendes projekt, muss der nutzer bestätigen, 
@@ -358,6 +364,8 @@ $(document).ready(function() {
         projectTempID = node.id;
         $('#modal_templateToProject').modal('show');
 	});
+	
+	
 
 
 	refreshProjects();
@@ -786,6 +794,7 @@ function updateMenuButtons() {
 	$('.projecttoolbar-converttotemplate').prop("disabled", !remain);
 	$('.projecttoolbar-export').prop("disabled", !remain);
 	$('.projecttoolbar-import').prop("disabled", !basic);
-
+	$('.projecttoolbar-share').prop("disabled", !remain);
+	$('.projecttoolbar-deny').prop("disabled", !remain);
 	$('.templatestoolbar-use').prop("disabled", !remain);
 }
