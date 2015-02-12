@@ -16,10 +16,9 @@
 """
 from django.db import models
 from django.contrib.auth.models import User
-from app.models.project import Project
 
 
 class Collaboration(models.Model):
     user = models.ForeignKey(User)
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey("Project")
     isConfirmed = models.BooleanField(default=False)

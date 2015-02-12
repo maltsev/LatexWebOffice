@@ -17,7 +17,7 @@
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from app.models import projecttemplate, folder
+from app.models import projecttemplate, folder, collaboration
 from django.contrib.auth.models import User
 
 
@@ -59,6 +59,17 @@ class ProjectManager(models.Manager):
 class Project(projecttemplate.ProjectTemplate):
     collaborators = models.ManyToManyField(User, through='Collaboration', through_fields=('project', 'user'))
     objects = ProjectManager()
+
+    def getAllCollaborators(self):
+        return self.collaborators.all()
+
+    def getConfirmedCollaborators(self):
+        collaborations = collaboration.Collaboration.objects.filter(project=self, isConfirmed=True)
+        return [c.user for c in collaborations]
+
+    def getUnconfirmedCollaborators(self):
+        collaborations = collaboration.Collaboration.objects.filter(project=self, isConfirmed=False)
+        return [c.user for c in collaborations]
 
 
 ##
