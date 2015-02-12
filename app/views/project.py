@@ -4,15 +4,15 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Thu 22 Jan 2015 11:10:45 AM CET
+* Last Modified : Thu 12 Feb 2015 11:16:45 PM CET
 
 * Author :  christian
 
-* Coauthors : mattis
+* Coauthors : mattis, ingo
 
-* Sprintnumber : 2
+* Sprintnumber : 2, 5
 
-* Backlog entry : TEK1, 3ED9, DOK8
+* Backlog entry : TEK1, 3ED9, DOK8, KOL1
 
 """
 
@@ -22,9 +22,11 @@ import zipfile
 import shutil
 import logging
 
+from django.contrib.auth.models import User
 from django.http import HttpResponse, Http404
 from django.db import transaction
 
+from app.models.collaboration import Collaboration
 from app.models.folder import Folder
 from app.models.project import Project
 from app.common import util
@@ -334,8 +336,35 @@ def exportZip(request, user, folderid):
     return response
 
 
-# gibt ein Projekt für einen anderen Benutzer zum Bearbeiten frei
-# benötigt: id: projectid, name:inviteusername
-# liefert HTTP Response (Json)
-def shareProject(request, user, projectid, inviteusername):
-    pass
+def inviteUser(request, user, projectid, inviteusermail):
+    """Lädt einen anderen Benutzer zur Kollaboration an einem Projekt ein.
+    
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param projectid: ID des Projektes, zu dessen Zusammenarbeit eingeladen werden soll
+    :param inviteusermail: E-Mail-Adresse des Benutzers, welcher eingeladen werden soll
+    :return: HttpResponse (JSON)
+    """
+    
+    # wenn sich die übergebene E-Mail-Adresse des einzuladenen Nutzers von der des aufrufenden Nutzers unterscheidet
+    if user.username!=inviteusermail :
+        # wenn die übergebene E-Mail-Adresse registriert ist
+        if User.objects.filter(username=inviteusermail).exists() :
+            # einzuladener Nutzer
+            inviteuser = User.objects.get(username=inviteusermail)
+            # wenn noch keine entsprechende Kollaboration vorliegt
+            if not Collaboration.objects.filter(user=inviteuser.id,project=projectid).exists() :
+                # versucht eine entsprechende Kollaboration anzulegen
+                try:
+                    Collaboration.objects.create(user=inviteuser, project=Project.objects.get(id=projectid))
+                    return util.jsonResponse({}, True, request)
+                except:
+                    return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+            # wenn eine entsprechende Kollaboration bereits vorliegt
+            else :
+                return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(inviteusermail), request)
+        else :
+            return util.jsonErrorResponse(ERROR_MESSAGES['USERNOTFOUND'].format(inviteusermail), request)
+    # wenn es sich bei der übergebenen E-Mail-Adresse des einzuladenen Nutzers um die des aufrufenden Nutzers handelt
+    else :
+        return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(inviteusermail), request)

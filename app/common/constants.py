@@ -5,11 +5,11 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Thu 22 Jan 2015 11:06:45 AM CET
+* Last Modified : Thu 12 Feb 2015 11:16:45 PM CET
 
 * Author :  christian
 
-* Coauthors : mattis
+* Coauthors : mattis, ingo
 
 * Sprintnumber : -
 
@@ -64,6 +64,8 @@ ERROR_MESSAGES = {
     'TEMPLATENOTEXIST': 'Vorlage nicht gefunden',
     'UNKNOWNFORMAT': 'Unbekanntes Ausgabeformat',
     'NOLOGFILE': 'Keine Log Datei vorhanden.',
+    'USERALREADYINVITED': 'Dieses Projekt ist für den Nutzer {0} bereits freigegeben.',
+    'USERNOTFOUND': 'Ein Nutzer {0} konnte nicht gefunden werden.',
 }
 
 ALLOWEDMIMETYPES = {

@@ -4,15 +4,15 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 09 Jan 2015 10:52:15 CET
+* Last Modified : Thu 12 Feb 2015 11:16:45 PM CET
 
 * Author :  mattis
 
-* Coauthors : christian
+* Coauthors : christian, ingo
 
-* Sprintnumber : 2
+* Sprintnumber : 2, 5
 
-* Backlog entry : TEK1, 3ED9, DOK8, DO14
+* Backlog entry : TEK1, 3ED9, DOK8, DO14, KOL1
 
 """
 import os
@@ -45,7 +45,7 @@ globalparas = {
 
 # dictionary mit verfügbaren Befehlen und den entsprechenden Aktionen
 # die entsprechenden Methoden befinden sich in:
-# '/app/views/project.py', '/app/views/file.py' und '/app/views/folder.py'
+# '/app/views/project.py', '/app/views/file.py', '/app/views/folder.py' und '/app/views/collaboration.py'
 available_commands = {
     'projectcreate': {
         'command': project.projectCreate,
@@ -77,8 +77,8 @@ available_commands = {
         'command': project.exportZip,
         'parameters': [{'para': globalparas['id']}]
     },
-    'shareproject': {
-        'command': project.shareProject,
+    'inviteuser': {
+        'command': project.inviteUser,
         'parameters': [{'para': globalparas['id'], 'type': Project},
                        {'para': globalparas['name'], 'stringcheck': True}]
     },

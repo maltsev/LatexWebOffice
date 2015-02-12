@@ -4,13 +4,13 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Thu 22 Jan 2015 11:29:20 AM CET
+* Last Modified : Thu 12 Feb 2015 11:16:45 PM CET
 
 * Author :  christian
 
-* Coauthors : mattis
+* Coauthors : mattis, ingo
 
-* Sprintnumber : 2, 3
+* Sprintnumber : 2, 3, 5
 
 * Backlog entry : -
 
@@ -20,8 +20,11 @@ import zipfile
 import shutil
 import os
 
+from django.contrib.auth.models import User
+
 from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE
 from app.common import util
+from app.models.collaboration import Collaboration
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.plaintextfile import PlainTextFile
@@ -944,15 +947,150 @@ class ProjectTestClass(ViewTestCase):
         # überprüfe die Antwort des Servers
         # sollte status code 404 liefern
         self.assertEqual(response.status_code, 404)
-
-    def test_shareProject(self):
-        """Test der shareProject() Methode des project view
-
-        Teste die Freigabe eines Projektes für andere Benutzer.
-
+    
+    def test_inviteUser(self):
+        """Test der inviteUser()-Methode des project view
+        
+        Teste das Einladen eines Nutzers zur Kollaboration an einem Projekt.
+        
         Testfälle:
-        +++ Methode noch nicht implementiert +++
+        - user1 lädt sich selbst ein -> Fehler
+        - user1 lädt unter Angabe einer leeren E-Mail-Adresse ein -> Fehler
+        - user1 lädt einen nicht registrierten Nutzer ein -> Fehler
+        - user1 lädt zu einem Projekt mit einer ungültigen Projekt-ID ein -> Fehler
+        - user1 lädt einen registrierten, noch nicht zum betroffenen Projekt eingeladenen Nutzer user2 ein -> Erfolg
+        - user1 lädt einen registrierten, bereits zum betroffenen Projekt eingeladenen Nutzer user2 ein -> Fehler
+        - user2 lädt zu einem Projekt ein, für welches er nicht der Projekt-Owner ist -> Fehler
 
         :return: None
         """
-        pass
+        
+        # sende Anfrage zum Einladen von sich selbst
+        response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user1.username)
+        
+        # es sollte keine entsprechende Kollaboration mit Nutzer user1 und Projekt user1_project1 in der Datenbank vorhanden sein
+        self.assertFalse(Collaboration.objects.filter(user=self._user1, project=self._user1_project1))
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['USERALREADYINVITED'].format(self._user1.username)
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # ermittelt Anzahl der Kollaborationen zum Projekt user1_project1
+        count = Collaboration.objects.filter(project=self._user1_project1).count()
+        
+        # sende Anfrage zum Einladen eines Nutzers durch Angabe einer leeren E-Mail-Adresse
+        response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name="")
+        
+        # es sollte keine Kollaboration für das Projekt user1_project1 in der Datenbank hinzugekommen sein
+        self.assertTrue(Collaboration.objects.filter(project=self._user1_project1).count()==count)
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['BLANKNAME']
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # teste, ob noch kein Nutzer mit der Kennung notregistered@latexweboffice.de registriert ist
+        self.assertFalse(User.objects.filter(username="notregistered@latexweboffice.de"))
+        
+        # sende Anfrage zum Einladen eines nicht registrierten Nutzers
+        response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name="notregistered@latexweboffice.de")
+        
+        not_registered_user = User.objects.create_user(username="notregistered@latexweboffice.de",
+                                                       email="notregistered@latexweboffice.de", password="123456",
+                                                       first_name="None")
+        # es sollte keine entsprechende Kollaboration mit Nutzer not_registered_user und Projekt user1_project1 in der Datenbank vorhanden sein
+        self.assertFalse(Collaboration.objects.filter(user=not_registered_user, project=self._user1_project1))
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['USERNOTFOUND'].format("notregistered@latexweboffice.de")
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # ermittelt Anzahl der Kollaborationen mit Nutzer user2
+        count = Collaboration.objects.filter(user=self._user2).count()
+        
+        # sende Anfrage zum Einladen zu einem Projekt mit einer ungültigen Projekt-ID
+        response = util.documentPoster(self, command='inviteuser', idpara=self._invalidid, name=self._user2.username)
+        
+        # es sollte keine Kollaboration mit Nutzer user2 in der Datenbank hinzugekommen sein
+        self.assertTrue(Collaboration.objects.filter(user=self._user2).count()==count)
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['PROJECTNOTEXIST']
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # teste, ob noch keine Kollaboration mit Nutzer user2 und Projekt user1_project1 vorhanden ist
+        self.assertFalse(Collaboration.objects.filter(user=self._user2, project=self._user1_project1))
+        
+        # sende Anfrage zum Einladen eines noch nicht zum betroffenen Projekt eingeladenen Nutzers
+        response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
+        
+        # die entsprechende Kollaboration mit Nutzer user2 und Projekt user1_project1 sollte in der Datenbank vorhanden und abrufbar sein
+        self.assertTrue(Collaboration.objects.get(user=self._user2, project=self._user1_project1))
+        
+        # erwartete Antwort des Servers
+        serveranswer = {}
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # sende Anfrage zum Einladen eines bereits zum betroffenen Projekt eingeladenen Nutzers (Wiederholung der vorherigen Anfrage)
+        response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
+        
+        # es sollte genau eine entsprechende Kollaboration mit Nutzer user2 und Projekt user1_project1 in der Datenbank vorhanden sein
+        self.assertTrue((Collaboration.objects.filter(user=self._user2, project=self._user1_project1)).count() == 1)
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['USERALREADYINVITED'].format(self._user2.username)
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # logout von user1
+        self.client.logout()
+        # login von user2
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        
+        # sende Anfrage zum Einladen zu einem Projekt, für welches der einladende Nutzer nicht der Project-Owner ist
+        response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user3.username)
+        
+        # es sollte keine entsprechende Kollaboration mit Nutzer user3 und Projekt user1_project1 in der Datenbank vorhanden sein
+        self.assertFalse(Collaboration.objects.filter(user=self._user3, project=self._user1_project1))
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
