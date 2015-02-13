@@ -368,3 +368,22 @@ def inviteUser(request, user, projectid, inviteusermail):
     # wenn es sich bei der übergebenen E-Mail-Adresse des einzuladenen Nutzers um die des aufrufenden Nutzers handelt
     else :
         return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(inviteusermail), request)
+
+
+def listUnconfirmedCollaborativeProjects(request, user):
+    """Liefert eine Liste aller Projekte, zu deren Kollaboration der übergebene Benutzer eingeladen ist, diese jedoch noch nicht bestätigt hat
+    
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :return: HttpResponse (JSON)
+    """
+    
+    unconfirmedCollaborations = Collaboration.objects.filter(user=user,isConfirmed=False)
+    
+    if unconfirmedCollaborations is None:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+    else:
+        json_return = [util.projectToJson(collaboration.project)
+                       for collaboration in unconfirmedCollaborations]
+
+    return util.jsonResponse(json_return, True, request)

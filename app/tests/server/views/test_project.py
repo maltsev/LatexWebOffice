@@ -1094,3 +1094,153 @@ class ProjectTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # logout von user2
+        self.client.logout()
+    
+    def test_listUnconfirmedCollaborativeProjects(self):
+        """Test der listUnconfirmedCollaborativeProjects()-Methode aus dem project view
+        
+        Teste das Auflisten aller Projekte, zu deren Kollaboration ein Benutzer eingeladen ist, diese jedoch noch nicht bestätigt hat
+        
+        Testfälle:
+        - user1 fordert eine Liste aller unbestätigten Kollaborationsprojekte an -> Erfolg (Liste sollte leer sein)
+        - user1 lädt user2 zum Projekt user1_project1 ein und
+          user2 fordert eine Liste aller unbestätigten Kollaborationsprojekte an -> Erfolg (Liste sollte ausschließlich user1_project1 umfassen)
+        - user1 lädt user3 zum Projekt user1_project1 ein und
+          user3 fordert eine Liste aller unbestätigten Kollaborationsprojekte an -> Erfolg (Liste sollte ausschließlich user1_project1 umfassen)
+        - user1 lädt user2 zu all seinen Projekten ein und
+          user2 fordert eine Liste aller unbestätigten Kollaborationsprojekte an -> Erfolg (Liste sollte sämtliche Projekte von user1 umfassen)
+
+        :return: None
+        """
+        
+        # sende Anfrage zum Auflisten aller Projekte, zu deren Kollaboration user1 eingeladen ist, diese jedoch noch nicht bestätigt hat
+        response = util.documentPoster(self, command='listunconfirmedcollaborativeprojects')
+        
+        # erwartete Antwort des Servers
+        serveranswer = []
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # user1 lädt user2 zum Projekt user1_project1 ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
+        
+        # logout von user1
+        self.client.logout()
+        # login von user2
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        
+        # sende Anfrage zum Auflisten aller Projekte, zu deren Kollaboration user2 eingeladen ist, diese jedoch noch nicht bestätigt hat
+        response = util.documentPoster(self, command='listunconfirmedcollaborativeprojects')
+        
+        # erwartete Antwort des Servers
+        serveranswer = [
+            {'id': self._user1_project1.id,
+             'name': self._user1_project1.name,
+             'ownerid': self._user1_project1.author.id,
+             'ownername': self._user1_project1.author.username,
+             'createtime': util.datetimeToString(self._user1_project1.createTime),
+             'rootid': self._user1_project1.rootFolder.id}
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # logout von user2
+        self.client.logout()
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # login von user1
+        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
+        
+        # user1 lädt user3 zum Projekt user1_project1 ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user3.username)
+        
+        # logout von user1
+        self.client.logout()
+        # login von user3
+        self.client.login(username=self._user3.username, password=self._user3._unhashedpw)
+        
+        # sende Anfrage zum Auflisten aller Projekte, zu deren Kollaboration user3 eingeladen ist, diese jedoch noch nicht bestätigt hat
+        response = util.documentPoster(self, command='listunconfirmedcollaborativeprojects')
+        
+        # erwartete Antwort des Servers
+        serveranswer = [
+            {'id': self._user1_project1.id,
+             'name': self._user1_project1.name,
+             'ownerid': self._user1_project1.author.id,
+             'ownername': self._user1_project1.author.username,
+             'createtime': util.datetimeToString(self._user1_project1.createTime),
+             'rootid': self._user1_project1.rootFolder.id}
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # logout von user3
+        self.client.logout()
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # login von user1
+        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
+        
+        # user1 lädt user2 zu all seinen Projekten ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project2.id, name=self._user2.username)
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project3.id, name=self._user2.username)
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project4.id, name=self._user2.username)
+        
+        # logout von user1
+        self.client.logout()
+        # login von user2
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        
+        # sende Anfrage zum Auflisten aller Projekte, zu deren Kollaboration user2 eingeladen ist, diese jedoch noch nicht bestätigt hat
+        response = util.documentPoster(self, command='listunconfirmedcollaborativeprojects')
+        
+        serveranswer = [
+            {'id': self._user1_project1.id,
+             'name': self._user1_project1.name,
+             'ownerid': self._user1_project1.author.id,
+             'ownername': self._user1_project1.author.username,
+             'createtime': util.datetimeToString(self._user1_project1.createTime),
+             'rootid': self._user1_project1.rootFolder.id},
+            {'id': self._user1_project2.id,
+             'name': self._user1_project2.name,
+             'ownerid': self._user1_project2.author.id,
+             'ownername': self._user1_project2.author.username,
+             'createtime': util.datetimeToString(self._user1_project2.createTime),
+             'rootid': self._user1_project2.rootFolder.id},
+            {'id': self._user1_project3.id,
+             'name': self._user1_project3.name,
+             'ownerid': self._user1_project3.author.id,
+             'ownername': self._user1_project3.author.username,
+             'createtime': util.datetimeToString(self._user1_project3.createTime),
+             'rootid': self._user1_project3.rootFolder.id},
+            {'id': self._user1_project4.id,
+             'name': self._user1_project4.name,
+             'ownerid': self._user1_project4.author.id,
+             'ownername': self._user1_project4.author.username,
+             'createtime': util.datetimeToString(self._user1_project4.createTime),
+             'rootid': self._user1_project4.rootFolder.id}
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # logout von user2
+        self.client.logout()

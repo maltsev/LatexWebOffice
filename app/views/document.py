@@ -82,6 +82,10 @@ available_commands = {
         'parameters': [{'para': globalparas['id'], 'type': Project},
                        {'para': globalparas['name'], 'stringcheck': True}]
     },
+    'listunconfirmedcollaborativeprojects': {
+        'command': project.listUnconfirmedCollaborativeProjects,
+        'parameters': []
+    },
     'createtex': {
         'command': file.createTexFile,
         'parameters': [{'para': globalparas['id'], 'type': Folder},
