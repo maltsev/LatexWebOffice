@@ -960,7 +960,7 @@ class ProjectTestClass(ViewTestCase):
         - user1 lädt zu einem Projekt mit einer ungültigen Projekt-ID ein -> Fehler
         - user1 lädt einen registrierten, noch nicht zum betroffenen Projekt eingeladenen Nutzer user2 ein -> Erfolg
         - user1 lädt einen registrierten, bereits zum betroffenen Projekt eingeladenen Nutzer user2 ein -> Fehler
-        - user2 lädt zu einem Projekt ein, für welches er nicht der Projekt-Owner ist -> Fehler
+        - user2 lädt zu einem Projekt ein, für welches er nicht der Project-Owner ist -> Fehler
 
         :return: None
         """
@@ -1098,10 +1098,98 @@ class ProjectTestClass(ViewTestCase):
         # logout von user2
         self.client.logout()
     
+    def test_listInvitedUsers(self):
+        """Test der listInvitedUsers()-Methode aus dem project view
+        
+        Teste das Auflisten den Nutzernamen aller zu einem Projekt eingeladener Benutzer.
+        
+        Testfälle:
+        - user1 fordert eine Liste aller zum Projekt user1_project1 eingeladener Benutzer an -> Erfolg (Liste sollte leer sein)
+        - user1 lädt user2 zum Projekt user1_project1 ein und
+                fordert eine Liste aller zum Projekt user1_project1 eingeladener Benutzer an -> Erfolg (Liste sollte ausschließlich user2 umfassen)
+        - user1 lädt user3 zum Projekt user1_project1 ein und
+                fordert eine Liste aller zum Projekt user1_project1 eingeladener Benutzer an -> Erfolg (Liste sollte user2 und user3 umfassen)
+        - user1 fordert eine Liste aller eingeladener Benutzer zu einem Projekt mit einer ungültigen Projekt-ID an -> Fehler
+        - user1 fordert eine Liste aller eingeladener Benutzer zu einem Projekt an, für welches er nicht der Project-Owner ist -> Fehler
+        
+        :return: None
+        """
+        
+        # sende Anfrage zum Auflisten aller zum Projekt user1_project1 eingeladener Benutzer
+        response = util.documentPoster(self, command='listinvitedusers', idpara=self._user1_project1.id)
+        
+        # erwartete Antwort des Servers
+        serveranswer = []
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # user1 lädt user2 zum Projekt user1_project1 ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
+        
+        # sende Anfrage zum Auflisten aller zum Projekt user1_project1 eingeladener Benutzer
+        response = util.documentPoster(self, command='listinvitedusers', idpara=self._user1_project1.id)
+        
+        # erwartete Antwort des Servers
+        serveranswer = [self._user2.username]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # user1 lädt user3 zum Projekt user1_project1 ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user3.username)
+        
+        # sende Anfrage zum Auflisten aller zum Projekt user1_project1 eingeladener Benutzer
+        response = util.documentPoster(self, command='listinvitedusers', idpara=self._user1_project1.id)
+        
+        # erwartete Antwort des Servers
+        serveranswer = [self._user2.username,
+                        self._user3.username]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # sende Anfrage zum Auflisten aller zu einem Projekt mit einer ungültigen Projekt-ID eingeladener Benutzer
+        response = util.documentPoster(self, command='listinvitedusers', idpara=self._invalidid)
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['PROJECTNOTEXIST']
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # sende Anfrage zum Auflisten aller zu einem Projekt, für welches der aufrufende Nutzer nicht der Project-Owner ist
+        response = util.documentPoster(self, command='listinvitedusers', idpara=self._user2_project1.id)
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        
     def test_listUnconfirmedCollaborativeProjects(self):
         """Test der listUnconfirmedCollaborativeProjects()-Methode aus dem project view
         
-        Teste das Auflisten aller Projekte, zu deren Kollaboration ein Benutzer eingeladen ist, diese jedoch noch nicht bestätigt hat
+        Teste das Auflisten aller Projekte, zu deren Kollaboration ein Benutzer eingeladen ist, diese jedoch noch nicht bestätigt hat.
         
         Testfälle:
         - user1 fordert eine Liste aller unbestätigten Kollaborationsprojekte an -> Erfolg (Liste sollte leer sein)
