@@ -82,6 +82,10 @@ available_commands = {
         'parameters': [{'para': globalparas['id'], 'type': Project},
                        {'para': globalparas['name'], 'stringcheck': True}]
     },
+    'listinvitedusers': {
+        'command': project.listInvitedUsers,
+        'parameters': [{'para': globalparas['id'], 'type': Project}]
+    },
     'listunconfirmedcollaborativeprojects': {
         'command': project.listUnconfirmedCollaborativeProjects,
         'parameters': []
