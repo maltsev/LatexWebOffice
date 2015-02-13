@@ -4,11 +4,11 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Thu 12 Feb 2015 11:16:45 PM CET
+* Last Modified : Fr 13 Feb 2015 21:54:45 PM CET
 
 * Author :  mattis
 
-* Coauthors : christian, ingo
+* Coauthors : christian, ingo, Kirill
 
 * Sprintnumber : 2, 5
 
@@ -33,6 +33,7 @@ from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.pdf import PDF
 from app.models.project import Project
 from app.models.folder import Folder
+from app.models.collaboration import Collaboration
 
 
 globalparas = {
@@ -89,6 +90,10 @@ available_commands = {
     'listunconfirmedcollaborativeprojects': {
         'command': project.listUnconfirmedCollaborativeProjects,
         'parameters': []
+    },
+    'activatecollaboration': {
+        'command': project.activateCollaboration,
+        'parameters': [{'para': globalparas['id'], 'type': Collaboration}]
     },
     'createtex': {
         'command': file.createTexFile,

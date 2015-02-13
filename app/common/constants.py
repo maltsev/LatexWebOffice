@@ -5,11 +5,11 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Thu 12 Feb 2015 11:16:45 PM CET
+* Last Modified : Fr 13 Feb 2015 21:53:45 PM CET
 
 * Author :  christian
 
-* Coauthors : mattis, ingo
+* Coauthors : mattis, ingo, Kirill
 
 * Sprintnumber : -
 
@@ -66,6 +66,7 @@ ERROR_MESSAGES = {
     'NOLOGFILE': 'Keine Log Datei vorhanden.',
     'USERALREADYINVITED': 'Dieses Projekt ist für den Nutzer {0} bereits freigegeben.',
     'USERNOTFOUND': 'Ein Nutzer {0} konnte nicht gefunden werden.',
+    'COLLABORATIONNOTFOUND': 'Die Kollaboration konnte nicht gefunden werden.'
 }
 
 ALLOWEDMIMETYPES = {

@@ -4,11 +4,11 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Thu 12 Feb 2015 11:16:45 PM CET
+* Last Modified : Fr 13 Feb 2015 21:54:45 PM CET
 
 * Author :  christian
 
-* Coauthors : mattis, ingo
+* Coauthors : mattis, ingo, Kirill
 
 * Sprintnumber : 2, 5
 
@@ -25,6 +25,7 @@ import logging
 from django.contrib.auth.models import User
 from django.http import HttpResponse, Http404
 from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
 
 from app.models.collaboration import Collaboration
 from app.models.folder import Folder
@@ -408,3 +409,33 @@ def listUnconfirmedCollaborativeProjects(request, user):
                        for collaboration in unconfirmedCollaborations]
 
     return util.jsonResponse(json_return, True, request)
+
+
+def activateCollaboration(request, user, collaborationid):
+    """Bestätigt die Einladung zur Kollaboration an einem Projekt.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param collaborationid: ID der Kollaboration, welche bestätigt werden soll
+    :return: HttpResponse (JSON)
+    """
+
+    try:
+        collaboration = Collaboration.objects.get(pk=collaborationid)
+    except ObjectDoesNotExist:
+        return util.jsonErrorResponse(ERROR_MESSAGES['COLLABORATIONNOTFOUND'], request)
+
+
+    if collaboration.user != user:
+        return util.jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
+
+
+    try:
+        if not collaboration.isConfirmed:
+            collaboration.isConfirmed = True
+            collaboration.save()
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+
+
+    return util.jsonResponse({}, True, request)
