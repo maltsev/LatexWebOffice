@@ -22,7 +22,6 @@ var editMode = false;				// gibt an, ob sich eine der Knoten-Komponenten derzeit
  */
 var selectedHeight = 0;				// Höhe der selektierten Knoten-Komponente (zur Ausrichtung des Popovers)
 var selectedPos = null;				// Position der selektierten Knoten-Komponente (zur Ausrichtung des Popovers)
-
 var selectedNodeIDProjects = "";
 var selectedNodeIDInvitations = "";
 var prevSelectedNodeID 	= "";
@@ -396,8 +395,16 @@ $(document).ready(function() {
         projectTempID = node.id;
         $('#modal_templateToProject').modal('show');
 	});
+	// 'Freigabe entziehen'-Schaltfläche
+	$('.projecttoolbar-deny').on("click", function() {
+		showInvitedUser()();
+		
+	});
 	
-	
+	// 'Einladung akzeptieren'-Schaltfläche
+	$('.invitationtoolbar-acceptInvitation').on("click", function() {
+		acceptInvitation();
+	});
 
 
 	refreshProjects();
@@ -416,6 +423,24 @@ function openProject() {
 	
 	document.location.assign('/dateien/#' + treeInstProjects.get_node(prevSelectedNodeID).rootid);
 	
+}
+
+/*
+ * Der Nutzer akzeptiert die Einladung zum Projekt und nimmt an der Kollabaration teil.
+ * @param projectId - Die Id des Projektes, dessen Einladung vom Nutzer akzeptiert wurde.
+ */
+function acceptInvitation() {
+	documentsJsonRequest({
+			'command': 'activatecollaboration',
+			'id':selectedNodeIDInvitations
+		}, function(result,data) {
+			if(result) {
+				listInvitations();
+			}
+			else {
+				alert(data.response);
+			}
+	});
 }
 
 /*
