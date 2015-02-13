@@ -82,7 +82,8 @@ $(document).ready(function() {
     });
 	$('.modal_share_confirm').on("click", function(e) {
 		// Aktion nach Klicken des Share Buttons
-		
+		sendProjectInvitation(selectedNodeID,$('#modal_shareuser_tf').val());
+	//	listInvitations();
 	});
 	$('.modal_deny_confirm').on("click", function(e) {
 		// Aktion nach Klicken des deny Buttons
@@ -384,6 +385,52 @@ function openProject() {
 	
 	document.location.assign('/dateien/#' + treeInst.get_node(prevSelectedNodeID).rootid);
 	
+}
+
+/*
+ * Sendet an die übergebene E-Mail Adresse eines Nutzers eine Mail, um ihn für ein Projekt einzuladen.
+ * @param projectId - Die Id des Projektes, für das der Nutzer eingeladen wird
+ * @param email - E-Mail Adresse des eingeladenen Nutzers
+ */
+function sendProjectInvitation(projectId,email) {
+	
+	documentsJsonRequest({
+			'command': 'inviteuser',
+			'name': email,
+			'id':projectId
+		}, function(result,data) {
+			if(result) {
+				alert("Result"+result);
+			}
+			else {
+				alert(data.response);
+			}
+	});
+}
+
+/*
+ * Aktualisiert die Anzeige der Projekte des Benutzers.
+ */
+function listInvitations() {
+	
+	// leert den JSTrees
+	treeInst.settings.core.data = null;
+	treeInst.refresh();
+	
+	// aktualisiert den JSTree anhand der bestehenden Projekte
+	documentsJsonRequest({
+		'command': 'listunconfirmedcollaborativeprojects'
+		}, function(result,data) {
+			if(result) {
+				allprojects=data.response;
+				// legt für jedes Projekt eine Knoten-Komponente an
+				for(var i=0; i<data.response.length; ++i)
+					addNode(data.response[i]);
+			}
+	});
+	
+	// aktualisiert die Aktivierungen der Menü-Schaltflächen
+	updateMenuButtons();
 }
 
 /*
