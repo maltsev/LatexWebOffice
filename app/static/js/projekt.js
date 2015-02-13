@@ -90,7 +90,7 @@ $(document).ready(function() {
 	});
 	$('.modal_deny_confirm').on("click", function(e) {
 		// Aktion nach Klicken des deny Buttons
-		
+		denyProjectAccess(selectedNodeIDProjects,'TImo');
 	});
 	//VALIDATOR	
 	//
@@ -419,7 +419,7 @@ function openProject() {
 }
 
 /*
- * Sendet an die übergebene E-Mail Adresse eines Nutzers eine Mail, um ihn für ein Projekt einzuladen.
+ * Sendet an den Account mit der übergebenen E-Mail Adresse eines Nutzers eine Einladung zum Projekt.
  * @param projectId - Die Id des Projektes, für das der Nutzer eingeladen wird
  * @param email - E-Mail Adresse des eingeladenen Nutzers
  */
@@ -431,6 +431,50 @@ function sendProjectInvitation(projectId,email) {
 			'id':projectId
 		}, function(result,data) {
 			if(result) {
+			}
+			else {
+				alert(data.response);
+			}
+	});
+}
+
+/*
+ * Entzieht einem Nutzer für ein angegebenes Projekt die Rechte.
+ * @param projectId - Die Id des Projektes, von dem für den Nutzer die Rechte entzogen werden.
+ * @param user - Der Nutzer, dem die Rechte entzogen werden.
+ */
+function denyProjectAccess(projectId,user) {
+	showInvitedUser(projectId);
+/**	documentsJsonRequest({
+			'command': 'inviteuser',
+			'name': email,
+			'id':projectId
+		}, function(result,data) {
+			if(result) {
+			}
+			else {
+				alert(data.response);
+			}
+	});
+	**/
+}
+
+/*
+ * Zeigt die eingeladenen Benutzer an. 
+ * @param projectId - ID des Projektes, das freigegeben wurde.
+ */
+function showInvitedUser(){
+	documentsJsonRequest({
+			'command': 'listinvitedusers',
+			'id':selectedNodeIDProjects
+		}, function(result,data) {
+			if(result) {
+				var number_of_invitedusers = data.response.length;
+				for (var i = 0; i < number_of_invitedusers; i++){
+					document.getElementById('invitedUser').innerHTML = document.getElementById('invitedUser').innerHTML+"<div class=\"row\"><div class=\"col-lg-6\"><div class=\"input-group\"><span class=\"input-group-addon\"><input type=\"checkbox\" aria-label=\"checked\"></span><input type=\"text\" class=\"form-control\" disabled aria-label=\"user\" value=\""+data.response[i]+"\"></div></div></div>";
+					
+				}
+				
 			}
 			else {
 				alert(data.response);
