@@ -5,13 +5,13 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fr 23 Jan 2015 11:18:15 CET
+* Last Modified : 13 Feb 2015 20:47:00 CET
 
 * Author :  christian
 
-* Coauthors : mattis, ingo
+* Coauthors : mattis, ingo, Kirill
 
-* Sprintnumber : -
+* Sprintnumber : 5
 
 * Backlog entry : -
 
@@ -24,6 +24,7 @@ import mimetypes
 import tempfile
 
 from django.http import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
 
 from core import settings
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES
@@ -34,6 +35,7 @@ from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.pdf import PDF
+from app.models.collaboration import Collaboration
 
 
 def jsonDecoder(responseContent):
@@ -157,9 +159,14 @@ def checkIfProjectExistsAndUserHasRights(projectid, user, request):
     :return: (False, HttpResponse (JSON) mit der entsprechenden Fehlermeldung), bzw. (True, None) bei Erfolg
     """
 
-    if not Project.objects.filter(id=projectid).exists():
+    try:
+        project = Project.objects.get(id=projectid)
+    except ObjectDoesNotExist:
         return False, jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'], request)
-    elif not Project.objects.get(id=projectid).author == user:
+
+    if Collaboration.objects.filter(user=user, project=project).exists():
+        return True, None
+    elif project.author is not user:
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
         return True, None
