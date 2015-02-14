@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 13 Feb 2015 21:54:45 PM CET
+* Last Modified : Sa 14 Feb 2015 12:29:45 PM CET
 
 * Author :  christian
 
@@ -411,24 +411,20 @@ def listUnconfirmedCollaborativeProjects(request, user):
     return util.jsonResponse(json_return, True, request)
 
 
-def activateCollaboration(request, user, collaborationid):
+def activateCollaboration(request, user, projectid):
     """Bestätigt die Einladung zur Kollaboration an einem Projekt.
 
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
-    :param collaborationid: ID der Kollaboration, welche bestätigt werden soll
+    :param projectid: ID des Projektes, zu dessen die Einladung bestärigt werden soll
     :return: HttpResponse (JSON)
     """
 
     try:
-        collaboration = Collaboration.objects.get(pk=collaborationid)
+        project = Project.objects.get(pk=projectid)
+        collaboration = Collaboration.objects.get(user=user, project=project)
     except ObjectDoesNotExist:
         return util.jsonErrorResponse(ERROR_MESSAGES['COLLABORATIONNOTFOUND'], request)
-
-
-    if collaboration.user != user:
-        return util.jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
-
 
     try:
         if not collaboration.isConfirmed:

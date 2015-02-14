@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 13 Feb 2015 21:54:45 PM CET
+* Last Modified : Sa 14 Feb 2015 12:29:45 PM CET
 
 * Author :  mattis
 
@@ -33,7 +33,6 @@ from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.pdf import PDF
 from app.models.project import Project
 from app.models.folder import Folder
-from app.models.collaboration import Collaboration
 
 
 globalparas = {
@@ -93,7 +92,7 @@ available_commands = {
     },
     'activatecollaboration': {
         'command': project.activateCollaboration,
-        'parameters': [{'para': globalparas['id'], 'type': Collaboration}]
+        'parameters': [{'para': globalparas['id'], 'type': Project, 'requirerights': ['owner', 'collaborator']}]
     },
     'createtex': {
         'command': file.createTexFile,
@@ -262,7 +261,8 @@ def execute(request):
                 objType = para.get('type')
                 objId = request.POST.get(para['para']['name'])
                 if objType == Project:
-                    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(objId, user, request)
+                    requireRights = para.get('requirerights', ['owner'])
+                    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(objId, user, request, requireRights)
                     if not rights:
                         return failurereturn
                 elif objType == Folder:

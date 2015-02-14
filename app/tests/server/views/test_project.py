@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Fr 13 Feb 2015 21:54:45 PM CET
+* Last Modified : Sa 14 Feb 2015 12:29:45 PM CET
 
 * Author :  christian
 
@@ -1341,22 +1341,22 @@ class ProjectTestClass(ViewTestCase):
 
         Testfälle:
         - Nicht existierende Kollaboration bestätigen -> COLLABORATIONNOTFOUND Fehler
-        - user1 bestätigt die Kollaboration von user2 -> NOTENOUGHRIGHTS Fehker
+        - user1 bestätigt die Kollaboration von user2 -> COLLABORATIONNOTFOUND Fehler
         - user1 bestätigt seine Kollaboration -> Erfolg
 
         :return: None
         """
 
-        # Es gibt keine Kollaboration mit ID 1
+        # Es gibt keine Kollaboration für das Projekt mit ID 1
         response = util.documentPoster(self, command='activatecollaboration', idpara=1)
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['COLLABORATIONNOTFOUND'])
 
         collaboration = Collaboration.objects.create(user=self._user2, project=self._user1_project1)
-        response = util.documentPoster(self, command='activatecollaboration', idpara=collaboration.id)
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+        response = util.documentPoster(self, command='activatecollaboration', idpara=self._user1_project1.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['COLLABORATIONNOTFOUND'])
         self.assertFalse(Collaboration.objects.get(pk=collaboration.id).isConfirmed)
 
         collaboration2 = Collaboration.objects.create(user=self._user1, project=self._user2_project2)
-        response = util.documentPoster(self, command='activatecollaboration', idpara=collaboration2.id)
+        response = util.documentPoster(self, command='activatecollaboration', idpara=self._user2_project2.id)
         util.validateJsonSuccessResponse(self, response.content, {})
         self.assertTrue(Collaboration.objects.get(pk=collaboration2.id).isConfirmed)
