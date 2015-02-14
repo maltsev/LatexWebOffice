@@ -5,11 +5,11 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fr 23 Jan 2015 11:18:15 CET
+* Last Modified : Sa 14 Feb 2015 12:29:45 PM CET
 
 * Author :  christian
 
-* Coauthors : mattis, ingo
+* Coauthors : mattis, ingo, Kirill
 
 * Sprintnumber : -
 
@@ -24,6 +24,7 @@ import mimetypes
 import tempfile
 
 from django.http import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
 
 from core import settings
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES
@@ -34,6 +35,7 @@ from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.pdf import PDF
+from app.models.collaboration import Collaboration
 
 
 def jsonDecoder(responseContent):
@@ -148,18 +150,24 @@ def checkIfFileExistsAndUserHasRights(fileid, user, request, objecttype=File):
         return True, None
 
 
-def checkIfProjectExistsAndUserHasRights(projectid, user, request):
+def checkIfProjectExistsAndUserHasRights(projectid, user, request, requirerights):
     """Überprüft, ob das Projekt mit der projectid existiert, und der User die Rechte hat dieses zu bearbeiten.
 
     :param projectid: Id des Projektes, für welches die Überprüfung durchgeführt werden soll
     :param user: Benutzer, für den die Überprüfung durchgeführt werden soll
     :param request: Anfrage des Clients, wird unverändert zurückgeschickt
+    :param requirerights: Erforderte Rechte (z. B ['owner', 'collaborator'] — user soll der Autor ODER der Kollaborator vom Projekt sein)
     :return: (False, HttpResponse (JSON) mit der entsprechenden Fehlermeldung), bzw. (True, None) bei Erfolg
     """
 
-    if not Project.objects.filter(id=projectid).exists():
+    try:
+        project = Project.objects.get(pk=projectid)
+    except ObjectDoesNotExist:
         return False, jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'], request)
-    elif not Project.objects.get(id=projectid).author == user:
+
+    if 'collaborator' in requirerights and Collaboration.objects.filter(user=user, project=project).exists():
+        return True, None
+    elif 'owner' in requirerights and project.author != user:
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
         return True, None
