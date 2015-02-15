@@ -13,7 +13,8 @@ var duplicateID = null;				// ID des derzeitig zu duplizierenden Projektes
 var templatizedID = null;			// ID des derzeitig in eine Vorlage umzuwandelnden Projektes
 var projectTempID = null;
 var editMode = false;				// gibt an, ob sich eine der Knoten-Komponenten derzeitig im Editierungsmodus befindet
-
+var currentAuthor = user;
+var number_of_invitedusers = 0;
 /*
  * Position und Höhe der selektierten Knoten-Komponente sind zu speichern,
  * da diese durch den Editierungsmodus temporär ihre html-Repräsentation verliert
@@ -89,7 +90,12 @@ $(document).ready(function() {
 	});
 	$('.modal_deny_confirm').on("click", function(e) {
 		// Aktion nach Klicken des deny Buttons
+		$("input:checkbox[name=denyProjectAccess]:checked").each(function()
+		{		
+		var user = $(this).val();
 		denyProjectAccess(selectedNodeIDProjects,'TImo');
+});
+		//
 	});
 	//VALIDATOR	
 	//
@@ -146,6 +152,7 @@ $(document).ready(function() {
 			
 			// aktualisiert die Selection-ID gemäß der ausgewählten Knoten-Komponente
 			selectedNodeIDProjects = data.node.id;
+			currentAuthor = data.node.author;
 			prevSelectedNodeID = data.node.id;
 			
 			selectedPos 	= $('.node_item_'+selectedNodeIDProjects).position();
@@ -397,15 +404,18 @@ $(document).ready(function() {
 	});
 	// 'Freigabe entziehen'-Schaltfläche
 	$('.projecttoolbar-deny').on("click", function() {
-		showInvitedUser()();
+		showInvitedUser();
 		
 	});
 	
 	// 'Einladung akzeptieren'-Schaltfläche
-	$('.invitationtoolbar-acceptInvitation').on("click", function() {
+	$('.modal_acceptInvitationConfirmation_yes').on("click", function() {
 		acceptInvitation();
 	});
-
+	// 'Einladung ablehnen'-Schaltfläche
+	$('.modal_denyInvitationConfirmation_yes').on("click", function() {
+		denyInvitation();
+	});
 
 	refreshProjects();
 	listInvitations();
@@ -435,6 +445,26 @@ function acceptInvitation() {
 			'id':selectedNodeIDInvitations
 		}, function(result,data) {
 			if(result) {
+				refreshProjects();
+				listInvitations();
+			}
+			else {
+				alert(data.response);
+			}
+	});
+}
+
+/*
+ * Der Nutzer lehnt die Einladung zum Projekt zur Kollaboration ab.
+ * @param projectId - Die Id des Projektes, dessen Einladung vom Nutzer abgelehnt wurde.
+ */
+function denyInvitation() {
+	documentsJsonRequest({
+			'command': 'quitcollaboration',
+			'id':selectedNodeIDInvitations
+		}, function(result,data) {
+			if(result) {
+				refreshProjects();
 				listInvitations();
 			}
 			else {
@@ -456,6 +486,9 @@ function sendProjectInvitation(projectId,email) {
 			'id':projectId
 		}, function(result,data) {
 			if(result) {
+				alert("Der Nutzer wurde zur Kollaboration Ihres Projektes eingeladen.");
+				$('.projecttoolbar-deny').prop("disabled", false);
+
 			}
 			else {
 				alert(data.response);
@@ -485,6 +518,28 @@ function denyProjectAccess(projectId,user) {
 }
 
 /*
+ * Gibt die Anzahl der Kollaborationsteilnehmer zurück. 
+ * @param projectId - ID des Projektes, das freigegeben wurde.
+ */
+function getNumberOfInvitedUser(){
+	if (selectedNodeIDProjects != ""){
+	documentsJsonRequest({
+			'command': 'listinvitedusers',
+			'id':selectedNodeIDProjects
+		}, function(result,data) {
+			if(result) {
+				number_of_invitedusers = data.response.length;
+				if (number_of_invitedusers == 0){
+					$('.projecttoolbar-deny').prop("disabled", true);
+				}
+			}
+			else {
+			}
+	});
+	}
+}
+
+/*
  * Zeigt die eingeladenen Benutzer an. 
  * @param projectId - ID des Projektes, das freigegeben wurde.
  */
@@ -495,8 +550,9 @@ function showInvitedUser(){
 		}, function(result,data) {
 			if(result) {
 				var number_of_invitedusers = data.response.length;
+				document.getElementById('invitedUser').innerHTML = "";
 				for (var i = 0; i < number_of_invitedusers; i++){
-					document.getElementById('invitedUser').innerHTML = document.getElementById('invitedUser').innerHTML+"<div class=\"row\"><div class=\"col-lg-6\"><div class=\"input-group\"><span class=\"input-group-addon\"><input type=\"checkbox\" aria-label=\"checked\"></span><input type=\"text\" class=\"form-control\" disabled aria-label=\"user\" value=\""+data.response[i]+"\"></div></div></div>";
+					document.getElementById('invitedUser').innerHTML = document.getElementById('invitedUser').innerHTML+"<div class=\"row\"><div class=\"col-lg-6\"><div class=\"input-group\"><span class=\"input-group-addon\"><input name=\"denyProjectAccess\" value=\""+data.response[i]+"\" type=\"checkbox\" aria-label=\"checked\"></span><input type=\"text\" class=\"form-control\" disabled aria-label=\"user\" value=\""+data.response[i]+"\"></div></div></div>";
 					
 				}
 				
@@ -511,7 +567,6 @@ function showInvitedUser(){
  * Aktualisiert die Anzeige der Projekte des Benutzers.
  */
 function listInvitations() {
-	
 	// leert den JSTrees
 	treeInstInvitations.settings.core.data = null;
 	treeInstInvitations.refresh();
@@ -969,6 +1024,16 @@ function updateMenuButtonsProject() {
 	$('.projecttoolbar-import').prop("disabled", !basic);
 	$('.projecttoolbar-share').prop("disabled", !remain);
 	$('.projecttoolbar-deny').prop("disabled", !remain);
+	$('.projecttoolbar-quitCollaboration').prop("disabled", !remain);
+	getNumberOfInvitedUser();
+	if (currentAuthor == user){
+		$('.projecttoolbar-quitCollaboration').prop("disabled", true);
+	}
+	else {
+		$('.projecttoolbar-share').prop("disabled", true);
+		$('.projecttoolbar-deny').prop("disabled", true);
+		$('.projecttoolbar-quitCollaboration').prop("disabled", false);
+	}
 	$('.templatestoolbar-use').prop("disabled", !remain);
 }
 

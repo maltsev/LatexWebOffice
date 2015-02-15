@@ -137,6 +137,43 @@
     </div>
   </div>
 </div>
+<!-- Modal -->
+<div class="modal fade" id="modal_acceptInvitationConfirmation" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Einladung zur Kollaboration annehmen</h4>
+      </div>
+      <div class="modal-body">
+        <p>Sind Sie sicher, dass Sie an der Kollaboration teilnehmen möchten?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default modal_acceptInvitationConfirmation_yes" data-dismiss="modal">Ja</button>
+        <button type="button" class="btn btn-primary modal_acceptInvitationConfirmation_no" data-dismiss="modal">Nein</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="modal_denyInvitationConfirmation" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Einladung zur Kollaboration ablehnen</h4>
+      </div>
+      <div class="modal-body">
+        <p>Sind Sie sicher, dass Sie die Einladung zur Kollaboration ablehnen möchten?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default modal_denyInvitationConfirmation_yes" data-dismiss="modal">Ja</button>
+        <button type="button" class="btn btn-primary modal_denyInvitationConfirmation_no" data-dismiss="modal">Nein</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <div class="input_popover" id="input_popover" data-container="body" data-toggle="popover" data-placement="top" data-content="Geben Sie einen Namen ein:"></div>
 
@@ -166,6 +203,7 @@
             <div class="btn-group" role="group">
                 <button type="button" class="btn btn-default projecttoolbar-share" data-toggle="modal" data-target="#project-share-modal" disabled>Freigeben</button>
                 <button type="button" class="btn btn-default projecttoolbar-deny" data-toggle="modal" data-target="#project-deny-modal" disabled>Freigabe entziehen</button>
+				<button type="button" class="btn btn-default projecttoolbar-quitCollaboration" data-toggle="modal" data-target="#project-deny-modal" disabled>Kollaboration beenden</button>
             </div>
         </div>
 
@@ -209,6 +247,9 @@
                 <button type="button" class="btn btn-default projecttoolbar-deny" disabled>
                     <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
                 </button>
+				 <button type="button" class="btn btn-default projecttoolbar-quitCollaboration" disabled>
+                    <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                </button>
             </div>
         </div>
     </div>
@@ -220,18 +261,18 @@
     <div class="scrollableblock">
 	<div class="btn-toolbar hidden-xs invitationtoolbar" role="toolbar">
             <div class="btn-group" role="group">
-                <button type="button" class="btn btn-default invitationtoolbar-acceptInvitation" disabled>Einladung annehmen</button>
-                <button type="button" class="btn btn-default invitationtoolbar-denyInvitation" data-toggle="modal" data-target="#modal_deleteConfirmation" disabled>Einladung ablehnen</button>
+                <button type="button" data-toggle="modal" data-target="#modal_acceptInvitationConfirmation" class="btn btn-default invitationtoolbar-acceptInvitation" disabled>Einladung annehmen</button>
+                <button type="button" data-toggle="modal" data-target="#modal_denyInvitationConfirmation" class="btn btn-default invitationtoolbar-denyInvitation" disabled>Einladung ablehnen</button>
             </div>
         </div>
 
         <div class="btn-toolbar visible-xs-block invitationtoolbar" role="toolbar">
 
             <div class="btn-group" role="group">
-                <button type="button" class="btn btn-default invitationtoolbar-acceptInvitation" disabled>
+                <button type="button" data-toggle="modal" data-target="#modal_acceptInvitationConfirmation" class="btn btn-default invitationtoolbar-acceptInvitation" disabled>
                     <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
                 </button>
-                <button type="button" class="btn btn-default invitationtoolbar-denyInvitation" disabled>
+                <button type="button" data-toggle="modal" data-target="#modal_denyInvitationConfirmation" class="btn btn-default invitationtoolbar-denyInvitation" disabled>
                     <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                 </button>
 
