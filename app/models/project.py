@@ -5,11 +5,11 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : 10 Dec 2014 13:17:00 CET
+* Last Modified : Su 15 Feb 2015 17:53:00 CET
 
-* Author :  maltsev
+* Author :  Kirill
 
-* Sprintnumber : 2
+* Sprintnumber : 2, 5
 
 * Backlog entry :
 
@@ -45,13 +45,10 @@ class ProjectManager(models.Manager):
             raise AttributeError('Project ist nicht eingegeben')
 
         project = kwargs['project']
-
-        newProjectName = kwargs['name']
-
-        newProject = self.create(name=newProjectName, author=project.author)
+        newProject = self.create(name=kwargs.get('name', project.name),
+                                 author=kwargs.get('author', project.author))
 
         folder.Folder.objects.copy(project.rootFolder, newProject.rootFolder)
-
         return newProject
 
 

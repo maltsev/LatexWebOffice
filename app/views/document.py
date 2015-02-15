@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Sa 14 Feb 2015 12:29:45 PM CET
+* Last Modified : Su 15 Feb 2015 17:53:00 CET
 
 * Author :  mattis
 
@@ -92,6 +92,10 @@ available_commands = {
     },
     'activatecollaboration': {
         'command': project.activateCollaboration,
+        'parameters': [{'para': globalparas['id'], 'type': Project, 'requirerights': ['owner', 'collaborator']}]
+    },
+    'quitcollaboration': {
+        'command': project.quitCollaboration,
         'parameters': [{'para': globalparas['id'], 'type': Project, 'requirerights': ['owner', 'collaborator']}]
     },
     'createtex': {

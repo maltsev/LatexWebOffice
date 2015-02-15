@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Sa 14 Feb 2015 12:29:45 PM CET
+* Last Modified : Su 15 Feb 2015 17:53:00 CET
 
 * Author :  christian
 
@@ -1360,3 +1360,47 @@ class ProjectTestClass(ViewTestCase):
         response = util.documentPoster(self, command='activatecollaboration', idpara=self._user2_project2.id)
         util.validateJsonSuccessResponse(self, response.content, {})
         self.assertTrue(Collaboration.objects.get(pk=collaboration2.id).isConfirmed)
+
+
+    def test_quitCollaboration(self):
+        """Test der quitCollaboration()-Methode aus dem project view
+
+        Teste der Kündigung der Kollaboration (bzw. Einladung) an einem Projekt
+
+        Testfälle:
+        - Nicht existierende Kollaboration kündigen -> COLLABORATIONNOTFOUND Fehler
+        - user1 kündigt die Kollaboration von user2 -> COLLABORATIONNOTFOUND Fehler
+        - user1 kündigt der nicht bestätigten Einladung -> Erfolg
+        - user1 kündigt der Kollaboration -> Erfolg
+
+        :return: None
+        """
+
+        # Es gibt keine Kollaboration für das Projekt mit ID 1
+        response = util.documentPoster(self, command='quitcollaboration', idpara=1)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['COLLABORATIONNOTFOUND'])
+
+
+        collaboration = Collaboration.objects.create(user=self._user2, project=self._user1_project1)
+        response = util.documentPoster(self, command='quitcollaboration', idpara=self._user1_project1.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['COLLABORATIONNOTFOUND'])
+        self.assertTrue(Collaboration.objects.filter(pk=collaboration.id).exists())
+
+
+        # Kollaboration ist nicht bestätigt
+        collaboration2 = Collaboration.objects.create(user=self._user1, project=self._user2_project2)
+        response = util.documentPoster(self, command='quitcollaboration', idpara=self._user2_project2.id)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(Collaboration.objects.filter(pk=collaboration2.id).exists())
+        # Es soll keine Kopie vom Projekt erstellt worden sein
+        self.assertFalse(Project.objects.filter(author=self._user1, name=self._user2_project2.name).exists())
+
+
+        collaboration3 = Collaboration.objects.create(user=self._user1, project=self._user2_project2)
+        collaboration3.isConfirmed = True
+        collaboration3.save()
+        response = util.documentPoster(self, command='quitcollaboration', idpara=self._user2_project2.id)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(Collaboration.objects.filter(pk=collaboration3.id).exists())
+        # Es soll eine Kopie vom Projekt erstellt worden sein
+        self.assertTrue(Project.objects.filter(author=self._user1, name=self._user2_project2.name).exists())
