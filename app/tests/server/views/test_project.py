@@ -492,17 +492,24 @@ class ProjectTestClass(ViewTestCase):
 
     def test_listProjects(self):
         """Test der listprojects() Methode aus dem project view
-
+        
         Teste das Auflisten aller Projekte eines Benutzers.
-
+        
         Testfälle:
         - user1 fordert eine Liste aller Projekte an -> Erfolg (Liste sollte nur Projekte von user1 beinhalten)
         - user2 fordert eine Liste aller Projekte an -> Erfolg (Liste sollte nur Projekte von user2 beinhalten)
         - user3 fordert eine Liste aller Projekte an -> Erfolg (Liste sollte leer sein)
-
+        - user1 lädt user2 zum Projekt user1_project1 und
+          user2 fordert eine Liste aller Projekte an -> Erfolg (Liste sollte nur Projekte von user2 beinhalten)
+        - user2 bestätigt die Kollaboration am Projekt user1_project1 und
+                fordert eine Liste aller Projekte an -> Erfolg (Liste sollte alle Projekte von user2 und user1_project1 beinhalten)
+        - user2 kündigt die Kollaboration am Projekt user1_project1 und
+                fordert eine Liste aller Projekte an -> Erfolg (Liste sollte alle Projekte von user2 und
+                                                                das neuerzeugte Duplikat von user1_project1 mit user2 als Autor beinhalten)
+        
         :return: None
         """
-
+        
         # Sende Anfrage zum Auflisten aller Projekte von user1
         response = util.documentPoster(self, command='listprojects')
 
@@ -594,6 +601,120 @@ class ProjectTestClass(ViewTestCase):
 
         # logout von user3
         self.client.logout()
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # login von user1
+        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
+        
+        # user1 lädt user2 zum Projekt user1_project1 ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
+        
+        # logout von user1
+        self.client.logout()
+        # login von user2
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        
+        # sende Anfrage zum Auflisten aller Projekte von user2
+        response = util.documentPoster(self, command='listprojects')
+        
+        # erwartete Antwort des Servers
+        serveranswer = [
+            {'id': self._user2_project1.id,
+             'name': self._user2_project1.name,
+             'ownerid': self._user2_project1.author.id,
+             'ownername': self._user2_project1.author.username,
+             'createtime': util.datetimeToString(self._user2_project1.createTime),
+             'rootid': self._user2_project1.rootFolder.id},
+            {'id': self._user2_project2.id,
+             'name': self._user2_project2.name,
+             'ownerid': self._user2_project2.author.id,
+             'ownername': self._user2_project2.author.username,
+             'createtime': util.datetimeToString(self._user2_project2.createTime),
+             'rootid': self._user2_project2.rootFolder.id}
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # user2 bestätigt die Kollaboration am Projekt user1_project1
+        util.documentPoster(self, command='activatecollaboration', idpara=self._user1_project1.id)
+        
+        # sende Anfrage zum Auflisten aller Projekte von user2
+        response = util.documentPoster(self, command='listprojects')
+        
+        # erwartete Antwort des Servers
+        serveranswer = [
+            {'id': self._user2_project1.id,
+             'name': self._user2_project1.name,
+             'ownerid': self._user2_project1.author.id,
+             'ownername': self._user2_project1.author.username,
+             'createtime': util.datetimeToString(self._user2_project1.createTime),
+             'rootid': self._user2_project1.rootFolder.id},
+            {'id': self._user2_project2.id,
+             'name': self._user2_project2.name,
+             'ownerid': self._user2_project2.author.id,
+             'ownername': self._user2_project2.author.username,
+             'createtime': util.datetimeToString(self._user2_project2.createTime),
+             'rootid': self._user2_project2.rootFolder.id},
+            {'id': self._user1_project1.id,
+             'name': self._user1_project1.name,
+             'ownerid': self._user1_project1.author.id,
+             'ownername': self._user1_project1.author.username,
+             'createtime': util.datetimeToString(self._user1_project1.createTime),
+             'rootid': self._user1_project1.rootFolder.id}
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # user2 kündigt die Kollaboration am Projekt user1_project1
+        util.documentPoster(self, command='quitcollaboration', idpara=self._user1_project1.id)
+        
+        # sende Anfrage zum Auflisten aller Projekte von user2
+        response = util.documentPoster(self, command='listprojects')
+        
+        # ermittelt die angelegte Kopie von user1_project1
+        projectcopy = Project.objects.get(author=self._user2, name=self._user1_project1.name)
+        
+        # erwartete Antwort des Servers
+        serveranswer = [
+            {'id': self._user2_project1.id,
+             'name': self._user2_project1.name,
+             'ownerid': self._user2_project1.author.id,
+             'ownername': self._user2_project1.author.username,
+             'createtime': util.datetimeToString(self._user2_project1.createTime),
+             'rootid': self._user2_project1.rootFolder.id},
+            {'id': self._user2_project2.id,
+             'name': self._user2_project2.name,
+             'ownerid': self._user2_project2.author.id,
+             'ownername': self._user2_project2.author.username,
+             'createtime': util.datetimeToString(self._user2_project2.createTime),
+             'rootid': self._user2_project2.rootFolder.id},
+            {'id': projectcopy.id,
+             'name': self._user1_project1.name,
+             'ownerid': self._user2.id,
+             'ownername': self._user2.username,
+             'createtime': util.datetimeToString(projectcopy.createTime),
+             'rootid': projectcopy.rootFolder.id}
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # logout von user2
+        self.client.logout()
+
 
     def test_importZip(self):
         """Test der importZip() Methode aus dem project view

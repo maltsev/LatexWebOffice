@@ -132,21 +132,25 @@ def projectRename(request, user, projectid, newprojectname):
 
 
 def listProjects(request, user):
-    """Liefert eine Übersicht aller Projekte eines Benutzers.
-
+    """Liefert eine Übersicht aller Projekte eines Benutzers
+       (einschließlich seiner kollaborativen Projekte).
+    
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
     :return: HttpResponse (JSON)
     """
-
-    availableprojects = Project.objects.filter(author=user)
-
-    if availableprojects is None:
+    
+    userprojects   = Project.objects.filter(author=user)
+    collaborations = Collaboration.objects.filter(user=user,isConfirmed=True)
+    
+    if userprojects is None or collaborations is None:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
     else:
         json_return = [util.projectToJson(project)
-                       for project in availableprojects]
-
+                       for project in userprojects]
+        json_return += [util.projectToJson(collaboration.project)
+                        for collaboration in collaborations]
+    
     return util.jsonResponse(json_return, True, request)
 
 
