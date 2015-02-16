@@ -99,6 +99,7 @@ $(document).ready(function() {
 	});
 		$('.modal_quitCollaboration_confirm').on("click", function(e) {
 		// Aktion nach Klicken des deny Buttons
+		currentAuthor = user;
 		quitCollaboration();
 	
 
@@ -499,6 +500,7 @@ function quitCollaboration() {
 				showAlertDialog("Kollaboration beenden",data.response);
 			}
 	});
+	
 }
 
 
