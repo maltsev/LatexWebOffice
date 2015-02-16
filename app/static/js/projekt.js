@@ -97,6 +97,13 @@ $(document).ready(function() {
 });
 		//
 	});
+		$('.modal_quitCollaboration_confirm').on("click", function(e) {
+		// Aktion nach Klicken des deny Buttons
+		quitCollaboration();
+	
+
+		//
+	});
 	//VALIDATOR	
 	//
 	//falls versucht wird eine zip-datei zu importieren, die den gleichen namen hat, wie ein bestehendes projekt, muss der nutzer bestätigen, 
@@ -447,9 +454,10 @@ function acceptInvitation() {
 			if(result) {
 				refreshProjects();
 				listInvitations();
+				showAlertDialog("Einladung zur Kollaboration annehmen","Sie haben die Einladung zur Kollaboration angenommen.");
 			}
 			else {
-				alert(data.response);
+				showAlertDialog("Einladung zur Kollaboration annehmen",data.response);
 			}
 	});
 }
@@ -466,12 +474,33 @@ function denyInvitation() {
 			if(result) {
 				refreshProjects();
 				listInvitations();
+				showAlertDialog("Einladung zur Kollaboration ablehnen","Sie haben die Einladung zur Kollaboration abgelehnt.");
 			}
 			else {
-				alert(data.response);
+				showAlertDialog("Einladung zur Kollaboration ablehnen",data.response);
 			}
 	});
 }
+
+/*
+ * Der Nutzer beendet die Kollaboration.
+ * @param projectId - Die Id des Projektes, dessen Einladung vom Nutzer abgelehnt wurde.
+ */
+function quitCollaboration() {
+	documentsJsonRequest({
+			'command': 'quitcollaboration',
+			'id':selectedNodeIDProjects
+		}, function(result,data) {
+			if(result) {
+				refreshProjects();
+				showAlertDialog("Kollaboration beenden","Sie haben die Kollaboration beendet.");
+			}
+			else {
+				showAlertDialog("Kollaboration beenden",data.response);
+			}
+	});
+}
+
 
 /*
  * Sendet an den Account mit der übergebenen E-Mail Adresse eines Nutzers eine Einladung zum Projekt.
@@ -486,12 +515,12 @@ function sendProjectInvitation(projectId,email) {
 			'id':projectId
 		}, function(result,data) {
 			if(result) {
-				alert("Der Nutzer wurde zur Kollaboration Ihres Projektes eingeladen.");
+				showAlertDialog("Projekt freigeben","Der Nutzer wurde zur Kollaboration Ihres Projektes eingeladen.");
 				$('.projecttoolbar-deny').prop("disabled", false);
 
 			}
 			else {
-				alert(data.response);
+				showAlertDialog("Projekt freigeben",data.response);
 			}
 	});
 }
@@ -558,7 +587,6 @@ function showInvitedUser(){
 				
 			}
 			else {
-				alert(data.response);
 			}
 	});
 }
@@ -610,6 +638,7 @@ function createProject(name) {
 				
 				// aktualisiert die Aktivierungen der Menü-Schaltflächen (temporäre vollständige Deaktivierung wird aufgehoben)
 				//updateMenuButtons();
+				showAlertDialog("Projekt erstellen","Sie haben das Projekt erfolgreich erstellt.");
 			}
 			// wenn ein entsprechendes Projekt nicht angelegt werden konnte, ...
 			else {
@@ -617,9 +646,8 @@ function createProject(name) {
 				node = treeInstProjects.get_node(creatingNodeID);
 				treeInstProjects.set_text(node,getHTML(node));
 				treeInstProjects.edit(creatingNodeID,"");
-				
-				// TEMP
-				alert(data.response);
+				showAlertDialog("Projekt erstellen",data.response);
+
 			}
 	});
 	
@@ -649,6 +677,11 @@ function deleteProject() {
 				// aktualisiert die Aktivierungen der Menü-Schaltflächen
 				updateMenuButtonsProject();
 				refreshProjects();	
+				showAlertDialog("Projekt löschen","Sie haben das Projekt erfolgreich gelöscht");
+
+			}
+			else {
+				showAlertDialog("Projekt löschen",data.response);
 			}
 	});
 	
@@ -675,6 +708,7 @@ function renameProject(name) {
 				
 				// aktualisiert die Anzeige der Projekte
 				refreshProjects();
+				showAlertDialog("Projekt umbenennen","Sie haben das Projekt erfolgreich umbenannt.");
 			}
 			// wenn das ausgewählte Projekt für den übergebenen Namen nicht umbenannt werden konnte, ...
 			else {
@@ -682,7 +716,7 @@ function renameProject(name) {
 				treeInstProjects.edit(renameID,"");
 				
 				// TEMP
-				alert(data.response);
+					showAlertDialog("Projekt umbenennen",data.response);
 				//showPopover(treeInstProjects.get_node(renameID),data.response);
 			}
 	});
@@ -712,6 +746,7 @@ function duplicateProject(projectID,name) {
 				
 				// aktualisiert die Anzeige der Projekte
 				refreshProjects();
+				showAlertDialog("Projekt duplizieren","Sie haben das Projekt erfolgreich dupliziert.");
 			}
 			// wenn ein entsprechendes Projekt nicht angelegt werden konnte, ...
 			else {
@@ -719,7 +754,7 @@ function duplicateProject(projectID,name) {
 				treeInstProjects.edit(duplicateNodeID,"");
 				
 				// TEMP
-				alert(data.response);
+					showAlertDialog("Projekt duplizieren",data.response);
 			}
 	});
 	
@@ -743,14 +778,15 @@ function projectToTemplate(name) {
 				
 				// setzt die Umwandlungs-IDs zurück
 				templatizedID = null;
-				
+				document.getElementById('modal_alertDialog').style.display = 'none';
 				// Weiterleitung zu Vorlagen
 				document.location.assign('/vorlagen/');
+				//showAlertDialog("Projekt in Vorlage umwandeln","Sie haben das Projekt erfolgreich in eine Vorlage umgewandelt.");
 			}
 			// wenn eine entsprechende Vorlage nicht angelegt werden konnte, ...
 			else {
 				// TEMP
-				alert(data.response);
+				showAlertDialog("Projekt in Vorlage umwandeln",data.response);
 			}
 	});
 }
@@ -790,9 +826,9 @@ function templateToProject(name) {
 			    projectTempID = null;
 				// Weiterleitung zum erzeugten Projekt
 				document.location.assign('/projekt/');
-
+				showAlertDialog("Vorlage in Projekt umwandeln","Sie haben die Vorlage erfolgreich in ein Projekt umgewandelt.");
 			} else {
-				alert(data.response);
+				showAlertDialog("Vorlage in Projekt umwandeln",data.response);
             }
 	});
 }
@@ -1033,9 +1069,31 @@ function updateMenuButtonsProject() {
 		$('.projecttoolbar-share').prop("disabled", true);
 		$('.projecttoolbar-deny').prop("disabled", true);
 		$('.projecttoolbar-quitCollaboration').prop("disabled", false);
+		$('.projecttoolbar-delete').prop("disabled", true);
+		$('.projecttoolbar-rename').prop("disabled", true);
+		$('.projecttoolbar-duplicate').prop("disabled", true);
+		$('.projecttoolbar-converttotemplate').prop("disabled", true);
+
 	}
 	$('.templatestoolbar-use').prop("disabled", !remain);
 }
+
+/*
+ * Setzt den Inhalt des Alert Dialogs.
+ */
+function showAlertDialog(title,message){
+		$('#modal_alertDialog').modal('show');
+		document.getElementById('modal_alertDialog_title').innerHTML = title;
+		document.getElementById('modal_alertDialog_message').innerHTML = message;
+}
+
+/*
+ * Entfernt die alten Nachrichten aus dem Alert Dialog.
+ */
+function clearAlertDialog(){
+		showAlertDialog("","");
+}
+
 
 /*
  * Aktualisiert die Aktivierungen der Menü-Schaltflächen der Einladung.
