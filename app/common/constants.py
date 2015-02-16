@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fr 13 Feb 2015 21:53:45 PM CET
+* Last Modified : Mo 16 Feb 2015 23:15:00 CET
 
 * Author :  christian
 
@@ -66,7 +66,8 @@ ERROR_MESSAGES = {
     'NOLOGFILE': 'Keine Log Datei vorhanden.',
     'USERALREADYINVITED': 'Dieses Projekt ist für den Nutzer {0} bereits freigegeben.',
     'USERNOTFOUND': 'Ein Nutzer {0} konnte nicht gefunden werden.',
-    'COLLABORATIONNOTFOUND': 'Die Kollaboration konnte nicht gefunden werden.'
+    'COLLABORATIONNOTFOUND': 'Die Kollaboration konnte nicht gefunden werden.',
+    'SELFCOLLABORATIONCANCEL': 'Der Nutzer darf nicht der Kollaboration an seinem Projekt kündigen.'
 }
 
 ALLOWEDMIMETYPES = {

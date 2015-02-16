@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Su 15 Feb 2015 17:53:00 CET
+* Last Modified : Mo 16 Feb 2015 23:15:00 CET
 
 * Author :  christian
 
@@ -682,9 +682,6 @@ class ProjectTestClass(ViewTestCase):
         # sende Anfrage zum Auflisten aller Projekte von user2
         response = util.documentPoster(self, command='listprojects')
         
-        # ermittelt die angelegte Kopie von user1_project1
-        projectcopy = Project.objects.get(author=self._user2, name=self._user1_project1.name)
-        
         # erwartete Antwort des Servers
         serveranswer = [
             {'id': self._user2_project1.id,
@@ -699,12 +696,6 @@ class ProjectTestClass(ViewTestCase):
              'ownername': self._user2_project2.author.username,
              'createtime': util.datetimeToString(self._user2_project2.createTime),
              'rootid': self._user2_project2.rootFolder.id},
-            {'id': projectcopy.id,
-             'name': self._user1_project1.name,
-             'ownerid': self._user2.id,
-             'ownername': self._user2.username,
-             'createtime': util.datetimeToString(projectcopy.createTime),
-             'rootid': projectcopy.rootFolder.id}
         ]
         
         # überprüfe die Antwort des Servers
@@ -1472,10 +1463,12 @@ class ProjectTestClass(ViewTestCase):
         response = util.documentPoster(self, command='activatecollaboration', idpara=1)
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['COLLABORATIONNOTFOUND'])
 
+
         collaboration = Collaboration.objects.create(user=self._user2, project=self._user1_project1)
         response = util.documentPoster(self, command='activatecollaboration', idpara=self._user1_project1.id)
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['COLLABORATIONNOTFOUND'])
         self.assertFalse(Collaboration.objects.get(pk=collaboration.id).isConfirmed)
+
 
         collaboration2 = Collaboration.objects.create(user=self._user1, project=self._user2_project2)
         response = util.documentPoster(self, command='activatecollaboration', idpara=self._user2_project2.id)
@@ -1489,23 +1482,15 @@ class ProjectTestClass(ViewTestCase):
         Teste der Kündigung der Kollaboration (bzw. Einladung) an einem Projekt
 
         Testfälle:
-        - Nicht existierende Kollaboration kündigen -> COLLABORATIONNOTFOUND Fehler
-        - user1 kündigt die Kollaboration von user2 -> COLLABORATIONNOTFOUND Fehler
+        - user1 kündigt die Kollaboration an seinem Projekt -> SELFCOLLABORATIONCANCEL Fehler
         - user1 kündigt der nicht bestätigten Einladung -> Erfolg
         - user1 kündigt der Kollaboration -> Erfolg
 
         :return: None
         """
 
-        # Es gibt keine Kollaboration für das Projekt mit ID 1
-        response = util.documentPoster(self, command='quitcollaboration', idpara=1)
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['COLLABORATIONNOTFOUND'])
-
-
-        collaboration = Collaboration.objects.create(user=self._user2, project=self._user1_project1)
         response = util.documentPoster(self, command='quitcollaboration', idpara=self._user1_project1.id)
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['COLLABORATIONNOTFOUND'])
-        self.assertTrue(Collaboration.objects.filter(pk=collaboration.id).exists())
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['SELFCOLLABORATIONCANCEL'])
 
 
         # Kollaboration ist nicht bestätigt
@@ -1523,5 +1508,5 @@ class ProjectTestClass(ViewTestCase):
         response = util.documentPoster(self, command='quitcollaboration', idpara=self._user2_project2.id)
         util.validateJsonSuccessResponse(self, response.content, {})
         self.assertFalse(Collaboration.objects.filter(pk=collaboration3.id).exists())
-        # Es soll eine Kopie vom Projekt erstellt worden sein
-        self.assertTrue(Project.objects.filter(author=self._user1, name=self._user2_project2.name).exists())
+        # Es soll keine Kopie vom Projekt erstellt worden sein
+        self.assertFalse(Project.objects.filter(author=self._user1, name=self._user2_project2.name).exists())

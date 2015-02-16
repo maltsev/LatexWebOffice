@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Sa 14 Feb 2015 12:29:45 PM CET
+* Last Modified : Mo 16 Feb 2015 23:15:00 CET
 
 * Author :  christian
 
@@ -442,42 +442,23 @@ def activateCollaboration(request, user, projectid):
 
 
 def quitCollaboration(request, user, projectid):
-    """Kündigt der Kollaboration (bzw. Einladung) an einem Projekt
-
-    Falls es eine Kollaboration (bestätigte Einladung) war, wird eine Kopie vom Projekt erstellt.
-    Falls es eine nicht bestätigte Einladung war, wird keine Kopie erstellt.
+    """Kündigt der Kollaboration (bzw. Einladung) an einem Projekt (als Kollaborator)
 
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
-    :param projectid: ID des Projektes, zu dessen die Einladung gekündigt werden soll
+    :param projectid: ID des Projektes, zu dessen die Kollaboration (bzw. die Einladung) gekündigt werden soll
     :return: HttpResponse (JSON)
     """
 
     try:
         project = Project.objects.get(pk=projectid)
+        if user == project.author:
+            return util.jsonErrorResponse(ERROR_MESSAGES['SELFCOLLABORATIONCANCEL'], request)
+
         collaboration = Collaboration.objects.get(user=user, project=project)
+        collaboration.delete()
+        return util.jsonResponse({}, True, request)
     except ObjectDoesNotExist:
         return util.jsonErrorResponse(ERROR_MESSAGES['COLLABORATIONNOTFOUND'], request)
-
-    isConfirmed = collaboration.isConfirmed
-
-    try:
-        collaboration.delete()
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
-
-    if not isConfirmed:
-        return util.jsonResponse({}, True, request)
-
-
-    # Überprüfe ob ein Projekt mit gleichem Namen bereits für user existiert
-    if Project.objects.filter(name__iexact=project.name.lower(), author=user).exists():
-        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(project.name), request)
-
-    try:
-        Project.objects.cloneProject(project=project, author=user)
-    except:
-        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
-
-
-    return util.jsonResponse({}, True, request)
