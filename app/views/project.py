@@ -466,11 +466,11 @@ def quitCollaboration(request, user, projectid):
 
 
 def cancelCollaboration(request, user, projectid, collaboratoremail):
-    """Enzieht der Freigabe
+    """Entzieht der Freigabe
 
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
-    :param projectid: ID des Projektes, zu dessen der Freigabe enzieht werden soll
+    :param projectid: ID des Projektes, zu dessen der Freigabe entzieht werden soll
     :param collaboratoremail: E-Mail-Adresse der Kollaborator
     :return: HttpResponse (JSON)
     """
