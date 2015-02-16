@@ -1510,3 +1510,33 @@ class ProjectTestClass(ViewTestCase):
         self.assertFalse(Collaboration.objects.filter(pk=collaboration3.id).exists())
         # Es soll keine Kopie vom Projekt erstellt worden sein
         self.assertFalse(Project.objects.filter(author=self._user1, name=self._user2_project2.name).exists())
+
+
+    def test_cancelCollaboration(self):
+        """Test der cancelCollaboration()-Methode aus dem project view
+
+        Teste der Entziehung der Freigabe
+
+        Testfälle:
+        - user1 entzieht der Freigabe für nicht existierenden Nutzer -> COLLABORATIONNOTFOUND Fehler
+        - user1 entzieht der Freigabe an seinem Projekt -> SELFCOLLABORATIONCANCEL Fehler
+        - user1 entzieht der nicht bestätigten Freigabe -> Erfolg
+        - user1 entzieht der bestätigten Freigabe -> Erfolg
+
+        :return: None
+        """
+
+        response = util.documentPoster(self, command='cancelcollaboration', idpara=self._user1_project1.id, name='not@exists.com')
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['COLLABORATIONNOTFOUND'])
+
+
+        response = util.documentPoster(self, command='cancelcollaboration', idpara=self._user1_project1.id, name=self._user1.username)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['SELFCOLLABORATIONCANCEL'])
+
+
+        # Kollaboration ist nicht bestätigt
+        collaboration = Collaboration.objects.create(user=self._user2, project=self._user1_project1)
+        response = util.documentPoster(self, command='cancelcollaboration', idpara=self._user1_project1.id, name=self._user2.username)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(Collaboration.objects.filter(pk=collaboration.id).exists())
+        self.assertFalse(Project.objects.filter(author=self._user2, name=self._user1_project1.name).exists())

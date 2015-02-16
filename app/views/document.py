@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Su 15 Feb 2015 17:53:00 CET
+* Last Modified : Mo 16 Feb 2015 23:15:00 CET
 
 * Author :  mattis
 
@@ -97,6 +97,11 @@ available_commands = {
     'quitcollaboration': {
         'command': project.quitCollaboration,
         'parameters': [{'para': globalparas['id'], 'type': Project, 'requirerights': ['owner', 'collaborator']}]
+    },
+    'cancelcollaboration': {
+        'command': project.cancelCollaboration,
+        'parameters': [{'para': globalparas['id'], 'type': Project},
+                       {'para': globalparas['name'], 'stringcheck': True}]
     },
     'createtex': {
         'command': file.createTexFile,

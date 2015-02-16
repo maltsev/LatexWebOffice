@@ -462,3 +462,43 @@ def quitCollaboration(request, user, projectid):
         return util.jsonErrorResponse(ERROR_MESSAGES['COLLABORATIONNOTFOUND'], request)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+
+
+
+def cancelCollaboration(request, user, projectid, collaboratoremail):
+    """Enzieht der Freigabe
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param projectid: ID des Projektes, zu dessen der Freigabe enzieht werden soll
+    :param collaboratoremail: E-Mail-Adresse der Kollaborator
+    :return: HttpResponse (JSON)
+    """
+
+    try:
+        project = Project.objects.get(pk=projectid)
+        collaborator = User.objects.get(username=collaboratoremail)
+        if user == collaborator:
+            return util.jsonErrorResponse(ERROR_MESSAGES['SELFCOLLABORATIONCANCEL'], request)
+
+        collaboration = Collaboration.objects.get(user=collaborator, project=project)
+        collaboration.delete()
+    except ObjectDoesNotExist:
+        return util.jsonErrorResponse(ERROR_MESSAGES['COLLABORATIONNOTFOUND'], request)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+
+    if not collaboration.isConfirmed:
+        return util.jsonResponse({}, True, request)
+
+    # Überprüfe ob ein Projekt mit gleichem Namen bereits für user existiert
+    if Project.objects.filter(name__iexact=project.name.lower(), author=collaborator).exists():
+        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(project.name), request)
+
+    try:
+        Project.objects.cloneProject(project=project, author=collaborator)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+
+
+    return util.jsonResponse({}, True, request)
