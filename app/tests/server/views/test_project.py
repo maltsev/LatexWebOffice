@@ -1217,10 +1217,10 @@ class ProjectTestClass(ViewTestCase):
         
         Testfälle:
         - user1 fordert eine Liste aller zum Projekt user1_project1 eingeladener Benutzer an -> Erfolg (Liste sollte leer sein)
-        - user1 lädt user2 zum Projekt user1_project1 ein und
-                fordert eine Liste aller zum Projekt user1_project1 eingeladener Benutzer an -> Erfolg (Liste sollte ausschließlich user2 umfassen)
         - user1 lädt user3 zum Projekt user1_project1 ein und
-                fordert eine Liste aller zum Projekt user1_project1 eingeladener Benutzer an -> Erfolg (Liste sollte user2 und user3 umfassen)
+                fordert eine Liste aller zum Projekt user1_project1 eingeladener Benutzer an -> Erfolg (Liste sollte ausschließlich user3 umfassen)
+        - user1 lädt user2 zum Projekt user1_project1 ein und
+                fordert eine Liste aller zum Projekt user1_project1 eingeladener Benutzer an -> Erfolg (Liste sollte in Reihenfolge user2 und user3 umfassen)
         - user1 fordert eine Liste aller eingeladener Benutzer zu einem Projekt mit einer ungültigen Projekt-ID an -> Fehler
         - user1 fordert eine Liste aller eingeladener Benutzer zu einem Projekt an, für welches er nicht der Project-Owner ist -> Fehler
         
@@ -1240,14 +1240,14 @@ class ProjectTestClass(ViewTestCase):
         
         # --------------------------------------------------------------------------------------------------------------
         
-        # user1 lädt user2 zum Projekt user1_project1 ein
-        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
+        # user1 lädt user3 zum Projekt user1_project1 ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user3.username)
         
         # sende Anfrage zum Auflisten aller zum Projekt user1_project1 eingeladener Benutzer
         response = util.documentPoster(self, command='listinvitedusers', idpara=self._user1_project1.id)
         
         # erwartete Antwort des Servers
-        serveranswer = [self._user2.username]
+        serveranswer = [self._user3.username]
         
         # überprüfe die Antwort des Servers
         # status sollte success sein
@@ -1256,8 +1256,8 @@ class ProjectTestClass(ViewTestCase):
         
         # --------------------------------------------------------------------------------------------------------------
         
-        # user1 lädt user3 zum Projekt user1_project1 ein
-        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user3.username)
+        # user1 lädt user2 zum Projekt user1_project1 ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
         
         # sende Anfrage zum Auflisten aller zum Projekt user1_project1 eingeladener Benutzer
         response = util.documentPoster(self, command='listinvitedusers', idpara=self._user1_project1.id)

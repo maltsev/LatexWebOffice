@@ -383,7 +383,7 @@ def listInvitedUsers(request, user, projectid):
     :return: HttpResponse (JSON)
     """
     
-    collaborations = Collaboration.objects.filter(project=Project.objects.get(id=projectid))
+    collaborations = Collaboration.objects.filter(project=Project.objects.get(id=projectid)).order_by('user__username')
     
     if collaborations is None:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
