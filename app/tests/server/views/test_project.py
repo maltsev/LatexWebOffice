@@ -1311,6 +1311,9 @@ class ProjectTestClass(ViewTestCase):
           user3 fordert eine Liste aller unbestätigten Kollaborationsprojekte an -> Erfolg (Liste sollte ausschließlich user1_project1 umfassen)
         - user1 lädt user2 zu all seinen Projekten ein und
           user2 fordert eine Liste aller unbestätigten Kollaborationsprojekte an -> Erfolg (Liste sollte sämtliche Projekte von user1 umfassen)
+        - user2 bestätigt die Kollaboration am Projekt user1_project1 und
+                fordert eine Liste aller unbestätigten Kollaborationsprojekte an -> Erfolg (Liste sollte alle Projekte von user1
+                                                                                            mit Ausnahme von user1_project1 umfassen)
 
         :return: None
         """
@@ -1417,6 +1420,40 @@ class ProjectTestClass(ViewTestCase):
              'ownername': self._user1_project1.author.username,
              'createtime': util.datetimeToString(self._user1_project1.createTime),
              'rootid': self._user1_project1.rootFolder.id},
+            {'id': self._user1_project2.id,
+             'name': self._user1_project2.name,
+             'ownerid': self._user1_project2.author.id,
+             'ownername': self._user1_project2.author.username,
+             'createtime': util.datetimeToString(self._user1_project2.createTime),
+             'rootid': self._user1_project2.rootFolder.id},
+            {'id': self._user1_project3.id,
+             'name': self._user1_project3.name,
+             'ownerid': self._user1_project3.author.id,
+             'ownername': self._user1_project3.author.username,
+             'createtime': util.datetimeToString(self._user1_project3.createTime),
+             'rootid': self._user1_project3.rootFolder.id},
+            {'id': self._user1_project4.id,
+             'name': self._user1_project4.name,
+             'ownerid': self._user1_project4.author.id,
+             'ownername': self._user1_project4.author.username,
+             'createtime': util.datetimeToString(self._user1_project4.createTime),
+             'rootid': self._user1_project4.rootFolder.id}
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+       
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # user2 bestätigt die Kollaboration am Projekt user1_project1
+        util.documentPoster(self, command='activatecollaboration', idpara=self._user1_project1.id)
+        
+        # sende Anfrage zum Auflisten aller Projekte, zu deren Kollaboration user2 eingeladen ist, diese jedoch noch nicht bestätigt hat
+        response = util.documentPoster(self, command='listunconfirmedcollaborativeprojects')
+        
+        serveranswer = [
             {'id': self._user1_project2.id,
              'name': self._user1_project2.name,
              'ownerid': self._user1_project2.author.id,
