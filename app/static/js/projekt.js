@@ -798,7 +798,6 @@ function projectToTemplate(name) {
  *
  */
 function exportZip() {
-	alert(treeInstProjects.get_node(prevSelectedNodeID).rootid);
     documentsRedirect({
         'command' : 'exportzip',
         'id' : treeInstProjects.get_node(prevSelectedNodeID).rootid,
@@ -1074,7 +1073,7 @@ function updateMenuButtonsProject() {
 		$('.projecttoolbar-delete').prop("disabled", true);
 		$('.projecttoolbar-rename').prop("disabled", true);
 		$('.projecttoolbar-duplicate').prop("disabled", true);
-		$('.projecttoolbar-converttotemplate').prop("disabled", true);
+	//	$('.projecttoolbar-converttotemplate').prop("disabled", true);
 
 	}
 	$('.templatestoolbar-use').prop("disabled", !remain);
