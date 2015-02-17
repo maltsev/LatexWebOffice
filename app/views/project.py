@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mo 16 Feb 2015 23:15:00 CET
+* Last Modified : Tu 17 Feb 2015 22:14:00 CET
 
 * Author :  christian
 
@@ -291,8 +291,7 @@ def exportZip(request, user, folderid):
     logger.setLevel(logging.ERROR)
 
     # Überprüfe ob das Projekt, und der Benutzer die entsprechenden Rechte besitzt
-    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(
-        folderid, user, request,['owner', 'collaborator'])
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request, ['owner', 'collaborator'])
     if not rights:
         raise Http404
     # setze das logging level wieder auf den ursprünglichen Wert
