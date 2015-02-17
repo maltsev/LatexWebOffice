@@ -798,6 +798,7 @@ function projectToTemplate(name) {
  *
  */
 function exportZip() {
+	alert(treeInstProjects.get_node(prevSelectedNodeID).rootid);
     documentsRedirect({
         'command' : 'exportzip',
         'id' : treeInstProjects.get_node(prevSelectedNodeID).rootid,

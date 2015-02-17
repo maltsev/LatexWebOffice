@@ -1,4 +1,4 @@
-"""
+﻿"""
 
 * Purpose : Verwaltung von Project Models
 
@@ -291,11 +291,10 @@ def exportZip(request, user, folderid):
     logger.setLevel(logging.ERROR)
 
     # Überprüfe ob das Projekt, und der Benutzer die entsprechenden Rechte besitzt
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
-        folderid, user, request)
+    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(
+        folderid, user, request,['owner', 'collaborator'])
     if not rights:
         raise Http404
-
     # setze das logging level wieder auf den ursprünglichen Wert
     logger.setLevel(previous_level)
 
