@@ -93,9 +93,8 @@ $(document).ready(function() {
 		$("input:checkbox[name=denyProjectAccess]:checked").each(function()
 		{		
 		var user = $(this).val();
-		denyProjectAccess(selectedNodeIDProjects,'TImo');
+		denyProjectAccess(selectedNodeIDProjects,user);
 });
-		//
 	});
 		$('.modal_quitCollaboration_confirm').on("click", function(e) {
 		// Aktion nach Klicken des deny Buttons
@@ -533,19 +532,19 @@ function sendProjectInvitation(projectId,email) {
  * @param user - Der Nutzer, dem die Rechte entzogen werden.
  */
 function denyProjectAccess(projectId,user) {
-	showInvitedUser(projectId);
-/**	documentsJsonRequest({
-			'command': 'inviteuser',
-			'name': email,
+	documentsJsonRequest({
+			'command': 'cancelcollaboration',
+			'name': user,
 			'id':projectId
 		}, function(result,data) {
 			if(result) {
+				showAlertDialog("Freigabe entziehen","Sie haben dem Benutzer erfolgreich die Projektfreigabe entzogen.")
 			}
 			else {
-				alert(data.response);
+				showAlertDialog("Freigabe entziehen",data.response);
 			}
+				updateMenuButtonsProject();
 	});
-	**/
 }
 
 /*
