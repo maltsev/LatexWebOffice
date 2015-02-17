@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Sa 14 Feb 2015 12:29:45 PM CET
+* Last Modified : Tu 17 Feb 2015 21:32:00 CET
 
 * Author :  christian
 
@@ -102,18 +102,26 @@ def projectToJson(project):
                 rootid=project.rootFolder.id)
 
 
-def checkIfDirExistsAndUserHasRights(folderid, user, request):
+def checkIfDirExistsAndUserHasRights(folderid, user, request, requirerights):
     """Überprüft, ob der Ordner mit der folderid existiert, und der User die Rechte hat diesen zu bearbeiten.
 
     :param folderid: Id des Ordners, für welchen die Überprüfung durchgeführt werden soll
     :param user: Benutzer, für den die Überprüfung durchgeführt werden soll
     :param request: Anfrage des Clients, wird unverändert zurückgeschickt
+    :param requirerights: Erforderte Rechte (z. B ['owner', 'collaborator'] — user soll der Autor ODER der Kollaborator vom Projekt sein)
     :return: (False, HttpResponse (JSON) mit der entsprechenden Fehlermeldung), bzw. (True, None) bei Erfolg
     """
 
-    if not Folder.objects.filter(id=folderid).exists():
+    try:
+        folder = Folder.objects.get(id=folderid)
+        project = folder.getProject()
+    except ObjectDoesNotExist:
         return False, jsonErrorResponse(ERROR_MESSAGES['DIRECTORYNOTEXIST'], request)
-    elif not Folder.objects.get(id=folderid).getProject().author == user:
+
+
+    if 'collaborator' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=True).exists():
+        return True, None
+    elif 'owner' in requirerights and project.author != user:
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
         return True, None

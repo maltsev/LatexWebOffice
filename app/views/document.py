@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mo 16 Feb 2015 23:15:00 CET
+* Last Modified : Tu 17 Feb 2015 21:32:00 CET
 
 * Author :  mattis
 
@@ -169,7 +169,7 @@ available_commands = {
     },
     'listfiles': {
         'command': folder.listFiles,
-        'parameters': [{'para': globalparas['id'], 'type': Folder}]
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
     },
     'template2project': {
         'command': template.template2Project,
@@ -269,13 +269,14 @@ def execute(request):
             if para.get('type') and para['para']['type'] == int:
                 objType = para.get('type')
                 objId = request.POST.get(para['para']['name'])
+                requireRights = para.get('requirerights', ['owner'])
+
                 if objType == Project:
-                    requireRights = para.get('requirerights', ['owner'])
                     rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(objId, user, request, requireRights)
                     if not rights:
                         return failurereturn
                 elif objType == Folder:
-                    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(objId, user, request)
+                    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(objId, user, request, requireRights)
                     if not rights:
                         return failurereturn
                 elif objType == File:
