@@ -284,19 +284,6 @@ def exportZip(request, user, folderid):
     :return: filestream (404 im Fehlerfall)
     """
 
-    # setze das logging level auf ERROR
-    # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben wird
-    logger = logging.getLogger('django.request')
-    previous_level = logger.getEffectiveLevel()
-    logger.setLevel(logging.ERROR)
-
-    # Überprüfe ob das Projekt, und der Benutzer die entsprechenden Rechte besitzt
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request, ['owner', 'collaborator'])
-    if not rights:
-        raise Http404
-    # setze das logging level wieder auf den ursprünglichen Wert
-    logger.setLevel(previous_level)
-
     folderobj = Folder.objects.get(id=folderid)
 
     # erstelle ein temp Verzeichnis mit einer Kopie des Ordners

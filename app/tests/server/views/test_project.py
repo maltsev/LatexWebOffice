@@ -1047,19 +1047,14 @@ class ProjectTestClass(ViewTestCase):
         # --------------------------------------------------------------------------------------------------------------
         # sende Anfrage zum exportieren eines Ordners mit einer ungültigen projectid
         response = util.documentPoster(self, command='exportzip', idpara=self._invalidid)
-
-        # überprüfe die Antwort des Servers
-        # sollte status code 404 liefern
-        self.assertEqual(response.status_code, 404)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['DIRECTORYNOTEXIST'])
 
         # --------------------------------------------------------------------------------------------------------------
         # sende Anfrage zum exportieren eines Projektes mit einer rootfolderID die user2 gehört (als user1)
         response = util.documentPoster(self, command='exportzip', idpara=self._user2_project1.rootFolder.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
 
-        # überprüfe die Antwort des Servers
-        # sollte status code 404 liefern
-        self.assertEqual(response.status_code, 404)
-    
+
     def test_inviteUser(self):
         """Test der inviteUser()-Methode des project view
         

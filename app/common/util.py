@@ -118,8 +118,9 @@ def checkIfDirExistsAndUserHasRights(folderid, user, request, requirerights):
     except ObjectDoesNotExist:
         return False, jsonErrorResponse(ERROR_MESSAGES['DIRECTORYNOTEXIST'], request)
 
-
     if 'collaborator' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=True).exists():
+        return True, None
+    elif 'invitee' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=False).exists():
         return True, None
     elif 'owner' in requirerights and project.author != user:
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
@@ -173,7 +174,9 @@ def checkIfProjectExistsAndUserHasRights(projectid, user, request, requirerights
     except ObjectDoesNotExist:
         return False, jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'], request)
 
-    if 'collaborator' in requirerights and Collaboration.objects.filter(user=user, project=project).exists():
+    if 'collaborator' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=True).exists():
+        return True, None
+    elif 'invitee' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=False).exists():
         return True, None
     elif 'owner' in requirerights and project.author != user:
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)

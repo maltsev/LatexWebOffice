@@ -75,7 +75,7 @@ available_commands = {
     },
     'exportzip': {
         'command': project.exportZip,
-        'parameters': [{'para': globalparas['id']}]
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
     },
     'inviteuser': {
         'command': project.inviteUser,
@@ -92,11 +92,11 @@ available_commands = {
     },
     'activatecollaboration': {
         'command': project.activateCollaboration,
-        'parameters': [{'para': globalparas['id'], 'type': Project, 'requirerights': ['owner', 'collaborator']}]
+        'parameters': [{'para': globalparas['id'], 'type': Project, 'requirerights': ['owner', 'invitee']}]
     },
     'quitcollaboration': {
         'command': project.quitCollaboration,
-        'parameters': [{'para': globalparas['id'], 'type': Project, 'requirerights': ['owner', 'collaborator']}]
+        'parameters': [{'para': globalparas['id'], 'type': Project, 'requirerights': ['owner', 'invitee', 'collaborator']}]
     },
     'cancelcollaboration': {
         'command': project.cancelCollaboration,
@@ -178,7 +178,7 @@ available_commands = {
     },
     'project2template': {
         'command': template.project2Template,
-        'parameters': [{'para': globalparas['id'], 'type': Project},
+        'parameters': [{'para': globalparas['id'], 'type': Project, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['name'], 'stringcheck': True}]
     },
     'templaterm': {
