@@ -59,7 +59,7 @@ def project2Template(request, user, projectid, templatename):
 
     # Erstelle template aus dem Project
     project = Project.objects.get(id=projectid)
-    template = ProjectTemplate.objects.createFromProject(project=project, name=templatename)
+    template = ProjectTemplate.objects.createFromProject(project=project, name=templatename, author=user)
 
     return util.jsonResponse({'id': template.id, 'name': template.name}, True, request)
 

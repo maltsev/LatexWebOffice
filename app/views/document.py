@@ -53,7 +53,7 @@ available_commands = {
     },
     'projectclone': {
         'command': project.projectClone,
-        'parameters': [{'para': globalparas['id'], 'type': Project},
+        'parameters': [{'para': globalparas['id'], 'type': Project, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['name'], 'stringcheck': True}]
     },
     'projectrm': {

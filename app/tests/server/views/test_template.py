@@ -22,6 +22,7 @@ from app.tests.server.views.viewtestcase import ViewTestCase
 from app.models.folder import Folder
 from app.models.projecttemplate import ProjectTemplate
 from app.models.project import Project
+from app.models.collaboration import Collaboration
 
 
 class TemplateTestClass(ViewTestCase):
@@ -60,6 +61,10 @@ class TemplateTestClass(ViewTestCase):
             - user1 versucht ein Template mit existierenden Namen zu erstellen -> Fehler
             - user1 versucht ein Template mit Illegalen Zeichen zu erstellen -> Fehler
             - user1 versucht ein Template in ein Template zu verwandeln -> Fehler
+            - user1 konvertiert ein freigegebenen Projekt
+              (Einladung ist nicht bestätigt) in ein Template -> Fehler
+            - user1 konvertiert ein freigegebenen Projekt
+              (Einladung ist bestätigt) in ein Template -> Erfolg
 
         :return: None
         """
@@ -114,6 +119,20 @@ class TemplateTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+
+        collaboration = Collaboration.objects.create(project=self._user2_project1, user=self._user1)
+        response = util.documentPoster(self, command='project2template', idpara=self._user2_project1.id, name=self._newname5)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+
+        collaboration.isConfirmed = True
+        collaboration.save()
+        response = util.documentPoster(self, command='project2template', idpara=self._user2_project1.id, name=self._newname5)
+        templateobj = ProjectTemplate.objects.get(name=self._newname5, author=self._user1)
+        util.validateJsonSuccessResponse(self, response.content, {'id': templateobj.id, 'name': self._newname5})
+
+
 
     def test_template2Project(self):
         """Test der template2Project() Methode aus dem template view.
