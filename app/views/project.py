@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Tu 17 Feb 2015 22:14:00 CET
+* Last Modified : Th 19 Feb 2015 21:07:00 CET
 
 * Author :  christian
 
@@ -75,16 +75,17 @@ def projectClone(request, user, projectid, newprojectname):
         return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(newprojectname), request)
     else:
         # hole des aktuelle Projekt Objekt
-        projectobj = Project.objects.get(id=projectid, author=user)
+        projectobj = Project.objects.get(id=projectid)
 
         # versuche das Projekt in der Datenbank zu erstellen
         try:
-            newproject = Project.objects.cloneProject(project=projectobj, name=newprojectname)
+            newproject = Project.objects.cloneProject(project=projectobj, name=newprojectname, author=user)
         except:
             return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
     # gib die Id und den Namen des erstellte Projektes zurück
     return util.jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
+
 
 def projectRm(request, user, projectid):
     """Löscht ein vorhandenes Projekt eines Benutzers.

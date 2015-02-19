@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Mo 16 Feb 2015 23:15:00 CET
+* Last Modified : Th 19 Feb 2015 21:07:00 CET
 
 * Author :  christian
 
@@ -185,6 +185,7 @@ class ProjectTestClass(ViewTestCase):
         - user1 dupliziert ein Projekt, dessen Projektname ein leerer String ist -> Fehler
         - user1 dupliziert ein Projekt, dessen Projektname ungültige Sonderzeichen enthält -> Fehler
         - user1 dupliziert ein Projekt, dessen Projektname bereits existiert -> Fehler
+        - user1 dupliziert ein freigegebenes Projekt -> Erfolg
 
         :return: None
         """
@@ -283,6 +284,16 @@ class ProjectTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+        collaboration = Collaboration.objects.create(project=self._user2_project1, user=self._user1, isConfirmed=True)
+        response = util.documentPoster(self, command='projectclone', idpara=self._user2_project1.id,
+                                       name=self._newname3)
+        projects = Project.objects.filter(name=self._newname3, author=self._user1)
+        self.assertEqual(len(projects), 1)
+        util.validateJsonSuccessResponse(self, response.content, {'id': projects[0].id, 'name': self._newname3})
+
+
 
 
     def test_projectRm(self):
