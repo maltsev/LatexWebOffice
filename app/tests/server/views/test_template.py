@@ -4,13 +4,13 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Fr 19 Dez 2014 08:10:32 CET
+* Last Modified : Th 19 Feb 2015 21:07:00 CET
 
 * Author :  mattis
 
 * Coauthors :
 
-* Sprintnumber : 3
+* Sprintnumber : 3, 5
 
 * Backlog entry : -
 
@@ -61,9 +61,9 @@ class TemplateTestClass(ViewTestCase):
             - user1 versucht ein Template mit existierenden Namen zu erstellen -> Fehler
             - user1 versucht ein Template mit Illegalen Zeichen zu erstellen -> Fehler
             - user1 versucht ein Template in ein Template zu verwandeln -> Fehler
-            - user1 konvertiert ein freigegebenen Projekt
+            - user1 konvertiert ein freigegebenes Projekt
               (Einladung ist nicht bestätigt) in ein Template -> Fehler
-            - user1 konvertiert ein freigegebenen Projekt
+            - user1 konvertiert ein freigegebenes Projekt
               (Einladung ist bestätigt) in ein Template -> Erfolg
 
         :return: None
