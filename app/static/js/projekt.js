@@ -639,7 +639,14 @@ function createProject(name) {
 				
 				// aktualisiert die Aktivierungen der Menü-Schaltflächen (temporäre vollständige Deaktivierung wird aufgehoben)
 				//updateMenuButtons();
-				showAlertDialog("Projekt erstellen","Sie haben das Projekt erfolgreich erstellt.");
+
+				if(name==data.response.name)
+					showAlertDialog("Projekt erstellen",
+									"Sie haben das Projekt erfolgreich erstellt.");
+				else
+					showAlertDialog("Projekt erstellen",
+									"Ein Projekt mit dem Namen "+name+" existiert bereits:<br>"+
+									"Es wurde ein neues Projekt <b>"+data.response.name+"</b> erstellt.");
 			}
 			// wenn ein entsprechendes Projekt nicht angelegt werden konnte, ...
 			else {
@@ -747,7 +754,14 @@ function duplicateProject(projectID,name) {
 				
 				// aktualisiert die Anzeige der Projekte
 				refreshProjects();
-				showAlertDialog("Projekt duplizieren","Sie haben das Projekt erfolgreich dupliziert.");
+
+				if(name==data.response.name)
+					showAlertDialog("Projekt duplizieren",
+									"Sie haben das Projekt erfolgreich dupliziert.");
+				else
+					showAlertDialog("Projekt duplizieren",
+									"Ein Projekt mit dem Namen "+name+" existiert bereits:<br>"+
+									"Es wurde ein neues Projekt <b>"+data.response.name+"</b> erstellt.");
 			}
 			// wenn ein entsprechendes Projekt nicht angelegt werden konnte, ...
 			else {
@@ -781,8 +795,15 @@ function projectToTemplate(name) {
 				templatizedID = null;
 				document.getElementById('modal_alertDialog').style.display = 'none';
 				// Weiterleitung zu Vorlagen
-				document.location.assign('/vorlagen/');
-				//showAlertDialog("Projekt in Vorlage umwandeln","Sie haben das Projekt erfolgreich in eine Vorlage umgewandelt.");
+				//document.location.assign('/vorlagen/');
+				
+				if(name==data.response.name)
+					showAlertDialog("Projekt in Vorlage umwandeln",
+					                "Sie haben das Projekt erfolgreich in eine Vorlage umgewandelt.");
+				else
+					showAlertDialog("Projekt in Vorlage umwandeln",
+					                "Eine Vorlage mit dem Namen "+name+" existiert bereits:<br>"+
+								    "Es wurde eine neue Vorlage <b>"+data.response.name+"</b> erstellt.");
 			}
 			// wenn eine entsprechende Vorlage nicht angelegt werden konnte, ...
 			else {
@@ -826,8 +847,15 @@ function templateToProject(name) {
 			if(result) {
 			    projectTempID = null;
 				// Weiterleitung zum erzeugten Projekt
-				document.location.assign('/projekt/');
-				showAlertDialog("Vorlage in Projekt umwandeln","Sie haben die Vorlage erfolgreich in ein Projekt umgewandelt.");
+				//document.location.assign('/projekt/');
+				
+				if(name==data.response.name)
+					showAlertDialog("Vorlage in Projekt umwandeln",
+					                "Sie haben die Vorlage erfolgreich in ein Projekt umgewandelt.");
+				else
+					showAlertDialog("Vorlage in Projekt umwandeln",
+					                "Ein Projekt mit dem Namen "+name+" existiert bereits:<br>"+
+								    "Es wurde ein neues Projekt <b>"+data.response.name+"</b> erstellt.");
 			} else {
 				showAlertDialog("Vorlage in Projekt umwandeln",data.response);
             }

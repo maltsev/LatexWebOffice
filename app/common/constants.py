@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Mo 16 Feb 2015 23:15:00 CET
+* Last Modified : Fr 20 Feb 2015 02:11:00 CET
 
 * Author :  christian
 
@@ -100,6 +100,11 @@ STANDARDENCODING = 'utf-8'
 
 # Ungültige Zeichen für Dateien und Ordner
 INVALIDCHARS = '<>;|"\/?*'
+
+# Namensschema für automatische Benennung bei bereits vorhandenen Namen
+DUPLICATE_NAMING_REGEX = '{0} ({1})'
+# Startwert für numerische Suffixe
+DUPLICATE_INIT_SUFFIX_NUM = 2
 
 SUCCESS = 'success'
 FAILURE = 'failure'

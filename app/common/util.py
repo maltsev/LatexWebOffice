@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Tu 17 Feb 2015 21:32:00 CET
+* Last Modified : Fr 20 Feb 2015 02:11:00 CET
 
 * Author :  christian
 
@@ -27,7 +27,7 @@ from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 from core import settings
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES
+from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES, DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.projecttemplate import ProjectTemplate
@@ -331,6 +331,78 @@ def getMimetypeFromFile(python_file, file_name):
         mimetype, encoding = mimetypes.guess_type(file_name)
 
     return mimetype
+
+
+def getNextValidProjectName(user,name):
+    """ Liefert anhand des übergebenen Namens einen Projektnamen, welcher für den angegebenen Benutzer noch nicht vorhanden ist.
+        Hierbei wird dem übergebenen Namen ggf. ein Suffix der Form '(n)' angefügt,
+        falls unter dem Projektnamen name bereits ein Projekt für den angegebenen Benutzer existiert.
+    
+    :param user: Benutzer, unter dessen Projekten ein noch nicht vorhandener Projektname ermittelt werden soll
+    :param name: Name, anhand dessen ein noch nicht vorhandener Projektname ermittelt werden soll
+    :return: name (unverändert), falls für den übergebenen Benutzer user noch kein Projekt mit diesem Namen vorhanden ist,
+             andernfalls (unter dem Projektnamen name besteht für den Benutzer user bereits ein Projekt)
+             wird eine Zeichenkette der Form name + ' (n)' zurückgegeben,
+             wobei n eine Zahl, sodass noch kein entsprechendes Projekt mit diesem Namen für den Benutzer user vorhanden ist
+    """
+    
+    # ermittelt alle Projekte von user, die mit name beginnen
+    queryProjects = Project.objects.filter(author=user, name__istartswith=name)
+    
+    # wenn noch kein Projekt mit dem Namen name existiert, ...
+    if not queryProjects.exists() :
+        # ... wird der übergebene Name name unverändert zurückgegeben
+        return name
+    # wenn bereits ein Projekt mit dem Namen name existiert, ...
+    else :
+        
+        # ... wird über die natürlichen Zahlen (ab festgelegtem Startwert) iteriert
+        n = DUPLICATE_INIT_SUFFIX_NUM
+        while True :
+            # wenn noch kein Projekt mit dem Namen name+' [n]' existiert, ...
+            if not queryProjects.filter(name__iexact=DUPLICATE_NAMING_REGEX.format(name,n)).exists() :
+                # ... wird dieser zurückgegeben
+                return DUPLICATE_NAMING_REGEX.format(name,n)
+            # wenn bereits ein Projekt mit dem Namen name+' [n]' existiert, ...
+            else :
+                # ... wird mit der nächsten Zahl fortgefahren
+                n += 1
+
+
+def getNextValidTemplateName(user,name):
+    """ Liefert anhand des übergebenen Namens einen Vorlagennamen, welcher für den angegebenen Benutzer noch nicht vorhanden ist.
+        Hierbei wird dem übergebenen Namen ggf. ein Suffix der Form '(n)' angefügt,
+        falls unter dem Vorlagennamen name bereits eine Vorlage für den angegebenen Benutzer existiert.
+    
+    :param user: Benutzer, unter dessen Vorlagen ein noch nicht vorhandener Vorlagenname ermittelt werden soll
+    :param name: Name, anhand dessen ein noch nicht vorhandener Vorlagenname ermittelt werden soll
+    :return: name (unverändert), falls für den übergebenen Benutzer user noch keine Vorlage mit diesem Namen vorhanden ist,
+             andernfalls (unter dem Vorlagennamen name besteht für den Benutzer user bereits eine Vorlage)
+             wird eine Zeichenkette der Form name + ' (n)' zurückgegeben,
+             wobei n eine Zahl, sodass noch keine entsprechende Vorlage mit diesem Namen für den Benutzer user vorhanden ist
+    """
+    
+    # ermittelt alle Vorlagen von user, die mit name beginnen
+    queryTemplates = ProjectTemplate.objects.filter(author=user, name__istartswith=name)
+    
+    # wenn noch keine Vorlage mit dem Namen name existiert, ...
+    if not queryTemplates.exists() :
+        # ... wird der übergebene Name name unverändert zurückgegeben
+        return name
+    # wenn bereits eine Vorlage mit dem Namen name existiert, ...
+    else :
+        
+        # ... wird über die natürlichen Zahlen (ab festgelegtem Startwert) iteriert
+        n = DUPLICATE_INIT_SUFFIX_NUM
+        while True :
+            # wenn noch keine Vorlage mit dem Namen name+' [n]' existiert, ...
+            if not queryTemplates.filter(name__iexact=DUPLICATE_NAMING_REGEX.format(name,n)).exists() :
+                # ... wird dieser zurückgegeben
+                return DUPLICATE_NAMING_REGEX.format(name,n)
+            # wenn bereits eine Vorlage mit dem Namen name+' [n]' existiert, ...
+            else :
+                # ... wird mit der nächsten Zahl fortgefahren
+                n += 1
 
 
 def uploadFile(f, folder, request, fromZip=False):

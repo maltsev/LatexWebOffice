@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Th 19 Feb 2015 21:07:00 CET
+* Last Modified : Fr 20 Feb 2015 02:16:00 CET
 
 * Author :  christian
 
@@ -22,7 +22,7 @@ import os
 
 from django.contrib.auth.models import User
 
-from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE
+from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE, DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM
 from app.common import util
 from app.models.collaboration import Collaboration
 from app.models.folder import Folder
@@ -69,7 +69,9 @@ class ProjectTestClass(ViewTestCase):
         - user1 erstellt ein Projekt, dessen Projektname nur Leerzeichen enthält -> Fehler
         - user1 erstellt ein Projekt, dessen Projektname ein leerer String ist -> Fehler
         - user1 erstellt ein Projekt, dessen Projektname ungültige Sonderzeichen enthält -> Fehler
-        - user1 erstellt ein Projekt, dessen Projektname bereits existiert -> Fehler
+        - user1 erstellt ein Projekt, dessen Projektname bereits existiert -> Erfolg (Name des erzeugten Projektes mit Suffix '(2)')
+        - user1 erstellt ein weiteres Projekt mit dem Projektnamen des vorherigen Testfalls (Wiederholung des vorherigen Testfalls)
+                -> Erfolg (Name des erzeugten Projektes mit Suffix '(3)')
 
         :return: None
         """
@@ -159,20 +161,50 @@ class ProjectTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
         # --------------------------------------------------------------------------------------------------------------
+        
         # erzeuge ein weiteres Projekt mit einem bereits existierenden Namen
-        response = util.documentPoster(self, command='projectcreate', name=self._newname1.upper())
-
-        # es sollte nur ein Projekt mit dem Namen newname1 in der Datenbank vorhanden sein
-        self.assertTrue((Project.objects.filter(name=self._newname1, author=self._user1)).count() == 1)
-
+        response = util.documentPoster(self, command='projectcreate', name=self._newname1)
+        
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(self._newname1.upper())
+        serveranswer = {'id': Project.objects.get(author=self._user1,
+                                                  name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM)).id,
+                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM)}
+        
+        # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']))
+        # es sollte ein rootFolder angelegt worden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder)
+        # die main.tex Datei sollte im Hauptverzeichnis vorhanden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder.getMainTex())
 
-        # überprüfe die Antwort des Server
-        # status sollte failure sein
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # erzeuge ein weiteres Projekt mit dem Namen des vorherigen Testfalls
+        response = util.documentPoster(self, command='projectcreate', name=self._newname1)
+        
+        # erwartete Antwort des Servers
+        serveranswer = {'id': Project.objects.get(author=self._user1,
+                                                  name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
+                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)}
+        
+        # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']))
+        # es sollte ein rootFolder angelegt worden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder)
+        # die main.tex Datei sollte im Hauptverzeichnis vorhanden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder.getMainTex())
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+    
+    
     def test_projectClone(self):
         """Test der projectClone() Methode aus dem project view
 
@@ -184,7 +216,8 @@ class ProjectTestClass(ViewTestCase):
         - user1 dupliziert ein Projekt, dessen Projektname nur Leerzeichen enthält -> Fehler
         - user1 dupliziert ein Projekt, dessen Projektname ein leerer String ist -> Fehler
         - user1 dupliziert ein Projekt, dessen Projektname ungültige Sonderzeichen enthält -> Fehler
-        - user1 dupliziert ein Projekt, dessen Projektname bereits existiert -> Fehler
+        - user1 dupliziert ein Projekt, dessen Projektname bereits existiert -> Erfolg (Name des erzeugten Projektes mit Suffix '(2)')
+        - user1 dupliziert das Projekt des vorherigen Testfalls erneut -> Erfolg (Name des erzeugten Projektes mit Suffix '(3)')
         - user1 dupliziert ein freigegebenes Projekt -> Erfolg
 
         :return: None
@@ -270,32 +303,61 @@ class ProjectTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
         # --------------------------------------------------------------------------------------------------------------
+        
         # dupliziere ein Projekt mit einem bereits existierenden Namen
         response = util.documentPoster(self, command='projectclone', idpara=self._user1_project2.id,
-                                       name=self._newname1.upper())
-
-        # es sollte nur ein Projekt mit dem Namen newname1 in der Datenbank vorhanden sein
-        self.assertTrue((Project.objects.filter(name=self._newname1, author=self._user1)).count() == 1)
-
+                                       name=self._user1_project2.name)
+        
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(self._newname1.upper())
-
-        # überprüfe die Antwort des Server
-        # status sollte failure sein
+        serveranswer = {'id': Project.objects.get(author=self._user1,
+                                                  name=DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM)).id,
+                        'name': DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM)}
+        
+        # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']))
+        # es sollte ein rootFolder angelegt worden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder)
+        # die main.tex Datei sollte im Hauptverzeichnis vorhanden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder.getMainTex())
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
-
-
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # dupliziere das Projekt des vorherigen Testfalls erneut
+        response = util.documentPoster(self, command='projectclone', idpara=self._user1_project2.id,
+                                       name=self._user1_project2.name)
+        
+        # erwartete Antwort des Servers
+        serveranswer = {'id': Project.objects.get(author=self._user1,
+                                                  name=DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
+                        'name': DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM+1)}
+        
+        # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']))
+        # es sollte ein rootFolder angelegt worden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder)
+        # die main.tex Datei sollte im Hauptverzeichnis vorhanden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder.getMainTex())
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
         collaboration = Collaboration.objects.create(project=self._user2_project1, user=self._user1, isConfirmed=True)
         response = util.documentPoster(self, command='projectclone', idpara=self._user2_project1.id,
                                        name=self._newname3)
         projects = Project.objects.filter(name=self._newname3, author=self._user1)
         self.assertEqual(len(projects), 1)
         util.validateJsonSuccessResponse(self, response.content, {'id': projects[0].id, 'name': self._newname3})
-
-
-
-
+    
+    
     def test_projectRm(self):
         """Test der  projectRm() Methode aus dem project view
 

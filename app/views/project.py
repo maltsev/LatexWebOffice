@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Th 19 Feb 2015 21:07:00 CET
+* Last Modified : Fr 20 Feb 2015 02:17:00 CET
 
 * Author :  christian
 
@@ -35,7 +35,7 @@ from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE, STANDARDENCODING
 
 
 def projectCreate(request, user, projectname):
-    """Erstellt ein neues Projekt mit dem Namen 'projectname'.
+    """Erstellt ein neues Projekt mit dem Namen projectname (ggf. mit einem generierten numerischen Suffix).
 
     Es wird ein neues Projekt in der Datenbank angelegt.
     Durch das Projektmodell wird automatisch eine leere main.tex Datei im Hauptverzeichnis erstellt.
@@ -45,45 +45,43 @@ def projectCreate(request, user, projectname):
     :param projectname: Name des neuen Projektes
     :return: HttpResponse (JSON)
     """
-
-    # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
-    if Project.objects.filter(name__iexact=projectname.lower(), author=user).exists():
-        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
-    else:
-        # versuche das Projekt in der Datenbank zu erstellen
-        try:
-            newproject = Project.objects.create(name=projectname, author=user)
-        except:
-            return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
-
-    # gib die Id und den Namen des erstellte Projektes zurück
+    
+    # ermittelt einen noch nicht verwendeten Projektnamen anhand des übergebenen Namens
+    validname = util.getNextValidProjectName(user,projectname)
+    
+    # versucht das Projekt in der Datenbank zu erstellen
+    try:
+        newproject = Project.objects.create(author=user, name=validname)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+    
+    # gibt die Id und den Namen des erstellten Projektes zurück
     return util.jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
 
 
 def projectClone(request, user, projectid, newprojectname):
-    """Erstellt eine Kopie eines Projektes mit dem Namen newprojectname
-
+    """Erstellt eine Kopie eines Projektes mit dem Namen newprojectname (ggf. mit einem generierten numerischen Suffix).
+    
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
     :param projectid: Id des Projektes, welches geklont werden soll
     :param newprojectname: Name des neuen Projektes
     :return: HttpResponse (JSON)
     """
-
-    # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
-    if Project.objects.filter(name__iexact=newprojectname.lower(), author=user).exists():
-        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(newprojectname), request)
-    else:
-        # hole des aktuelle Projekt Objekt
-        projectobj = Project.objects.get(id=projectid)
-
-        # versuche das Projekt in der Datenbank zu erstellen
-        try:
-            newproject = Project.objects.cloneProject(project=projectobj, name=newprojectname, author=user)
-        except:
-            return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
-
-    # gib die Id und den Namen des erstellte Projektes zurück
+    
+    # ermittelt einen noch nicht verwendeten Projektnamen anhand des übergebenen Namens
+    validname = util.getNextValidProjectName(user,newprojectname)
+    
+    # holt des aktuelle Projekt-Objekt
+    projectobj = Project.objects.get(id=projectid)
+    
+    # versucht das Projekt in der Datenbank zu erstellen
+    try:
+        newproject = Project.objects.cloneProject(project=projectobj, name=validname, author=user)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+    
+    # gibt die Id und den Namen des erstellte Projektes zurück
     return util.jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
 
 
@@ -476,13 +474,13 @@ def cancelCollaboration(request, user, projectid, collaboratoremail):
 
     if not collaboration.isConfirmed:
         return util.jsonResponse({}, True, request)
-
-    # Überprüfe ob ein Projekt mit gleichem Namen bereits für user existiert
-    if Project.objects.filter(name__iexact=project.name.lower(), author=collaborator).exists():
-        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(project.name), request)
-
+    
+    # ermittelt einen noch nicht verwendeten Projektnamen anhand des übergebenen Namens
+    validname = util.getNextValidProjectName(collaborator,project.name+' ['+user.username+']')
+    
+    # versucht ein Duplikat des Projektes für den Kollaborator in der Datenbank zu erstellen
     try:
-        Project.objects.cloneProject(project=project, author=collaborator)
+        Project.objects.cloneProject(project=project, name=validname, author=collaborator)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 

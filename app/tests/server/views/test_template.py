@@ -16,7 +16,7 @@
 
 """
 
-from app.common.constants import ERROR_MESSAGES
+from app.common.constants import ERROR_MESSAGES, DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM
 from app.common import util
 from app.tests.server.views.viewtestcase import ViewTestCase
 from app.models.folder import Folder
@@ -53,19 +53,22 @@ class TemplateTestClass(ViewTestCase):
 
     def test_project2Template(self):
         """Test der project2Template() Methode aus dem template view.
-
+        
         Teste das konvertieren eines Projektes von einem Benutzer in eine Vorlage.
-
+        
         Testfälle:
             - user1 konvertiert ein Projekt in ein Template -> Erfolg
-            - user1 versucht ein Template mit existierenden Namen zu erstellen -> Fehler
+            - user1 konvertiert ein Projekt in ein Template mit existierendem Namen
+                    -> Erfolg (Name der erzeugten Vorlage mit Suffix '(2)')
+            - user1 konvertiert ein Projekt in ein Template mit erneut dem Namen des vorherigen Testfalls
+                    -> Erfolg (Name der erzeugten Vorlage mit Suffix '(3)')
             - user1 versucht ein Template mit Illegalen Zeichen zu erstellen -> Fehler
             - user1 versucht ein Template in ein Template zu verwandeln -> Fehler
             - user1 konvertiert ein freigegebenes Projekt
               (Einladung ist nicht bestätigt) in ein Template -> Fehler
             - user1 konvertiert ein freigegebenes Projekt
               (Einladung ist bestätigt) in ein Template -> Erfolg
-
+        
         :return: None
         """
 
@@ -82,20 +85,41 @@ class TemplateTestClass(ViewTestCase):
         # status sollte success sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
-
-        # Versuche ein template mit zweimal den gleichen Namen zu erstellen
-        # (sollte eine Fehlermeldung hervorrufen)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # Sende Anfrage zum konvertieren eines vorhandenen Projektes in eine Vorlage mit bereits existierendem Namen
         response = util.documentPoster(self, command='project2template',
                                        idpara=self._user1_project1.id, name=self._newname1)
-
+        
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['TEMPLATEALREADYEXISTS'].format(self._newname1)
+        serveranswer = {'id': ProjectTemplate.objects.get(author=self._user1,
+                                                          name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM)).id,
+                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM)}
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # Sende Anfrage zum konvertieren eines vorhandenen Projektes in eine Vorlage mit erneut dem Namen des vorherigen Testfalls
+        response = util.documentPoster(self, command='project2template',
+                                       idpara=self._user1_project1.id, name=self._newname1)
+        
+        # erwartete Antwort des Servers
+        serveranswer = {'id': ProjectTemplate.objects.get(author=self._user1,
+                                                          name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
+                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)}
 
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
         # Teste, auf Namen mit illegalen Zeichen
         response = util.documentPoster(self, command='project2template', idpara=self._user1_project1.id, name='<>')
 
@@ -106,7 +130,9 @@ class TemplateTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
-
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
         # Teste, ob man auch ein template in ein Template verwandeln kann
         # (sollte eine Fehlermeldung geben)
         response = util.documentPoster(self, command='project2template',
@@ -119,13 +145,15 @@ class TemplateTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
-
-
-
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
         collaboration = Collaboration.objects.create(project=self._user2_project1, user=self._user1)
         response = util.documentPoster(self, command='project2template', idpara=self._user2_project1.id, name=self._newname5)
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
-
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
         collaboration.isConfirmed = True
         collaboration.save()
         response = util.documentPoster(self, command='project2template', idpara=self._user2_project1.id, name=self._newname5)
@@ -141,7 +169,10 @@ class TemplateTestClass(ViewTestCase):
 
         Testfälle:
             - user1 konvertiert ein Template in ein Projekt -> Erfolg
-            - user1 versucht ein Projekt mit existierenden Namen zu erstellen -> Fehler
+            - user1 konvertiert ein Template in ein Projekt mit existierendem Namen
+                    -> Erfolg (Name des erzeugten Projektes mit Suffix '(2)')
+            - user1 konvertiert eine Vorlage in ein Projekt mit erneut dem Namen des vorherigen Testfalls
+                    -> Erfolg (Name des erzeugten Projektes mit Suffix '(3)')
             - user1 versucht ein Projekt mit Illegalen Zeichen zu erstellen -> Fehler
             - user1 versucht ein Projekt in ein Projekt zu verwandeln -> Fehler
 
@@ -161,19 +192,47 @@ class TemplateTestClass(ViewTestCase):
         # status sollte success sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
-
-        # Versuche ein template mit zweimal den gleichen Namen zu erstellen
-        # (sollte eine Fehlermeldung hervorrufen)
-        response = util.documentPoster(self, command='template2project', idpara=self._user1_template1.id,
-                                       name=self._newname1)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # Sende Anfrage zum konvertieren einer Vorlage in ein Projekt mit bereits existierendem Namen
+        response = util.documentPoster(self, command='template2project',
+                                       idpara=self._user1_template1.id, name=self._newname1)
+        
+        projectobj = Project.objects.get(author=self._user1,
+                                         name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM))
+        
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(self._newname1)
+        serveranswer = {'id': projectobj.id,
+                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM),
+                        'rootid': projectobj.rootFolder.id}
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # Sende Anfrage zum konvertieren einer Vorlage in ein Projekt mit erneut dem Namen des vorherigen Testfalls
+        response = util.documentPoster(self, command='template2project',
+                                       idpara=self._user1_template1.id, name=self._newname1)
+        
+        projectobj = Project.objects.get(author=self._user1,
+                                         name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1))
+        
+        # erwartete Antwort des Servers
+        serveranswer = {'id': projectobj.id,
+                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1),
+                        'rootid': projectobj.rootFolder.id}
 
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
         # Teste, auf Namen mit illegalen Zeichen
         response = util.documentPoster(self, command='template2project', idpara=self._user1_template1.id, name='<>')
 
@@ -184,7 +243,9 @@ class TemplateTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
-
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
         # Teste, ob man auch ein Projekt in ein Projekt verwandeln kann
         # (sollte eine Fehlermeldung geben)
         response = util.documentPoster(self, command='template2project', idpara=self._user1_project1.id,
