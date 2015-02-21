@@ -402,6 +402,7 @@ $(document).ready(function() {
         projectTempID = node.id;
         $('#modal_templateToProject').modal('show');
 	});
+	
 	// 'Freigabe entziehen'-Schaltfläche
 	$('.projecttoolbar-deny').on("click", function() {
 		showInvitedUser();
@@ -412,6 +413,7 @@ $(document).ready(function() {
 	$('.modal_acceptInvitationConfirmation_yes').on("click", function() {
 		acceptInvitation();
 	});
+	
 	// 'Einladung ablehnen'-Schaltfläche
 	$('.modal_denyInvitationConfirmation_yes').on("click", function() {
 		denyInvitation();
@@ -494,7 +496,6 @@ function quitCollaboration() {
 	});
 	
 }
-
 
 /*
  * Sendet an den Account mit der übergebenen E-Mail Adresse eines Nutzers eine Einladung zum Projekt.
@@ -651,8 +652,6 @@ function createProject(name) {
 
 			}
 	});
-	
-	
 }
 
 /*
@@ -685,7 +684,6 @@ function deleteProject() {
 				showAlertDialog("Projekt löschen",data.response);
 			}
 	});
-	
 }
 
 /*
@@ -721,7 +719,6 @@ function renameProject(name) {
 				//showPopover(treeInstProjects.get_node(renameID),data.response);
 			}
 	});
-	
 }
 
 /*
@@ -765,7 +762,6 @@ function duplicateProject(projectID,name) {
 					showAlertDialog("Projekt duplizieren",data.response);
 			}
 	});
-	
 }
 
 /*
@@ -835,7 +831,7 @@ function templateToProject(name) {
             'id': projectTempID,
             'name': name
         },
-
+        
         function(result,data) {
 			if(result) {
 			    projectTempID = null;
