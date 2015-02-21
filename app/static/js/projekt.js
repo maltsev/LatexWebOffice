@@ -188,10 +188,6 @@ $(document).ready(function() {
 			
 			// aktualisiert die Selection-ID gemäß der ausgewählten Knoten-Komponente
 			selectedNodeIDInvitations = data.node.id;
-			prevSelectedNodeID = data.node.id;
-			
-			selectedPos 	= $('.node_item_'+selectedNodeIDInvitations).position();
-			selectedHeight 	= $('.node_item_'+selectedNodeIDInvitations).height();
 			
 		}
 		
@@ -212,9 +208,6 @@ $(document).ready(function() {
 	
 	// Tasten-Listener
 	treeProjects.bind('keydown',function(e) {
-		
-		// TEMP
-		//console.log(e.keyCode);
 		
 		// Entf-Taste
 		if(e.keyCode===46 && !editMode) {
