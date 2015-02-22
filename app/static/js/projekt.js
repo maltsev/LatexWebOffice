@@ -91,17 +91,14 @@ $(document).ready(function() {
 		// Aktion nach Klicken des deny Buttons
 		$("input:checkbox[name=denyProjectAccess]:checked").each(function()
 		{		
-		var user = $(this).val();
-		denyProjectAccess(selectedNodeIDProjects,user);
-});
+			var user = $(this).val();
+			denyProjectAccess(selectedNodeIDProjects,user);
+		});
 	});
-		$('.modal_quitCollaboration_confirm').on("click", function(e) {
+	$('.modal_quitCollaboration_confirm').on("click", function(e) {
 		// Aktion nach Klicken des deny Buttons
 		currentAuthor = user;
 		quitCollaboration();
-	
-
-		//
 	});
 	//VALIDATOR	
 	//
@@ -554,11 +551,7 @@ function showInvitedUser(){
 				document.getElementById('invitedUser').innerHTML = "";
 				for (var i = 0; i < number_of_invitedusers; i++){
 					document.getElementById('invitedUser').innerHTML = document.getElementById('invitedUser').innerHTML+"<div class=\"row\"><div class=\"col-lg-6\"><div class=\"input-group\"><span class=\"input-group-addon\"><input name=\"denyProjectAccess\" value=\""+data.response[i]+"\" type=\"checkbox\" aria-label=\"checked\"></span><input type=\"text\" class=\"form-control\" disabled aria-label=\"user\" value=\""+data.response[i]+"\"></div></div></div>";
-					
 				}
-				
-			}
-			else {
 			}
 	});
 }
@@ -626,7 +619,6 @@ function createProject(name) {
 				treeInstProjects.set_text(node,getHTML(node));
 				treeInstProjects.edit(creatingNodeID,"");
 				showAlertDialog("Projekt erstellen",data.response);
-
 			}
 	});
 }
@@ -691,8 +683,7 @@ function renameProject(name) {
 				// ... wird die Knoten-Komponente zur Angabe eines neuen Namens erneut in den Bearbeitungsmodus versetzt (s. Umbenennungs-Listener)
 				treeInstProjects.edit(renameID,"");
 				
-				// TEMP
-					showAlertDialog("Projekt umbenennen",data.response);
+				showAlertDialog("Projekt umbenennen",data.response);
 				//showPopover(treeInstProjects.get_node(renameID),data.response);
 			}
 	});
@@ -735,8 +726,7 @@ function duplicateProject(projectID,name) {
 				// ... wird die Knoten-Komponente zur Angabe eines neuen Namens erneut in den Bearbeitungsmodus versetzt (s. Umbenennungs-Listener)
 				treeInstProjects.edit(duplicateNodeID,"");
 				
-				// TEMP
-					showAlertDialog("Projekt duplizieren",data.response);
+				showAlertDialog("Projekt duplizieren",data.response);
 			}
 	});
 }
@@ -760,16 +750,16 @@ function projectToTemplate(name) {
 				// setzt die Umwandlungs-IDs zurück
 				templatizedID = null;
 				document.getElementById('modal_alertDialog').style.display = 'none';
-				// Weiterleitung zu Vorlagen
-				//document.location.assign('/vorlagen/');
 				
 				if(name==data.response.name)
 					showAlertDialog("Projekt in Vorlage umwandeln",
-					                "Sie haben das Projekt erfolgreich in eine Vorlage umgewandelt.");
+					                "Sie haben das Projekt erfolgreich in eine Vorlage umgewandelt.",
+					                "/vorlagen/");
 				else
 					showAlertDialog("Projekt in Vorlage umwandeln",
 					                "Eine Vorlage mit dem Namen "+name+" existiert bereits:<br>"+
-								    "Es wurde eine neue Vorlage <b>"+data.response.name+"</b> erstellt.");
+								    "Es wurde eine neue Vorlage <b>"+data.response.name+"</b> erstellt.",
+								    "/vorlagen/");
 			}
 			// wenn eine entsprechende Vorlage nicht angelegt werden konnte
 			else {
@@ -811,16 +801,16 @@ function templateToProject(name) {
         function(result,data) {
 			if(result) {
 			    projectTempID = null;
-				// Weiterleitung zum erzeugten Projekt
-				//document.location.assign('/projekt/');
 				
 				if(name==data.response.name)
 					showAlertDialog("Vorlage in Projekt umwandeln",
-					                "Sie haben die Vorlage erfolgreich in ein Projekt umgewandelt.");
+					                "Sie haben die Vorlage erfolgreich in ein Projekt umgewandelt.",
+					                "/projekt/");
 				else
 					showAlertDialog("Vorlage in Projekt umwandeln",
 					                "Ein Projekt mit dem Namen "+name+" existiert bereits:<br>"+
-								    "Es wurde ein neues Projekt <b>"+data.response.name+"</b> erstellt.");
+								    "Es wurde ein neues Projekt <b>"+data.response.name+"</b> erstellt.",
+								    "/projekt/");
 			} else {
 				showAlertDialog("Vorlage in Projekt umwandeln",data.response);
             }
@@ -1101,18 +1091,27 @@ function updateMenuButtonsProject() {
 
 /*
  * Setzt den Inhalt des Alert Dialogs.
+ *
+ * @param title Titel für diesen Dialog
+ * @param message Informationstext für diesen Dialog
+ * @param redirection Pfad zur Weiterleitung bei Betätigung der Ok-Schaltfläche (optional)
  */
-function showAlertDialog(title,message){
-		$('#modal_alertDialog').modal('show');
-		document.getElementById('modal_alertDialog_title').innerHTML = title;
-		document.getElementById('modal_alertDialog_message').innerHTML = message;
+function showAlertDialog(title,message,redirection){
+	$('#modal_alertDialog').modal('show');
+	document.getElementById('modal_alertDialog_title').innerHTML = title;
+	document.getElementById('modal_alertDialog_message').innerHTML = message;
+	
+	$('.modal_alertDialogConfirm').on("click", function() {
+		if(redirection!=undefined)
+			document.location.assign(redirection);
+	})
 }
 
 /*
  * Entfernt die alten Nachrichten aus dem Alert Dialog.
  */
 function clearAlertDialog(){
-		showAlertDialog("","");
+	showAlertDialog("","");
 }
 
 
@@ -1135,4 +1134,3 @@ function updateMenuButtonsInvitation() {
 	$('.invitationtoolbar-acceptInvitation').prop("disabled", !flag_remain);
 	$('.invitationtoolbar-denyInvitation').prop("disabled", !flag_remain);
 }
-	
