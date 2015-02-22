@@ -416,7 +416,8 @@ $(document).ready(function() {
 	});
 
 	refreshProjects();
-	listInvitations();
+	if(isProjectsPage)
+		listInvitations();
 });
 
 // ----------------------------------------------------------------------------------------------------
