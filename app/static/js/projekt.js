@@ -1075,7 +1075,7 @@ function updateMenuButtonsProject() {
 	 * Aktualisiert die 'Freigabe entziehen'-Menü-Schaltfläche
 	 * in Abhängigkeit dessen, ob für das selektierte Projekt eingeladene Nutzer vorliegen
 	 */
-	if(!editMode && flag_owner) {
+	if(isProjectsPage && !editMode && flag_owner) {
 		documentsJsonRequest({
 				'command': 'hasinvitedusers',
 				'id':selectedNodeIDProjects
