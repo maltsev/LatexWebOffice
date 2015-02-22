@@ -646,12 +646,13 @@ function deleteProject() {
 				
 				// aktualisiert die Aktivierungen der Menü-Schaltflächen
 				updateMenuButtonsProject();
-				refreshProjects();	
-				showAlertDialog("Projekt löschen","Sie haben das Projekt erfolgreich gelöscht");
+				refreshProjects();
+				showAlertDialog((isProjectsPage ? "Projekt" : "Vorlage")+" löschen",
+								"Sie haben "+(isProjectsPage ? "das Projekt" : "die Vorlage")+" erfolgreich gelöscht.");
 
 			}
 			else {
-				showAlertDialog("Projekt löschen",data.response);
+				showAlertDialog((isProjectsPage ? "Projekt" : "Vorlage")+" löschen",data.response);
 			}
 	});
 }
@@ -677,15 +678,15 @@ function renameProject(name) {
 				
 				// aktualisiert die Anzeige der Projekte
 				refreshProjects();
-				showAlertDialog("Projekt umbenennen","Sie haben das Projekt erfolgreich umbenannt.");
+				showAlertDialog((isProjectsPage ? "Projekt" : "Vorlage")+" umbenennen",
+								"Sie haben "+(isProjectsPage ? "das Projekt" : "die Vorlage")+" erfolgreich umbenannt.");
 			}
 			// wenn das ausgewählte Projekt für den übergebenen Namen nicht umbenannt werden konnte, ...
 			else {
 				// ... wird die Knoten-Komponente zur Angabe eines neuen Namens erneut in den Bearbeitungsmodus versetzt (s. Umbenennungs-Listener)
 				treeInstProjects.edit(renameID,"");
 				
-				showAlertDialog("Projekt umbenennen",data.response);
-				//showPopover(treeInstProjects.get_node(renameID),data.response);
+				showAlertDialog((isProjectsPage ? "Projekt" : "Vorlage")+" umbenennen",data.response);
 			}
 	});
 }
