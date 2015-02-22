@@ -14,7 +14,6 @@ var templatizedID = null;			// ID des derzeitig in eine Vorlage umzuwandelnden P
 var projectTempID = null;
 var editMode = false;				// gibt an, ob sich eine der Knoten-Komponenten derzeitig im Editierungsmodus befindet
 var currentAuthor = user;
-var number_of_invitedusers = 0;
 /*
  * Position und Höhe der selektierten Knoten-Komponente sind zu speichern,
  * da diese durch den Editierungsmodus temporär ihre html-Repräsentation verliert
@@ -154,7 +153,7 @@ $(document).ready(function() {
 			selectedNodeIDProjects = "";
 			
 		}
-		// Selektion (eine Knoten-Komponente werde selektiert, deren ID nicht mit der Selection-ID übereinstimmt)
+		// Selektion (eine Knoten-Komponente wurde selektiert, deren ID nicht mit der Selection-ID übereinstimmt)
 		else {
 			
 			// aktualisiert die Selection-ID gemäß der ausgewählten Knoten-Komponente
@@ -537,30 +536,8 @@ function denyProjectAccess(projectId,user) {
 			else {
 				showAlertDialog("Freigabe entziehen",data.response);
 			}
-				updateMenuButtonsProject();
+			updateMenuButtonsProject();
 	});
-}
-
-/*
- * Gibt die Anzahl der Kollaborationsteilnehmer zurück. 
- * @param projectId - ID des Projektes, das freigegeben wurde.
- */
-function getNumberOfInvitedUser(){
-	if (selectedNodeIDProjects != ""){
-	documentsJsonRequest({
-			'command': 'listinvitedusers',
-			'id':selectedNodeIDProjects
-		}, function(result,data) {
-			if(result) {
-				number_of_invitedusers = data.response.length;
-				if (number_of_invitedusers == 0){
-					$('.projecttoolbar-deny').prop("disabled", true);
-				}
-			}
-			else {
-			}
-	});
-	}
 }
 
 /*
@@ -794,9 +771,8 @@ function projectToTemplate(name) {
 					                "Eine Vorlage mit dem Namen "+name+" existiert bereits:<br>"+
 								    "Es wurde eine neue Vorlage <b>"+data.response.name+"</b> erstellt.");
 			}
-			// wenn eine entsprechende Vorlage nicht angelegt werden konnte, ...
+			// wenn eine entsprechende Vorlage nicht angelegt werden konnte
 			else {
-				// TEMP
 				showAlertDialog("Projekt in Vorlage umwandeln",data.response);
 			}
 	});
@@ -862,7 +838,7 @@ function addNode(type,project) {
 	
 	// fügt eine neue Knoten-Komponente hinzu und füllt die Attribute der Knoten-Komponente mit den Werten des übergebenen Projektes
 	if (type == 'project'){
-	return fillNode(type,treeInstProjects.create_node("#",""),project);
+		return fillNode(type,treeInstProjects.create_node("#",""),project);
 	}
 	if (type == 'invitation'){
 		return fillNode(type,treeInstInvitations.create_node("#",""),project);
@@ -895,46 +871,46 @@ function editNode(nodeID,text) {
  */
 function fillNode(type, nodeID,project) {
 	if (type == 'project'){
-	node = treeInstProjects.get_node(nodeID);
-	
-	if(project!=null) {
+		node = treeInstProjects.get_node(nodeID);
 		
-		// setzt die ID der Knoten-Komponente auf die des übergebenen Projektes
-		treeInstProjects.set_id(node,project.id);
+		if(project!=null) {
+			
+			// setzt die ID der Knoten-Komponente auf die des übergebenen Projektes
+			treeInstProjects.set_id(node,project.id);
+			
+			// setzt die weiteren Attribute des Projektes
+			node.projectname 		= project.name;
+			node.author 			= project.ownername;
+			node.createtime 		= project.createtime;
+			node.rootid 			= project.rootid;
+			
+		}
 		
-		// setzt die weiteren Attribute des Projektes
-		node.projectname 		= project.name;
-		node.author 			= project.ownername;
-		node.createtime 		= project.createtime;
-		node.rootid 			= project.rootid;
+		// setzt die Bezeichnung der Knoten-Komponente anhand der Daten des übergebenen Projektes
+		treeInstProjects.set_text(node,getHTML(node));
 		
-	}
-	
-	// setzt die Bezeichnung der Knoten-Komponente anhand der Daten des übergebenen Projektes
-	treeInstProjects.set_text(node,getHTML(node));
-	
-	return node.id;
+		return node.id;
 	}
 	if (type == 'invitation'){
 		node = treeInstInvitations.get_node(nodeID);
-	
-	if(project!=null) {
 		
-		// setzt die ID der Knoten-Komponente auf die des übergebenen Projektes
-		treeInstInvitations.set_id(node,project.id);
+		if(project!=null) {
+			
+			// setzt die ID der Knoten-Komponente auf die des übergebenen Projektes
+			treeInstInvitations.set_id(node,project.id);
+			
+			// setzt die weiteren Attribute des Projektes
+			node.projectname 		= project.name;
+			node.author 			= project.ownername;
+			node.createtime 		= project.createtime;
+			node.rootid 			= project.rootid;
+			
+		}
 		
-		// setzt die weiteren Attribute des Projektes
-		node.projectname 		= project.name;
-		node.author 			= project.ownername;
-		node.createtime 		= project.createtime;
-		node.rootid 			= project.rootid;
+		// setzt die Bezeichnung der Knoten-Komponente anhand der Daten des übergebenen Projektes
+		treeInstInvitations.set_text(node,getHTML(node));
 		
-	}
-	
-	// setzt die Bezeichnung der Knoten-Komponente anhand der Daten des übergebenen Projektes
-	treeInstInvitations.set_text(node,getHTML(node));
-	
-	return node.id;
+		return node.id;
 	}
 }
 
@@ -1044,56 +1020,83 @@ function showPopover(node,error) {
  */
 function updateMenuButtonsProject() {
 	
-	// flag für die Aktivierung der nicht-selektionsabhängigen Schaltflächen ('Erstellen' und 'Import')
-	var basic;
-	// flag für die Aktivierung der selektionsabhängigen Schaltflächen
-	var remain;
+	/*
+	 * flag für die Aktivierung derjenigen Schaltflächen,
+	 * deren zugehörige Funktionalitäten KEINER Selektion bedürfen
+	 * ('Erstellen' und 'Import')
+	 */
+	var flag_basic;
+	/*
+	 * flag für die Aktivierung derjenigen Schaltflächen,
+	 * deren zugehörige Funktionalitäten einer Selektion bedürfen UND ausschließlich dem ProjectOwner vorbehalten sind
+	 * ('Löschen', 'Umbenennen', 'Freigeben' und 'Freigabe entziehen')
+	 */
+	var flag_owner;
+	/*
+	 * flag für die Aktivierung derjenigen Schaltflächen,
+	 * deren zugehörige Funktionalitäten einer Selektion bedürfen
+	 */
+	var flag_remain;
+	
 	
 	// Editierungsmodus
-	if(creatingNodeID!=null || renameID!=null || duplicateID!=null) {
-		// keine Aktivierungen
-		basic  = false;
-		remain = false;
+	if(editMode) {
+		
+		// keine Aktivierungen, solange Editierungsmodus aktiv
+		flag_basic  = false;
+		flag_owner  = false;
+		flag_remain = false;
+		
 	}
 	// Selektion
 	else if(treeInstProjects.get_selected().length!=0) {
-		// vollständig Aktivierung
-		basic  = true;
-		remain = true;
+		
+		// Aktivierung aller Schaltflächen ohne notwendige ProjectOwner-Rechte
+		flag_basic  = true;
+		flag_remain = true;
+		
+		// Aktivierung der Schaltflächen mit notwendigen ProjectOwner-Rechten
+		flag_owner  = currentAuthor==user;
+		
 	}
+	// keine Selektion
 	else {
-		// Aktivierung der nicht-selektionsabhängigen Schaltflächen
-		basic  = true;
-		remain = false;
+		
+		// Aktivierung lediglich der nicht-selektionsabhängigen Schaltflächen
+		flag_basic  = true;
+		flag_remain = false;
+		flag_owner  = false;
 	}
 	
-	// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
-	$('.projecttoolbar-open').prop("disabled", !remain);
-	$('.projecttoolbar-new').prop("disabled", !basic);
-	$('.projecttoolbar-delete').prop("disabled", !remain);
-	$('.projecttoolbar-rename').prop("disabled", !remain);
-	$('.projecttoolbar-duplicate').prop("disabled", !remain);
-	$('.projecttoolbar-converttotemplate').prop("disabled", !remain);
-	$('.projecttoolbar-export').prop("disabled", !remain);
-	$('.projecttoolbar-import').prop("disabled", !basic);
-	$('.projecttoolbar-share').prop("disabled", !remain);
-	$('.projecttoolbar-deny').prop("disabled", !remain);
-	$('.projecttoolbar-quitCollaboration').prop("disabled", !remain);
-	getNumberOfInvitedUser();
-	if (currentAuthor == user){
-		$('.projecttoolbar-quitCollaboration').prop("disabled", true);
+	$('.projecttoolbar-open').prop("disabled", !flag_remain);
+	$('.projecttoolbar-new').prop("disabled", !flag_basic);
+	$('.projecttoolbar-delete').prop("disabled", !flag_owner);
+	$('.projecttoolbar-rename').prop("disabled", !flag_owner);
+	$('.projecttoolbar-duplicate').prop("disabled", !flag_remain);
+	$('.projecttoolbar-converttotemplate').prop("disabled", !flag_remain);
+	$('.projecttoolbar-export').prop("disabled", !flag_remain);
+	$('.projecttoolbar-import').prop("disabled", !flag_basic);
+	$('.projecttoolbar-share').prop("disabled", !flag_owner);
+	$('.projecttoolbar-quitCollaboration').prop("disabled", !flag_remain || flag_owner);
+	
+	/*
+	 * Aktualisiert die 'Freigabe entziehen'-Menü-Schaltfläche
+	 * in Abhängigkeit dessen, ob für das selektierte Projekt eingeladene Nutzer vorliegen
+	 */
+	if(!editMode && flag_owner) {
+		documentsJsonRequest({
+				'command': 'hasinvitedusers',
+				'id':selectedNodeIDProjects
+			},
+			function(result,data) {
+				if(result)
+					$('.projecttoolbar-deny').prop("disabled", !data.response);
+			});
 	}
-	else {
-		$('.projecttoolbar-share').prop("disabled", true);
+	else
 		$('.projecttoolbar-deny').prop("disabled", true);
-		$('.projecttoolbar-quitCollaboration').prop("disabled", false);
-		$('.projecttoolbar-delete').prop("disabled", true);
-		$('.projecttoolbar-rename').prop("disabled", true);
-	//	$('.projecttoolbar-duplicate').prop("disabled", true);
-	//	$('.projecttoolbar-converttotemplate').prop("disabled", true);
-
-	}
-	$('.templatestoolbar-use').prop("disabled", !remain);
+	
+	$('.templatestoolbar-use').prop("disabled", !flag_remain);
 }
 
 /*
@@ -1119,18 +1122,17 @@ function clearAlertDialog(){
 function updateMenuButtonsInvitation() {
 	
 	// flag für die Aktivierung der selektionsabhängigen Schaltflächen
-	var remain;
+	var flag_remain;
 	
 	// Selektion
 	if(treeInstInvitations.get_selected().length!=0) {
 		// vollständig Aktivierung
-		basic  = true;
-		remain = true;
+		flag_remain = true;
 	}
 	
 	
 	// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
-	$('.invitationtoolbar-acceptInvitation').prop("disabled", !remain);
-	$('.invitationtoolbar-denyInvitation').prop("disabled", !remain);
+	$('.invitationtoolbar-acceptInvitation').prop("disabled", !flag_remain);
+	$('.invitationtoolbar-denyInvitation').prop("disabled", !flag_remain);
 }
 	

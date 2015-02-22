@@ -359,6 +359,24 @@ def inviteUser(request, user, projectid, inviteusermail):
         return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(inviteusermail), request)
 
 
+def hasInvitedUsers(request, user, projectid):
+    """Gibt an, ob für das, der übergebenen Projekt-ID entsprechende, Projekt eingeladene Nutzer vorliegen.
+       Hierbei ist es unerheblich, ob die jeweilige Einladung bereits bestätigt wurde.
+       
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param projectid: ID des Projektes, von dessen eingeladenen Benutzern die Nutzernamen zurückgegeben werden sollen
+    :return: HttpResponse (JSON)
+    """
+    
+    collaborations = Collaboration.objects.filter(project=Project.objects.get(id=projectid))
+    
+    if collaborations is None:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+    else:
+        return util.jsonResponse(collaborations.exists(), True, request)
+
+
 def listInvitedUsers(request, user, projectid):
     """Liefert eine Liste der Nutzernamen aller Nutzer, welche für das, der übergebenen Projekt-ID entsprechende, Projekt eingeladen sind.
        Hierbei ist es unerheblich, ob die jeweilige Einladung bereits bestätigt wurde.
