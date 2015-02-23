@@ -423,6 +423,7 @@ class FileTestClass(ViewTestCase):
           (dieser Test dient der Überprüfung, ob richtig erkannt wird, dass eine Datei mit Umlauten im Namen
            bereits mit dem selben Ordner existiert, bsp. Übungsblatt 01.tex -> übungsblatt 01.tex sollte einen Fehler
            liefern)
+        - user1 benennt die main.tex Datei aus dem user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -582,6 +583,16 @@ class FileTestClass(ViewTestCase):
             # status sollte failure sein
             # die Antwort des Servers sollte mit serveranswer übereinstimmen
             util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        response = util.documentPoster(self, command='renamefile', idpara=sharedproject_maintex.id,
+                                       name=self._newtex_name1)
+        usertexobj = PlainTextFile.objects.get(id=sharedproject_maintex.id)
+        self.assertEqual(usertexobj.name, self._newtex_name1)
+        util.validateJsonSuccessResponse(self, response.content, {'id': sharedproject_maintex.id,
+                                                                  'name': self._newtex_name1})
+
 
     def test_moveFile(self):
         """Test der moveFile() Methode des file view

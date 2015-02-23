@@ -123,7 +123,7 @@ available_commands = {
     },
     'renamefile': {
         'command': file.renameFile,
-        'parameters': [{'para': globalparas['id'], 'type': File},
+        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['name'], 'filenamecheck': True}]
     },
     'movefile': {
