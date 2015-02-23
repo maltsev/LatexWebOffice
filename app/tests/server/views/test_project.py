@@ -1645,3 +1645,11 @@ class ProjectTestClass(ViewTestCase):
         util.validateJsonSuccessResponse(self, response.content, {})
         self.assertFalse(Collaboration.objects.filter(pk=collaboration.id).exists())
         self.assertFalse(Project.objects.filter(author=self._user2, name=self._user1_project1.name).exists())
+
+
+        # Kollaboration ist bestätigt
+        collaboration2 = Collaboration.objects.create(user=self._user2, project=self._user1_project2, isConfirmed=True)
+        response = util.documentPoster(self, command='cancelcollaboration', idpara=self._user1_project2.id, name=self._user2.username)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(Collaboration.objects.filter(pk=collaboration2.id).exists())
+        self.assertFalse(Project.objects.filter(author=self._user2, name=self._user1_project2.name).exists())
