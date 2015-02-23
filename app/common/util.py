@@ -118,14 +118,10 @@ def checkIfDirExistsAndUserHasRights(folderid, user, request, requirerights):
     except ObjectDoesNotExist:
         return False, jsonErrorResponse(ERROR_MESSAGES['DIRECTORYNOTEXIST'], request)
 
-    if 'collaborator' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=True).exists():
+    if isAllowedAccessToProject(project, user, requirerights):
         return True, None
-    elif 'invitee' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=False).exists():
-        return True, None
-    elif 'owner' in requirerights and project.author != user:
-        return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
-        return True, None
+        return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
 
 
 def checkIfFileExistsAndUserHasRights(fileid, user, request, objecttype=File):
@@ -174,14 +170,10 @@ def checkIfProjectExistsAndUserHasRights(projectid, user, request, requirerights
     except ObjectDoesNotExist:
         return False, jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'], request)
 
-    if 'collaborator' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=True).exists():
+    if isAllowedAccessToProject(project, user, requirerights):
         return True, None
-    elif 'invitee' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=False).exists():
-        return True, None
-    elif 'owner' in requirerights and project.author != user:
-        return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
-        return True, None
+        return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
 
 
 def checkIfTemplateExistsAndUserHasRights(templateid, user, request):
@@ -681,3 +673,22 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, idpara3
 
 def isSQLiteDatabse():
     return 'sqlite3' in settings.DATABASES['default']['ENGINE']
+
+
+def isAllowedAccessToProject(project, user, requirerights):
+    """Überprüft, ob der Benutzer mit requirerights darf das Projekt bearbeiten.
+
+    :param project: das Projekt, für welches die Überprüfung durchgeführt werden soll
+    :param user: Benutzer, für den die Überprüfung durchgeführt werden soll
+    :param requirerights: Rechte des Benutzers
+    :return: True or False
+    """
+
+    if 'collaborator' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=True).exists():
+        return True
+    elif 'invitee' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=False).exists():
+        return True
+    elif 'owner' in requirerights and project.author == user:
+        return True
+    else:
+        return False

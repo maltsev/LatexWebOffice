@@ -137,7 +137,7 @@ available_commands = {
     },
     'downloadfile': {
         'command': file.downloadFile,
-        'parameters': [{'para': globalparas['id']}]
+        'parameters': [{'para': globalparas['id'], 'type': File}]
     },
     'fileinfo': {
         'command': file.fileInfo,
