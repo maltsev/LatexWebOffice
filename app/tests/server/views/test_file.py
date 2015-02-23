@@ -49,6 +49,7 @@ class FileTestClass(ViewTestCase):
         self.setUpFolders()
         self.setUpFiles()
         self.setUpValues()
+        self.setUpCollaborations()
 
     def tearDown(self):
         """Freigabe von nicht mehr notwendigen Ressourcen.
