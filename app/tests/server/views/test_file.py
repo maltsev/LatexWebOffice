@@ -336,7 +336,7 @@ class FileTestClass(ViewTestCase):
         - user1 löscht eine vorhandene Binärdatei -> Erfolg
         - user1 löscht eine .tex Datei welche user2 gehört -> Fehler
         - user1 löscht eine Datei die nicht existiert -> Fehler
-        -
+        - user1 löscht die main.tex Datei aus dem user2_sharedproject -> Erfolg
         :return: None
         """
 
@@ -393,6 +393,15 @@ class FileTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        response = util.documentPoster(self, command='deletefile', idpara=sharedproject_maintex.id)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(PlainTextFile.objects.filter(id=sharedproject_maintex.id).exists())
+
+
+
 
     def test_renameFile(self):
         """Test der renameFile() Methode des file view

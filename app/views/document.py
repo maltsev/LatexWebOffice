@@ -119,7 +119,7 @@ available_commands = {
     },
     'deletefile': {
         'command': file.deleteFile,
-        'parameters': [{'para': globalparas['id'], 'type': File}]
+        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']}]
     },
     'renamefile': {
         'command': file.renameFile,
