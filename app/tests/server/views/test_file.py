@@ -239,6 +239,7 @@ class FileTestClass(ViewTestCase):
         - user1 ändert den source code einer Binärdatei -> Fehler
         - user1 ändert den source code einer Datei die user2 gehört -> Fehler
         - user1 ändert den source code einer Datei die nicht existiert -> Fehler
+        - user1 ändert den source code der main.tex Datei aus dem user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -313,6 +314,17 @@ class FileTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        response = util.documentPoster(self, command='updatefile', idpara=sharedproject_maintex.id,
+                                       content=self._new_code1)
+
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertEqual(TexFile.objects.get(id=sharedproject_maintex.id).source_code, self._new_code1)
+
+
 
     def test_deletefile(self):
         """Test der deleteFile() Methode des file view

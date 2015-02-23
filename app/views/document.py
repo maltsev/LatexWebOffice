@@ -114,7 +114,7 @@ available_commands = {
     },
     'updatefile': {
         'command': file.updateFile,
-        'parameters': [{'para': globalparas['id'], 'type': PlainTextFile},
+        'parameters': [{'para': globalparas['id'], 'type': PlainTextFile, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['content']}]
     },
     'deletefile': {
