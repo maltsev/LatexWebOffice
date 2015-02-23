@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mo 15 Dez 2014 13:36:32 CET
+* Last Modified : Mo 23 Feb 2015 17:35:02 CET
 
 * Author :  christian
 
@@ -77,6 +77,7 @@ def updateFile(request, user, fileid, filecontenttostring):
     # versuche den source code in der Datenbank durch den übergebenen String zu ersetzen
     try:
         plaintextobj.source_code = filecontenttostring
+        plaintextobj.lasteditor = user
         plaintextobj.save()
         return util.jsonResponse({}, True, request)
     except:

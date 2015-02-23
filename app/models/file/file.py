@@ -5,7 +5,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : 4 Dec 2014 13:17:00 CET
+* Last Modified : Mo 23 Feb 2015 17:48:57 CET
 
 * Author :  maltsev
 
@@ -18,6 +18,7 @@ import io
 import os
 
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class FileManager(models.Manager):
@@ -37,6 +38,7 @@ class File(models.Model):
     folder = models.ForeignKey("Folder")
     mimeType = models.CharField(max_length=255, default='application/octet-stream')
     size = models.PositiveIntegerField(default=0)
+    lasteditor = models.ForeignKey(User,blank=True,null=True)
     objects = FileManager()
 
     class Meta:
