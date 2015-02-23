@@ -77,6 +77,7 @@ class FileTestClass(ViewTestCase):
         - user1 erstellt eine .tex Datei mit einem Namen der ungültige Sonderzeichen beinhaltet -> Fehler
         - user1 erstellt eine .tex Datei mit einem Namen der keine Dateiendung besitzt -> Fehler
         - user1 erstellt eine .tex Datei mit einem Namen der nur die Dateiendung besitzt -> Fehler
+        - user1 erstellt eine neue .tex Datei im rootFolder von user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -203,6 +204,28 @@ class FileTestClass(ViewTestCase):
         # status sollte success sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+        # user1 ist ein Kollaborator von self._user2_sharedproject
+        response = util.documentPoster(self, command='createtex', idpara=self._user2_sharedproject.rootFolder.id,
+                                       name=self._newtex_name1)
+
+        # überprüfe ob die Texdatei in der Datenbank vorhanden ist
+        self.assertTrue(TexFile.objects.filter(name=self._newtex_name1,
+                                               folder=self._user2_sharedproject.rootFolder.id).exists())
+
+        # hole das texfile Objekt
+        texfileobj = TexFile.objects.get(name=self._newtex_name1, folder=self._user2_sharedproject.rootFolder.id)
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, {'id': texfileobj.id,
+                                                                  'name': self._newtex_name1})
+
+
+
+
 
     def test_updateFile(self):
         """Test der updateFile() Methode des file view

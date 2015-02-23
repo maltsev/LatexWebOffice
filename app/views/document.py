@@ -109,7 +109,7 @@ available_commands = {
     },
     'createtex': {
         'command': file.createTexFile,
-        'parameters': [{'para': globalparas['id'], 'type': Folder},
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['name'], 'filenamecheck': True}]
     },
     'updatefile': {
