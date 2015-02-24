@@ -39,6 +39,7 @@ class FolderTestClass(ViewTestCase):
         self.setUpFolders()
         self.setUpFiles()
         self.setUpValues()
+        self.setUpCollaborations()
 
     def tearDown(self):
         """Freigabe von nicht mehr notwendigen Ressourcen.
@@ -62,6 +63,7 @@ class FolderTestClass(ViewTestCase):
         - user1 erstellt einen Unterordner in einem Projekt von user2 -> Fehler
         - user1 erstellt einen neuen Ordner mit einem Namen, der nur Leerzeichen enthält -> Fehler
         - user1 erstellt einen neuen Ordner mit einem Namen, der ein leerer String ist -> Fehler
+        - user1 erstellt einen neuen Ordner im rootFolder von user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -177,6 +179,26 @@ class FolderTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+
+        response = util.documentPoster(self, command='createdir', idpara=self._user2_sharedproject.rootFolder.id,
+                                       name=self._newname1)
+
+        folderobj = Folder.objects.get(name=self._newname1, parent=self._user2_sharedproject.rootFolder)
+        self.assertEqual(folderobj.getRoot().getProject(), self._user2_sharedproject)
+
+
+        serveranswer = {
+            'id': folderobj.id,
+            'name': folderobj.name,
+            'parentid': folderobj.parent.id,
+            'parentname': folderobj.parent.name
+        }
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+
+
 
     def test_rmDir(self):
         """Test der rmDir() Methode des folder view

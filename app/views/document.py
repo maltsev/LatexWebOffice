@@ -154,7 +154,7 @@ available_commands = {
     },
     'createdir': {
         'command': folder.createDir,
-        'parameters': [{'para': globalparas['id'], 'type': Folder},
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['name'], 'stringcheck': True}]
     },
     'rmdir': {
