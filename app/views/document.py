@@ -168,8 +168,8 @@ available_commands = {
     },
     'movedir': {
         'command': folder.moveDir,
-        'parameters': [{'para': globalparas['id'], 'type': Folder},
-                       {'para': globalparas['folderid'], 'type': Folder}]
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']},
+                       {'para': globalparas['folderid'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
     },
     'listfiles': {
         'command': folder.listFiles,

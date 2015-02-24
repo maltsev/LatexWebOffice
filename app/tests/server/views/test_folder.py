@@ -438,6 +438,7 @@ class FolderTestClass(ViewTestCase):
         - user1 verschiebt einen Ordner wobei im Zielordner bereits ein Ordner mit dem selben Namen existiert -> Fehler
           (dieser Test dient der Überprüfung, ob richtig erkannt wird, dass ein Ordner mit Umlauten im Namen
            bereits mit dem selben Ordner existiert, bsp. Übungs 01 -> übung 01 sollte einen Fehler liefern)
+        - user1 verschiebt einen Ordner in einen anderen Ordner aus user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -555,6 +556,20 @@ class FolderTestClass(ViewTestCase):
             # sollte failure als status liefern
             # response sollte mit serveranswer übereinstimmen
             util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+
+        response = util.documentPoster(self, command='movedir', idpara=self._user2_sharedproject_folder1.id,
+                                       idpara2=self._user2_sharedproject_folder2.id)
+        self.assertEqual(Folder.objects.get(pk=self._user2_sharedproject_folder1.id).parent, self._user2_sharedproject_folder2)
+
+        serveranswer = {'id': self._user2_sharedproject_folder1.id,
+                        'name': self._user2_sharedproject_folder1.name,
+                        'parentid': self._user2_sharedproject_folder2.id,
+                        'parentname': self._user2_sharedproject_folder2.name,
+                        'rootid': self._user2_sharedproject_folder1.root.id}
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
 
     def test_moveDir2(self):
         """Test2 der moveDir() Methode des folder view

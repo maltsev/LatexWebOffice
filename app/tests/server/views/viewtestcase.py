@@ -81,6 +81,9 @@ class ViewTestCase(TestCase):
         self._user2_sharedproject_folder1 = Folder.objects.create(name='user2_sharedproject_folder1',
                                                                   parent=self._user2_sharedproject.rootFolder,
                                                                   root=self._user2_sharedproject.rootFolder)
+        self._user2_sharedproject_folder2 = Folder.objects.create(name='user2_sharedproject_folder2',
+                                                                  parent=self._user2_sharedproject.rootFolder,
+                                                                  root=self._user2_sharedproject.rootFolder)
 
         maintex = self._user2_sharedproject.rootFolder.getMainTex()
         maintex.source_code = 'Hallo!'
