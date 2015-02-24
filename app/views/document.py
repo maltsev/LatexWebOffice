@@ -141,7 +141,7 @@ available_commands = {
     },
     'fileinfo': {
         'command': file.fileInfo,
-        'parameters': [{'para': globalparas['id'], 'type': File}]
+        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']}]
     },
     'compile': {
         'command': file.latexCompile,

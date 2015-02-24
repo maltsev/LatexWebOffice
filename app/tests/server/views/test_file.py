@@ -924,6 +924,7 @@ class FileTestClass(ViewTestCase):
         - user1 fordert Informationen zu einer .tex Datei an -> Erfolg
         - user1 fordert Informationen zu einer Datei an die nicht existiert -> Fehler
         - user1 fordert Informationen zu einer Datei an welche user2 gehört -> Fehler
+        - user1 fordert Informationen zu der main.tex Datei aus user2_sharedproject an -> Erfolg
 
         :return: None
         """
@@ -1012,3 +1013,28 @@ class FileTestClass(ViewTestCase):
         # sollte failure als status liefern
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        response = util.documentPoster(self, command='fileinfo', idpara=sharedproject_maintex.id)
+
+        fileobj = sharedproject_maintex
+        folderobj = sharedproject_maintex.folder
+        projectobj = folderobj.getProject()
+
+        serveranswer = {
+            'fileid': fileobj.id,
+            'filename': fileobj.name,
+            'folderid': folderobj.id,
+            'foldername': folderobj.name,
+            'projectid': projectobj.id,
+            'projectname': projectobj.name,
+            'createtime': util.datetimeToString(fileobj.createTime),
+            'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
+            'size': fileobj.size,
+            'mimetype': fileobj.mimeType,
+            'ownerid': projectobj.author.id,
+            'ownername': projectobj.author.username
+        }
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
