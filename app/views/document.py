@@ -133,7 +133,7 @@ available_commands = {
     },
     'uploadfiles': {
         'command': file.uploadFiles,
-        'parameters': [{'para': globalparas['id'], 'type': Folder}]
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
     },
     'downloadfile': {
         'command': file.downloadFile,

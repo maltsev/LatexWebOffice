@@ -713,6 +713,7 @@ class FileTestClass(ViewTestCase):
         - user1 lädt 3 Dateien gleichzeitig hoch -> Erfolg (test_bin.bin sollte jedoch nicht akzeptiert werden)
         - user1 lädt 3 Dateien in einen Ordner von user2 hoch -> Fehler
         - user1 schickt Anfrage ohne Dateien -> Fehler
+        - user1 lädt eine Datei in Rootordner von user2_sharedproject hoch -> Erfolg
 
         :return: None
         """
@@ -801,10 +802,26 @@ class FileTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+
+
+        serverrequest = {
+            'command': 'uploadfiles',
+            'id': self._user2_sharedproject.rootFolder.id,
+            'files': [file2]
+        }
+        response = self.client.post('/documents/', serverrequest)
+
+        file2obj = File.objects.get(name=file2_name, folder=self._user2_sharedproject.rootFolder)
+        serveranswer = {'failure': [], 'success': [{'id': file2obj.id, 'name': file2_name}]}
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+
         # schließe alle geöffneten Testdateien
         file1.close()
         file2.close()
         file3.close()
+
+
 
     def test_downloadFile(self):
         """Test der downloadFile() Methode des file view
