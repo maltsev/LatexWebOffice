@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Tu 17 Feb 2015 21:32:00 CET
+* Last Modified : Di 24 Feb 2015 15:46:51 CET
 
 * Author :  mattis
 
@@ -23,6 +23,7 @@ from django.shortcuts import render
 from django.views.static import serve
 
 from brake.decorators import ratelimit
+from app.common.decorators import decorator_autodisable
 
 from core import settings
 from app.common import util
@@ -227,7 +228,7 @@ def debug(request):
 # und führt die entsprechende Methode aus
 @login_required
 @require_http_methods(['POST', 'GET'])
-@ratelimit(rate='5/s', block=True)
+@decorator_autodisable(ratelimit(rate='5/s', block=True))
 def execute(request):
     if request.method == 'POST' and 'command' in request.POST:
 
