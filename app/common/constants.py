@@ -5,11 +5,11 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Thu 22 Jan 2015 11:06:45 AM CET
+* Last Modified : Fr 20 Feb 2015 02:11:00 CET
 
 * Author :  christian
 
-* Coauthors : mattis
+* Coauthors : mattis, ingo, Kirill
 
 * Sprintnumber : -
 
@@ -64,6 +64,10 @@ ERROR_MESSAGES = {
     'TEMPLATENOTEXIST': 'Vorlage nicht gefunden',
     'UNKNOWNFORMAT': 'Unbekanntes Ausgabeformat',
     'NOLOGFILE': 'Keine Log Datei vorhanden.',
+    'USERALREADYINVITED': 'Dieses Projekt ist für den Nutzer {0} bereits freigegeben.',
+    'USERNOTFOUND': 'Ein Nutzer {0} konnte nicht gefunden werden.',
+    'COLLABORATIONNOTFOUND': 'Die Kollaboration konnte nicht gefunden werden.',
+    'SELFCOLLABORATIONCANCEL': 'Der Nutzer darf nicht der Kollaboration an seinem Projekt kündigen.'
 }
 
 ALLOWEDMIMETYPES = {
@@ -96,6 +100,11 @@ STANDARDENCODING = 'utf-8'
 
 # Ungültige Zeichen für Dateien und Ordner
 INVALIDCHARS = '<>;|"\/?*'
+
+# Namensschema für automatische Benennung bei bereits vorhandenen Namen
+DUPLICATE_NAMING_REGEX = '{0} ({1})'
+# Startwert für numerische Suffixe
+DUPLICATE_INIT_SUFFIX_NUM = 2
 
 SUCCESS = 'success'
 FAILURE = 'failure'

@@ -5,11 +5,11 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fr 23 Jan 2015 11:18:15 CET
+* Last Modified : Fr 20 Feb 2015 02:11:00 CET
 
 * Author :  christian
 
-* Coauthors : mattis, ingo
+* Coauthors : mattis, ingo, Kirill
 
 * Sprintnumber : -
 
@@ -24,9 +24,10 @@ import mimetypes
 import tempfile
 
 from django.http import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
 
 from core import settings
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES
+from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES, DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.projecttemplate import ProjectTemplate
@@ -34,6 +35,7 @@ from app.models.file.file import File
 from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.pdf import PDF
+from app.models.collaboration import Collaboration
 
 
 def jsonDecoder(responseContent):
@@ -100,18 +102,27 @@ def projectToJson(project):
                 rootid=project.rootFolder.id)
 
 
-def checkIfDirExistsAndUserHasRights(folderid, user, request):
+def checkIfDirExistsAndUserHasRights(folderid, user, request, requirerights):
     """Überprüft, ob der Ordner mit der folderid existiert, und der User die Rechte hat diesen zu bearbeiten.
 
     :param folderid: Id des Ordners, für welchen die Überprüfung durchgeführt werden soll
     :param user: Benutzer, für den die Überprüfung durchgeführt werden soll
     :param request: Anfrage des Clients, wird unverändert zurückgeschickt
+    :param requirerights: Erforderte Rechte (z. B ['owner', 'collaborator'] — user soll der Autor ODER der Kollaborator vom Projekt sein)
     :return: (False, HttpResponse (JSON) mit der entsprechenden Fehlermeldung), bzw. (True, None) bei Erfolg
     """
 
-    if not Folder.objects.filter(id=folderid).exists():
+    try:
+        folder = Folder.objects.get(id=folderid)
+        project = folder.getProject()
+    except ObjectDoesNotExist:
         return False, jsonErrorResponse(ERROR_MESSAGES['DIRECTORYNOTEXIST'], request)
-    elif not Folder.objects.get(id=folderid).getProject().author == user:
+
+    if 'collaborator' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=True).exists():
+        return True, None
+    elif 'invitee' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=False).exists():
+        return True, None
+    elif 'owner' in requirerights and project.author != user:
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
         return True, None
@@ -148,18 +159,26 @@ def checkIfFileExistsAndUserHasRights(fileid, user, request, objecttype=File):
         return True, None
 
 
-def checkIfProjectExistsAndUserHasRights(projectid, user, request):
+def checkIfProjectExistsAndUserHasRights(projectid, user, request, requirerights):
     """Überprüft, ob das Projekt mit der projectid existiert, und der User die Rechte hat dieses zu bearbeiten.
 
     :param projectid: Id des Projektes, für welches die Überprüfung durchgeführt werden soll
     :param user: Benutzer, für den die Überprüfung durchgeführt werden soll
     :param request: Anfrage des Clients, wird unverändert zurückgeschickt
+    :param requirerights: Erforderte Rechte (z. B ['owner', 'collaborator'] — user soll der Autor ODER der Kollaborator vom Projekt sein)
     :return: (False, HttpResponse (JSON) mit der entsprechenden Fehlermeldung), bzw. (True, None) bei Erfolg
     """
 
-    if not Project.objects.filter(id=projectid).exists():
+    try:
+        project = Project.objects.get(pk=projectid)
+    except ObjectDoesNotExist:
         return False, jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'], request)
-    elif not Project.objects.get(id=projectid).author == user:
+
+    if 'collaborator' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=True).exists():
+        return True, None
+    elif 'invitee' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=False).exists():
+        return True, None
+    elif 'owner' in requirerights and project.author != user:
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
         return True, None
@@ -312,6 +331,78 @@ def getMimetypeFromFile(python_file, file_name):
         mimetype, encoding = mimetypes.guess_type(file_name)
 
     return mimetype
+
+
+def getNextValidProjectName(user,name):
+    """ Liefert anhand des übergebenen Namens einen Projektnamen, welcher für den angegebenen Benutzer noch nicht vorhanden ist.
+        Hierbei wird dem übergebenen Namen ggf. ein Suffix der Form '(n)' angefügt,
+        falls unter dem Projektnamen name bereits ein Projekt für den angegebenen Benutzer existiert.
+    
+    :param user: Benutzer, unter dessen Projekten ein noch nicht vorhandener Projektname ermittelt werden soll
+    :param name: Name, anhand dessen ein noch nicht vorhandener Projektname ermittelt werden soll
+    :return: name (unverändert), falls für den übergebenen Benutzer user noch kein Projekt mit diesem Namen vorhanden ist,
+             andernfalls (unter dem Projektnamen name besteht für den Benutzer user bereits ein Projekt)
+             wird eine Zeichenkette der Form name + ' (n)' zurückgegeben,
+             wobei n eine Zahl, sodass noch kein entsprechendes Projekt mit diesem Namen für den Benutzer user vorhanden ist
+    """
+    
+    # ermittelt alle Projekte von user, die mit name beginnen
+    queryProjects = Project.objects.filter(author=user, name__istartswith=name)
+    
+    # wenn noch kein Projekt mit dem Namen name existiert, ...
+    if not queryProjects.exists() :
+        # ... wird der übergebene Name name unverändert zurückgegeben
+        return name
+    # wenn bereits ein Projekt mit dem Namen name existiert, ...
+    else :
+        
+        # ... wird über die natürlichen Zahlen (ab festgelegtem Startwert) iteriert
+        n = DUPLICATE_INIT_SUFFIX_NUM
+        while True :
+            # wenn noch kein Projekt mit dem Namen name+' [n]' existiert, ...
+            if not queryProjects.filter(name__iexact=DUPLICATE_NAMING_REGEX.format(name,n)).exists() :
+                # ... wird dieser zurückgegeben
+                return DUPLICATE_NAMING_REGEX.format(name,n)
+            # wenn bereits ein Projekt mit dem Namen name+' [n]' existiert, ...
+            else :
+                # ... wird mit der nächsten Zahl fortgefahren
+                n += 1
+
+
+def getNextValidTemplateName(user,name):
+    """ Liefert anhand des übergebenen Namens einen Vorlagennamen, welcher für den angegebenen Benutzer noch nicht vorhanden ist.
+        Hierbei wird dem übergebenen Namen ggf. ein Suffix der Form '(n)' angefügt,
+        falls unter dem Vorlagennamen name bereits eine Vorlage für den angegebenen Benutzer existiert.
+    
+    :param user: Benutzer, unter dessen Vorlagen ein noch nicht vorhandener Vorlagenname ermittelt werden soll
+    :param name: Name, anhand dessen ein noch nicht vorhandener Vorlagenname ermittelt werden soll
+    :return: name (unverändert), falls für den übergebenen Benutzer user noch keine Vorlage mit diesem Namen vorhanden ist,
+             andernfalls (unter dem Vorlagennamen name besteht für den Benutzer user bereits eine Vorlage)
+             wird eine Zeichenkette der Form name + ' (n)' zurückgegeben,
+             wobei n eine Zahl, sodass noch keine entsprechende Vorlage mit diesem Namen für den Benutzer user vorhanden ist
+    """
+    
+    # ermittelt alle Vorlagen von user, die mit name beginnen
+    queryTemplates = ProjectTemplate.objects.filter(author=user, name__istartswith=name)
+    
+    # wenn noch keine Vorlage mit dem Namen name existiert, ...
+    if not queryTemplates.exists() :
+        # ... wird der übergebene Name name unverändert zurückgegeben
+        return name
+    # wenn bereits eine Vorlage mit dem Namen name existiert, ...
+    else :
+        
+        # ... wird über die natürlichen Zahlen (ab festgelegtem Startwert) iteriert
+        n = DUPLICATE_INIT_SUFFIX_NUM
+        while True :
+            # wenn noch keine Vorlage mit dem Namen name+' [n]' existiert, ...
+            if not queryTemplates.filter(name__iexact=DUPLICATE_NAMING_REGEX.format(name,n)).exists() :
+                # ... wird dieser zurückgegeben
+                return DUPLICATE_NAMING_REGEX.format(name,n)
+            # wenn bereits eine Vorlage mit dem Namen name+' [n]' existiert, ...
+            else :
+                # ... wird mit der nächsten Zahl fortgefahren
+                n += 1
 
 
 def uploadFile(f, folder, request, fromZip=False):

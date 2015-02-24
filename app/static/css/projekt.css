@@ -4,7 +4,12 @@
     margin-top: 5px;
     overflow: hidden;
 }
-
+.invitationswrapper {
+    border-radius: 4px;
+    background: #fafafa;
+    margin-top: 5px;
+    overflow: hidden;
+}
 .projectitem-name {
     display: inline-block;
     width: 40%;
@@ -39,7 +44,20 @@
     border-radius: 4px;
     display: block;
 }
+.invitationswrapper .jstree-icon {
+    display: none;
+}
 
+.invitationswrapper .jstree-node {
+    background: none;
+}
+
+.invitationswrapper .jstree-anchor {
+    padding: 5px 10px;
+    height: auto;
+    border-radius: 4px;
+    display: block;
+}
 #overwritecheckbox{
 	width:25px;
 	outline:initial;

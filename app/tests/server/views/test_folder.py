@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Sat 13 Dec 2014 08:06:03 PM CET
+* Last Modified : Tu 17 Feb 2015 21:32:00 CET
 
 * Author :  mattis
 
@@ -20,6 +20,7 @@ from app.common.constants import ERROR_MESSAGES
 from app.common import util
 from app.models.folder import Folder
 from app.models.file.file import File
+from app.models.collaboration import Collaboration
 from app.tests.server.views.viewtestcase import ViewTestCase
 
 
@@ -551,6 +552,8 @@ class FolderTestClass(ViewTestCase):
         - user1 listet Dateien und Ordner des project1 auf -> Erfolg
         - user1 listet Dateien und Ordner eines Projektes auf welches user2 gehört -> Fehler
         - user1 listet Dateien und Ordner eines nicht vorhandenen Ordners auf -> Fehler
+        - user1 listet Dateien des freigegebenen project2 von user2 (Einladung ist nicht bestätigt) -> Fehler
+        - user1 listet Dateien des freigegebenen project2 von user2 (Einladung ist bestätigt) -> Erfold
 
         :return: None
         """
@@ -710,3 +713,28 @@ class FolderTestClass(ViewTestCase):
         # sollte failure als status liefern
         # response sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+
+        collaboration = Collaboration.objects.create(user=self._user1, project=self._user2_project2)
+        response = util.documentPoster(self, command='listfiles', idpara=self._user2_project2.rootFolder.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+
+        collaboration.isConfirmed = True
+        collaboration.save()
+        response = util.documentPoster(self, command='listfiles', idpara=self._user2_project2.rootFolder.id)
+
+        maintex = self._user2_project2.rootFolder.getMainTex()
+        serveranswer = {
+            'id': self._user2_project2.rootFolder.id,
+            'name': self._user2_project2.rootFolder.name,
+            'files': [  {'id': maintex.id,
+                         'name': maintex.name,
+                         'mimetype': maintex.mimeType,
+                         'size': maintex.size,
+                         'createTime': str(maintex.createTime),
+                         'lastModifiedTime': str(maintex.lastModifiedTime)}],
+            'folders': []
+        }
+        self.maxDiff = None
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)

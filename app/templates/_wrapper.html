@@ -49,7 +49,7 @@
     <script src="/static/js/scrollableblock.js"></script>
     <script src="/static/js/general.js"></script>
 	<script>var ERROR_MESSAGES=JSON.parse("{{ ERROR_MESSAGES }}".replace(/&quot;/g, "\"").replace(/(?:\r\n|\r|\n)/g,''));</script> <!-- Standard Fehlermeldungen vom Server (kann nicht in den static Ordner) -->
-
+	<script>var user = "{{ user.username }}";</script>
 	<!-- seitenspezifische Header -->
 	{% block header %}{% endblock %}
 </head>

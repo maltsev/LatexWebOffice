@@ -1,18 +1,18 @@
-"""
+﻿"""
 
 * Purpose : Verwaltung von Project Models
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Thu 22 Jan 2015 11:10:45 AM CET
+* Last Modified : Fr 20 Feb 2015 02:17:00 CET
 
 * Author :  christian
 
-* Coauthors : mattis
+* Coauthors : mattis, ingo, Kirill
 
-* Sprintnumber : 2
+* Sprintnumber : 2, 5
 
-* Backlog entry : TEK1, 3ED9, DOK8
+* Backlog entry : TEK1, 3ED9, DOK8, KOL1
 
 """
 
@@ -22,9 +22,12 @@ import zipfile
 import shutil
 import logging
 
+from django.contrib.auth.models import User
 from django.http import HttpResponse, Http404
 from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
 
+from app.models.collaboration import Collaboration
 from app.models.folder import Folder
 from app.models.project import Project
 from app.common import util
@@ -32,7 +35,7 @@ from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE, STANDARDENCODING
 
 
 def projectCreate(request, user, projectname):
-    """Erstellt ein neues Projekt mit dem Namen 'projectname'.
+    """Erstellt ein neues Projekt mit dem Namen projectname (ggf. mit einem generierten numerischen Suffix).
 
     Es wird ein neues Projekt in der Datenbank angelegt.
     Durch das Projektmodell wird automatisch eine leere main.tex Datei im Hauptverzeichnis erstellt.
@@ -42,46 +45,45 @@ def projectCreate(request, user, projectname):
     :param projectname: Name des neuen Projektes
     :return: HttpResponse (JSON)
     """
-
-    # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
-    if Project.objects.filter(name__iexact=projectname.lower(), author=user).exists():
-        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
-    else:
-        # versuche das Projekt in der Datenbank zu erstellen
-        try:
-            newproject = Project.objects.create(name=projectname, author=user)
-        except:
-            return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
-
-    # gib die Id und den Namen des erstellte Projektes zurück
+    
+    # ermittelt einen noch nicht verwendeten Projektnamen anhand des übergebenen Namens
+    validname = util.getNextValidProjectName(user,projectname)
+    
+    # versucht das Projekt in der Datenbank zu erstellen
+    try:
+        newproject = Project.objects.create(author=user, name=validname)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+    
+    # gibt die Id und den Namen des erstellten Projektes zurück
     return util.jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
 
 
 def projectClone(request, user, projectid, newprojectname):
-    """Erstellt eine Kopie eines Projektes mit dem Namen newprojectname
-
+    """Erstellt eine Kopie eines Projektes mit dem Namen newprojectname (ggf. mit einem generierten numerischen Suffix).
+    
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
     :param projectid: Id des Projektes, welches geklont werden soll
     :param newprojectname: Name des neuen Projektes
     :return: HttpResponse (JSON)
     """
-
-    # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
-    if Project.objects.filter(name__iexact=newprojectname.lower(), author=user).exists():
-        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(newprojectname), request)
-    else:
-        # hole des aktuelle Projekt Objekt
-        projectobj = Project.objects.get(id=projectid, author=user)
-
-        # versuche das Projekt in der Datenbank zu erstellen
-        try:
-            newproject = Project.objects.cloneProject(project=projectobj, name=newprojectname)
-        except:
-            return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
-
-    # gib die Id und den Namen des erstellte Projektes zurück
+    
+    # ermittelt einen noch nicht verwendeten Projektnamen anhand des übergebenen Namens
+    validname = util.getNextValidProjectName(user,newprojectname)
+    
+    # holt des aktuelle Projekt-Objekt
+    projectobj = Project.objects.get(id=projectid)
+    
+    # versucht das Projekt in der Datenbank zu erstellen
+    try:
+        newproject = Project.objects.cloneProject(project=projectobj, name=validname, author=user)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+    
+    # gibt die Id und den Namen des erstellte Projektes zurück
     return util.jsonResponse({'id': newproject.id, 'name': newproject.name}, True, request)
+
 
 def projectRm(request, user, projectid):
     """Löscht ein vorhandenes Projekt eines Benutzers.
@@ -129,21 +131,25 @@ def projectRename(request, user, projectid, newprojectname):
 
 
 def listProjects(request, user):
-    """Liefert eine Übersicht aller Projekte eines Benutzers.
-
+    """Liefert eine Übersicht aller Projekte eines Benutzers
+       (einschließlich seiner kollaborativen Projekte).
+    
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
     :return: HttpResponse (JSON)
     """
-
-    availableprojects = Project.objects.filter(author=user)
-
-    if availableprojects is None:
+    
+    userprojects   = Project.objects.filter(author=user)
+    collaborations = Collaboration.objects.filter(user=user,isConfirmed=True)
+    
+    if userprojects is None or collaborations is None:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
     else:
         json_return = [util.projectToJson(project)
-                       for project in availableprojects]
-
+                       for project in userprojects]
+        json_return += [util.projectToJson(collaboration.project)
+                        for collaboration in collaborations]
+    
     return util.jsonResponse(json_return, True, request)
 
 
@@ -277,21 +283,6 @@ def exportZip(request, user, folderid):
     :return: filestream (404 im Fehlerfall)
     """
 
-    # setze das logging level auf ERROR
-    # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben wird
-    logger = logging.getLogger('django.request')
-    previous_level = logger.getEffectiveLevel()
-    logger.setLevel(logging.ERROR)
-
-    # Überprüfe ob das Projekt, und der Benutzer die entsprechenden Rechte besitzt
-    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(
-        folderid, user, request)
-    if not rights:
-        raise Http404
-
-    # setze das logging level wieder auf den ursprünglichen Wert
-    logger.setLevel(previous_level)
-
     folderobj = Folder.objects.get(id=folderid)
 
     # erstelle ein temp Verzeichnis mit einer Kopie des Ordners
@@ -334,8 +325,182 @@ def exportZip(request, user, folderid):
     return response
 
 
-# gibt ein Projekt für einen anderen Benutzer zum Bearbeiten frei
-# benötigt: id: projectid, name:inviteusername
-# liefert HTTP Response (Json)
-def shareProject(request, user, projectid, inviteusername):
-    pass
+def inviteUser(request, user, projectid, inviteusermail):
+    """Lädt einen anderen Benutzer zur Kollaboration an einem Projekt ein.
+    
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param projectid: ID des Projektes, zu dessen Zusammenarbeit eingeladen werden soll
+    :param inviteusermail: E-Mail-Adresse des Benutzers, welcher eingeladen werden soll
+    :return: HttpResponse (JSON)
+    """
+    
+    # wenn sich die übergebene E-Mail-Adresse des einzuladenen Nutzers von der des aufrufenden Nutzers unterscheidet
+    if user.username!=inviteusermail :
+        # wenn die übergebene E-Mail-Adresse registriert ist
+        if User.objects.filter(username=inviteusermail).exists() :
+            # einzuladener Nutzer
+            inviteuser = User.objects.get(username=inviteusermail)
+            # wenn noch keine entsprechende Kollaboration vorliegt
+            if not Collaboration.objects.filter(user=inviteuser.id,project=projectid).exists() :
+                # versucht eine entsprechende Kollaboration anzulegen
+                try:
+                    Collaboration.objects.create(user=inviteuser, project=Project.objects.get(id=projectid))
+                    return util.jsonResponse({}, True, request)
+                except:
+                    return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+            # wenn eine entsprechende Kollaboration bereits vorliegt
+            else :
+                return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(inviteusermail), request)
+        else :
+            return util.jsonErrorResponse(ERROR_MESSAGES['USERNOTFOUND'].format(inviteusermail), request)
+    # wenn es sich bei der übergebenen E-Mail-Adresse des einzuladenen Nutzers um die des aufrufenden Nutzers handelt
+    else :
+        return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(inviteusermail), request)
+
+
+def hasInvitedUsers(request, user, projectid):
+    """Gibt an, ob für das, der übergebenen Projekt-ID entsprechende, Projekt eingeladene Nutzer vorliegen.
+       Hierbei ist es unerheblich, ob die jeweilige Einladung bereits bestätigt wurde.
+       
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param projectid: ID des Projektes, von dessen eingeladenen Benutzern die Nutzernamen zurückgegeben werden sollen
+    :return: HttpResponse (JSON)
+    """
+    
+    collaborations = Collaboration.objects.filter(project=Project.objects.get(id=projectid))
+    
+    if collaborations is None:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+    else:
+        return util.jsonResponse(collaborations.exists(), True, request)
+
+
+def listInvitedUsers(request, user, projectid):
+    """Liefert eine Liste der Nutzernamen aller Nutzer, welche für das, der übergebenen Projekt-ID entsprechende, Projekt eingeladen sind.
+       Hierbei ist es unerheblich, ob die jeweilige Einladung bereits bestätigt wurde.
+    
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param projectid: ID des Projektes, von dessen eingeladenen Benutzern die Nutzernamen zurückgegeben werden sollen
+    :return: HttpResponse (JSON)
+    """
+    
+    collaborations = Collaboration.objects.filter(project=Project.objects.get(id=projectid)).order_by('user__username')
+    
+    if collaborations is None:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+    else:
+        json_return = [collaboration.user.username
+                       for collaboration in collaborations]
+
+    return util.jsonResponse(json_return, True, request)
+
+
+def listUnconfirmedCollaborativeProjects(request, user):
+    """Liefert eine Liste aller Projekte, zu deren Kollaboration der übergebene Benutzer eingeladen ist, diese jedoch noch nicht bestätigt hat.
+    
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :return: HttpResponse (JSON)
+    """
+    
+    unconfirmedCollaborations = Collaboration.objects.filter(user=user,isConfirmed=False)
+    
+    if unconfirmedCollaborations is None:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+    else:
+        json_return = [util.projectToJson(collaboration.project)
+                       for collaboration in unconfirmedCollaborations]
+
+    return util.jsonResponse(json_return, True, request)
+
+
+def activateCollaboration(request, user, projectid):
+    """Bestätigt der Einladung zur Kollaboration an einem Projekt.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param projectid: ID des Projektes, zu dessen die Einladung bestätigt werden soll
+    :return: HttpResponse (JSON)
+    """
+
+    try:
+        project = Project.objects.get(pk=projectid)
+        collaboration = Collaboration.objects.get(user=user, project=project)
+    except ObjectDoesNotExist:
+        return util.jsonErrorResponse(ERROR_MESSAGES['COLLABORATIONNOTFOUND'], request)
+
+    try:
+        if not collaboration.isConfirmed:
+            collaboration.isConfirmed = True
+            collaboration.save()
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+
+
+    return util.jsonResponse({}, True, request)
+
+
+def quitCollaboration(request, user, projectid):
+    """Kündigt der Kollaboration (bzw. Einladung) an einem Projekt (als Kollaborator)
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param projectid: ID des Projektes, zu dessen die Kollaboration (bzw. die Einladung) gekündigt werden soll
+    :return: HttpResponse (JSON)
+    """
+
+    try:
+        project = Project.objects.get(pk=projectid)
+        if user == project.author:
+            return util.jsonErrorResponse(ERROR_MESSAGES['SELFCOLLABORATIONCANCEL'], request)
+
+        collaboration = Collaboration.objects.get(user=user, project=project)
+        collaboration.delete()
+        return util.jsonResponse({}, True, request)
+    except ObjectDoesNotExist:
+        return util.jsonErrorResponse(ERROR_MESSAGES['COLLABORATIONNOTFOUND'], request)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+
+
+
+def cancelCollaboration(request, user, projectid, collaboratoremail):
+    """Entzieht der Freigabe
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param projectid: ID des Projektes, zu dessen der Freigabe entzieht werden soll
+    :param collaboratoremail: E-Mail-Adresse der Kollaborator
+    :return: HttpResponse (JSON)
+    """
+
+    try:
+        project = Project.objects.get(pk=projectid)
+        collaborator = User.objects.get(username=collaboratoremail)
+        if user == collaborator:
+            return util.jsonErrorResponse(ERROR_MESSAGES['SELFCOLLABORATIONCANCEL'], request)
+
+        collaboration = Collaboration.objects.get(user=collaborator, project=project)
+        collaboration.delete()
+    except ObjectDoesNotExist:
+        return util.jsonErrorResponse(ERROR_MESSAGES['COLLABORATIONNOTFOUND'], request)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+
+    if not collaboration.isConfirmed:
+        return util.jsonResponse({}, True, request)
+    
+    # ermittelt einen noch nicht verwendeten Projektnamen anhand des übergebenen Namens
+    validname = util.getNextValidProjectName(collaborator,project.name+' ['+user.username+']')
+    
+    # versucht ein Duplikat des Projektes für den Kollaborator in der Datenbank zu erstellen
+    try:
+        Project.objects.cloneProject(project=project, name=validname, author=collaborator)
+    except:
+        return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
+
+
+    return util.jsonResponse({}, True, request)

@@ -26,6 +26,7 @@ class FolderForm(forms.ModelForm):
         self.fields['parent'].required = True
         self.fields['root'].required = True
 
+
 @admin.register(models.folder.Folder)
 class FolderAdmin(admin.ModelAdmin):
     list_display = ('id', 'relativePath', 'createTime', 'parent', 'root')
@@ -36,6 +37,10 @@ class FolderAdmin(admin.ModelAdmin):
         return str(obj)
     relativePath.short_description = 'Path'
 
+
+@admin.register(models.collaboration.Collaboration)
+class CollaborationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'project', 'isConfirmed')
 
 
 @admin.register(models.projecttemplate.ProjectTemplate)
@@ -72,6 +77,7 @@ class ImageAdmin(FileAdmin):
 @admin.register(models.binaryfile.BinaryFile)
 class BinaryFileAdmin(FileAdmin):
     pass
+
 
 @admin.register(models.plaintextfile.PlainTextFile)
 class PlainTextFileAdmin(FileAdmin):
