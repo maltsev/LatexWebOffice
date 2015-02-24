@@ -309,13 +309,13 @@ def execute(request):
     elif request.method == 'GET' and request.GET.get('command'):
         command = request.GET.get('command')
         fileid = request.GET.get('id')
-        requireRights = request.GET.get('requirerights', ['owner'])
 
         if not fileid.isdigit():
             filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
             return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
 
         if command == 'getpdf' and fileid:
+            requireRights = ['owner', 'collaborator']
             rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, request.user, request, requireRights,
                                                                            objecttype=PDF)
             if not rights:
