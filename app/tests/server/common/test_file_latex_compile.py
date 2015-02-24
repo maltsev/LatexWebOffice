@@ -39,6 +39,7 @@ class FileLatexCompileTestClass(ViewTestCase):
         self.setUpFolders()
         self.setUpFiles()
         self.setUpValues()
+        self.setUpCollaborations()
 
     def tearDown(self):
         """Freigabe von nicht mehr notwendigen Ressourcen.
@@ -131,3 +132,17 @@ class FileLatexCompileTestClass(ViewTestCase):
         # sollte failure als status liefern
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+
+        src_code = "\\documentclass[a4paper,10pt]{article} \\usepackage[utf8]{inputenc} \\title{test} " \
+                   "\\begin{document} \\maketitle \\begin{abstract} \\end{abstract} \\section{} \\end{document}"
+        texobj = TexFile.objects.create(name=self._newtex_name1, folder=self._user2_sharedproject, source_code=src_code)
+
+        response = util.documentPoster(self, command='compile', idpara=texobj.id, idpara3=0)
+
+        pdf_name = texobj.name[:-3] + 'pdf'
+        pdfobj = PDF.objects.filter(name=pdf_name, folder=texobj.folder)
+
+        self.assertTrue(pdfobj.count() == 1)
+        util.validateJsonSuccessResponse(self, response.content, {'id': pdfobj[0].id, 'name': pdf_name})

@@ -145,12 +145,12 @@ available_commands = {
     },
     'compile': {
         'command': file.latexCompile,
-        'parameters': [{'para': globalparas['id'], 'type': TexFile},
+        'parameters': [{'para': globalparas['id'], 'type': TexFile, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['formatid']}]
     },
     'getlog': {
         'command': file.getLog,
-        'parameters': [{'para': globalparas['id'], 'type': TexFile}]
+        'parameters': [{'para': globalparas['id'], 'type': TexFile, 'requirerights': ['owner', 'collaborator']}]
     },
     'createdir': {
         'command': folder.createDir,
