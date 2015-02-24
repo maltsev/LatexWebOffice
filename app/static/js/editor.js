@@ -25,6 +25,12 @@ var myLayout;
 // Zeit bis der Editor nach einer Änderung der Fenstergröße aktualisiert wird
 var editorResizeTimeout = 250;
 
+// ab dieser Breite der Auflösung des Clients wird die mobile Ansicht verwendet
+var mobileLayoutWidth = 1366;
+
+// Button zum Wechseln der Ansicht PDF/Editor (befindet sich auf der Trennlinie)
+var toggleViewButton = '<div class="btnToggleEditorPDF"></div>';
+
 /**
  * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
  */
@@ -36,11 +42,11 @@ $(document).ready(function() {
     myLayout = $('#maincontainer').layout({
         defaults: {
             spacing_open: 12,
-            spacing_close: 12,
+            spacing_closed: 12,
         },
         east: {
-            initClosed: (width<1366?true:false),
-            size: '40%',
+            initClosed: (width<mobileLayoutWidth?true:false),
+            size: (width<mobileLayoutWidth?'100%':'40%'),
         },
         south: {
             initClosed: true,
@@ -55,8 +61,12 @@ $(document).ready(function() {
                 },
                 editorResizeTimeout);
         },
+
+        // setze den ToggleButton zum Wechseln der Ansicht zwischen PDF/Editor
+        east__togglerContent_closed: toggleViewButton,
+        east__togglerContent_open: toggleViewButton,
     });
-	
+
 	// Datei-ID abfragen
 	id = parseInt(location.hash.substr(1));
 	if (isNaN(id))
@@ -96,24 +106,25 @@ $(document).ready(function() {
 		$('#save').click(function() {
 			saveFile(id);
 		});
-
 		// Button für das PDF Exportieren belegen
 		$('#pdfExport').click(function() {
 			exportFile(id, 0);
 		});
-        
         // Button für das HTML Exportieren belegen
 		$('#export_html').click(function() {
 			exportFile(id, 1);
 		});
-		//$('#export_html_pdf').click(function() {
-		//	exportFile(id, 2);
-		//});
+		// Button für das HTML Exportieren belegen
 		$('#export_dvi').click(function() {
+			exportFile(id, 2);
+		});
+	    // Button für das HTML Exportieren belegen
+		$('#export_ps').click(function() {
 			exportFile(id, 3);
 		});
-		$('#export_ps').click(function() {
-			exportFile(id, 4);
+	    // Button für das Kompilieren (aktualisieren der PDF Anzeige) belegen
+		$('#compile').click(function() {
+			compile(true);
 		});
 		$('.ace_scroller').on('scroll', function () {
 			$('.ace_gutter').scrollTop($(this).scrollTop());
@@ -121,6 +132,17 @@ $(document).ready(function() {
 		loadFile(id);
 	};
 });
+
+function toggleEditorPDF (evt) {
+    isEastClosed = myLayout.state.east.isClosed;
+    if (isEastClosed) {
+        myLayout.open("south")
+    }
+    if (!isEastClosed) {
+        myLayout.close("south");
+    }
+    evt.stopPropagation();
+}
 
 // Dialogfenster Editor zurück
 function confirmExit() {
@@ -184,6 +206,8 @@ function loadFile(id) {
 				editor.setValue(data, 0);
 				editor.getSelection().selectTo(0, 0);
 				changesSaved = true;
+                // Kompiliere die PDF Datei falls nötig
+                // das Dokument muss jedoch nicht gespeichert werden, das es gerade erst geladen wurde
                 compile();
 			} else
 				backToProject();
@@ -207,33 +231,57 @@ function saveFile(id) {
 	});
 }
 
+function compile() {
+    // setze den Inhalt des Log Containers zurück
+    setLogText('');
+
+    // Kompiliere nur wenn der Text im Editor nicht leer ist
+    if (editor.getValue() != '') {
+        // wenn keine Änderung an der tex Datei vorgenommen wurden, kompiliere die tex Datei direkt
+        if (changesSaved) {
+            compileTex();
+        }
+        // sonst speichere die tex Datei zunächst und kompiliere danach
+        else {
+            // speichere die tex Datei
+            documentsJsonRequest({
+                'command': 'updatefile',
+                'id': id,
+                'content': editor.getValue()
+            }, function(result, data) {
+                if (result) {
+                    changesSaved = true;
+                    setMsg('Datei gespeichert');
+                    compileTex();
+                }
+            })
+        }
+    }
+}
+
+
 /**
  * Kompiliert eine Datei und zeigt die PDF an.
  */
-function compile() {
-    setLogText('');
-    // Kompiliere nur wenn der Text im Editor nicht leer ist
-    if (editor.getValue() != '') {
-        var pdf_url = null;
-        // TexID welche dem Editor übergeben wurde
-        id = parseInt(location.hash.substr(1));
-        documentsJsonRequest({
-                'command': 'compile',
-                'id': id,
-                'formatid': 0,
-            }, function(result, data) {
-                var pdfid = data.response.id 
-                
-                if (!pdfid) {
-                    pdfid = -1
-                }
+function compileTex() {
+    documentsJsonRequest({
+            'command': 'compile',
+            'id': id,
+            'formatid': 0,
+        }, function(result, data) {
+            var pdfid = data.response.id;
+            var pdf_url = null;
+
+            if (isNaN(pdfid)) {
+                pdf_url = "/documents/static/default.pdf";
+                setErrorMsg("Fehler beim Kompilierem");
+            }
+            else {
                 // URL der PDF Datei
                 // schickt einen GET Request an den Server
                 // dieser liefert die PDF Datei, falls vorhanden
                 // sonst wird eine default PDF geschickt
                 pdf_url = "/documents/?command=getpdf&id=" + pdfid +"&t=" + Math.random();
-                // Anzeige der PDF Datei
-                renderPDF(pdf_url, document.getElementById('pdf-viewer'));
 
                 if (result) {
                     setMsg("Kompilieren erfolgreich");
@@ -243,8 +291,12 @@ function compile() {
                     setErrorMsg("Fehler beim Kompilieren");
                     setCompileLog();
                 }
-        });
-    }
+            }
+
+            // Anzeige der PDF Datei
+            renderPDF(pdf_url, document.getElementById('pdf-viewer'));
+        }
+    );
 }
 
 /**
@@ -607,10 +659,10 @@ function setLogText(text) {
 
 function renderPDF(url, canvasContainer, options) {
 
-    var options = options || { scale: 1 };
-        
+    var pdfscale = 2;
+
     function renderPage(page) {
-        var viewport = page.getViewport(options.scale);
+        var viewport = page.getViewport(pdfscale);
         var canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
 
@@ -618,14 +670,14 @@ function renderPDF(url, canvasContainer, options) {
           canvasContext: ctx,
           viewport: viewport
         };
-        //canvas.style.height = '100%';
-        //canvas.style.width = '100%';
+        canvas.style.cssText = 'border:1px solid #000000;';
         canvas.height = viewport.height;
         canvas.width = viewport.width;
+        canvas.style.height = '100%';
+        canvas.style.width = '100%';
+
         canvasContainer.appendChild(canvas);
-        
-        canvasContainer.appendChild (document.createElement("hr"));
-        
+
         page.render(renderContext);
     }
     
@@ -636,6 +688,6 @@ function renderPDF(url, canvasContainer, options) {
     }
 
     //PDFJS.disableWorker = true;
-    PDFJS.workerSrc = '/static/js/pdf.worker.js';    
+    PDFJS.workerSrc = '/static/js/pdf.worker.js';
     PDFJS.getDocument(url).then(renderPages);
 }

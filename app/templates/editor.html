@@ -4,7 +4,7 @@
 {% block header %}
     <!-- Einbindung der SplitView Funktionalität -->
     <!-- benötigt jquery.min.js und jquery-ui.min.js -->
-    <script type="text/javascript" src="/static/js/jqueryui-layout.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.layout-latest.js"></script>
 	<script src="/static/js/jquery.validate.min.js"></script>
 	<script src="/static/js/jquery.validate.additional-methods.min.js"></script><!-- benötigt um pattern matching (regexp) nutzen zu können -->
 	<script src="/static/js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
@@ -199,26 +199,6 @@
                         <button id="save" type="button" class="btn btn-default" title="Speichern">
                             <i class="fa fa-floppy-o"></i> 
                         </button>
-						<!--
-                        <button id="undo" type="button" class="btn btn-default" title="Zurück">
-                            <i class="fa fa-undo"></i> 
-                        </button>
-                        <button id="redo" type="button" class="btn btn-default" title="Vor">
-                            <i class="fa fa-repeat"></i> 
-                        </button>    
-						
-                        <button id="cut" type="button" class="btn btn-default" title="Ausschneiden">
-                            <i class="fa fa-scissors"></i>
-                        </button>
-						
-                        <button id="copy" type="button" class="btn btn-default" title="Kopieren">
-                            <i class="fa fa-files-o"></i> 
-                        </button>
-						
-                        <button id="paste" type="button" class="btn btn-default" title="Einfügen">
-                            <i class="fa fa-clipboard"></i>
-                        </button> 
-						-->
                         <button id="pdfExport" type="button" class="btn btn-default" title="PDF-Export">
                             <i class="fa fa-file-pdf-o"></i> <!-- PDF-Export -->
                         </button>
@@ -231,7 +211,6 @@
 		        <ul class="dropdown-menu">
 
 				<li><a id="export_html" style="cursor:pointer;">HTML</a></li>
-				<!--<li><a id="export_html_pdf" style="cursor:pointer;">HTML (pdf2htmlEx)</a></li>-->
 				<li><a id="export_dvi" style="cursor:pointer;">DVI</a></li>
 				<li><a id="export_ps" style="cursor:pointer;">PS</a></li>
 			</ul>
@@ -244,30 +223,9 @@
 						<button type="button" class="btn btn-default" data-toggle="modal" data-target="#table-assistent">
 							<i class="fa fa-table"></i> 
 						</button>
-						<!--
-                        <button id="formula" type="button" class="btn btn-default" title="Formeln eingeben" 
-                                onClick="createFormula()">
-                            <i class="fa fa-superscript"></i>
-                        </button> 
-                        <button id="codelines" type="button" class="btn btn-default" title="Programmzeilen eingeben" 
-                                onClick="createCodelines()">
-                            <i class="fa fa-code"></i>
-                        </button> 
-                        <button id="quotes" type="button" class="btn btn-default" title="In Anführungszeichen setzen" 
-                                onClick="createQuote()">
-                            <i class="fa fa-quote-left"></i>
-                        </button> 
-						-->
-                        <button id="compile" type="button" class="btn btn-default" title="Tex Datei kompilieren"
-                                onClick="compile()">
+                        <button id="compile" type="button" class="btn btn-default" title="Tex Datei kompilieren">
                             <i class="fa fa-refresh"></i> <!-- parallele Anzeige von TEX und PDF-Ausgabe -->
-                        </button> 
-						<!--
-                        <button id="search" type="button" class="btn btn-default" title="Im Textfeld suchen" 
-                                onClick="createSearch()">
-                            <i class="fa fa-search"></i>
-                        </button> 
-						-->
+                        </button>
                 </div>
                 
 -           <div id="pdfviewer_msg"></div>
@@ -282,7 +240,7 @@
     
     <!-- PDF Viewer Container -->
     <div id="pdf" class="ui-layout-east">
-        <script src="/static/js/pdf.js"></script>
+		<script src="/static/js/pdf.js"></script>
         <div id="pdf-viewer"></div>
     <!-- PDF Viewer Container Ende -->
     </div>

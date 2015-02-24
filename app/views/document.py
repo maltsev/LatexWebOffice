@@ -22,6 +22,8 @@ from django.views.decorators.http import require_http_methods
 from django.shortcuts import render
 from django.views.static import serve
 
+from brake.decorators import ratelimit
+
 from core import settings
 from app.common import util
 from app.common.constants import ERROR_MESSAGES
@@ -225,6 +227,7 @@ def debug(request):
 # und führt die entsprechende Methode aus
 @login_required
 @require_http_methods(['POST', 'GET'])
+@ratelimit(rate='5/s', block=True)
 def execute(request):
     if request.method == 'POST' and 'command' in request.POST:
 

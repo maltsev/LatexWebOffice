@@ -17,6 +17,7 @@ urlpatterns = patterns('app.views',
     url(r'^vorlagen/', 'main.vorlagen'),
     url(r'^faq/', 'main.faq'),
     url(r'^favicon.png', RedirectView.as_view(url='/static/img/favicon.png')),
+    url(r'^favicon.ico', RedirectView.as_view(url='/static/img/favicon.ico')),
 )
 if settings.DEBUG:
     urlpatterns += patterns('app.views',

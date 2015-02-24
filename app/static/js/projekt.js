@@ -395,6 +395,7 @@ $(document).ready(function() {
 
 	// 'Verwenden'-Schaltfläche
 	$('.templatestoolbar-use').on("click", function() {
+		node = treeInstProjects.get_node(selectedNodeIDProjects);
         projectTempID = node.id;
         $('#modal_templateToProject').modal('show');
 	});

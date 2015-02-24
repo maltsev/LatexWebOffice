@@ -14,10 +14,13 @@
 * Backlog entry :
 
 """
-import os, hashlib
+import os
+import uuid
+
 from django.db import models
-from django.db.models.signals import post_delete, pre_save
+from django.db.models.signals import post_delete
 from django.dispatch import receiver
+
 from core import settings
 from app.models.file import file
 
@@ -62,7 +65,7 @@ class BinaryFileManager(file.FileManager):
 
 
     def __createBinaryFile(self, content):
-        filename = hashlib.md5(content).hexdigest()
+        filename = str(uuid.uuid4())
         filepath = os.path.join(settings.FILE_ROOT, filename)
         if not os.path.exists(filepath):
             fileDirPath = os.path.dirname(filepath)
@@ -74,8 +77,6 @@ class BinaryFileManager(file.FileManager):
             newFile.close()
 
         return filepath, os.path.getsize(filepath)
-
-
 
 
 class BinaryFile(file.File):
