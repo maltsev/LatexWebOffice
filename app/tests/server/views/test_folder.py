@@ -39,6 +39,7 @@ class FolderTestClass(ViewTestCase):
         self.setUpFolders()
         self.setUpFiles()
         self.setUpValues()
+        self.setUpCollaborations()
 
     def tearDown(self):
         """Freigabe von nicht mehr notwendigen Ressourcen.
@@ -62,6 +63,7 @@ class FolderTestClass(ViewTestCase):
         - user1 erstellt einen Unterordner in einem Projekt von user2 -> Fehler
         - user1 erstellt einen neuen Ordner mit einem Namen, der nur Leerzeichen enthält -> Fehler
         - user1 erstellt einen neuen Ordner mit einem Namen, der ein leerer String ist -> Fehler
+        - user1 erstellt einen neuen Ordner im rootFolder von user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -178,6 +180,26 @@ class FolderTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+
+
+        response = util.documentPoster(self, command='createdir', idpara=self._user2_sharedproject.rootFolder.id,
+                                       name=self._newname1)
+
+        folderobj = Folder.objects.get(name=self._newname1, parent=self._user2_sharedproject.rootFolder)
+        self.assertEqual(folderobj.getRoot().getProject(), self._user2_sharedproject)
+
+
+        serveranswer = {
+            'id': folderobj.id,
+            'name': folderobj.name,
+            'parentid': folderobj.parent.id,
+            'parentname': folderobj.parent.name
+        }
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+
+
+
     def test_rmDir(self):
         """Test der rmDir() Methode des folder view
 
@@ -188,6 +210,7 @@ class FolderTestClass(ViewTestCase):
         - user1 löscht Ordner mit einer folderID welche nicht existiert -> Fehler
         - user1 löscht rootFolder eines Projektes -> Fehler
         - user1 löscht Ordner eines Projektes welches user2 gehört -> Fehler
+        - user1 löscht einen Ordner aus user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -263,6 +286,13 @@ class FolderTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+
+        response = util.documentPoster(self, command='rmdir', idpara=self._user2_sharedproject_folder1.id)
+        self.assertFalse(Folder.objects.filter(id=self._user2_sharedproject_folder1.id).exists())
+        util.validateJsonSuccessResponse(self, response.content, {})
+
+
+
     def test_renameDir(self):
         """Test der renameDir() Methode des folder view
 
@@ -275,6 +305,7 @@ class FolderTestClass(ViewTestCase):
         - user1 benennt einen Ordner um mit einem Namen der nur aus Leerzeichen besteht -> Fehler
         - user1 benennt einen Ordner um mit einem Namen der ein leerer String ist -> Fehler
         - user1 benennt einen Ordner um mit einem Namen der ungültige Zeichen enthält -> Fehler
+        - user1 benennt einen Ordner aus user2_sharedproject um -> Erfolg
 
         :return: None
         """
@@ -378,6 +409,20 @@ class FolderTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+
+
+        response = util.documentPoster(self, command='renamedir', idpara=self._user2_sharedproject_folder1.id,
+                                       name=self._newname1)
+        self.assertEqual(Folder.objects.get(pk=self._user2_sharedproject_folder1.id).name, self._newname1)
+
+        serveranswer = {
+            'id': self._user2_sharedproject_folder1.id,
+            'name': self._newname1
+        }
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+
+
     def test_moveDir(self):
         """Test der moveDir() Methode des folder view
 
@@ -393,6 +438,7 @@ class FolderTestClass(ViewTestCase):
         - user1 verschiebt einen Ordner wobei im Zielordner bereits ein Ordner mit dem selben Namen existiert -> Fehler
           (dieser Test dient der Überprüfung, ob richtig erkannt wird, dass ein Ordner mit Umlauten im Namen
            bereits mit dem selben Ordner existiert, bsp. Übungs 01 -> übung 01 sollte einen Fehler liefern)
+        - user1 verschiebt einen Ordner in einen anderen Ordner aus user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -510,6 +556,20 @@ class FolderTestClass(ViewTestCase):
             # sollte failure als status liefern
             # response sollte mit serveranswer übereinstimmen
             util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+
+        response = util.documentPoster(self, command='movedir', idpara=self._user2_sharedproject_folder1.id,
+                                       idpara2=self._user2_sharedproject_folder2.id)
+        self.assertEqual(Folder.objects.get(pk=self._user2_sharedproject_folder1.id).parent, self._user2_sharedproject_folder2)
+
+        serveranswer = {'id': self._user2_sharedproject_folder1.id,
+                        'name': self._user2_sharedproject_folder1.name,
+                        'parentid': self._user2_sharedproject_folder2.id,
+                        'parentname': self._user2_sharedproject_folder2.name,
+                        'rootid': self._user2_sharedproject_folder1.root.id}
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
 
     def test_moveDir2(self):
         """Test2 der moveDir() Methode des folder view

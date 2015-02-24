@@ -35,6 +35,7 @@ from app.tests.server.views.viewtestcase import ViewTestCase
 
 
 class FileTestClass(ViewTestCase):
+
     def setUp(self):
         """Setup Methode für die einzelnen Tests
 
@@ -49,6 +50,7 @@ class FileTestClass(ViewTestCase):
         self.setUpFolders()
         self.setUpFiles()
         self.setUpValues()
+        self.setUpCollaborations()
 
     def tearDown(self):
         """Freigabe von nicht mehr notwendigen Ressourcen.
@@ -76,6 +78,7 @@ class FileTestClass(ViewTestCase):
         - user1 erstellt eine .tex Datei mit einem Namen der ungültige Sonderzeichen beinhaltet -> Fehler
         - user1 erstellt eine .tex Datei mit einem Namen der keine Dateiendung besitzt -> Fehler
         - user1 erstellt eine .tex Datei mit einem Namen der nur die Dateiendung besitzt -> Fehler
+        - user1 erstellt eine neue .tex Datei im rootFolder von user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -203,6 +206,28 @@ class FileTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+
+        # user1 ist ein Kollaborator von self._user2_sharedproject
+        response = util.documentPoster(self, command='createtex', idpara=self._user2_sharedproject.rootFolder.id,
+                                       name=self._newtex_name1)
+
+        # überprüfe ob die Texdatei in der Datenbank vorhanden ist
+        self.assertTrue(TexFile.objects.filter(name=self._newtex_name1,
+                                               folder=self._user2_sharedproject.rootFolder.id).exists())
+
+        # hole das texfile Objekt
+        texfileobj = TexFile.objects.get(name=self._newtex_name1, folder=self._user2_sharedproject.rootFolder.id)
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, {'id': texfileobj.id,
+                                                                  'name': self._newtex_name1})
+
+
+
+
+
     def test_updateFile(self):
         """Test der updateFile() Methode des file view
 
@@ -215,6 +240,7 @@ class FileTestClass(ViewTestCase):
         - user1 ändert den source code einer Binärdatei -> Fehler
         - user1 ändert den source code einer Datei die user2 gehört -> Fehler
         - user1 ändert den source code einer Datei die nicht existiert -> Fehler
+        - user1 ändert den source code der main.tex Datei aus dem user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -290,6 +316,17 @@ class FileTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+
+
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        response = util.documentPoster(self, command='updatefile', idpara=sharedproject_maintex.id,
+                                       content=self._new_code1)
+
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertEqual(TexFile.objects.get(id=sharedproject_maintex.id).source_code, self._new_code1)
+
+
+
     def test_deletefile(self):
         """Test der deleteFile() Methode des file view
 
@@ -300,7 +337,7 @@ class FileTestClass(ViewTestCase):
         - user1 löscht eine vorhandene Binärdatei -> Erfolg
         - user1 löscht eine .tex Datei welche user2 gehört -> Fehler
         - user1 löscht eine Datei die nicht existiert -> Fehler
-        -
+        - user1 löscht die main.tex Datei aus dem user2_sharedproject -> Erfolg
         :return: None
         """
 
@@ -358,6 +395,15 @@ class FileTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        response = util.documentPoster(self, command='deletefile', idpara=sharedproject_maintex.id)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(PlainTextFile.objects.filter(id=sharedproject_maintex.id).exists())
+
+
+
+
     def test_renameFile(self):
         """Test der renameFile() Methode des file view
 
@@ -378,6 +424,7 @@ class FileTestClass(ViewTestCase):
           (dieser Test dient der Überprüfung, ob richtig erkannt wird, dass eine Datei mit Umlauten im Namen
            bereits mit dem selben Ordner existiert, bsp. Übungsblatt 01.tex -> übungsblatt 01.tex sollte einen Fehler
            liefern)
+        - user1 benennt die main.tex Datei aus dem user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -538,6 +585,16 @@ class FileTestClass(ViewTestCase):
             # die Antwort des Servers sollte mit serveranswer übereinstimmen
             util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        response = util.documentPoster(self, command='renamefile', idpara=sharedproject_maintex.id,
+                                       name=self._newtex_name1)
+        usertexobj = PlainTextFile.objects.get(id=sharedproject_maintex.id)
+        self.assertEqual(usertexobj.name, self._newtex_name1)
+        util.validateJsonSuccessResponse(self, response.content, {'id': sharedproject_maintex.id,
+                                                                  'name': self._newtex_name1})
+
+
     def test_moveFile(self):
         """Test der moveFile() Methode des file view
 
@@ -550,6 +607,7 @@ class FileTestClass(ViewTestCase):
         - user1 verschiebt eine .tex Datei in einen Ordner der user2 gehört -> Fehler
         - user1 verschiebt eine .tex Datei die nicht existiert -> Fehler
         - user1 verschiebt eine .tex Datei mit einem Namen der bereits im Zielordner existiert -> Fehler
+        - user1 verschiebt die main.tex Datei (aus user2_sharedproject) in den Unterordner folder1 -> Erfolg
 
         :return: None
         """
@@ -648,6 +706,23 @@ class FileTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        response = util.documentPoster(self, command='movefile', idpara=sharedproject_maintex.id,
+                                       idpara2=self._user2_sharedproject_folder1.id)
+
+        serveranswer = {'id': sharedproject_maintex.id,
+                        'name': sharedproject_maintex.name,
+                        'folderid': self._user2_sharedproject_folder1.id,
+                        'foldername': self._user2_sharedproject_folder1.name,
+                        'rootid': self._user2_sharedproject_folder1.getRoot().id}
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+        usertexobj = PlainTextFile.objects.get(id=sharedproject_maintex.id)
+        self.assertEqual(usertexobj.folder, self._user2_sharedproject_folder1)
+
+
+
+
     def test_uploadfiles(self):
         """Test der uploadFiles() Methode des file view
 
@@ -657,6 +732,7 @@ class FileTestClass(ViewTestCase):
         - user1 lädt 3 Dateien gleichzeitig hoch -> Erfolg (test_bin.bin sollte jedoch nicht akzeptiert werden)
         - user1 lädt 3 Dateien in einen Ordner von user2 hoch -> Fehler
         - user1 schickt Anfrage ohne Dateien -> Fehler
+        - user1 lädt eine Datei in Rootordner von user2_sharedproject hoch -> Erfolg
 
         :return: None
         """
@@ -745,10 +821,26 @@ class FileTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+
+
+        serverrequest = {
+            'command': 'uploadfiles',
+            'id': self._user2_sharedproject.rootFolder.id,
+            'files': [file2]
+        }
+        response = self.client.post('/documents/', serverrequest)
+
+        file2obj = File.objects.get(name=file2_name, folder=self._user2_sharedproject.rootFolder)
+        serveranswer = {'failure': [], 'success': [{'id': file2obj.id, 'name': file2_name}]}
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+
         # schließe alle geöffneten Testdateien
         file1.close()
         file2.close()
         file3.close()
+
+
 
     def test_downloadFile(self):
         """Test der downloadFile() Methode des file view
@@ -760,6 +852,7 @@ class FileTestClass(ViewTestCase):
         - user1 lädt eine .tex Datei herunter -> Erfolg
         - user1 lädt eine .tex Datei herunter welche user2 gehört -> Fehler
         - user1 lädt eine Datei herunter die nicht existiert -> Fehler
+        - user1 lädt die main.tex Datei aus user2_sharedproject herunter -> Erfolg
 
         :return: None
         """
@@ -826,6 +919,20 @@ class FileTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENOTEXIST'])
 
 
+
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        response = util.documentPoster(self, command='downloadfile', idpara=sharedproject_maintex.id)
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.tex'])
+        # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
+        file_content = sharedproject_maintex.getContent()
+        self.assertEqual(response['Content-Length'], str(util.getFileSize(file_content)))
+
+        # Content-Disposition sollte 'attachment; filename='main.tex'' sein
+        self.assertEqual(response['Content-Disposition'], ('attachment; filename=\"' + sharedproject_maintex.name) + '\"')
+
+
+
+
     def test_fileInfo(self):
         """Test der fileInfo() Methode des file view
 
@@ -836,6 +943,7 @@ class FileTestClass(ViewTestCase):
         - user1 fordert Informationen zu einer .tex Datei an -> Erfolg
         - user1 fordert Informationen zu einer Datei an die nicht existiert -> Fehler
         - user1 fordert Informationen zu einer Datei an welche user2 gehört -> Fehler
+        - user1 fordert Informationen zu der main.tex Datei aus user2_sharedproject an -> Erfolg
 
         :return: None
         """
@@ -924,3 +1032,28 @@ class FileTestClass(ViewTestCase):
         # sollte failure als status liefern
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        response = util.documentPoster(self, command='fileinfo', idpara=sharedproject_maintex.id)
+
+        fileobj = sharedproject_maintex
+        folderobj = sharedproject_maintex.folder
+        projectobj = folderobj.getProject()
+
+        serveranswer = {
+            'fileid': fileobj.id,
+            'filename': fileobj.name,
+            'folderid': folderobj.id,
+            'foldername': folderobj.name,
+            'projectid': projectobj.id,
+            'projectname': projectobj.name,
+            'createtime': util.datetimeToString(fileobj.createTime),
+            'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
+            'size': fileobj.size,
+            'mimetype': fileobj.mimeType,
+            'ownerid': projectobj.author.id,
+            'ownername': projectobj.author.username
+        }
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)

@@ -109,67 +109,67 @@ available_commands = {
     },
     'createtex': {
         'command': file.createTexFile,
-        'parameters': [{'para': globalparas['id'], 'type': Folder},
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['name'], 'filenamecheck': True}]
     },
     'updatefile': {
         'command': file.updateFile,
-        'parameters': [{'para': globalparas['id'], 'type': PlainTextFile},
+        'parameters': [{'para': globalparas['id'], 'type': PlainTextFile, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['content']}]
     },
     'deletefile': {
         'command': file.deleteFile,
-        'parameters': [{'para': globalparas['id'], 'type': File}]
+        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']}]
     },
     'renamefile': {
         'command': file.renameFile,
-        'parameters': [{'para': globalparas['id'], 'type': File},
+        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['name'], 'filenamecheck': True}]
     },
     'movefile': {
         'command': file.moveFile,
-        'parameters': [{'para': globalparas['id'], 'type': File},
-                       {'para': globalparas['folderid'], 'type': Folder}]
+        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']},
+                       {'para': globalparas['folderid'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
     },
     'uploadfiles': {
         'command': file.uploadFiles,
-        'parameters': [{'para': globalparas['id'], 'type': Folder}]
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
     },
     'downloadfile': {
         'command': file.downloadFile,
-        'parameters': [{'para': globalparas['id'], 'type': File}]
+        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']}]
     },
     'fileinfo': {
         'command': file.fileInfo,
-        'parameters': [{'para': globalparas['id'], 'type': File}]
+        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']}]
     },
     'compile': {
         'command': file.latexCompile,
-        'parameters': [{'para': globalparas['id'], 'type': TexFile},
+        'parameters': [{'para': globalparas['id'], 'type': TexFile, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['formatid']}]
     },
     'getlog': {
         'command': file.getLog,
-        'parameters': [{'para': globalparas['id'], 'type': TexFile}]
+        'parameters': [{'para': globalparas['id'], 'type': TexFile, 'requirerights': ['owner', 'collaborator']}]
     },
     'createdir': {
         'command': folder.createDir,
-        'parameters': [{'para': globalparas['id'], 'type': Folder},
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['name'], 'stringcheck': True}]
     },
     'rmdir': {
         'command': folder.rmDir,
-        'parameters': [{'para': globalparas['id'], 'type': Folder}]
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
     },
     'renamedir': {
         'command': folder.renameDir,
-        'parameters': [{'para': globalparas['id'], 'type': Folder},
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['name'], 'stringcheck': True}]
     },
     'movedir': {
         'command': folder.moveDir,
-        'parameters': [{'para': globalparas['id'], 'type': Folder},
-                       {'para': globalparas['folderid'], 'type': Folder}]
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']},
+                       {'para': globalparas['folderid'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
     },
     'listfiles': {
         'command': folder.listFiles,
@@ -309,13 +309,13 @@ def execute(request):
     elif request.method == 'GET' and request.GET.get('command'):
         command = request.GET.get('command')
         fileid = request.GET.get('id')
-        requireRights = request.GET.get('requirerights', ['owner'])
 
         if not fileid.isdigit():
             filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
             return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
 
         if command == 'getpdf' and fileid:
+            requireRights = ['owner', 'collaborator']
             rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, request.user, request, requireRights,
                                                                            objecttype=PDF)
             if not rights:
