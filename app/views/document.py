@@ -228,7 +228,7 @@ def debug(request):
 # und führt die entsprechende Methode aus
 @login_required
 @require_http_methods(['POST', 'GET'])
-@decorator_autodisable(ratelimit(rate='5/s', block=True))
+@decorator_autodisable(ratelimit(rate='10/s', block=True))
 def execute(request):
     if request.method == 'POST' and 'command' in request.POST:
 

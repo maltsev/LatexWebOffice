@@ -35,9 +35,8 @@ def latexcompile(texid, formatid=0):
 
     formatid:   0 - PDF
                 1 - HTML mit htlatex (Rückgabe als zip Datei)
-                2 - HTML mit pdf2htmlEX (Rückgabe als zip Datei)
-                3 - DVI
-                4 - PS
+                2 - DVI
+                3 - PS
 
     Zum Kompilieren wird das Perl-Script latexmk.pl verwendet (nutzt texlive), bzw. für HTML wird htlatex genutzt.
 
@@ -66,7 +65,7 @@ def latexcompile(texid, formatid=0):
     root_path = texobj.folder.getRoot().dumpFolder()
 
     # temp Ordner für die bei der Kompilierung erstellten Dateien
-    out_dir_path = util.getNewTempFolder()
+    out_dir_path = tempfile.mkdtemp(dir=texobj.folder.getTempPath())
 
     formatid = str(formatid)
 
@@ -102,41 +101,44 @@ def latexcompile(texid, formatid=0):
         'compilerargs': compilerargs,
         'cwd': texobj.folder.getTempPath()
     }
-
-    # wenn die tex Datei mit latexmk kompiliert werden soll
-    if formatid in latexmk_formatargs:
-        args['format'] = latexmk_formatargs[formatid]
-        rc, file_data = latexmk(args, console_output=False)
-    # HTML Format mit htlatex
-    elif formatid == '1':
-        args['outdirpath'] = out_dir_path + os.sep
-        rc, file_data = htlatex(args, console_output=False)
-    # Ungültige formatid
-    else:
-        errors = ERROR_MESSAGES['UNKNOWNFORMAT']
-
-    # wenn beim Kompilier-Prozess ein Fehler aufgetreten ist ...
-    if rc != 0:
-        # Fehlermeldungen
-        errors = []
-
-        # log-Datei
-        log_path = os.path.join(out_dir_path, texobj.name[:-3] + "log")
-        # ... und eine log-Datei erzeugt wurde
-        if os.path.exists(log_path):
-            # durchsucht die erzeugte log-Datei und gibt deren entsprechende Fehlermeldungen zurück
-            errors = get_Errors(log_path)
-
-        # ... und keine log-Datei erzeugt wurde
+    try:
+        # wenn die tex Datei mit latexmk kompiliert werden soll
+        if formatid in latexmk_formatargs:
+            args['format'] = latexmk_formatargs[formatid]
+            rc, file_data = latexmk(args, console_output=False)
+        # HTML Format mit htlatex
+        elif formatid == '1':
+            args['outdirpath'] = out_dir_path + os.sep
+            rc, file_data = htlatex(args, console_output=False)
+        # Ungültige formatid
         else:
-            # gibt eine allgemeine Fehlermeldung mit dem return code des Kompilierprozesses zurück
-            errors.append(ERROR_MESSAGES['COMPILATIONERROR'] + ': return code ' + str(rc))
+            errors = ERROR_MESSAGES['UNKNOWNFORMAT']
 
-    # entferne alle temporären Ordner
-    if os.path.isdir(out_dir_path):
-        shutil.rmtree(out_dir_path)
-    if os.path.isdir(root_path):
-        shutil.rmtree(root_path)
+        # wenn beim Kompilier-Prozess ein Fehler aufgetreten ist ...
+        if rc != 0:
+            # Fehlermeldungen
+            errors = []
+
+            # log-Datei
+            log_path = os.path.join(out_dir_path, texobj.name[:-3] + "log")
+
+            # ... und eine log-Datei erzeugt wurde
+            if os.path.exists(log_path):
+                # durchsucht die erzeugte log-Datei und gibt deren entsprechende Fehlermeldungen zurück
+                errors = get_Errors(log_path)
+
+            # ... und keine log-Datei erzeugt wurde
+            else:
+                # gibt eine allgemeine Fehlermeldung mit dem return code des Kompilierprozesses zurück
+                errors.append(ERROR_MESSAGES['COMPILATIONERROR'] + ': return code ' + str(rc))
+    except Exception:
+        errors.append(ERROR_MESSAGES['COMPILATIONERROR'])
+    finally:
+        # entferne alle temporären Ordner
+        if os.path.isdir(out_dir_path):
+            shutil.rmtree(out_dir_path)
+        if os.path.isdir(root_path):
+            shutil.rmtree(root_path)
 
     # Rückgabe
     # 1. Liste mit während des Kompilieren aufgetretenen Fehlermeldungen oder None, falls keine Fehler aufgetreten
@@ -170,8 +172,8 @@ def latexmk(args, console_output):
     # speichere die log Datei für pdf, ps und dvi export
     if args['format'][1:] == ('pdf' or 'ps' or 'dvi'):
         log_path = os.path.join(args['outdirpath'], args['texobj'].name[:-3] + "log")
-        if os.path.join(log_path):
-            logfile = open(log_path, 'r')
+        if os.path.isfile(log_path):
+            logfile = open(log_path, 'r', encoding="cp437")
             logfile.seek(0)
             old_log = PlainTextFile.objects.filter(name=args['texobj'].name[:-3] + '<log>',
                                                    folder=args['texobj'].folder)
@@ -309,7 +311,7 @@ def get_Errors(log_path):
 
     errors = []
 
-    log = open(log_path, "r")
+    log = open(log_path, "r", encoding="cp437")
 
     # durchläuft sämtliche Zeilen der log-Datei
     for l in log:

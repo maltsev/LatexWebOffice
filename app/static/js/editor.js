@@ -277,7 +277,7 @@ function compileTex() {
             var pdf_url = null;
 
             if (isNaN(pdfid)) {
-                pdf_url = "/documents/static/default.pdf";
+                pdf_url = "/static/default.pdf";
                 setErrorMsg("Fehler beim Kompilierem");
             }
             else {
