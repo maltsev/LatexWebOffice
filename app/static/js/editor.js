@@ -114,11 +114,11 @@ $(document).ready(function() {
 		$('#export_html').click(function() {
 			exportFile(id, 1);
 		});
-		// Button für das HTML Exportieren belegen
+		// Button für das DVI Exportieren belegen
 		$('#export_dvi').click(function() {
 			exportFile(id, 2);
 		});
-	    // Button für das HTML Exportieren belegen
+	    // Button für das PS Exportieren belegen
 		$('#export_ps').click(function() {
 			exportFile(id, 3);
 		});
@@ -264,6 +264,10 @@ function compile() {
  * Kompiliert eine Datei und zeigt die PDF an.
  */
 function compileTex() {
+    // Buttons deaktivieren
+    disableCompileExportBtn();
+    // timer starten, so dass Buttons nach einiger Zeit auf jeden Fall wieder aktiviert werden
+    timeout = setTimeout('enableCompileExportBtn()', 15000);
     documentsJsonRequest({
             'command': 'compile',
             'id': id,
@@ -291,12 +295,32 @@ function compileTex() {
                     setErrorMsg("Fehler beim Kompilieren");
                     setCompileLog();
                 }
+                // timer abbrechen
+                clearTimeout(timeout);
+                // aktiviere die Buttons wieder
+                enableCompileExportBtn();
             }
 
             // Anzeige der PDF Datei
             renderPDF(pdf_url, document.getElementById('pdf-viewer'));
         }
     );
+}
+
+/**
+ * Deaktiviert die Kompilier und Export Buttons
+ */
+function disableCompileExportBtn() {
+    document.getElementById("compile").disabled = true;
+    document.getElementById("export").disabled = true;
+}
+
+/**
+ * Aktiviert die Kompilier und Export Buttons
+ */
+function enableCompileExportBtn() {
+    document.getElementById("compile").disabled = false;
+    document.getElementById("export").disabled = false;
 }
 
 /**
@@ -322,6 +346,10 @@ function setCompileLog() {
  * @param id ID der Datei
  */
 function exportFile(id, formatid) {
+    // Buttons deaktivieren
+    disableCompileExportBtn();
+    // timer starten, so dass Buttons nach einiger Zeit auf jeden Fall wieder aktiviert werden
+    timeout = setTimeout('enableCompileExportBtn()', (formatid==1?60000:15000));
     documentsJsonRequest({
 			'command': 'compile',
 			'id': id,
@@ -335,7 +363,11 @@ function exportFile(id, formatid) {
             else {
                 setErrorMsg('Fehler beim Kompilieren');
                 setCompileLog();
-            }	
+            }
+            // timer abbrechen
+            clearTimeout(timeout);
+            // aktiviere die Buttons wieder
+            enableCompileExportBtn();
 	});
 }
 
