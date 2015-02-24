@@ -128,8 +128,8 @@ available_commands = {
     },
     'movefile': {
         'command': file.moveFile,
-        'parameters': [{'para': globalparas['id'], 'type': File},
-                       {'para': globalparas['folderid'], 'type': Folder}]
+        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']},
+                       {'para': globalparas['folderid'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
     },
     'uploadfiles': {
         'command': file.uploadFiles,

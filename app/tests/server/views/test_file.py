@@ -35,6 +35,7 @@ from app.tests.server.views.viewtestcase import ViewTestCase
 
 
 class FileTestClass(ViewTestCase):
+
     def setUp(self):
         """Setup Methode für die einzelnen Tests
 
@@ -606,6 +607,7 @@ class FileTestClass(ViewTestCase):
         - user1 verschiebt eine .tex Datei in einen Ordner der user2 gehört -> Fehler
         - user1 verschiebt eine .tex Datei die nicht existiert -> Fehler
         - user1 verschiebt eine .tex Datei mit einem Namen der bereits im Zielordner existiert -> Fehler
+        - user1 verschiebt die main.tex Datei (aus user2_sharedproject) in den Unterordner folder1 -> Erfolg
 
         :return: None
         """
@@ -703,6 +705,23 @@ class FileTestClass(ViewTestCase):
         # sollte failure als status liefern
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        response = util.documentPoster(self, command='movefile', idpara=sharedproject_maintex.id,
+                                       idpara2=self._user2_sharedproject_folder1.id)
+
+        serveranswer = {'id': sharedproject_maintex.id,
+                        'name': sharedproject_maintex.name,
+                        'folderid': self._user2_sharedproject_folder1.id,
+                        'foldername': self._user2_sharedproject_folder1.name,
+                        'rootid': self._user2_sharedproject_folder1.getRoot().id}
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+        usertexobj = PlainTextFile.objects.get(id=sharedproject_maintex.id)
+        self.assertEqual(usertexobj.folder, self._user2_sharedproject_folder1)
+
+
+
 
     def test_uploadfiles(self):
         """Test der uploadFiles() Methode des file view
