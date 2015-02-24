@@ -159,7 +159,7 @@ available_commands = {
     },
     'rmdir': {
         'command': folder.rmDir,
-        'parameters': [{'para': globalparas['id'], 'type': Folder}]
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
     },
     'renamedir': {
         'command': folder.renameDir,

@@ -210,6 +210,7 @@ class FolderTestClass(ViewTestCase):
         - user1 löscht Ordner mit einer folderID welche nicht existiert -> Fehler
         - user1 löscht rootFolder eines Projektes -> Fehler
         - user1 löscht Ordner eines Projektes welches user2 gehört -> Fehler
+        - user1 löscht einen Ordner aus user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -284,6 +285,13 @@ class FolderTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+        response = util.documentPoster(self, command='rmdir', idpara=self._user2_sharedproject_folder1.id)
+        self.assertFalse(Folder.objects.filter(id=self._user2_sharedproject_folder1.id).exists())
+        util.validateJsonSuccessResponse(self, response.content, {})
+
+
 
     def test_renameDir(self):
         """Test der renameDir() Methode des folder view
