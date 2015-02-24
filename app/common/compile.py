@@ -54,6 +54,13 @@ def latexcompile(texid, formatid=0):
     # tex-File der übergebenen ID
     texobj = TexFile.objects.get(id=texid)
 
+    if formatid=='0' or formatid==0:
+        pdfobj = PDF.objects.filter(name=texobj.name[:-3] + 'pdf', folder=texobj.folder)
+
+        if pdfobj.exists():
+            if pdfobj[0].createTime >= texobj.lastModifiedTime:
+                return None, {'id': pdfobj[0].id, 'name': pdfobj[0].name}
+
     # Pfad des root-Verzeichnisses
     # es werden alle Dateien und Ordner des Projektes in einen temporären Ordner kopiert
     root_path = texobj.folder.getRoot().dumpFolder()
