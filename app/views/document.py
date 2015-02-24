@@ -139,7 +139,7 @@ available_commands = {
     },
     'downloadfile': {
         'command': file.downloadFile,
-        'parameters': [{'para': globalparas['id']}]
+        'parameters': [{'para': globalparas['id'], 'type': File}]
     },
     'fileinfo': {
         'command': file.fileInfo,
@@ -287,17 +287,17 @@ def execute(request):
                     if not rights:
                         return failurereturn
                 elif objType == File:
-                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request,
+                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request, requireRights,
                                                                                    objecttype=File)
                     if not rights:
                         return failurereturn
                 elif objType == TexFile:
-                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request,
+                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request, requireRights,
                                                                                    objecttype=TexFile)
                     if not rights:
                         return failurereturn
                 elif objType == PlainTextFile:
-                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request,
+                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request, requireRights,
                                                                                    objecttype=PlainTextFile)
                     if not rights:
                         return failurereturn
@@ -312,13 +312,14 @@ def execute(request):
     elif request.method == 'GET' and request.GET.get('command'):
         command = request.GET.get('command')
         fileid = request.GET.get('id')
+        requireRights = request.GET.get('requirerights', ['owner'])
 
         if not fileid.isdigit():
             filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
             return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
 
         if command == 'getpdf' and fileid:
-            rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, request.user, request,
+            rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, request.user, request, requireRights,
                                                                            objecttype=PDF)
             if not rights:
                 filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
