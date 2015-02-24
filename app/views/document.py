@@ -163,7 +163,7 @@ available_commands = {
     },
     'renamedir': {
         'command': folder.renameDir,
-        'parameters': [{'para': globalparas['id'], 'type': Folder},
+        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['name'], 'stringcheck': True}]
     },
     'movedir': {

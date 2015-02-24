@@ -305,6 +305,7 @@ class FolderTestClass(ViewTestCase):
         - user1 benennt einen Ordner um mit einem Namen der nur aus Leerzeichen besteht -> Fehler
         - user1 benennt einen Ordner um mit einem Namen der ein leerer String ist -> Fehler
         - user1 benennt einen Ordner um mit einem Namen der ungültige Zeichen enthält -> Fehler
+        - user1 benennt einen Ordner aus user2_sharedproject um -> Erfolg
 
         :return: None
         """
@@ -407,6 +408,20 @@ class FolderTestClass(ViewTestCase):
         # status sollte failure sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+
+
+        response = util.documentPoster(self, command='renamedir', idpara=self._user2_sharedproject_folder1.id,
+                                       name=self._newname1)
+        self.assertEqual(Folder.objects.get(pk=self._user2_sharedproject_folder1.id).name, self._newname1)
+
+        serveranswer = {
+            'id': self._user2_sharedproject_folder1.id,
+            'name': self._newname1
+        }
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+
 
     def test_moveDir(self):
         """Test der moveDir() Methode des folder view
