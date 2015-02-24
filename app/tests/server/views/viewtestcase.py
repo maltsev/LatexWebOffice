@@ -78,6 +78,10 @@ class ViewTestCase(TestCase):
 
     def setUpCollaborations(self):
         self._user2_sharedproject = Project.objects.create(name='user2_sharedproject', author=self._user2)
+        maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        maintex.source_code = 'Hallo!'
+        maintex.save()
+
         Collaboration.objects.create(user=self._user1, project=self._user2_sharedproject, isConfirmed=True)
 
 

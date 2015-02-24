@@ -833,6 +833,7 @@ class FileTestClass(ViewTestCase):
         - user1 lädt eine .tex Datei herunter -> Erfolg
         - user1 lädt eine .tex Datei herunter welche user2 gehört -> Fehler
         - user1 lädt eine Datei herunter die nicht existiert -> Fehler
+        - user1 lädt die main.tex Datei aus user2_sharedproject herunter -> Erfolg
 
         :return: None
         """
@@ -897,6 +898,20 @@ class FileTestClass(ViewTestCase):
         # die auf dem Server in der Datenbank nicht existiert
         response = util.documentPoster(self, command='downloadfile', idpara=self._invalidid)
         util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENOTEXIST'])
+
+
+
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        response = util.documentPoster(self, command='downloadfile', idpara=sharedproject_maintex.id)
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.tex'])
+        # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
+        file_content = sharedproject_maintex.getContent()
+        self.assertEqual(response['Content-Length'], str(util.getFileSize(file_content)))
+
+        # Content-Disposition sollte 'attachment; filename='main.tex'' sein
+        self.assertEqual(response['Content-Disposition'], ('attachment; filename=\"' + sharedproject_maintex.name) + '\"')
+
+
 
 
     def test_fileInfo(self):
