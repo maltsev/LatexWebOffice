@@ -335,12 +335,13 @@ def inviteUser(request, user, projectid, inviteusermail):
     :return: HttpResponse (JSON)
     """
     
+    inviteusermail_lower = inviteusermail.lower()
     # wenn sich die übergebene E-Mail-Adresse des einzuladenen Nutzers von der des aufrufenden Nutzers unterscheidet
-    if user.username!=inviteusermail :
+    if user.username.lower()!=inviteusermail_lower :
         # wenn die übergebene E-Mail-Adresse registriert ist
-        if User.objects.filter(username=inviteusermail).exists() :
+        if User.objects.filter(username__iexact=inviteusermail_lower).exists() :
             # einzuladener Nutzer
-            inviteuser = User.objects.get(username=inviteusermail)
+            inviteuser = User.objects.get(username__iexact=inviteusermail_lower)
             # wenn noch keine entsprechende Kollaboration vorliegt
             if not Collaboration.objects.filter(user=inviteuser.id,project=projectid).exists() :
                 # versucht eine entsprechende Kollaboration anzulegen
@@ -351,12 +352,12 @@ def inviteUser(request, user, projectid, inviteusermail):
                     return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
             # wenn eine entsprechende Kollaboration bereits vorliegt
             else :
-                return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(inviteusermail), request)
+                return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(inviteuser.username), request)
         else :
             return util.jsonErrorResponse(ERROR_MESSAGES['USERNOTFOUND'].format(inviteusermail), request)
     # wenn es sich bei der übergebenen E-Mail-Adresse des einzuladenen Nutzers um die des aufrufenden Nutzers handelt
     else :
-        return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(inviteusermail), request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(user.username), request)
 
 
 def hasInvitedUsers(request, user, projectid):
