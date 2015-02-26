@@ -410,7 +410,7 @@ class FolderTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
 
-
+        # user1 benennt einen Ordner aus user2_sharedproject um
         response = util.documentPoster(self, command='renamedir', idpara=self._user2_sharedproject_folder1.id,
                                        name=self._newname1)
         self.assertEqual(Folder.objects.get(pk=self._user2_sharedproject_folder1.id).name, self._newname1)
@@ -420,6 +420,26 @@ class FolderTestClass(ViewTestCase):
             'name': self._newname1
         }
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+
+
+        self._user2_sharedproject_folder1_texfile.lock(self._user2)
+        response = util.documentPoster(self, command='renamedir', idpara=self._user2_sharedproject_folder1.id,
+                                       name="test name")
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['DIRLOCKED'])
+        self.assertEqual(Folder.objects.get(pk=self._user2_sharedproject_folder1.id).name, self._newname1)
+
+
+        self._user2_sharedproject_folder1_texfile.unlock()
+        self._user2_sharedproject_folder1_texfile.lock(self._user1)
+        response = util.documentPoster(self, command='renamedir', idpara=self._user2_sharedproject_folder1.id,
+                                       name="test name")
+        serveranswer = {
+            'id': self._user2_sharedproject_folder1.id,
+            'name': "test name"
+        }
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        self.assertEqual(Folder.objects.get(pk=self._user2_sharedproject_folder1.id).name, "test name")
 
 
 

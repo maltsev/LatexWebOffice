@@ -59,10 +59,10 @@ $(document).ready(function() {
 	
 	// Datei-ID abfragen
 	id = parseInt(location.hash.substr(1));
-	if (isNaN(id))
+	if (isNaN(id)) {
 		// ungültige ID
 		backToProject();
-	else {
+	} else {
 		// ACE-Editor laden
 		editor = ace.edit('editor');
 		editor.setTheme('ace/theme/clouds');
@@ -124,7 +124,11 @@ $(document).ready(function() {
 
 // Dialogfenster Editor zurück
 function confirmExit() {
-	saveFile(id);
+	if (! $("#maincontainer").hasClass("disabled")) {
+	    saveFile(id);
+	    unlock();
+	}
+
 	$('#dialog_editor_verlassen').dialog();
 }
 
@@ -184,7 +188,6 @@ function loadFile(id) {
 				editor.setValue(data, 0);
 				editor.getSelection().selectTo(0, 0);
 				changesSaved = true;
-                compile();
 			} else
 				backToProject();
 	});
@@ -203,9 +206,40 @@ function saveFile(id) {
 			if (result) {
 				changesSaved = true;
                 setMsg('Datei gespeichert');
+            } else {
+                showAlertDialog("Datei speichern", data.response);
             }
 	});
 }
+
+/*
+ * Sperrt die Datei
+ */
+function lock() {
+	documentsJsonRequest({
+            'command': 'lockfile',
+            'id': id
+        }, function(result, data) {
+            if (! result) {
+                showAlertDialog("Datei sperren", data.response);
+            }
+	});
+}
+
+/*
+ * Entsperrt die Datei
+ */
+function unlock() {
+	documentsJsonRequest({
+            'command': 'unlockfile',
+            'id': id
+        }, function(result, data) {
+            if (! result) {
+                showAlertDialog("Datei entsperren", data.response);
+            }
+	});
+}
+
 
 /**
  * Kompiliert eine Datei und zeigt die PDF an.
@@ -357,8 +391,18 @@ $(function () {
 				'command': 'fileinfo',
 				'id': rootFolderId,
 			}, function(result, data) {
-				if (result)
-				{
+				if (result) {
+				    if (data.response.isallowedit) {
+				        lock();
+				        compile();
+				    } else {
+				        disableEditor();
+				        if (data.response.lasteditor) {
+				        	var text = data.response.lasteditor + " bearbeitet gerade diese Datei";
+				            $("#pdfviewer_msg").html('<p class="text-primary">' + text + '</p>');
+				        }
+				    }
+
 					rootFolderId = data.response.folderid;
 					reloadProject();
 				}
@@ -522,6 +566,17 @@ function insertImageWithID(fileID, filePath){
 	});
 
 }
+
+/*
+ * Deaktiviert den Editor
+ */
+function disableEditor() {
+    $("#maincontainer").addClass("disabled");
+    $("#editorsymbols button:not(#backtoprojekt)").prop("disabled", true);
+
+    editor.setReadOnly(true);
+}
+
 
 /**
 * Aufruf durch dialog_grafik_einfuegen

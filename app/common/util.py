@@ -102,7 +102,7 @@ def projectToJson(project):
                 rootid=project.rootFolder.id)
 
 
-def checkIfDirExistsAndUserHasRights(folderid, user, request, requirerights):
+def checkIfDirExistsAndUserHasRights(folderid, user, request, requirerights, lockcheck=False):
     """Überprüft, ob der Ordner mit der folderid existiert, und der User die Rechte hat diesen zu bearbeiten.
 
     :param folderid: Id des Ordners, für welchen die Überprüfung durchgeführt werden soll
@@ -118,13 +118,19 @@ def checkIfDirExistsAndUserHasRights(folderid, user, request, requirerights):
     except ObjectDoesNotExist:
         return False, jsonErrorResponse(ERROR_MESSAGES['DIRECTORYNOTEXIST'], request)
 
-    if isAllowedAccessToProject(project, user, requirerights):
-        return True, None
-    else:
+    if not isAllowedAccessToProject(project, user, requirerights):
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
 
+    if lockcheck:
+        for file in folder.getFilesAndFoldersRecursively():
+            if isinstance(file, File) and file.isLocked() and file.lockedBy() != user:
+                return False, jsonErrorResponse(ERROR_MESSAGES['DIRLOCKED'], request)
 
-def checkIfFileExistsAndUserHasRights(fileid, user, request, requirerights, objecttype=File):
+    return True, None
+
+
+
+def checkIfFileExistsAndUserHasRights(fileid, user, request, requirerights, lockcheck=False, objecttype=File):
     """Überprüft, ob die Datei mit der fileid existiert, und der User die Rechte hat diese zu bearbeiten.
 
     :param fileid: Id der Datei, für welche die Überprüfung durchgeführt werden soll
@@ -153,11 +159,13 @@ def checkIfFileExistsAndUserHasRights(fileid, user, request, requirerights, obje
 
         return False, jsonErrorResponse(error, request)
 
-
-    if isAllowedAccessToProject(project, user, requirerights):
-        return True, None
-    else:
+    if not isAllowedAccessToProject(project, user, requirerights):
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
+    elif lockcheck and file.isLocked() and file.lockedBy() != user:
+        return False, jsonErrorResponse(ERROR_MESSAGES['FILELOCKED'], request)
+    else:
+        return True, None
+
 
 
 def checkIfProjectExistsAndUserHasRights(projectid, user, request, requirerights):
