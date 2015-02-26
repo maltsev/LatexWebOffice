@@ -44,6 +44,7 @@ globalparas = {
     'folderid': {'name': 'folderid', 'type': int},
     'name': {'name': 'name', 'type': str},
     'formatid': {'name': 'formatid', 'type': int},
+    'compilerid': {'name': 'compilerid', 'type': int},
 }
 
 # dictionary mit verfügbaren Befehlen und den entsprechenden Aktionen
@@ -149,7 +150,7 @@ available_commands = {
     'compile': {
         'command': file.latexCompile,
         'parameters': [{'para': globalparas['id'], 'type': TexFile, 'requirerights': ['owner', 'collaborator']},
-                       {'para': globalparas['formatid']}]
+                       {'para': globalparas['formatid']}, {'para': globalparas['compilerid']}]
     },
     'getlog': {
         'command': file.getLog,
