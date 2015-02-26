@@ -211,6 +211,8 @@ class FolderTestClass(ViewTestCase):
         - user1 löscht rootFolder eines Projektes -> Fehler
         - user1 löscht Ordner eines Projektes welches user2 gehört -> Fehler
         - user1 löscht einen Ordner aus user2_sharedproject -> Erfolg
+        - user1 löscht einen gesperrten (von user2) Ordner -> Fehler
+        - user1 löscht einen gesperrten (von sich selbst) Ordner -> Erfolg
 
         :return: None
         """
@@ -287,9 +289,25 @@ class FolderTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
 
-        response = util.documentPoster(self, command='rmdir', idpara=self._user2_sharedproject_folder1.id)
-        self.assertFalse(Folder.objects.filter(id=self._user2_sharedproject_folder1.id).exists())
+        # user1 löscht einen Ordner aus user2_sharedproject
+        response = util.documentPoster(self, command='rmdir', idpara=self._user2_sharedproject_folder2.id)
         util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(Folder.objects.filter(id=self._user2_sharedproject_folder2.id).exists())
+
+
+        # user1 löscht einen gesperrten (von user2) Ordner
+        self._user2_sharedproject_folder1_texfile.lock(self._user2)
+        response = util.documentPoster(self, command='rmdir', idpara=self._user2_sharedproject_folder1.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['DIRLOCKED'])
+        self.assertTrue(Folder.objects.filter(id=self._user2_sharedproject_folder1.id).exists())
+
+
+        # user1 löscht einen gesperrten (von sich selbst) Ordner
+        self._user2_sharedproject_folder1_texfile.unlock()
+        self._user2_sharedproject_folder1_texfile.lock(self._user1)
+        response = util.documentPoster(self, command='rmdir', idpara=self._user2_sharedproject_folder1.id)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(Folder.objects.filter(id=self._user2_sharedproject_folder1.id).exists())
 
 
 
@@ -420,26 +438,6 @@ class FolderTestClass(ViewTestCase):
             'name': self._newname1
         }
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
-
-
-
-        self._user2_sharedproject_folder1_texfile.lock(self._user2)
-        response = util.documentPoster(self, command='renamedir', idpara=self._user2_sharedproject_folder1.id,
-                                       name="test name")
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['DIRLOCKED'])
-        self.assertEqual(Folder.objects.get(pk=self._user2_sharedproject_folder1.id).name, self._newname1)
-
-
-        self._user2_sharedproject_folder1_texfile.unlock()
-        self._user2_sharedproject_folder1_texfile.lock(self._user1)
-        response = util.documentPoster(self, command='renamedir', idpara=self._user2_sharedproject_folder1.id,
-                                       name="test name")
-        serveranswer = {
-            'id': self._user2_sharedproject_folder1.id,
-            'name': "test name"
-        }
-        util.validateJsonSuccessResponse(self, response.content, serveranswer)
-        self.assertEqual(Folder.objects.get(pk=self._user2_sharedproject_folder1.id).name, "test name")
 
 
 
