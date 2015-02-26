@@ -5,7 +5,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : 17 Dec 2014 10:01:00 PM CET
+* Last Modified : Do 26 Feb 2015 17:39:54 CET
 
 * Author :  maltsev
 
@@ -16,14 +16,16 @@
 """
 import os
 from django.test import TestCase
-from django.contrib.auth.models import User
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.file import File
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 
 class ModelTestCase(TestCase):
     def setUpProject(self):
-        self.author = User.objects.create_user(username='admin@admin.com', password='123')
+        self.author = User.objects.create_user('admin@admin.com', password='123')
 
         self.project = Project.objects.create(name='LatexWebOffice', author=self.author)
         self.rootFolder = self.project.rootFolder

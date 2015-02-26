@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Do 26 Feb 2015 11:43:02 CET
+* Last Modified : Do 26 Feb 2015 17:34:46 CET
 
 * Author :  maltsev
 
@@ -19,7 +19,8 @@
 
 from django.shortcuts import render,redirect, render_to_response
 from django.contrib import messages,auth
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from django.contrib.auth.decorators import login_required
 from core.settings import LOGIN_URL
 from app.common.constants import ERROR_MESSAGES
@@ -29,6 +30,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.template import Template, context, RequestContext
 import re
 from django.core.mail import EmailMessage
+from django.core.urlresolvers import reverse
+import urllib
 
 # see
 # https://docs.djangoproject.com/en/dev/topics/auth/default/#django.contrib.auth.login
@@ -43,7 +46,6 @@ def login(request):
 
     email = ''
     if request.method == 'POST' and 'action' in request.POST and 'email' in request.POST:
-        print(request.POST)
         email = request.POST['email']
         if request.POST['action']=='login':
             password = request.POST['password']
@@ -60,15 +62,25 @@ def login(request):
             else:
                 messages.error(request, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
         elif request.POST['action']=='password-lost':
-            emailsend=EmailMessage('Latexweboffice Passwortreset','balbabla')
-            emailsend.to=[email]
-            emailsend.send()
+            if User.objects.filter(email__iexact=email).exists():
+                user=User.objects.get(email__iexact=email)
+                keygen = user.createrecoverkey()
+                subject="Latexweboffice Passwortreset"
+                url=request.build_absolute_uri(reverse('recoverpw'))+urllib.parse.urlencode({'email':email,'key':keygen})
+
+                body=url
+                emailsend=EmailMessage(subject,body)
+                emailsend.to=[email]
+                emailsend.send()
             messages.success(request,ERROR_MESSAGES['EMAILPWRECOVERSEND'].format(email))
             
 
 
     return render_to_response('login.html', {'email': email}, context_instance=RequestContext(request))
 
+
+def lostPwHandler(request):
+    return render_to_response('login.html', context_instance=RequestContext(request))
 
 ## Logout
 #  @param request The HttpRequest Object
@@ -124,7 +136,7 @@ def registration(request):
             foundErrors = True
         # if all validation checks pass, create new user
         if not foundErrors:
-            new_user = User.objects.create_user(username=email, email=email,
+            new_user = User.objects.create_user(email=email,
                                                 password=password1, first_name=first_name)
 
             # user login and redirection to start page

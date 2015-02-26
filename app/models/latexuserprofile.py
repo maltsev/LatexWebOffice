@@ -4,7 +4,7 @@
 
 * Creation Date : 26-02-2015
 
-* Last Modified : Do 26 Feb 2015 14:49:02 CET
+* Last Modified : Do 26 Feb 2015 17:42:12 CET
 
 * Author :  mattis
 
@@ -19,10 +19,13 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser,BaseUserManager
 from django.db import models
+import datetime
+import string
+import random
 
 
 class LatexUserManager(BaseUserManager):
-    def create_user(self, email, first_name, password=None):
+    def create_user(self, email, first_name="", password=None):
         """
         Creates and saves a User with the given email, first_name and password.
         """
@@ -32,6 +35,7 @@ class LatexUserManager(BaseUserManager):
         user = self.model(
             email=self.normalize_email(email),
             first_name=first_name,
+            username=email,
         )
 
         user.set_password(password)
@@ -57,11 +61,15 @@ class LatexWebUser(AbstractBaseUser):
         max_length=255,
         unique=True)
 
-    first_name= models.CharField(max_length=30, blank=True)
+    username= models.CharField(max_length=30, blank=True)
+
+    passwordlostdate = models.DateField(default=datetime.datetime(1970, 1, 1, 0, 0))
+    passwordlostkey = models.CharField(max_length=50,blank=True)
 
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name']
+
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -86,14 +94,19 @@ class LatexWebUser(AbstractBaseUser):
         # Simplest possible answer: Yes, always
         return True
 
-    @property
-    def username(self):
-        return self.email
 
     @property
     def is_staff(self):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+
+    def createrecoverkey(self):
+        passwordlostkey=''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(20))
+        passwordlostdate=datetime.datetime.now()
+        return passwordlostkey
+
+
+
 
 

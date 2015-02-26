@@ -4,7 +4,7 @@
 
 * Creation Date : 28-11-2014
 
-* Last Modified : Do 04 Dec 2014 12:26:41 CET
+* Last Modified : Do 26 Feb 2015 17:39:38 CET
 
 * Author : ingo
 
@@ -19,8 +19,9 @@
 import os
 import shutil
 
-from django.contrib.auth.models import User
 from django.test import TestCase
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from app.common import compile
 from app.models.file.pdf import PDF
@@ -43,7 +44,7 @@ class CompilerTestClass(TestCase):
         """
 
         # erstellt einen neuen Benutzer
-        self.user = User.objects.create_user(username='user@test.de', password='123456')
+        self.user = User.objects.create_user('user@test.de', password='123456')
 
         # loggt den erzeugten Benutzer ein
         self.client.login(username=self.user.username, password='123456')

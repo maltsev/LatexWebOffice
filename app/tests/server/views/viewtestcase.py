@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Thu 18 Dec 2014 11:53:41 PM CET
+* Last Modified : Do 26 Feb 2015 17:41:09 CET
 
 * Author :  maltsev
 
@@ -17,7 +17,8 @@ import os
 import shutil
 
 from django.test import TestCase
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from core import settings
 from app.models.folder import Folder
@@ -44,7 +45,7 @@ class ViewTestCase(TestCase):
         """
 
         # erstelle user1
-        self._user1 = User.objects.create_user(username='user1@test.de', password='123456')
+        self._user1 = User.objects.create_user('user1@test.de', password='123456')
         self._user1._unhashedpw = '123456'
 
         # erstelle user2
@@ -82,7 +83,7 @@ class ViewTestCase(TestCase):
         """
 
         # erstelle user1
-        self._user1 = User.objects.create_user(username='user1@test.de', password='123456')
+        self._user1 = User.objects.create_user('user1@test.de', password='123456')
         self._user1._unhashedpw = '123456'
 
         # logge user1 ein

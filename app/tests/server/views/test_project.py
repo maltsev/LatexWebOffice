@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Fr 20 Feb 2015 02:16:00 CET
+* Last Modified : Do 26 Feb 2015 17:45:13 CET
 
 * Author :  christian
 
@@ -20,7 +20,8 @@ import zipfile
 import shutil
 import os
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE, DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM
 from app.common import util
@@ -1186,7 +1187,7 @@ class ProjectTestClass(ViewTestCase):
         # sende Anfrage zum Einladen eines nicht registrierten Nutzers
         response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name="notregistered@latexweboffice.de")
         
-        not_registered_user = User.objects.create_user(username="notregistered@latexweboffice.de",
+        not_registered_user = User.objects.create_user(
                                                        email="notregistered@latexweboffice.de", password="123456",
                                                        first_name="None")
         # es sollte keine entsprechende Kollaboration mit Nutzer not_registered_user und Projekt user1_project1 in der Datenbank vorhanden sein

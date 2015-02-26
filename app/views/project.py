@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 20 Feb 2015 02:17:00 CET
+* Last Modified : Do 26 Feb 2015 16:46:23 CET
 
 * Author :  christian
 
@@ -22,7 +22,8 @@ import zipfile
 import shutil
 import logging
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from django.http import HttpResponse, Http404
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist

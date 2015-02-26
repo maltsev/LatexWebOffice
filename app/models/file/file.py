@@ -5,7 +5,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Do 26 Feb 2015 13:33:53 CET
+* Last Modified : Do 26 Feb 2015 16:58:30 CET
 
 * Author :  maltsev
 
@@ -18,9 +18,8 @@ import io
 import os
 
 from django.db import models
-from django.contrib.auth.models import User
-
 from django.conf import settings
+
 
 class FileManager(models.Manager):
     def clone(self, fileModel, **kwargs):
