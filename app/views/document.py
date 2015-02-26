@@ -22,9 +22,6 @@ from django.views.decorators.http import require_http_methods
 from django.shortcuts import render
 from django.views.static import serve
 
-from brake.decorators import ratelimit
-from app.common.decorators import decorator_autodisable
-
 from core import settings
 from app.common import util
 from app.common.constants import ERROR_MESSAGES
@@ -103,7 +100,8 @@ available_commands = {
     },
     'quitcollaboration': {
         'command': project.quitCollaboration,
-        'parameters': [{'para': globalparas['id'], 'type': Project, 'requirerights': ['owner', 'invitee', 'collaborator']}]
+        'parameters': [
+            {'para': globalparas['id'], 'type': Project, 'requirerights': ['owner', 'invitee', 'collaborator']}]
     },
     'cancelcollaboration': {
         'command': project.cancelCollaboration,
@@ -228,7 +226,6 @@ def debug(request):
 # und führt die entsprechende Methode aus
 @login_required
 @require_http_methods(['POST', 'GET'])
-@decorator_autodisable(ratelimit(rate='10/s', block=True))
 def execute(request):
     if request.method == 'POST' and 'command' in request.POST:
 
@@ -280,7 +277,8 @@ def execute(request):
                 requireRights = para.get('requirerights', ['owner'])
 
                 if objType == Project:
-                    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(objId, user, request, requireRights)
+                    rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(objId, user, request,
+                                                                                      requireRights)
                     if not rights:
                         return failurereturn
                 elif objType == Folder:
