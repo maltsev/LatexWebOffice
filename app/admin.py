@@ -56,12 +56,16 @@ class ProjectAdmin(ProjectTemplateAdmin):
 
 
 class FileAdmin(admin.ModelAdmin):
-    list_display = ('id', 'relativePath', 'createTime', 'lastModifiedTime')
+    list_display = ('id', 'relativePath', 'createTime', 'lastModifiedTime', 'lock')
     list_filter = ('folder',)
 
     def relativePath(self, obj):
         return str(obj)
     relativePath.short_description = 'Path'
+
+    def lock(self, obj):
+        return obj.isLocked()
+    lock.boolean = True
 
 
 @admin.register(models.texfile.TexFile)

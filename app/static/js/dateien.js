@@ -717,22 +717,6 @@ function selectNode(nodeID) {
 }
 
 /*
- * Setzt den Inhalt des Alert Dialogs.
- *
- * @param title Titel für diesen Dialog
- * @param message Informationstext für diesen Dialog
- */
-function showAlertDialog(title,message){
-	$('#modal_alertDialog').modal('show');
-	document.getElementById('modal_alertDialog_title').innerHTML = title;
-	document.getElementById('modal_alertDialog_message').innerHTML = message;
-	
-	$('.modal_alertDialogConfirm').on("click", function() {
-		showAlertDialog("","");
-	})
-}
-
-/*
  * Zeigt das Popover in relativer Position zur übergebenen Knoten-Komponente an.
  *
  * @param node Knoten-Komponente zu deren Position das Popover relativ angezeigt werden soll
