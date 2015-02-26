@@ -5,7 +5,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Su 15 Feb 2015 17:53:00 CET
+* Last Modified : Do 26 Feb 2015 13:39:01 CET
 
 * Author :  Kirill
 
@@ -18,8 +18,7 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from app.models import projecttemplate, folder, collaboration
-from django.contrib.auth.models import User
-
+from django.conf import settings
 
 class ProjectManager(models.Manager):
     def createFromProject(self, **kwargs):
@@ -52,9 +51,8 @@ class ProjectManager(models.Manager):
         return newProject
 
 
-
 class Project(projecttemplate.ProjectTemplate):
-    collaborators = models.ManyToManyField(User, through='Collaboration', through_fields=('project', 'user'))
+    collaborators = models.ManyToManyField(settings.AUTH_USER_MODEL, through='Collaboration', through_fields=('project', 'user'))
     objects = ProjectManager()
 
     def getAllCollaborators(self):

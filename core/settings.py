@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import sys
-
+from django.contrib.messages import constants as messages
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 
 
@@ -35,7 +35,15 @@ TEMPLATE_CONTEXT_PROCESSORS += ('app.contextprocessors.settingsprocessor.Error_m
                                 'app.contextprocessors.settingsprocessor.Available_commands',
                                 'app.contextprocessors.settingsprocessor.Global_paras',)
 
+
+
+AUTH_USER_MODEL = 'app.LatexWebUser'
+
+
 # Application definition
+
+
+
 
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -56,6 +64,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
+
 
 ROOT_URLCONF = 'core.urls'
 
@@ -113,6 +123,15 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 FILE_ROOT = os.path.join(MEDIA_ROOT, 'files')
 PROJECT_ROOT = os.path.join(MEDIA_ROOT, 'projects')
 TESTFILES_ROOT = os.path.join(BASE_DIR, 'app', 'tests', 'server', 'static')
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 1025
+
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger'
+}
+
 
 # Einstellungen für die Django Tests
 if 'test' in sys.argv:

@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Mi 14 Jan 2015 11:44:00 CET
+* Last Modified : Do 26 Feb 2015 11:43:02 CET
 
 * Author :  maltsev
 
@@ -28,7 +28,7 @@ from django.core.validators import validate_email
 from django.views.decorators.csrf import csrf_exempt
 from django.template import Template, context, RequestContext
 import re
-
+from django.core.mail import EmailMessage
 
 # see
 # https://docs.djangoproject.com/en/dev/topics/auth/default/#django.contrib.auth.login
@@ -42,21 +42,29 @@ def login(request):
         return redirect('/projekt/')
 
     email = ''
-    if request.method == 'POST':
+    if request.method == 'POST' and 'action' in request.POST and 'email' in request.POST:
+        print(request.POST)
         email = request.POST['email']
-        password = request.POST['password']
+        if request.POST['action']=='login':
+            password = request.POST['password']
 
-         # Email is case-insensitive, but login is case-sensitive
-        user = auth.authenticate(username=email.lower(), password=password)
-        if user is not None:
-            if user.is_active:
-                auth.login(request, user)
-                return redirect('/projekt/')
+             # Email is case-insensitive, but login is case-sensitive
+            user = auth.authenticate(username=email.lower(), password=password)
+            if user is not None:
+                if user.is_active:
+                    auth.login(request, user)
+                    return redirect('/projekt/')
+                else:
+                    messages.error(request, ERROR_MESSAGES['INACTIVEACCOUNT'].format(email))
+
             else:
-                messages.error(request, ERROR_MESSAGES['INACTIVEACCOUNT'].format(email))
-
-        else:
-            messages.error(request, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
+                messages.error(request, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
+        elif request.POST['action']=='password-lost':
+            emailsend=EmailMessage('Latexweboffice Passwortreset','balbabla')
+            emailsend.to=[email]
+            emailsend.send()
+            messages.success(request,ERROR_MESSAGES['EMAILPWRECOVERSEND'].format(email))
+            
 
 
     return render_to_response('login.html', {'email': email}, context_instance=RequestContext(request))

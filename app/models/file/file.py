@@ -5,7 +5,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Mo 23 Feb 2015 17:48:57 CET
+* Last Modified : Do 26 Feb 2015 13:33:53 CET
 
 * Author :  maltsev
 
@@ -20,6 +20,7 @@ import os
 from django.db import models
 from django.contrib.auth.models import User
 
+from django.conf import settings
 
 class FileManager(models.Manager):
     def clone(self, fileModel, **kwargs):
@@ -38,7 +39,7 @@ class File(models.Model):
     folder = models.ForeignKey("Folder")
     mimeType = models.CharField(max_length=255, default='application/octet-stream')
     size = models.PositiveIntegerField(default=0)
-    lasteditor = models.ForeignKey(User,blank=True,null=True)
+    lasteditor = models.ForeignKey(settings.AUTH_USER_MODEL,blank=True,null=True)
     objects = FileManager()
 
     class Meta:
