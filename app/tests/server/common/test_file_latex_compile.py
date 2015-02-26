@@ -76,7 +76,7 @@ class FileLatexCompileTestClass(ViewTestCase):
         texobj2 = TexFile.objects.create(name=self._newtex_name2, folder=projectobj.rootFolder, source_code='Test')
 
         # Sende Anfrage zum Kompilieren der .tex Datei
-        response = util.documentPoster(self, command='compile', idpara=texobj1.id, idpara3=0)
+        response = util.documentPoster(self, command='compile', idpara=texobj1.id, idpara3=0, idpara4=0)
 
         # der Name sollte dem der .tex Datei entsprechen, jedoch mit der Endung .pdf
         pdf_name = texobj1.name[:-3] + 'pdf'
@@ -99,7 +99,7 @@ class FileLatexCompileTestClass(ViewTestCase):
 
         # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Kompilieren einer fehlerhaften .tex Datei
-        response = util.documentPoster(self, command='compile', idpara=texobj2.id, idpara3=0)
+        response = util.documentPoster(self, command='compile', idpara=texobj2.id, idpara3=0, idpara4=0)
 
         # erwartete Antwort des Servers
         serveranswer = {'error': '["Syntax-Fehler: Es konnte kein g\\u00fcltiges \\\\end gefunden werden."]'}
@@ -111,7 +111,7 @@ class FileLatexCompileTestClass(ViewTestCase):
 
         # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Kompilieren einer Datei die nicht vorhanden ist
-        response = util.documentPoster(self, command='compile', idpara=self._invalidid, idpara3=0)
+        response = util.documentPoster(self, command='compile', idpara=self._invalidid, idpara3=0, idpara4=0)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['FILENOTEXIST']
@@ -123,7 +123,7 @@ class FileLatexCompileTestClass(ViewTestCase):
 
         # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Kompilieren einer Datei die user2 gehört (als user1)
-        response = util.documentPoster(self, command='compile', idpara=self._user2_tex1.id, idpara3=0)
+        response = util.documentPoster(self, command='compile', idpara=self._user2_tex1.id, idpara3=0, idpara4=0)
 
         # erwartete Antwort des Servers
         serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
@@ -139,7 +139,7 @@ class FileLatexCompileTestClass(ViewTestCase):
                    "\\begin{document} \\maketitle \\begin{abstract} \\end{abstract} \\section{} \\end{document}"
         texobj = TexFile.objects.create(name=self._newtex_name1, folder=self._user2_sharedproject.rootFolder, source_code=src_code)
 
-        response = util.documentPoster(self, command='compile', idpara=texobj.id, idpara3=0)
+        response = util.documentPoster(self, command='compile', idpara=texobj.id, idpara3=0, idpara4=0)
 
         pdf_name = texobj.name[:-3] + 'pdf'
         pdfobj = PDF.objects.filter(name=pdf_name, folder=texobj.folder)

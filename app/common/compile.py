@@ -11,11 +11,10 @@
 * Coauthors : christian
 
 * Sprintnumber : 2, 4
-
+This is LuaTeX, Version beta-0.79.1 (TeX Live 2014/Arch Linux) (rev 4971) (format=lualatex 2015.2.12) 25 FEB 2015 11:25
 * Backlog entry : TEK1
 
 """
-import ntpath
 import os
 import shutil
 import subprocess
@@ -30,7 +29,7 @@ from app.common import util
 from core.settings import BASE_DIR
 
 
-def latexcompile(texid, formatid=0):
+def latexcompile(texid, formatid=0, compilerid=0):
     """Kompiliert eine tex Datei mit der übergebenen texid in das entsprechende Ausgabeformat (formatid).
 
     formatid:   0 - PDF
@@ -53,7 +52,7 @@ def latexcompile(texid, formatid=0):
     # tex-File der übergebenen ID
     texobj = TexFile.objects.get(id=texid)
 
-    if formatid=='0' or formatid==0:
+    if formatid == '0' or formatid == 0:
         pdfobj = PDF.objects.filter(name=texobj.name[:-3] + 'pdf', folder=texobj.folder)
 
         if pdfobj.exists():
@@ -68,6 +67,7 @@ def latexcompile(texid, formatid=0):
     out_dir_path = tempfile.mkdtemp(dir=texobj.folder.getTempPath())
 
     formatid = str(formatid)
+    compilerid = str(compilerid)
 
     # returncode der Ausführung von latexmk/htlatex
     rc = 0
@@ -90,15 +90,19 @@ def latexcompile(texid, formatid=0):
         '3': '-ps'
     }
 
-    # verwendeter Latex Compiler
-    compilerargs = 'pdflatex --shell-escape %O %S'
+    # mögliche Latex Compiler
+    compilerargs = {
+        '0': 'pdflatex --shell-escape %O %S',
+        '1': 'lualatex --shell-escape %O %S',
+        '2': 'xelatex -- shell-escape %O %S'
+    }
 
     args = {
         'texobj': texobj,
         'texpath': texobj.getTempPath(),
         'format': '',
         'outdirpath': out_dir_path,
-        'compilerargs': compilerargs,
+        'compilerargs': compilerargs[compilerid],
         'cwd': texobj.folder.getTempPath()
     }
     try:
@@ -344,7 +348,7 @@ def get_Errors(log_path):
                 errors.append(error)
 
         # ----------------------------------------------------------------------------------------------------
-        #                                             SYNTAX ERROR
+        # SYNTAX ERROR
         # ----------------------------------------------------------------------------------------------------
         if 'job aborted' in line:
             if 'no legal \end found' in line:

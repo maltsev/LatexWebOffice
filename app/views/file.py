@@ -283,17 +283,17 @@ def fileInfo(request, user, fileid):
     return util.jsonResponse(dictionary, True, request)
 
 
-def latexCompile(request, user, fileid, targetformat=0):
+def latexCompile(request, user, fileid, formatid, compilerid):
     """Kompiliert eine LaTeX Datei.
 
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
     :param fileid: Id der tex Datei welche kompiliert werden soll
-    :param targetformat 0 - PDF, 1 - HTML
+    :param formatid 0 - PDF, 1 - HTML
     :return: HttpResponse (JSON)
     """
 
-    errors, success = latexcompile(fileid, targetformat)
+    errors, success = latexcompile(fileid, formatid=formatid, compilerid=compilerid)
     if errors:
         if success:
             ret = success

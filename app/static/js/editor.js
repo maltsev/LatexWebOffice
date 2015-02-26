@@ -7,11 +7,21 @@
 /// ID der im Editor geöffneten Datei
 var id;
 
+// ID des verwendeten Compilers
+// 0 - pdflatex
+// 1 - lualatex
+// 2 - xelatex
+var compilerid = 0;
+
 /// Editor
 var editor;
 
 /// Änderungen im Editor gespeichert?
 var changesSaved = true;
+
+var autosaveTimer;
+
+var autosaveInterval = 10000;
 	
 /// Grafikassistentdropdownmenue
 var dropdownWindow = false;
@@ -90,7 +100,7 @@ $(document).ready(function() {
 
 		// Speicheraufforderung bei ungespeicherten Änderungen
 		editor.on('change', function() {
-			changesSaved = false;
+		    changesSaved = false;
 		});
 		$(window).bind('beforeunload', function() {
 			if (!changesSaved)
@@ -203,7 +213,7 @@ function loadFile(id) {
 			'id': id
 		}, function(result, data) {
 			if (result) {
-				editor.setValue(data, 0);
+				editor.setSession(ace.createEditSession(data));
 				editor.getSelection().selectTo(0, 0);
 				changesSaved = true;
                 // Kompiliere die PDF Datei falls nötig
@@ -272,6 +282,7 @@ function compileTex() {
             'command': 'compile',
             'id': id,
             'formatid': 0,
+            'compilerid': compilerid
         }, function(result, data) {
             var pdfid = data.response.id;
             var pdf_url = null;
@@ -354,6 +365,7 @@ function exportFile(id, formatid) {
 			'command': 'compile',
 			'id': id,
             'formatid': formatid,
+            'compilerid': compilerid
 		}, function(result, data) {
 			if (result)
 				documentsRedirect({
