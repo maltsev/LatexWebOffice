@@ -4,7 +4,7 @@
 
 * Creation Date : 26-02-2015
 
-* Last Modified : Do 26 Feb 2015 17:42:12 CET
+* Last Modified : Sa 28 Feb 2015 00:13:51 CET
 
 * Author :  mattis
 
@@ -63,18 +63,19 @@ class LatexWebUser(AbstractBaseUser):
 
     username= models.CharField(max_length=30, blank=True)
 
-    passwordlostdate = models.DateField(default=datetime.datetime(1970, 1, 1, 0, 0))
+    passwordlostdate = models.DateTimeField(default=datetime.datetime(1970, 1, 1, 0, 0))
     passwordlostkey = models.CharField(max_length=50,blank=True)
 
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name']
+    
+    objects = LatexUserManager()
 
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
 
-    objects = LatexUserManager()
 
     def get_full_name(self):
         # The user is identified by their email address
@@ -102,9 +103,12 @@ class LatexWebUser(AbstractBaseUser):
         return self.is_admin
 
     def createrecoverkey(self):
-        passwordlostkey=''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(20))
-        passwordlostdate=datetime.datetime.now()
-        return passwordlostkey
+        self.passwordlostkey=''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(20))
+        self.passwordlostdate=datetime.datetime.now()
+        return self.passwordlostkey
+
+    def invalidateRecoverKey(self):
+        self.passwordlostdate=datetime.datetime(1970,1,1,0,0)
 
 
 

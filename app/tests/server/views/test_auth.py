@@ -4,7 +4,7 @@
 
 * Creation Date : 06-11-2014
 
-* Last Modified : Do 26 Feb 2015 17:45:55 CET
+* Last Modified : Do 26 Feb 2015 17:49:53 CET
 
 * Author : mattis
 
@@ -164,7 +164,7 @@ class AuthRegistrationTestClass(TestCase):
     def test_registrationFailAlreadyRegistered(self):
         # create user1 separately again, because user1 from first registrationSuccess
         # doesn't exist here in our database
-        new_user = User.objects.create_user(self._user1_email,
+        new_user = User.objects.create_user(
                                                email=self._user1_email, password=self._user1_password1,
                                                first_name=self._user1_first_name)
         response = self._client.post(

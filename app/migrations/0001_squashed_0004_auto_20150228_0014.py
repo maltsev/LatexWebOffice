@@ -2,11 +2,14 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import django.utils.timezone
+import datetime
 from django.conf import settings
+import django.utils.timezone
 
 
 class Migration(migrations.Migration):
+
+    replaces = [('app', '0001_initial'), ('app', '0002_auto_20150226_1521'), ('app', '0003_latexwebuser_username'), ('app', '0004_auto_20150228_0014')]
 
     dependencies = [
     ]
@@ -15,11 +18,11 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='LatexWebUser',
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
-                ('password', models.CharField(max_length=128, verbose_name='password')),
-                ('last_login', models.DateTimeField(default=django.utils.timezone.now, verbose_name='last login')),
-                ('first_name', models.CharField(max_length=30, blank=True)),
-                ('email', models.EmailField(max_length=255, unique=True, verbose_name='email address')),
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('password', models.CharField(verbose_name='password', max_length=128)),
+                ('last_login', models.DateTimeField(verbose_name='last login', default=django.utils.timezone.now)),
+                ('first_name', models.CharField(blank=True, max_length=30)),
+                ('email', models.EmailField(unique=True, verbose_name='email address', max_length=255)),
                 ('is_active', models.BooleanField(default=True)),
                 ('is_admin', models.BooleanField(default=False)),
             ],
@@ -31,7 +34,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Collaboration',
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
                 ('isConfirmed', models.BooleanField(default=False)),
             ],
             options={
@@ -41,7 +44,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='File',
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
                 ('createTime', models.DateTimeField(auto_now_add=True)),
                 ('lastModifiedTime', models.DateTimeField(auto_now=True)),
@@ -55,7 +58,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='BinaryFile',
             fields=[
-                ('file_ptr', models.OneToOneField(parent_link=True, primary_key=True, to='app.File', serialize=False, auto_created=True)),
+                ('file_ptr', models.OneToOneField(auto_created=True, primary_key=True, parent_link=True, serialize=False, to='app.File')),
                 ('filepath', models.CharField(max_length=255)),
             ],
             options={
@@ -65,11 +68,11 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Folder',
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
                 ('createTime', models.DateTimeField(auto_now_add=True)),
-                ('parent', models.ForeignKey(blank=True, related_name='children', to='app.Folder', null=True)),
-                ('root', models.ForeignKey(blank=True, related_name='rootFolder', to='app.Folder', null=True)),
+                ('parent', models.ForeignKey(to='app.Folder', related_name='children', blank=True, null=True)),
+                ('root', models.ForeignKey(to='app.Folder', related_name='rootFolder', blank=True, null=True)),
             ],
             options={
             },
@@ -78,7 +81,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Image',
             fields=[
-                ('binaryfile_ptr', models.OneToOneField(parent_link=True, primary_key=True, to='app.BinaryFile', serialize=False, auto_created=True)),
+                ('binaryfile_ptr', models.OneToOneField(auto_created=True, primary_key=True, parent_link=True, serialize=False, to='app.BinaryFile')),
             ],
             options={
             },
@@ -87,7 +90,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PDF',
             fields=[
-                ('binaryfile_ptr', models.OneToOneField(parent_link=True, primary_key=True, to='app.BinaryFile', serialize=False, auto_created=True)),
+                ('binaryfile_ptr', models.OneToOneField(auto_created=True, primary_key=True, parent_link=True, serialize=False, to='app.BinaryFile')),
             ],
             options={
             },
@@ -96,7 +99,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PlainTextFile',
             fields=[
-                ('file_ptr', models.OneToOneField(parent_link=True, primary_key=True, to='app.File', serialize=False, auto_created=True)),
+                ('file_ptr', models.OneToOneField(auto_created=True, primary_key=True, parent_link=True, serialize=False, to='app.File')),
                 ('source_code', models.TextField(blank=True)),
             ],
             options={
@@ -106,7 +109,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ProjectTemplate',
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
                 ('createTime', models.DateTimeField(auto_now_add=True)),
             ],
@@ -117,8 +120,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Project',
             fields=[
-                ('projecttemplate_ptr', models.OneToOneField(parent_link=True, primary_key=True, to='app.ProjectTemplate', serialize=False, auto_created=True)),
-                ('collaborators', models.ManyToManyField(to=settings.AUTH_USER_MODEL, through='app.Collaboration')),
+                ('projecttemplate_ptr', models.OneToOneField(auto_created=True, primary_key=True, parent_link=True, serialize=False, to='app.ProjectTemplate')),
+                ('collaborators', models.ManyToManyField(through='app.Collaboration', to=settings.AUTH_USER_MODEL)),
             ],
             options={
             },
@@ -127,7 +130,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TexFile',
             fields=[
-                ('plaintextfile_ptr', models.OneToOneField(parent_link=True, primary_key=True, to='app.PlainTextFile', serialize=False, auto_created=True)),
+                ('plaintextfile_ptr', models.OneToOneField(auto_created=True, primary_key=True, parent_link=True, serialize=False, to='app.PlainTextFile')),
             ],
             options={
             },
@@ -158,7 +161,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='file',
             name='lasteditor',
-            field=models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True),
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL, blank=True, null=True),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -175,6 +178,24 @@ class Migration(migrations.Migration):
             model_name='collaboration',
             name='user',
             field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='latexwebuser',
+            name='passwordlostdate',
+            field=models.DateTimeField(default=datetime.datetime(1970, 1, 1, 0, 0)),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='latexwebuser',
+            name='passwordlostkey',
+            field=models.CharField(blank=True, max_length=50),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='latexwebuser',
+            name='username',
+            field=models.CharField(blank=True, max_length=30),
             preserve_default=True,
         ),
     ]
