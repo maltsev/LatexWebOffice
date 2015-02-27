@@ -14,14 +14,7 @@ var templatizedID = null;			// ID des derzeitig in eine Vorlage umzuwandelnden P
 var projectTempID = null;
 var editMode = false;				// gibt an, ob sich eine der Knoten-Komponenten derzeitig im Editierungsmodus befindet
 var currentAuthor = user;
-/*
- * Position und Höhe der selektierten Knoten-Komponente sind zu speichern,
- * da diese durch den Editierungsmodus temporär ihre html-Repräsentation verliert
- * und das zugehörige Objekt dadurch nicht mehr angesprochen werden kann,
- * um das Popover gemäß seiner Position und Höhe entsprechend auszurichten.
- */
-var selectedHeight = 0;				// Höhe der selektierten Knoten-Komponente (zur Ausrichtung des Popovers)
-var selectedPos = null;				// Position der selektierten Knoten-Komponente (zur Ausrichtung des Popovers)
+
 var selectedNodeIDProjects = "";
 var selectedNodeIDInvitations = "";
 var prevSelectedNodeID 	= "";
@@ -56,7 +49,7 @@ $(document).ready(function() {
 	// Modal zum Bestätigen/Abbrechen des Löschvorgangs
 	$('#modal_deleteConfirmation').on('hidden.bs.modal', function(e) {
 		// fokussiert den JSTree, um nach Abbruch des Löschvorgangs Tasten-Events behandeln zu können
-		treeProjects.focus();
+		//treeProjects.focus();
 	});
 	// 'Ja'-Button des Modals zur Bestätigung des Löschvorgangs
 	$('.modal_deleteConfirmation_yes').on("click", function() {
@@ -149,6 +142,9 @@ $(document).ready(function() {
 			// setzt die Selection-ID zurück
 			selectedNodeIDProjects = "";
 			
+			// setzt den Autor zurück
+			currentAuthor = user;
+			
 		}
 		// Selektion (eine Knoten-Komponente wurde selektiert, deren ID nicht mit der Selection-ID übereinstimmt)
 		else {
@@ -157,9 +153,6 @@ $(document).ready(function() {
 			selectedNodeIDProjects = data.node.id;
 			currentAuthor = data.node.author;
 			prevSelectedNodeID = data.node.id;
-			
-			selectedPos 	= $('.node_item_'+selectedNodeIDProjects).position();
-			selectedHeight 	= $('.node_item_'+selectedNodeIDProjects).height();
 			
 		}
 		
@@ -214,7 +207,7 @@ $(document).ready(function() {
 	
 	// ----------------------------------------------------------------------------------------------------
 	
-	// Umbenennungs-Listener (für 'Erstellen' und 'Umbenennen')
+	// Umbenennungs-Listener (für 'Erstellen', 'Umbenennen' und 'Duplizieren')
 	treeProjects.bind('rename_node.jstree',function(e) {
 		
 		// blendet das Eingabe-Popover aus
@@ -602,9 +595,6 @@ function createProject(name) {
 				
 				// aktualisiert die Anzeige der Projekte
 				refreshProjects();
-				
-				// aktualisiert die Aktivierungen der Menü-Schaltflächen (temporäre vollständige Deaktivierung wird aufgehoben)
-				//updateMenuButtons();
 
 				if(name==data.response.name)
 					showAlertDialog("Projekt erstellen",
@@ -961,50 +951,36 @@ function refreshProjects() {
 function selectNode(nodeID) {
 	
 	treeInstProjects.deselect_node(treeInstProjects.get_selected());
-	treeInstProjects.select_node(nodeID);
-	selectedNodeIDProjects = nodeID;
+	if(treeInstProjects.get_node(nodeID)!=null) {
 	
-	selectedPos 	= $('.node_item_'+selectedNodeIDProjects).position();
-	selectedHeight 	= $('.node_item_'+selectedNodeIDProjects).height();
+		treeInstProjects.select_node(nodeID);
+		selectedNodeIDProjects = nodeID;
+		currentAuthor = treeInstProjects.get_node(nodeID).author;
+		prevSelectedNodeID = nodeID;
+	}
+	else {
+		
+		selectedNodeIDProjects = "";
+		currentAuthor = user;
+	}
 }
 
 /*
  * Zeigt das Popover in relativer Position zur übergebenen Knoten-Komponente an.
  *
  * @param node Knoten-Komponente zu deren Position das Popover relativ angezeigt werden soll
- * @param error Fehlermeldung, welche durch das Popover dargestellt werden soll
  */
-function showPopover(node,error) {
+function showPopover(node) {
 	
-	if(node!=null) {
+	if(node!=null && treeInstProjects.get_node(node.id)) {
 		
 		var popover = $('.input_popover');
 		
 		// zeigt das Popover an und richtet es links über der Knoten-Komponente aus
 		// (Reihenfolge nicht verändern!)
 		popover.popover('show');
-        $('.popover').css('left',selectedPos.left+'px');
-        $('.popover').css('top',(selectedPos.top-43)+'px');
-		
-		/*
-		// Position der übergebenen Knoten-Komponente	
-		var pos = $('.node_item_'+node.id).position();
-		var height = $('.node_item_'+node.id).height();
-		
-		var popover = $('.input_popover');;
-		if(error) {
-			popover = $('.error_popover');
-			popover.popover({content: error});
-		}
-		
-		// zeigt das Popover an und richtet es links über der Knoten-Komponente aus
-		// (Reihenfolge nicht verändern!)
-		popover.popover('show');
-        $('.popover').css('left',selectedPos.left+'px');
-        $('.popover').css('top',(selectedPos.top-selectedHeight*2+5)+'px');
-        }
-        console.log($('.popover').css('height'));
-        */
+        $('.popover').css('left',$("#"+node.id).position().left+'px');
+        $('.popover').css('top',($("#"+node.id).position().top-43)+'px');
 	}
 }
 

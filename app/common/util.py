@@ -347,7 +347,7 @@ def getNextValidProjectName(user,name):
     queryProjects = Project.objects.filter(author=user, name__istartswith=name)
     
     # wenn noch kein Projekt mit dem Namen name existiert, ...
-    if not queryProjects.exists() :
+    if not queryProjects.filter(name__iexact=name).exists() :
         # ... wird der übergebene Name name unverändert zurückgegeben
         return name
     # wenn bereits ein Projekt mit dem Namen name existiert, ...
@@ -356,11 +356,11 @@ def getNextValidProjectName(user,name):
         # ... wird über die natürlichen Zahlen (ab festgelegtem Startwert) iteriert
         n = DUPLICATE_INIT_SUFFIX_NUM
         while True :
-            # wenn noch kein Projekt mit dem Namen name+' [n]' existiert, ...
+            # wenn noch kein Projekt mit dem Namen name+' (n)' existiert, ...
             if not queryProjects.filter(name__iexact=DUPLICATE_NAMING_REGEX.format(name,n)).exists() :
                 # ... wird dieser zurückgegeben
                 return DUPLICATE_NAMING_REGEX.format(name,n)
-            # wenn bereits ein Projekt mit dem Namen name+' [n]' existiert, ...
+            # wenn bereits ein Projekt mit dem Namen name+' (n)' existiert, ...
             else :
                 # ... wird mit der nächsten Zahl fortgefahren
                 n += 1
@@ -383,7 +383,7 @@ def getNextValidTemplateName(user,name):
     queryTemplates = ProjectTemplate.objects.filter(author=user, name__istartswith=name)
     
     # wenn noch keine Vorlage mit dem Namen name existiert, ...
-    if not queryTemplates.exists() :
+    if not queryTemplates.filter(name__iexact=name).exists() :
         # ... wird der übergebene Name name unverändert zurückgegeben
         return name
     # wenn bereits eine Vorlage mit dem Namen name existiert, ...
@@ -392,11 +392,11 @@ def getNextValidTemplateName(user,name):
         # ... wird über die natürlichen Zahlen (ab festgelegtem Startwert) iteriert
         n = DUPLICATE_INIT_SUFFIX_NUM
         while True :
-            # wenn noch keine Vorlage mit dem Namen name+' [n]' existiert, ...
+            # wenn noch keine Vorlage mit dem Namen name+' (n)' existiert, ...
             if not queryTemplates.filter(name__iexact=DUPLICATE_NAMING_REGEX.format(name,n)).exists() :
                 # ... wird dieser zurückgegeben
                 return DUPLICATE_NAMING_REGEX.format(name,n)
-            # wenn bereits eine Vorlage mit dem Namen name+' [n]' existiert, ...
+            # wenn bereits eine Vorlage mit dem Namen name+' (n)' existiert, ...
             else :
                 # ... wird mit der nächsten Zahl fortgefahren
                 n += 1
@@ -644,8 +644,8 @@ def validateJsonSuccessResponse(self, responsecontent, response):
     return _validateServerJsonResponse(self, responsecontent, SUCCESS, response)
 
 
-def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, idpara3=None, content=None, name=None,
-                   files=None):
+def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, idpara3=None, idpara4=None,
+                   content=None, name=None, files=None):
     """Hilfsmethode um leichter die verschiedenen commands des document views durchzutesten.
 
     :param command: Befehl der ausgeführt werden soll
@@ -666,6 +666,8 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, idpara3
         dictionary['folderid'] = idpara2
     if idpara3 != None:
         dictionary['formatid'] = idpara3
+    if idpara4 != None:
+        dictionary['compilerid'] = idpara4
     if content != None:
         dictionary['content'] = content
     if name != None:

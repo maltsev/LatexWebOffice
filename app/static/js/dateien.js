@@ -1,4 +1,4 @@
-﻿var creatingFileNodeID = null;			// ID der Knoten-Komponente der derzeitig zu erstellenden Datei
+var creatingFileNodeID = null;			// ID der Knoten-Komponente der derzeitig zu erstellenden Datei
 var creatingFolderNodeID = null;		// ID der Knoten-Komponente des derzeitig zu erstellenden Verzeichnisses
 var renamingNodeID = null;				// ID der/des derzeitig umzubenennenden Datei/Verzeichnisses
 var prevName = null;					// Name der/des derzeitig umzubenennenden Datei/Verzeichnisses (für etwaiges Zurückbenennen)
@@ -280,7 +280,7 @@ $(function () {
 			
 			editMode = false;
 			
-			// wenn die Eingabe des Namens einer neuen Datei bestätigt wurde (= Erstellen einer Datei), ...
+			// wenn die Eingabe des Namens einer neuen Datei bestätigt wurde (= Datei erstellen), ...
 			if(creatingFileNodeID!=null) {
 				
 				// ... und kein Name eingegeben wurde, ...
@@ -292,10 +292,10 @@ $(function () {
 				}
 				// ... und ein Name eingegeben wurde, ...
 				else
-					// ... wird severseitig eine neue Datei mit dem festgelegten Namen erzeugt
+					// ... wird severseitig ein neues Projekt mit dem festgelegten Namen erzeugt
 					createFile(treeInst.get_text(creatingFileNodeID));
 			}
-			// wenn die Eingabe des Namens eines neuen Verzeichnisses bestätigt wurde (= Erstellen eines Verzeichnisses), ...
+			// wenn die Eingabe des Namens eines neuen Verzeichnisses bestätigt wurde (= Verzeichnis erstellen), ...
 			if(creatingFolderNodeID!=null) {
 				
 				// ... und kein Name eingegeben wurde, ...
@@ -352,7 +352,8 @@ $(function () {
 
                 documentsJsonRequest({command: command, id: nodeId, folderid: folderId}, function(result, data) {
                     if(!result) {
-                        alert(data.response);
+                        showAlertDialog((node.type==="folder" ? "Verzeichnis" : "Datei")+" verschieben",data.response);
+                        reloadProject();
                         return;
                     }
                 });
@@ -384,10 +385,10 @@ $(function () {
     	// ist ein Knoten ausgewählt?
     	if (node.length) {
     		var isFile = node.hasClass("filesitem-file");
-    		$('.filesdialog-delete-title').text('Löschen ' + (isFile ? 'der Datei' : 'des Ordners')
+    		$('.filesdialog-delete-title').text('Löschen ' + (isFile ? 'der Datei' : 'des Verzeichnisses')
     				+ ' bestätigen');
     		$('.filesdialog-delete-text').text('Sind Sie sicher, dass Sie ' + (isFile ? 
-    				'die ausgewählte Datei' : 'den ausgewählten Ordner') + ' löschen wollen?');
+    				'die ausgewählte Datei' : 'das ausgewählte Verzeichnis') + ' löschen wollen?');
 
     		$('.filesdialog-delete-yes').unbind();
     		$('.filesdialog-delete-yes').click(node, function(event) {
@@ -500,21 +501,6 @@ $(function () {
         return jsTreeData;
     }
 
-    /*
-     * Gibt die ID des ausgewähltes Verzeichnisses zurück (auch für ausgewählte Dateien)
-     */
-    function getSelectedFolderId() {
-    	
-        var selectedNode = getSelectedNodeObject();
-        
-        if (selectedNode.hasClass("filesitem-folder"))
-            var selectedFolder = selectedNode;
-        else
-            selectedFolder = selectedNode.closest(".filesitem-folder");
-
-        return selectedFolder.data("folder-id") || rootFolderId;
-    }
-
 
 
 /*
@@ -529,24 +515,21 @@ function createFile(name) {
 	
 	var selectedFolderId = getSelectedFolderId();
 	
-	// erzeugt severseitig eine neue tex-Datei mit dem festgelegten Namen
+	// erzeugt severseitig eine neue tex-Datei mit dem festgelegten Namen im aktuellen Verzeichnis
 	documentsJsonRequest({
 			'command': 'createtex',
 			'id': selectedFolderId,
 			'name': name
 		}, function(result,data) {
-			// wenn eine entsprechendes Datei erstellt wurde, ist der Erstellungs-Vorgang abgeschlossen
-			if(result) {
-				
-				// setzt die Erstellungs-ID zurück
-				creatingFileNodeID = null;
-				
-				// aktualisiert die Anzeige der Dateistruktur
-				reloadProject();
-			}
 			// wenn eine entsprechendes Datei nicht angelegt werden konnte
-			else
-				alert(data.response);
+			if(!result)
+				showAlertDialog("Datei erstellen",data.response);
+			
+			// setzt die Erstellungs-ID zurück
+			creatingFileNodeID = null;
+			
+			// aktualisiert die Anzeige der Dateistruktur
+			reloadProject();
 	});
 }
 
@@ -559,24 +542,21 @@ function createFolder(name) {
 	
 	var selectedFolderId = getSelectedFolderId();
 	
-	// erzeugt severseitig ein neues Verzeichnis mit dem festgelegten Namen
+	// erzeugt severseitig ein neues Verzeichnis mit dem festgelegten Namen im aktuellen Verzeichnis
 	documentsJsonRequest({
 			'command': 'createdir',
 			'id': selectedFolderId,
 			'name': name
 		}, function(result,data) {
-			// wenn ein entsprechendes Verzeichnis erstellt wurde, ist der Erstellungs-Vorgang abgeschlossen
-			if(result) {
-				
-				// setzt die Erstellungs-ID zurück
-				creatingFolderNodeID = null;
-				
-				// aktualisiert die Anzeige der Verzeichnisstruktur
-				reloadProject();
-			}
 			// wenn ein entsprechendes Verzeichnis nicht angelegt werden konnte
-			else
-				alert(data.response);
+			if(!result)
+				showAlertDialog("Verzeichnis erstellen",data.response);
+			
+			// setzt die Erstellungs-ID zurück
+			creatingFolderNodeID = null;
+			
+			// aktualisiert die Anzeige der Verzeichnisstruktur
+			reloadProject();
 	});
 }
 
@@ -601,11 +581,12 @@ function deleteItem() {
 					deletingNodeID = null;
 					// setzt die Selektions-ID zurück
 					selectedNodeID = "";
-					
-					reloadProject();
 				}
 				else
-					alert(data.response);
+					showAlertDialog("Datei löschen",data.response);
+				
+				// aktualisiert die Anzeige der Verzeichnisstruktur
+				reloadProject();
 		});
 	}
 	else if(selectedNode.hasClass("filesitem-folder")) {
@@ -623,11 +604,12 @@ function deleteItem() {
 					// setzt die Selektions-ID zurück
 					selectedNodeID = "";
 					
-					reloadProject();
-					
 				}
 				else
-					alert(data.response);
+					showAlertDialog("Verzeichnis löschen",data.response);
+				
+				// aktualisiert die Anzeige der Verzeichnisstruktur
+				reloadProject();
 		});
 	}
 }
@@ -644,7 +626,7 @@ function renameItem(name) {
 		itemId			= selectedNode.data("file-id") || selectedNode.data("folder-id");
 	
 	if(selectedNode.hasClass("filesitem-file") && name.indexOf(".")===-1) {
-		alert("Bitte auch die Dateinamenserweiterung eingeben");
+		showAlertDialog("Datei umbenennen","Bitte geben Sie auch die Datei-Namenserweiterung ein.");
 		reloadProject();
 		return;
 	}
@@ -661,13 +643,14 @@ function renameItem(name) {
 				renamingID = null;
 				prevName = null;
 				
-				reloadProject();
-				
 				$("> .jstree-anchor .filesitem-name", selectedNode).text(name);
             }
             // wenn die/das ausgewählte Datei/Verzeichnis für den übergebenen Namen nicht umbenannt werden konnte, ...
 			else
-				alert(data.response);
+				showAlertDialog((selectedNode.hasClass("filesitem-file") ? "Datei" : "Verzeichnis")+" umbenennen",data.response);
+			
+			// aktualisiert die Anzeige der Verzeichnisstruktur
+			reloadProject();
 		});
 }
 
@@ -691,16 +674,20 @@ function editNode(nodeID,text) {
 }
 
 /*
- * Liefert die ID des ausgewähltes Verzeichnisses (auch für ausgewählte Dateien)
+ * Liefert die ID des aktuellen Verzeichnisses.
+ *
+ * @return die ID des aktuell selektierten Verzeichnisses, sofern ein Verzeichnis selektiert ist oder
+ *         die ID des direkten Überverzeichnisses der aktuell selektierten Datei, sofern eine Datei selektiert ist oder
+ *         die ID des root-Verzeichnisses, sofern weder ein Verzeichnis, noch eine Datei selektiert sind
  */
 function getSelectedFolderId() {
 	
-	var selectedNode = getSelectedNodeObject();
+	var selectedNodeObj = getSelectedNodeObject();
 	
-	if(selectedNode.hasClass("filesitem-folder"))
-		var selectedFolder = selectedNode;
+	if(selectedNodeObj.hasClass("filesitem-folder"))
+		var selectedFolder = selectedNodeObj;
 	else
-		selectedFolder = selectedNode.closest(".filesitem-folder");
+		selectedFolder = selectedNodeObj.closest(".filesitem-folder");
 	
 	return selectedFolder.data("folder-id") || rootFolderId;
 }
@@ -730,22 +717,37 @@ function selectNode(nodeID) {
 }
 
 /*
+ * Setzt den Inhalt des Alert Dialogs.
+ *
+ * @param title Titel für diesen Dialog
+ * @param message Informationstext für diesen Dialog
+ */
+function showAlertDialog(title,message){
+	$('#modal_alertDialog').modal('show');
+	document.getElementById('modal_alertDialog_title').innerHTML = title;
+	document.getElementById('modal_alertDialog_message').innerHTML = message;
+	
+	$('.modal_alertDialogConfirm').on("click", function() {
+		showAlertDialog("","");
+	})
+}
+
+/*
  * Zeigt das Popover in relativer Position zur übergebenen Knoten-Komponente an.
  *
  * @param node Knoten-Komponente zu deren Position das Popover relativ angezeigt werden soll
- * @param error Fehlermeldung, welche durch das Popover dargestellt werden soll
  */
-function showPopover(node,error) {
+function showPopover(node) {
 	
-	if(node!=null) {
+	if(node!=null && treeInst.get_node(node.id)) {
 		
 		var popover = $('.input_popover');
 		
 		// zeigt das Popover an und richtet es links über der Knoten-Komponente aus
 		// (Reihenfolge nicht verändern!)
 		popover.popover('show');
-        $('.popover').css('left',getSelectedNodeObject().position().left+'px');
-        $('.popover').css('top',(getSelectedNodeObject().position().top-43)+'px');
+        $('.popover').css('left',$("#"+node.id).position().left+'px');
+        $('.popover').css('top',($("#"+node.id).position().top-43)+'px');
 	}
 }
 

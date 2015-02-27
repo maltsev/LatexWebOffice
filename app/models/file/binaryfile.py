@@ -18,12 +18,11 @@ import os
 import uuid
 
 from django.db import models
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from core import settings
 from app.models.file import file
-
 
 class BinaryFileManager(file.FileManager):
     def clone(self, binaryFileModel, **kwargs):
@@ -91,3 +90,15 @@ class BinaryFile(file.File):
 def binaryFilePostDelete(instance, **kwargs):
     if os.path.isfile(instance.filepath):
         os.remove(instance.filepath)
+
+@receiver(post_save)
+def binaryFilePostSave(sender, instance, created, **kwargs):
+    if sender.__name__ not in ('BinaryFile', 'PDF', 'Image'):
+        return
+    if created:
+        if os.path.isfile(instance.filepath):
+            path, filename = os.path.split(instance.filepath)
+            new_filepath = os.path.join(path, str(instance.id))
+            os.rename(instance.filepath, new_filepath)
+            instance.filepath = new_filepath
+            instance.save()
