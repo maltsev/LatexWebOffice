@@ -4,7 +4,7 @@
 
 * Creation Date : 26-02-2015
 
-* Last Modified : Sa 28 Feb 2015 00:13:51 CET
+* Last Modified : Sa 28 Feb 2015 00:33:46 CET
 
 * Author :  mattis
 
@@ -89,12 +89,6 @@ class LatexWebUser(AbstractBaseUser):
         "Does the user have a specific permission?"
         # Simplest possible answer: Yes, always
         return True
-
-    def has_module_perms(self, app_label):
-        "Does the user have permissions to view the app `app_label`?"
-        # Simplest possible answer: Yes, always
-        return True
-
 
     @property
     def is_staff(self):

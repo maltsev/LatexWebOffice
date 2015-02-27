@@ -4,7 +4,7 @@
 
 * Creation Date : 06-11-2014
 
-* Last Modified : Do 26 Feb 2015 17:49:53 CET
+* Last Modified : Sa 28 Feb 2015 00:36:55 CET
 
 * Author : mattis
 
@@ -52,25 +52,25 @@ class AuthLoginTestClass(TestCase):
     # Test if a user is not logged in with an incorrect password -> user1
     def test_loginFailIncorrectPassword(self):
         response = self._client.post(
-            '/login/', {'email': self._user1.username, 'password': 'wrong'})
+                '/login/', {'email': self._user1.username, 'password': 'wrong','action':'login'})
         self.assertNotIn('_auth_user_id', self._client.session)
 
     # Test if an user receives a failure message on incorrect login -> user1
     def test_loginFailIncorrectUsername(self):
         response = self._client.post(
-            '/login/', {'email': 'wrongusername', 'password': self._user1._unhashedpw})
+            '/login/', {'email': 'wrongusername', 'password': self._user1._unhashedpw,'action':'login'})
         self.assertContains(response, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
 
     # Test if a user can't login when he is set inactive -> user2
     def test_loginFailInactiveUser(self):
         response = self._client.post(
-            '/login/', {'email': self._user2.username, 'password': self._user2._unhashedpw})
+            '/login/', {'email': self._user2.username, 'password': self._user2._unhashedpw,'action':'login'})
         self.assertContains(response, ERROR_MESSAGES['INACTIVEACCOUNT'].format(self._user2.username))
 
     # Test if a user is logged in with an correct password -> user1
     def test_loginSuccess(self):
         response = self._client.post(
-            '/login/', {'email': self._user1.username, 'password':self._user1._unhashedpw})
+            '/login/', {'email': self._user1.username, 'password':self._user1._unhashedpw,'action':'login'})
         self.assertIn('_auth_user_id', self._client.session)
 
     #Test that if an already logged in user tries to login, a redirect to the start page will be done
