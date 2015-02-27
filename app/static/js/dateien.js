@@ -11,6 +11,7 @@ var prevSelectedNodeID 	= "";			// ID der selektierten Knoten-Komponente (wird n
 
 var tree;
 var treeInst;
+var folderUntilRoot = 0;
 
 /*
 @author: Timo Dümke, Ingolf Bracht, Kirill Maltsev
@@ -21,6 +22,7 @@ $(function () {
 	
     // ID zum vorliegenden Projekt
 	var rootFolderId = parseInt(location.hash.substr(1), 10);
+	window.top.name = rootFolderId;
 	if (! rootFolderId) {
 		window.location.replace("/projekt/");
 	    return;
@@ -43,6 +45,7 @@ $(function () {
     // "Öffnen"-Schaltfläche
 	$(".filestoolbar-open").click(function() {
 	    var selectedNode = getSelectedNodeObject();
+		calculateFolderUntilRoot();
 		window.location.assign("/editor/#" + selectedNode.data("file-id"));
 	});
 
@@ -145,7 +148,20 @@ $(function () {
 	});
 	
 	// ----------------------------------------------------------------------------------------------------
-	
+	function calculateFolderUntilRoot(){
+		
+		var pathString = treeInst.get_path(selectedNodeID,"~#####~");
+		var splittedPathString = pathString.split("~#####~");
+		
+		folderUntilRoot = 0;
+		for (var i = 0; i < splittedPathString.length; i++) {
+			if(splittedPathString[i].indexOf("title=\"Verzeichnis\"") > -1){
+				folderUntilRoot++;
+			}
+		}
+		window.top.name = rootFolderId + "/" + folderUntilRoot;
+		
+	}
 	function reloadProject() {
 		
 		documentsJsonRequest({
@@ -257,6 +273,7 @@ $(function () {
 			if(selectedNode.hasClass("filesitem-file")) {
 				if($.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"])!=-1) {
 					// bei Doppelklick auf TEX-Datei zum Editor gehen
+					calculateFolderUntilRoot();
 					window.location.assign("/editor/#" + selectedNode.data("file-id"));
 				}
 			}

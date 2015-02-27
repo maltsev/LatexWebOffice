@@ -377,14 +377,16 @@ function clear_table() {
 * Baumstruktur mittels JSTree erstellen
 */
 var tree = null;
+var projectRootFolderId = (window.top.name).split("/")[0];
 
-$(function () {
+function createImageTree() {
 	// ausgewählter Knoten
 	var selectedNode = null;
 
     // ID zum vorliegenden Projekt
 	var rootFolderId = parseInt(location.hash.substr(1), 10);
-	createJSTree();
+	//createJSTree();
+	reloadProject();
 	function createJSTree(){
 		//get folder id
 		documentsJsonRequest({
@@ -410,12 +412,13 @@ $(function () {
 	}
 	
     function reloadProject() {
-        documentsJsonRequest({command: "listfiles", id: rootFolderId}, function(result, data) {
+        documentsJsonRequest({command: "listfiles", id: projectRootFolderId}, function(result, data) {
             if (! result) {
                 alert(ERROR_MESSAGES.PROJECTNOTEXIST);
                 return;
             }
             renderProject(data.response);
+			$('#graphik-assistent').modal('show');
         });
     }
 
@@ -539,7 +542,7 @@ $(function () {
     }
 
 
-});
+}
 
 /**
 * Einfügen des Dateipfades in die tex Datei
@@ -624,7 +627,9 @@ function insertGraphics(){
 						}
 
 					}
-					
+					for(var x = 0; x < (window.top.name).split("/")[1]; x++){
+						filePath = "../"+filePath;
+					}
 					//wenn die schleife beendet wurde rufe die methode mit der file id auf und dem entsprechenden pfad
 					insertImageWithID(substringID, filePath);
 			   }
