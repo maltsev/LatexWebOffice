@@ -57,8 +57,6 @@ $(function () {
 		
 		// erzeugt eine neue Knoten-Komponente (als Datei) im ausgewählten Verzeichnis
 		creatingFileNodeID = treeInst.create_node(par,{"type": "file"});
-		// selektiert die erzeugte Knoten-Komponente
-		selectNode(creatingFileNodeID);
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
 		editNode(creatingFileNodeID,"");
 		
@@ -81,8 +79,6 @@ $(function () {
 		
 		// erzeugt eine neue Knoten-Komponente (als Verzeichnis) im ausgewählten Verzeichnis
 		creatingFolderNodeID = treeInst.create_node(par,{"type": "folder"});
-		// selektiert die erzeugte Knoten-Komponente
-		selectNode(creatingFolderNodeID);
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
 		editNode(creatingFolderNodeID,"");
 		
@@ -157,11 +153,12 @@ $(function () {
 				'id': rootFolderId
 			}, function(result, data) {
 				if(!result) {
-					alert(ERROR_MESSAGES.PROJECTNOTEXIST);
+					showAlertDialog("Fehler",ERROR_MESSAGES.PROJECTNOTEXIST);
 					return;
 				}
 				
 				renderProject(data.response);
+				
 				updateMenuButtons();
         });
     }
@@ -214,6 +211,16 @@ $(function () {
         
 		// ----------------------------------------------------------------------------------------------------
 		//                                               LISTENER                                              
+		// ----------------------------------------------------------------------------------------------------
+		
+		// Erzeugungs-Listener (für Auto-Selektion)
+		tree.bind('create_node.jstree',function(e,data) {
+			
+			// selektiert die erzeugte Knoten-Komponente
+			selectNode(data.node);
+			
+		});
+		
 		// ----------------------------------------------------------------------------------------------------
 		
 		// Auswahl-Listener
@@ -284,7 +291,7 @@ $(function () {
 			if(creatingFileNodeID!=null) {
 				
 				// ... und kein Name eingegeben wurde, ...
-				if(treeInst.get_text(creatingFileNodeID)==="") {
+				if(treeInst.get_text(creatingFileNodeID)=="") {
 					// ... wird der Erstellungs-Vorgang abgebrochen
 					treeInst.delete_node(creatingFileNodeID);
 					creatingFileNodeID = null;
@@ -299,7 +306,7 @@ $(function () {
 			if(creatingFolderNodeID!=null) {
 				
 				// ... und kein Name eingegeben wurde, ...
-				if(treeInst.get_text(creatingFolderNodeID)==="") {
+				if(treeInst.get_text(creatingFolderNodeID)=="") {
 					// ... wird der Erstellungs-Vorgang abgebrochen
 					treeInst.delete_node(creatingFolderNodeID);
 					creatingFolderNodeID = null;
@@ -314,10 +321,8 @@ $(function () {
 			else if(renamingNodeID!=null) {
 				
 				// ... und kein oder derselbe Name eingegeben wurde, ...
-				if(treeInst.get_text(renamingNodeID)==="" || treeInst.get_text(renamingNodeID)===prevName) {
+				if(treeInst.get_text(renamingNodeID)=="" || treeInst.get_text(renamingNodeID)===prevName) {
 					// ... wird der Umbenennungs-Vorgang abgebrochen
-					node = treeInst.get_node(renamingNodeID);
-					//treeInst.set_text(node,getHTML(node));
 					renamingID = null;
 					updateMenuButtons();
 				}
@@ -490,7 +495,7 @@ $(function () {
             file.createTime = getRelativeTime(file.createTime);
             file.lastModifiedTime = getRelativeTime(file.lastModifiedTime);
             file.size = Math.round(file.size / 1024); // in KB
-
+            
             jsTreeData.push({
                 id: "file" + file.id,
                 text: fileTemplate(file),
@@ -521,8 +526,11 @@ function createFile(name) {
 			'id': selectedFolderId,
 			'name': name
 		}, function(result,data) {
+			
 			// wenn eine entsprechendes Datei nicht angelegt werden konnte
-			if(!result)
+			if(result)
+				treeInst.set_id(treeInst.get_node(creatingFileNodeID),"file"+data.response.id);
+			else
 				showAlertDialog("Datei erstellen",data.response);
 			
 			// setzt die Erstellungs-ID zurück
@@ -548,8 +556,11 @@ function createFolder(name) {
 			'id': selectedFolderId,
 			'name': name
 		}, function(result,data) {
+			
 			// wenn ein entsprechendes Verzeichnis nicht angelegt werden konnte
-			if(!result)
+			if(result)
+				treeInst.set_id(treeInst.get_node(creatingFolderNodeID),"folder"+data.response.id);
+			else
 				showAlertDialog("Verzeichnis erstellen",data.response);
 			
 			// setzt die Erstellungs-ID zurück
@@ -621,11 +632,11 @@ function deleteItem() {
  */
 function renameItem(name) {
 	
-	var selectedNode	= $("#"+renamingNodeID),
-		commandName		= selectedNode.hasClass("filesitem-folder") ? "renamedir" : "renamefile",
-		itemId			= selectedNode.data("file-id") || selectedNode.data("folder-id");
+	var selectedNodeObj	= $("#"+renamingNodeID),
+		commandName		= selectedNodeObj.hasClass("filesitem-folder") ? "renamedir" : "renamefile",
+		itemId			= selectedNodeObj.data("file-id") || selectedNodeObj.data("folder-id");
 	
-	if(selectedNode.hasClass("filesitem-file") && name.indexOf(".")===-1) {
+	if(selectedNodeObj.hasClass("filesitem-file") && name.indexOf(".")===-1) {
 		showAlertDialog("Datei umbenennen","Bitte geben Sie auch die Datei-Namenserweiterung ein.");
 		reloadProject();
 		return;
@@ -638,16 +649,18 @@ function renameItem(name) {
 		}, function(result, data) {
 			// wenn die/das ausgewählte Datei/Verzeichnis erfolgreich umbenannt wurde, ist der Umbenennungs-Vorgang abgeschlossen
             if(result) {
-            	
+				
+				//$("> .jstree-anchor .filesitem-name", selectedNodeObj).text(name);
+				//selectedNodeObj.data("name",name);
+				
             	// setzt die Umbenennungs-IDs zurück
-				renamingID = null;
+				renamingNodeID = null;
 				prevName = null;
 				
-				$("> .jstree-anchor .filesitem-name", selectedNode).text(name);
             }
             // wenn die/das ausgewählte Datei/Verzeichnis für den übergebenen Namen nicht umbenannt werden konnte, ...
 			else
-				showAlertDialog((selectedNode.hasClass("filesitem-file") ? "Datei" : "Verzeichnis")+" umbenennen",data.response);
+				showAlertDialog((selectedNodeObj.hasClass("filesitem-file") ? "Datei" : "Verzeichnis")+" umbenennen",data.response);
 			
 			// aktualisiert die Anzeige der Verzeichnisstruktur
 			reloadProject();
