@@ -10,13 +10,13 @@
     margin-top: 5px;
     overflow: hidden;
 }
-.projectitem-name {
+
+.projectsitem-name {
     display: inline-block;
     width: 40%;
     padding-right: 5px;
 }
-
-.projectitem-createdate {
+.projectsitem-createdate {
     color: #95a5a6;
     width: 20%;
     min-width: 110px;
@@ -24,8 +24,7 @@
     padding-right: 5px;
     vertical-align: top;
 }
-
-.projectitem-author {
+.projectsitem-author {
     color: #95a5a6;
     vertical-align: top;
 }

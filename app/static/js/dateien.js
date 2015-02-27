@@ -324,7 +324,7 @@ $(function () {
 				if(treeInst.get_text(renamingNodeID)=="" || treeInst.get_text(renamingNodeID)===prevName) {
 					// ... wird der Umbenennungs-Vorgang abgebrochen
 					renamingID = null;
-					updateMenuButtons();
+					reloadProject();
 				}
 				// ... und ein, vom bisherigen Namen verschiedener, Name eingegeben wurde, ...
 				else
@@ -527,7 +527,7 @@ function createFile(name) {
 			'name': name
 		}, function(result,data) {
 			
-			// wenn eine entsprechendes Datei nicht angelegt werden konnte
+			// wenn eine entsprechendes Datei angelegt werden konnte
 			if(result)
 				treeInst.set_id(treeInst.get_node(creatingFileNodeID),"file"+data.response.id);
 			else
