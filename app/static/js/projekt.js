@@ -26,6 +26,11 @@ var treeInstProjects;
 
 var isProjectsPage = true;			// false für die Seite mit Vorlagen;
 
+var sorting = 0;					// Sortierungsvariable ( 0 = Name, 1 = Erstellungsdatum, 2 = Autor )
+var sortOrder = 1;					// Sortierungsrichtung ( 1 = aufsteigend, -1 = absteigend )
+var ignoreSorting = false;			// für temporäres Ignorieren der Sortierung bei anlegender Knoten-Komponente ('Erstellen' und 'Duplizieren')
+var sortReplacements = {"ä":"a", "ö":"o", "ü":"u", "ß":"ss" };
+
 /*
  * Initialisiert den JSTree und die Menü-Einträge.
  */
@@ -118,6 +123,22 @@ $(function() {
 		}
 	});
 	
+	// 'Sortieren nach Name'-Button
+	$('.sort-0').click(function() {
+		updateSorting(0);
+	});
+	// 'Sortieren nach Erstellungsdatum'-Button
+	$('.sort-1').click(function() {
+		updateSorting(1);
+	});
+	// 'Sortieren nach Autor'-Button
+	$('.sort-2').click(function() {
+		updateSorting(2);
+	})
+	// initialisiert das Sortierungsicon im entsprechenden Menü-Eintrag
+	$('.sort-'+sorting).children('.glyphicon').addClass('glyphicon-arrow-down');
+	$('.sort-'+sorting).children('.glyphicon').removeAttr("data-hidden");
+	
 	
 	// ----------------------------------------------------------------------------------------------------
 	//                                             MENÜ-EINTRÄGE                                           
@@ -134,6 +155,7 @@ $(function() {
 	$('.projecttoolbar-new').on("click", function() {
 		
 		// erzeugt eine neue Knoten-Komponente
+		ignoreSorting = true;
 		creatingNodeID = treeInstProjects.create_node("#","");
 		// selektiert die erzeugte Knoten-Komponente
 		selectNode(creatingNodeID);
@@ -181,6 +203,7 @@ $(function() {
 		duplicateID = selectedNodeIDProjects;
 		
 		// erzeugt eine neue Knoten-Komponente
+		ignoreSorting = true;
 		duplicateNodeID = treeInstProjects.create_node("#","");
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
 		editNode(duplicateNodeID,"");
@@ -292,6 +315,7 @@ $(function() {
 
         if(treeProjects) {
             treeInstProjects.settings.core.data = jsTreeProjectsData;
+            ignoreSorting = false;
             treeInstProjects.refresh();
             return;
         }
@@ -302,7 +326,27 @@ $(function() {
 				multiple: false,
 				data: jsTreeProjectsData
 			},
-            plugins: ["state"]
+            plugins: ["sort","state"],
+            sort: function(a,b) {
+            	
+            	if(ignoreSorting)
+            		return -1;
+            	
+            	var compare = 1;
+            	
+            	// Sortierung nach Projektname (auch bei Sortierung nach Autor für zwei Knoten-Komponenten mit demselben Autor)
+            	if(sorting==0 || (sorting==2 && this.get_node(a).li_attr["data-author"]==this.get_node(b).li_attr["data-author"]))
+            		compare = (""+this.get_node(a).li_attr["data-name"]).toLowerCase().replace(/[äöüß]/g, function($0) { return sortReplacements[$0] }) >
+            				  (""+this.get_node(b).li_attr["data-name"]).toLowerCase().replace(/[äöüß]/g, function($0) { return sortReplacements[$0] }) ? 1 : -1;
+            	// Sortierung nach Erstellungsdatum
+            	else if(sorting==1)
+            		compare = this.get_node(a).li_attr["data-createtime"] < this.get_node(b).li_attr["data-createtime"] ? 1 : -1;
+            	// Sortierung nach Autor (bei übereinstimmenden Autoren erfolgt Sortierung nach Projektname s.o.)
+            	else if(sorting==2)
+            		compare = this.get_node(a).li_attr["data-author"] > this.get_node(b).li_attr["data-author"] ? 1 : -1;
+            	
+            	return compare*sortOrder;
+			}
         });
         
         treeInstProjects = $('.projectswrapper').jstree();
@@ -448,6 +492,7 @@ $(function() {
                 text: projectTemplate(project),
                 li_attr: {"class": "projectsitem", "data-id": project.id,
                 								   "data-name": project.name,
+                								   "data-createtime": project.createtime,
                 								   "data-author": project.ownername,
                 								   "data-rootid": project.rootid}
             });
@@ -1082,5 +1127,47 @@ $(function() {
 		// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
 		$('.invitationtoolbar-acceptInvitation').prop("disabled", !flag_remain);
 		$('.invitationtoolbar-denyInvitation').prop("disabled", !flag_remain);
+	}
+	
+	/*
+	 * Aktualisiert die Sortierung gemäß des übergebenen Sortierungswertes.
+	 *
+	 * @param newSorting neuer Sortierungswert ( 0 = Name, 1 = Erstellungsdatum, 2 = Autor )
+	 */
+	function updateSorting(newSorting) {
+		
+		// derzeitiges Sortierungsicon
+		var icon = 'glyphicon-arrow-down';
+		if(sortOrder==-1)
+			icon = 'glyphicon-arrow-up';
+		
+		// Icon der derzeitigen Sortierung wird entfernt bzw. versteckt
+		if(sorting==newSorting)
+			$('.sort-'+sorting).children('.glyphicon').removeClass(icon);
+		else {
+			if($('.sort-'+sorting).children('.glyphicon').hasClass('glyphicon-arrow-up'))
+				$('.sort-'+sorting).children('.glyphicon').removeClass(icon).addClass('glyphicon-arrow-down');
+			$('.sort-'+sorting).children('.glyphicon').attr("data-hidden","hidden");
+		}	
+		
+		// neue Sortierungsrichtung
+		if(sorting==newSorting)
+			sortOrder *= -1;
+		else
+			sortOrder = 1;
+		
+		// neues Sortierungsicon
+		icon = 'glyphicon-arrow-down';
+		if(sortOrder==-1)
+			icon = 'glyphicon-arrow-up';
+		
+		// fügt das Icon für die neue Sortierung hinzu
+		$('.sort-'+newSorting).children('.glyphicon').addClass(icon);
+		$('.sort-'+newSorting).children('.glyphicon').removeAttr("data-hidden");
+		
+		sorting = newSorting;
+		ignoreSorting = false;
+		treeInstProjects.refresh();
+		
 	}
 });
