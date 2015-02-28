@@ -69,8 +69,6 @@ def login(request):
         elif request.POST['action']=='password-lost':
             if User.objects.filter(email__iexact=email).exists():
                 user=User.objects.get(email__iexact=email)
-                print(user.passwordlostdate+datetime.timedelta(minutes=5),timezone.now())
-                print((user.passwordlostdate+datetime.timedelta(minutes=5))<=timezone.now())
                 if (user.passwordlostdate+datetime.timedelta(minutes=5))<=timezone.now():
                     keygen = user.createrecoverkey()
                     user.save()
