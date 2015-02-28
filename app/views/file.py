@@ -235,7 +235,7 @@ def downloadFile(request, user, fileid):
     _, encoding = mimetypes.guess_type(downloadfileobj.name)
 
     response['Content-Type'] = downloadfileobj.mimeType
-    response['Content-Length'] = downloadfileobj_size
+    response['Content-Length'] = len(response.content)
     if encoding is not None:
         response['Content-Encoding'] = encoding
 
