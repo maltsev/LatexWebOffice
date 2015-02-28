@@ -11,6 +11,7 @@ var prevSelectedNodeID 	= "";			// ID der selektierten Knoten-Komponente (wird n
 
 var tree;
 var treeInst;
+var folderUntilRoot = 0;
 
 /*
 @author: Timo Dümke, Ingolf Bracht, Kirill Maltsev
@@ -21,6 +22,7 @@ $(function () {
 	
     // ID zum vorliegenden Projekt
 	var rootFolderId = parseInt(location.hash.substr(1), 10);
+	window.top.name = rootFolderId;
 	if (! rootFolderId) {
 		window.location.replace("/projekt/");
 	    return;
@@ -43,6 +45,7 @@ $(function () {
     // "Öffnen"-Schaltfläche
 	$(".filestoolbar-open").click(function() {
 	    var selectedNode = getSelectedNodeObject();
+		calculateFolderUntilRoot();
 		window.location.assign("/editor/#" + selectedNode.data("file-id"));
 	});
 
@@ -57,8 +60,6 @@ $(function () {
 		
 		// erzeugt eine neue Knoten-Komponente (als Datei) im ausgewählten Verzeichnis
 		creatingFileNodeID = treeInst.create_node(par,{"type": "file"});
-		// selektiert die erzeugte Knoten-Komponente
-		selectNode(creatingFileNodeID);
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
 		editNode(creatingFileNodeID,"");
 		
@@ -81,8 +82,6 @@ $(function () {
 		
 		// erzeugt eine neue Knoten-Komponente (als Verzeichnis) im ausgewählten Verzeichnis
 		creatingFolderNodeID = treeInst.create_node(par,{"type": "folder"});
-		// selektiert die erzeugte Knoten-Komponente
-		selectNode(creatingFolderNodeID);
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
 		editNode(creatingFolderNodeID,"");
 		
@@ -149,7 +148,20 @@ $(function () {
 	});
 	
 	// ----------------------------------------------------------------------------------------------------
-	
+	function calculateFolderUntilRoot(){
+		
+		var pathString = treeInst.get_path(selectedNodeID,"~#####~");
+		var splittedPathString = pathString.split("~#####~");
+		
+		folderUntilRoot = 0;
+		for (var i = 0; i < splittedPathString.length; i++) {
+			if(splittedPathString[i].indexOf("title=\"Verzeichnis\"") > -1){
+				folderUntilRoot++;
+			}
+		}
+		window.top.name = rootFolderId + "/" + folderUntilRoot;
+		
+	}
 	function reloadProject() {
 		
 		documentsJsonRequest({
@@ -157,11 +169,12 @@ $(function () {
 				'id': rootFolderId
 			}, function(result, data) {
 				if(!result) {
-					alert(ERROR_MESSAGES.PROJECTNOTEXIST);
+					showAlertDialog("Fehler",ERROR_MESSAGES.PROJECTNOTEXIST);
 					return;
 				}
 				
 				renderProject(data.response);
+				
 				updateMenuButtons();
         });
     }
@@ -216,6 +229,16 @@ $(function () {
 		//                                               LISTENER                                              
 		// ----------------------------------------------------------------------------------------------------
 		
+		// Erzeugungs-Listener (für Auto-Selektion)
+		tree.bind('create_node.jstree',function(e,data) {
+			
+			// selektiert die erzeugte Knoten-Komponente
+			selectNode(data.node);
+			
+		});
+		
+		// ----------------------------------------------------------------------------------------------------
+		
 		// Auswahl-Listener
 		tree.bind('select_node.jstree',function(e,data) {
 			
@@ -250,6 +273,7 @@ $(function () {
 			if(selectedNode.hasClass("filesitem-file")) {
 				if($.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"])!=-1) {
 					// bei Doppelklick auf TEX-Datei zum Editor gehen
+					calculateFolderUntilRoot();
 					window.location.assign("/editor/#" + selectedNode.data("file-id"));
 				}
 			}
@@ -284,7 +308,7 @@ $(function () {
 			if(creatingFileNodeID!=null) {
 				
 				// ... und kein Name eingegeben wurde, ...
-				if(treeInst.get_text(creatingFileNodeID)==="") {
+				if(treeInst.get_text(creatingFileNodeID)=="") {
 					// ... wird der Erstellungs-Vorgang abgebrochen
 					treeInst.delete_node(creatingFileNodeID);
 					creatingFileNodeID = null;
@@ -299,7 +323,7 @@ $(function () {
 			if(creatingFolderNodeID!=null) {
 				
 				// ... und kein Name eingegeben wurde, ...
-				if(treeInst.get_text(creatingFolderNodeID)==="") {
+				if(treeInst.get_text(creatingFolderNodeID)=="") {
 					// ... wird der Erstellungs-Vorgang abgebrochen
 					treeInst.delete_node(creatingFolderNodeID);
 					creatingFolderNodeID = null;
@@ -314,12 +338,10 @@ $(function () {
 			else if(renamingNodeID!=null) {
 				
 				// ... und kein oder derselbe Name eingegeben wurde, ...
-				if(treeInst.get_text(renamingNodeID)==="" || treeInst.get_text(renamingNodeID)===prevName) {
+				if(treeInst.get_text(renamingNodeID)=="" || treeInst.get_text(renamingNodeID)===prevName) {
 					// ... wird der Umbenennungs-Vorgang abgebrochen
-					node = treeInst.get_node(renamingNodeID);
-					//treeInst.set_text(node,getHTML(node));
 					renamingID = null;
-					updateMenuButtons();
+					reloadProject();
 				}
 				// ... und ein, vom bisherigen Namen verschiedener, Name eingegeben wurde, ...
 				else
@@ -490,7 +512,7 @@ $(function () {
             file.createTime = getRelativeTime(file.createTime);
             file.lastModifiedTime = getRelativeTime(file.lastModifiedTime);
             file.size = Math.round(file.size / 1024); // in KB
-
+            
             jsTreeData.push({
                 id: "file" + file.id,
                 text: fileTemplate(file),
@@ -521,8 +543,11 @@ function createFile(name) {
 			'id': selectedFolderId,
 			'name': name
 		}, function(result,data) {
-			// wenn eine entsprechendes Datei nicht angelegt werden konnte
-			if(!result)
+			
+			// wenn eine entsprechendes Datei angelegt werden konnte
+			if(result)
+				treeInst.set_id(treeInst.get_node(creatingFileNodeID),"file"+data.response.id);
+			else
 				showAlertDialog("Datei erstellen",data.response);
 			
 			// setzt die Erstellungs-ID zurück
@@ -548,8 +573,11 @@ function createFolder(name) {
 			'id': selectedFolderId,
 			'name': name
 		}, function(result,data) {
+			
 			// wenn ein entsprechendes Verzeichnis nicht angelegt werden konnte
-			if(!result)
+			if(result)
+				treeInst.set_id(treeInst.get_node(creatingFolderNodeID),"folder"+data.response.id);
+			else
 				showAlertDialog("Verzeichnis erstellen",data.response);
 			
 			// setzt die Erstellungs-ID zurück
@@ -621,11 +649,11 @@ function deleteItem() {
  */
 function renameItem(name) {
 	
-	var selectedNode	= $("#"+renamingNodeID),
-		commandName		= selectedNode.hasClass("filesitem-folder") ? "renamedir" : "renamefile",
-		itemId			= selectedNode.data("file-id") || selectedNode.data("folder-id");
+	var selectedNodeObj	= $("#"+renamingNodeID),
+		commandName		= selectedNodeObj.hasClass("filesitem-folder") ? "renamedir" : "renamefile",
+		itemId			= selectedNodeObj.data("file-id") || selectedNodeObj.data("folder-id");
 	
-	if(selectedNode.hasClass("filesitem-file") && name.indexOf(".")===-1) {
+	if(selectedNodeObj.hasClass("filesitem-file") && name.indexOf(".")===-1) {
 		showAlertDialog("Datei umbenennen","Bitte geben Sie auch die Datei-Namenserweiterung ein.");
 		reloadProject();
 		return;
@@ -638,16 +666,18 @@ function renameItem(name) {
 		}, function(result, data) {
 			// wenn die/das ausgewählte Datei/Verzeichnis erfolgreich umbenannt wurde, ist der Umbenennungs-Vorgang abgeschlossen
             if(result) {
-            	
+				
+				//$("> .jstree-anchor .filesitem-name", selectedNodeObj).text(name);
+				//selectedNodeObj.data("name",name);
+				
             	// setzt die Umbenennungs-IDs zurück
-				renamingID = null;
+				renamingNodeID = null;
 				prevName = null;
 				
-				$("> .jstree-anchor .filesitem-name", selectedNode).text(name);
             }
             // wenn die/das ausgewählte Datei/Verzeichnis für den übergebenen Namen nicht umbenannt werden konnte, ...
 			else
-				showAlertDialog((selectedNode.hasClass("filesitem-file") ? "Datei" : "Verzeichnis")+" umbenennen",data.response);
+				showAlertDialog((selectedNodeObj.hasClass("filesitem-file") ? "Datei" : "Verzeichnis")+" umbenennen",data.response);
 			
 			// aktualisiert die Anzeige der Verzeichnisstruktur
 			reloadProject();
@@ -714,22 +744,6 @@ function selectNode(nodeID) {
 	treeInst.deselect_node(treeInst.get_selected());
 	treeInst.select_node(nodeID);
 	selectedNodeID = nodeID;
-}
-
-/*
- * Setzt den Inhalt des Alert Dialogs.
- *
- * @param title Titel für diesen Dialog
- * @param message Informationstext für diesen Dialog
- */
-function showAlertDialog(title,message){
-	$('#modal_alertDialog').modal('show');
-	document.getElementById('modal_alertDialog_title').innerHTML = title;
-	document.getElementById('modal_alertDialog_message').innerHTML = message;
-	
-	$('.modal_alertDialogConfirm').on("click", function() {
-		showAlertDialog("","");
-	})
 }
 
 /*

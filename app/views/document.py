@@ -116,21 +116,25 @@ available_commands = {
     },
     'updatefile': {
         'command': file.updateFile,
-        'parameters': [{'para': globalparas['id'], 'type': PlainTextFile, 'requirerights': ['owner', 'collaborator']},
+        'parameters': [{'para': globalparas['id'], 'type': PlainTextFile,
+                        'requirerights': ['owner', 'collaborator'], 'lockcheck': True},
                        {'para': globalparas['content']}]
     },
     'deletefile': {
         'command': file.deleteFile,
-        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']}]
+        'parameters': [{'para': globalparas['id'], 'type': File,
+                        'requirerights': ['owner', 'collaborator'], 'lockcheck': True}]
     },
     'renamefile': {
         'command': file.renameFile,
-        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']},
+        'parameters': [{'para': globalparas['id'], 'type': File,
+                        'requirerights': ['owner', 'collaborator'], 'lockcheck': True},
                        {'para': globalparas['name'], 'filenamecheck': True}]
     },
     'movefile': {
         'command': file.moveFile,
-        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']},
+        'parameters': [{'para': globalparas['id'], 'type': File,
+                        'requirerights': ['owner', 'collaborator'], 'lockcheck': True},
                        {'para': globalparas['folderid'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
     },
     'uploadfiles': {
@@ -147,8 +151,17 @@ available_commands = {
     },
     'compile': {
         'command': file.latexCompile,
-        'parameters': [{'para': globalparas['id'], 'type': TexFile, 'requirerights': ['owner', 'collaborator']},
+        'parameters': [{'para': globalparas['id'], 'type': TexFile,
+                        'requirerights': ['owner', 'collaborator'], 'lockcheck': True},
                        {'para': globalparas['formatid']}, {'para': globalparas['compilerid']}]
+    },
+    'lockfile': {
+        'command': file.lockFile,
+        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']}]
+    },
+    'unlockfile': {
+        'command': file.unlockFile,
+        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']}]
     },
     'getlog': {
         'command': file.getLog,
@@ -161,16 +174,19 @@ available_commands = {
     },
     'rmdir': {
         'command': folder.rmDir,
-        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
+        'parameters': [{'para': globalparas['id'], 'type': Folder,
+                        'requirerights': ['owner', 'collaborator'], 'lockcheck': True}]
     },
     'renamedir': {
         'command': folder.renameDir,
-        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']},
+        'parameters': [{'para': globalparas['id'], 'type': Folder,
+                        'requirerights': ['owner', 'collaborator']},
                        {'para': globalparas['name'], 'stringcheck': True}]
     },
     'movedir': {
         'command': folder.moveDir,
-        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']},
+        'parameters': [{'para': globalparas['id'], 'type': Folder,
+                        'requirerights': ['owner', 'collaborator'], 'lockcheck': True},
                        {'para': globalparas['folderid'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
     },
     'listfiles': {
@@ -276,6 +292,7 @@ def execute(request):
                 objType = para.get('type')
                 objId = request.POST.get(para['para']['name'])
                 requireRights = para.get('requirerights', ['owner'])
+                lockcheck = para.get('lockcheck', False)
 
                 if objType == Project:
                     rights, failurereturn = util.checkIfProjectExistsAndUserHasRights(objId, user, request,
@@ -283,21 +300,22 @@ def execute(request):
                     if not rights:
                         return failurereturn
                 elif objType == Folder:
-                    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(objId, user, request, requireRights)
+                    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(objId, user, request, requireRights, lockcheck)
                     if not rights:
                         return failurereturn
                 elif objType == File:
-                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request, requireRights,
+                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request, requireRights, lockcheck,
                                                                                    objecttype=File)
                     if not rights:
                         return failurereturn
+
                 elif objType == TexFile:
-                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request, requireRights,
+                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request, requireRights, lockcheck,
                                                                                    objecttype=TexFile)
                     if not rights:
                         return failurereturn
                 elif objType == PlainTextFile:
-                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request, requireRights,
+                    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(objId, user, request, requireRights, lockcheck,
                                                                                    objecttype=PlainTextFile)
                     if not rights:
                         return failurereturn
@@ -319,7 +337,7 @@ def execute(request):
 
         if command == 'getpdf' and fileid:
             requireRights = ['owner', 'collaborator']
-            rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, request.user, request, requireRights,
+            rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, request.user, request, requireRights, lockcheck=False,
                                                                            objecttype=PDF)
             if not rights:
                 filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')

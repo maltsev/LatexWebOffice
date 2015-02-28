@@ -89,6 +89,11 @@ class ViewTestCase(TestCase):
         maintex.source_code = 'Hallo!'
         maintex.save()
 
+
+        self._user2_sharedproject_folder1_texfile = TexFile(name='temp.tex', folder=self._user2_sharedproject_folder1,
+                                                    source_code='invalidtex source code')
+
+
         Collaboration.objects.create(user=self._user1, project=self._user2_sharedproject, isConfirmed=True)
 
 

@@ -109,3 +109,19 @@ div#pdfviewer_msg{
     padding-left:10px;
     padding-right:10px;
 }
+
+
+
+#maincontainer.disabled .ace_content {
+    background: #dcdcdc;
+}
+
+#maincontainer.disabled #centerdiv {
+    width: 100% !important;
+}
+
+#maincontainer.disabled #pdf,
+#maincontainer.disabled .ui-layout-resizer {
+    display: none !important;
+}
+>>>>>>> dev
