@@ -925,7 +925,7 @@ class FileTestClass(ViewTestCase):
         self.assertEqual(response['Content-Type'], mimetypes.types_map['.tex'])
         # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
         ori_file = self._user1_tex1.getContent()
-        self.assertEqual(response['Content-Length'], str(util.getFileSize(ori_file)))
+        self.assertTrue(0.99 < (int(response['Content-Length']) / util.getFileSize(ori_file)) < 1.01)
         ori_file.close()
 
         # Content-Disposition sollte 'attachment; filename='test_bin.bin'' sein
@@ -949,7 +949,7 @@ class FileTestClass(ViewTestCase):
         self.assertEqual(response['Content-Type'], mimetypes.types_map['.tex'])
         # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
         file_content = sharedproject_maintex.getContent()
-        self.assertEqual(response['Content-Length'], str(util.getFileSize(file_content)))
+        self.assertTrue(0.99 < (int(response['Content-Length']) / util.getFileSize(file_content)) < 1.01)
 
         # Content-Disposition sollte 'attachment; filename='main.tex'' sein
         self.assertEqual(response['Content-Disposition'], ('attachment; filename=\"' + sharedproject_maintex.name) + '\"')
