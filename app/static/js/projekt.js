@@ -135,9 +135,8 @@ $(function() {
 	$('.sort-2').click(function() {
 		updateSorting(2);
 	})
-	// initialisiert das Sortierungsicon im entsprechenden Menü-Eintrag
-	$('.sort-'+sorting).children('.glyphicon').addClass('glyphicon-arrow-down');
-	$('.sort-'+sorting).children('.glyphicon').removeAttr("data-hidden");
+	
+	initSorting();
 	
 	
 	// ----------------------------------------------------------------------------------------------------
@@ -835,7 +834,7 @@ $(function() {
 				'id':projectId
 			}, function(result,data) {
 				if(result) {
-					showAlertDialog("Freigabe entziehen","Sie haben dem Benutzer erfolgreich die Projektfreigabe entzogen.")
+					showAlertDialog("Freigabe entziehen","Sie haben den ausgewählten Benutzern erfolgreich die Projektfreigabe entzogen.")
 				}
 				else {
 					showAlertDialog("Freigabe entziehen",data.response);
@@ -956,6 +955,52 @@ $(function() {
 		showPopover(treeInstProjects.get_node(nodeID));
 		// versetzt die betroffene Knoten-Komponente in den Bearbeitungsmodus
 		treeInstProjects.edit(nodeID,text);
+	}
+	
+	/*
+	 * Liefert den aktuellen Cookie-Schlüssel.
+	 */
+	function getCookieKey(sortValue) {
+		return encodeURIComponent(user)+"#"+(isProjectsPage ? "P" : "T");
+	}
+	
+	/*
+	 * Initialisierung die Sortierungsvariablen und -icons gemäß der vorliegenden Cookies.
+	 * Liegen keine entsprechenden Cookies vor, erfolgt eine Initialisierung gemäß der Initialwerte der Sortierungsvariablen (nach Name, aufsteigend).
+	 */
+	function initSorting() {
+		
+		var cookies = document.cookie.split('; ');
+		for(var i=0; i<cookies.length; i++) {
+			
+			key   = cookies[i].substr(0,cookies[i].indexOf("="));
+			value = cookies[i].substr(cookies[i].indexOf("=")+1);
+			
+			if(key==getCookieKey()) {
+				values = value.split(',');
+				if(values.length==2 && !isNaN(values[0]) && !isNaN(values[1])) {
+					
+					// Sortierungswert
+					sortingNum = parseInt(values[0]);
+					if(0<=sortingNum && sortingNum<=2)
+						sorting = sortingNum;
+					
+					// Sortierungsrichtung
+					sortOrderNum = parseInt(values[1]);
+					if(sortOrderNum==1 || sortOrderNum==-1)
+						sortOrder = sortOrderNum;
+				}
+			}
+		}
+		
+		// initialisiert das Sortierungsicon im entsprechenden Menü-Eintrag
+		if(sortOrder==1)
+			$('.sort-'+sorting).children('.glyphicon').addClass('glyphicon-arrow-down');
+		else {
+			$('.sort-'+sorting).children('.glyphicon').removeClass('glyphicon-arrow-down');
+			$('.sort-'+sorting).children('.glyphicon').addClass('glyphicon-arrow-up');
+		}
+		$('.sort-'+sorting).children('.glyphicon').removeAttr("data-hidden");
 	}
 	
 	/*
@@ -1167,6 +1212,10 @@ $(function() {
 		$('.sort-'+newSorting).children('.glyphicon').removeAttr("data-hidden");
 		
 		sorting = newSorting;
+		
+		// speichert die Sortierung für den derzeitigen Nutzer im entsprechenden Cookie
+		document.cookie = getCookieKey()+"="+sorting+","+sortOrder+"; expires="+Number.POSITIVE_INFINITY+"; path=/";
+		
 		ignoreSorting = false;
 		treeInstProjects.refresh();
 		
