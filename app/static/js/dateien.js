@@ -89,7 +89,7 @@ $(function () {
 		// erzeugt eine neue Knoten-Komponente (als Datei) im ausgewählten Verzeichnis
 		ignoreSorting = true;
 		creatingFileNodeID = treeInst.create_node(par,{"type": "file"});
-		treeInst.set_icon(creatingFolderNodeID,"glyphicon glyphicon-file");
+		treeInst.set_icon(creatingFileNodeID,"glyphicon glyphicon-file");
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
 		editNode(creatingFileNodeID,"");
 		
