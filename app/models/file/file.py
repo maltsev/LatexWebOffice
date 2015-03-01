@@ -5,7 +5,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Do 26 Feb 2015 16:58:30 CET
+* Last Modified : So 01 Mär 2015 22:39:38 CET
 
 * Author :  maltsev
 
@@ -16,9 +16,11 @@
 """
 import io
 import os
+from datetime import timedelta
 
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 
 class FileManager(models.Manager):
@@ -39,6 +41,7 @@ class File(models.Model):
     mimeType = models.CharField(max_length=255, default='application/octet-stream')
     size = models.PositiveIntegerField(default=0)
     lasteditor = models.ForeignKey(settings.AUTH_USER_MODEL,blank=True,null=True)
+    lockexpires = models.DateTimeField(blank=True,null=True)
     objects = FileManager()
 
     class Meta:
@@ -47,6 +50,35 @@ class File(models.Model):
 
     def getContent(self):
         return io.StringIO()
+
+
+    def lock(self, user):
+        if self.isLocked() and self.lockedBy() != user:
+            raise Exception(common.constants.ERROR_MESSAGE['FILELOCKED'])
+
+        self.lasteditor = user
+        # Sperre für 10 Minuten
+        self.lockexpires = timezone.now() + timedelta(minutes=10)
+        self.save()
+
+
+    def unlock(self):
+        self.lockexpires = None
+        self.save()
+
+
+    def lockedBy(self):
+        if not self.isLocked():
+            return None
+
+        return self.lasteditor
+
+
+    def isLocked(self):
+        if not self.lockexpires:
+            return False
+
+        return timezone.now() < self.lockexpires
 
     ##
     # Abbildet die Datei auf der Festplatte und gibt den temporären Verzeichnispfad zurück

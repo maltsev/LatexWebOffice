@@ -1,7 +1,7 @@
 /*
  * @author: Thore Thießen, Ingolf Bracht, Munzir Mohamed, Kirill Maltsev
  * @creation: 04.12.2014 - sprint-nr: 2
- * @last-change: 19.02.2015 - sprint-nr: 5
+ * @last-change: 27.02.2015 - sprint-nr: 6
  */
 
 var creatingNodeID = null;			// ID der Knoten-Komponente des derzeitig zu erstellenden Projektes
@@ -19,32 +19,29 @@ var selectedNodeIDProjects = "";
 var selectedNodeIDInvitations = "";
 var prevSelectedNodeID 	= "";
 
-var allprojects=null; // Array von allen Projekten
+var allprojects=null;				// Array von allen Projekten
 
-var treeProjects;
-var treeInvitations;
 var treeInstInvitations;
 var treeInstProjects;
 
-var isProjectsPage = true; // false für die Seite mit Vorlagen;
+var isProjectsPage = true;			// false für die Seite mit Vorlagen;
+
+var sorting = 0;					// Sortierungsvariable ( 0 = Name, 1 = Erstellungsdatum, 2 = Autor )
+var sortOrder = 1;					// Sortierungsrichtung ( 1 = aufsteigend, -1 = absteigend )
+var ignoreSorting = false;			// für temporäres Ignorieren der Sortierung bei anlegender Knoten-Komponente ('Erstellen' und 'Duplizieren')
+var sortReplacements = {"ä":"a", "ö":"o", "ü":"u", "ß":"ss" };
 
 /*
  * Initialisiert den JSTree und die Menü-Einträge.
  */
-$(document).ready(function() {
-
-    isProjectsPage = $(".templateswrapper").length === 0;
+$(function() {
 	
-	treeProjects = $('.projectswrapper').jstree({"core"    : {"check_callback" : true,"multiple" : false},
-										 "plugins" : ["state"]});
-	treeInvitations = $('.invitationswrapper').jstree({"core"    : {"check_callback" : true,"multiple" : false},
-										 "plugins" : ["state"]});
-	/*
-	 * Referenziert eine bestehende JSTree-Instanz (ohne eine neue zu erzeugen)
-	 * (zu verwenden, um darauf knotenspezifische Methoden anzuwenden)
-	 */
-	treeInstProjects = $('.projectswrapper').jstree();
-	treeInstInvitations = $('.invitationswrapper').jstree();
+	isProjectsPage = $(".templateswrapper").length === 0;
+	
+	refreshProjects();
+	if(isProjectsPage)
+		refreshInvitations();
+	
 	
 	// Modal zum Bestätigen/Abbrechen des Löschvorgangs
 	$('#modal_deleteConfirmation').on('hidden.bs.modal', function(e) {
@@ -126,145 +123,22 @@ $(document).ready(function() {
 		}
 	});
 	
-	
-	// ----------------------------------------------------------------------------------------------------
-	//                                               LISTENER                                              
-	// ----------------------------------------------------------------------------------------------------
-	
-	// Auswahl-Listener
-	treeProjects.bind('select_node.jstree',function(e,data) {
-		
-		// Deselektion (die der Selection-ID zugehörige Knoten-Komponente wurde erneut selektiert)
-		if(selectedNodeIDProjects===data.node.id) {
-			
-			// deselektiert die betroffene Knoten-Komponente
-			treeInstProjects.deselect_node(data.node);
-			// setzt die Selection-ID zurück
-			selectedNodeIDProjects = "";
-			
-			// setzt den Autor zurück
-			currentAuthor = user;
-			
-		}
-		// Selektion (eine Knoten-Komponente wurde selektiert, deren ID nicht mit der Selection-ID übereinstimmt)
-		else {
-			
-			// aktualisiert die Selection-ID gemäß der ausgewählten Knoten-Komponente
-			selectedNodeIDProjects = data.node.id;
-			currentAuthor = data.node.author;
-			prevSelectedNodeID = data.node.id;
-			
-		}
-		
-		// aktualisiert die Aktivierungen der Menü-Schaltflächen
-		updateMenuButtonsProject();
+	// 'Sortieren nach Name'-Button
+	$('.sort-0').click(function() {
+		updateSorting(0);
 	});
-	
-	// Auswahl-Listener
-	treeInvitations.bind('select_node.jstree',function(e,data) {
-		
-		// Deselektion (die der Selection-ID zugehörige Knoten-Komponente wurde erneut selektiert)
-		if(selectedNodeIDInvitations===data.node.id) {
-			
-			// deselektiert die betroffene Knoten-Komponente
-			treeInstInvitations.deselect_node(data.node);
-			// setzt die Selection-ID zurück
-			selectedNodeIDInvitations = "";
-			
-		}
-		// Selektion (eine Knoten-Komponente werde selektiert, deren ID nicht mit der Selection-ID übereinstimmt)
-		else {
-			
-			// aktualisiert die Selection-ID gemäß der ausgewählten Knoten-Komponente
-			selectedNodeIDInvitations = data.node.id;
-			
-		}
-		
-		// aktualisiert die Aktivierungen der Menü-Schaltflächen
-		updateMenuButtonsInvitation();
+	// 'Sortieren nach Erstellungsdatum'-Button
+	$('.sort-1').click(function() {
+		updateSorting(1);
 	});
+	// 'Sortieren nach Autor'-Button
+	$('.sort-2').click(function() {
+		updateSorting(2);
+	})
+	// initialisiert das Sortierungsicon im entsprechenden Menü-Eintrag
+	$('.sort-'+sorting).children('.glyphicon').addClass('glyphicon-arrow-down');
+	$('.sort-'+sorting).children('.glyphicon').removeAttr("data-hidden");
 	
-	// ----------------------------------------------------------------------------------------------------
-	
-	// Doppelklick-Listener
-	treeProjects.bind("dblclick.jstree",function(e) {
-		
-		openProject();
-		
-	});
-	
-	// ----------------------------------------------------------------------------------------------------
-	
-	// Tasten-Listener
-	treeProjects.bind('keydown',function(e) {
-		
-		// Entf-Taste
-		if(e.keyCode===46 && !editMode) {
-			deletingNodeID = selectedNodeIDProjects;
-			$('#modal_deleteConfirmation').modal('show');
-		}
-	});
-	
-	// ----------------------------------------------------------------------------------------------------
-	
-	// Umbenennungs-Listener (für 'Erstellen', 'Umbenennen' und 'Duplizieren')
-	treeProjects.bind('rename_node.jstree',function(e) {
-		
-		// blendet das Eingabe-Popover aus
-		$('.input_popover').popover('hide');
-		
-		editMode = false;
-		
-		// wenn die Eingabe des Namens eines neuen Projektes bestätigt wurde (= Erstellen eines Projektes), ...
-		if(creatingNodeID!=null) {
-			
-			// ... und kein Name eingegeben wurde, ...
-			if(treeInstProjects.get_text(creatingNodeID)==="") {
-				// ... wird der Erstellungs-Vorgang abgebrochen
-				treeInstProjects.delete_node(creatingNodeID);
-				creatingNodeID = null;
-				updateMenuButtonsProject();
-			}
-			// ... und ein Name eingegeben wurde, ...
-			else
-				// ... wird severseitig ein neues Projekt mit dem festgelegten Namen erzeugt
-				createProject(treeInstProjects.get_text(creatingNodeID));
-			}
-		// wenn die Eingabe des Names eines zu duplizierenden Projektes bestätigt wurde (= Duplizieren eines Projektes), ...
-		else if(duplicateID!=null) {
-		
-			// ... und kein Name eingegeben wurde, ...
-			if(treeInstProjects.get_text(duplicateNodeID)==="") {
-				// ... wird der Duplizierungs-Vorgang abgebrochen
-				treeInstProjects.delete_node(duplicateNodeID);
-				duplicateNodeID = null;
-				duplicateID = null;
-				updateMenuButtonsProject();
-			}
-			// ... und ein Name eingegeben wurde, ...
-			else
-				// ... wird serverseitig das zum duplizieren ausgewählte Projekt mit dem festgelegten Namen dupliziert
-				duplicateProject(duplicateID,treeInstProjects.get_text(duplicateNodeID));
-		}
-		// wenn der neue Name für ein bestehendes Projekt bestätigt wurde (= Umbenennen)
-		else if(renameID!=null) {
-			
-			// ... und kein oder derselbe Name eingegeben wurde, ...
-			if(treeInstProjects.get_text(renameID)==="" || treeInstProjects.get_text(renameID)===prevName) {
-				// ... wird der Umbenennungs-Vorgang abgebrochen
-				//treeInstProjects.set_text(renameID,prevName);
-				node = treeInstProjects.get_node(renameID);
-				treeInstProjects.set_text(node,getHTML(node));
-				renameID = null;
-				updateMenuButtonsProject();
-			}
-			// ... und ein, vom bisherigen Namen verschiedener, Name eingegeben wurde, ...
-			else
-				// ... wird das serverseitige Umbenennen des betroffenen Projektes eingeleitet
-				renameProject(treeInstProjects.get_text(renameID));
-		}
-		
-	});
 	
 	// ----------------------------------------------------------------------------------------------------
 	//                                             MENÜ-EINTRÄGE                                           
@@ -281,7 +155,8 @@ $(document).ready(function() {
 	$('.projecttoolbar-new').on("click", function() {
 		
 		// erzeugt eine neue Knoten-Komponente
-		creatingNodeID = addNode('project',null);
+		ignoreSorting = true;
+		creatingNodeID = treeInstProjects.create_node("#","");
 		// selektiert die erzeugte Knoten-Komponente
 		selectNode(creatingNodeID);
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
@@ -308,10 +183,10 @@ $(document).ready(function() {
 		// Projekt-ID des umzubenennenden Projektes
 		renameID = node.id;
 		// derzeitiger Name des Projektes (für etwaiges Zurückbenennen)
-		prevName = node.projectname;
+		prevName = ""+$("#"+renameID).data("name");
 		
 		// versetzt die Knoten-Komponente in den Bearbeitungsmodus
-		editNode(renameID,node.projectname);
+		editNode(renameID,prevName);
 		
 		// aktualisiert die Aktivierungen der Menü-Schaltflächen
 		updateMenuButtonsProject();
@@ -328,9 +203,8 @@ $(document).ready(function() {
 		duplicateID = selectedNodeIDProjects;
 		
 		// erzeugt eine neue Knoten-Komponente
-		duplicateNodeID = addNode('project',null);
-		// selektiert die erzeugte Knoten-Komponente
-		selectNode(duplicateNodeID);
+		ignoreSorting = true;
+		duplicateNodeID = treeInstProjects.create_node("#","");
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
 		editNode(duplicateNodeID,"");
 		
@@ -408,260 +282,424 @@ $(document).ready(function() {
 	$('.modal_denyInvitationConfirmation_yes').on("click", function() {
 		denyInvitation();
 	});
-
-	refreshProjects();
-	if(isProjectsPage)
-		listInvitations();
-});
-
-// ----------------------------------------------------------------------------------------------------
-//                                           FUNKTIONALITÄTEN                                          
-//                                      (client- und serverseitig)                                     
-// ----------------------------------------------------------------------------------------------------
-
-/*
- * Öffnet das momentan ausgewählte Projekt durch Wechseln zu dessen Datei-Übersicht.
- */
-function openProject() {
 	
-	document.location.assign('/dateien/#' + treeInstProjects.get_node(prevSelectedNodeID).rootid);
 	
-}
-
-/*
- * Der Nutzer akzeptiert die Einladung zum Projekt und nimmt an der Kollabaration teil.
- * @param projectId - Die Id des Projektes, dessen Einladung vom Nutzer akzeptiert wurde.
- */
-function acceptInvitation() {
-	documentsJsonRequest({
-			'command': 'activatecollaboration',
-			'id':selectedNodeIDInvitations
-		}, function(result,data) {
-			if(result) {
-				refreshProjects();
-				listInvitations();
-				showAlertDialog("Einladung zur Kollaboration annehmen","Sie haben die Einladung zur Kollaboration angenommen.");
-			}
-			else {
-				showAlertDialog("Einladung zur Kollaboration annehmen",data.response);
-			}
-	});
-}
-
-/*
- * Der Nutzer lehnt die Einladung zum Projekt zur Kollaboration ab.
- * @param projectId - Die Id des Projektes, dessen Einladung vom Nutzer abgelehnt wurde.
- */
-function denyInvitation() {
-	documentsJsonRequest({
-			'command': 'quitcollaboration',
-			'id':selectedNodeIDInvitations
-		}, function(result,data) {
-			if(result) {
-				refreshProjects();
-				listInvitations();
-				showAlertDialog("Einladung zur Kollaboration ablehnen","Sie haben die Einladung zur Kollaboration abgelehnt.");
-			}
-			else {
-				showAlertDialog("Einladung zur Kollaboration ablehnen",data.response);
-			}
-	});
-}
-
-/*
- * Der Nutzer beendet die Kollaboration.
- * @param projectId - Die Id des Projektes, dessen Einladung vom Nutzer abgelehnt wurde.
- */
-function quitCollaboration() {
-	documentsJsonRequest({
-			'command': 'quitcollaboration',
-			'id':selectedNodeIDProjects
-		}, function(result,data) {
-			if(result) {
-				refreshProjects();
-				showAlertDialog("Kollaboration beenden","Sie haben die Kollaboration beendet.");
-			}
-			else {
-				showAlertDialog("Kollaboration beenden",data.response);
-			}
-	});
 	
-}
-
-/*
- * Sendet an den Account mit der übergebenen E-Mail Adresse eines Nutzers eine Einladung zum Projekt.
- * @param projectId - Die Id des Projektes, für das der Nutzer eingeladen wird
- * @param email - E-Mail Adresse des eingeladenen Nutzers
- */
-function sendProjectInvitation(projectId,email) {
+	// ----------------------------------------------------------------------------------------------------
+	//                                                JSTREE                                               
+	//                                               PROJEKTE                                              
+	// ----------------------------------------------------------------------------------------------------
 	
-	documentsJsonRequest({
-			'command': 'inviteuser',
-			'name': email,
-			'id':projectId
-		}, function(result,data) {
-			if(result) {
-				showAlertDialog("Projekt freigeben","Der Nutzer wurde zur Kollaboration Ihres Projektes eingeladen.");
-				$('.projecttoolbar-deny').prop("disabled", false);
-
-			}
-			else {
-				showAlertDialog("Projekt freigeben",data.response);
-			}
-	});
-}
-
-/*
- * Entzieht einem Nutzer für ein angegebenes Projekt die Rechte.
- * @param projectId - Die Id des Projektes, von dem für den Nutzer die Rechte entzogen werden.
- * @param user - Der Nutzer, dem die Rechte entzogen werden.
- */
-function denyProjectAccess(projectId,user) {
-	documentsJsonRequest({
-			'command': 'cancelcollaboration',
-			'name': user,
-			'id':projectId
-		}, function(result,data) {
-			if(result) {
-				showAlertDialog("Freigabe entziehen","Sie haben dem Benutzer erfolgreich die Projektfreigabe entzogen.")
-			}
-			else {
-				showAlertDialog("Freigabe entziehen",data.response);
-			}
-			updateMenuButtonsProject();
-	});
-}
-
-/*
- * Zeigt die eingeladenen Benutzer an. 
- * @param projectId - ID des Projektes, das freigegeben wurde.
- */
-function showInvitedUser(){
-	documentsJsonRequest({
-			'command': 'listinvitedusers',
-			'id':selectedNodeIDProjects
-		}, function(result,data) {
-			if(result) {
-				var number_of_invitedusers = data.response.length;
-				document.getElementById('invitedUser').innerHTML = "";
-				for (var i = 0; i < number_of_invitedusers; i++){
-					document.getElementById('invitedUser').innerHTML = document.getElementById('invitedUser').innerHTML+"<div class=\"row\"><div class=\"col-lg-6\"><div class=\"input-group\"><span class=\"input-group-addon\"><input name=\"denyProjectAccess\" value=\""+data.response[i]+"\" type=\"checkbox\" aria-label=\"checked\"></span><input type=\"text\" class=\"form-control\" disabled aria-label=\"user\" value=\""+data.response[i]+"\"></div></div></div>";
+	/*
+	 * Aktualisiert die Anzeige der Projekte des Benutzers.
+	 */
+	function refreshProjects() {
+		
+		// aktualisiert den JSTree anhand der bestehenden Projekte
+		documentsJsonRequest({
+			'command': isProjectsPage ? 'listprojects' : 'listtemplates',
+			}, function(result,data) {
+				if(result) {
+					allprojects=data.response;
+					renderProjects(data.response);
 				}
-			}
-	});
-}
+		});
+		
+		// aktualisiert die Aktivierungen der Menü-Schaltflächen
+		updateMenuButtonsProject();
+	}
+	
+    var treeProjects = null;
+    function renderProjects(data) {
+    	
+        var jsTreeProjectsData = transcodeProjectsData(data);
 
-/*
- * Aktualisiert die Anzeige der Projekte des Benutzers.
- */
-function listInvitations() {
-	// leert den JSTrees
-	treeInstInvitations.settings.core.data = null;
-	treeInstInvitations.refresh();
-	
-	// aktualisiert den JSTree anhand der bestehenden Projekte
-	documentsJsonRequest({
-		'command': 'listunconfirmedcollaborativeprojects'
-		}, function(result,data) {
-			if(result) {
-				allprojects=data.response;
-				// legt für jedes Projekt eine Knoten-Komponente an
-				for(var i=0; i<data.response.length; ++i)
-					addNode('invitation',data.response[i]);
+        if(treeProjects) {
+            treeInstProjects.settings.core.data = jsTreeProjectsData;
+            ignoreSorting = false;
+            treeInstProjects.refresh();
+            return;
+        }
+        
+		treeProjects = $('.projectswrapper').jstree({
+			core: {
+				check_callback: true,
+				multiple: false,
+				data: jsTreeProjectsData
+			},
+            plugins: ["sort","state"],
+            sort: function(a,b) {
+            	
+            	if(ignoreSorting)
+            		return -1;
+            	
+            	var compare = 1;
+            	
+            	// Sortierung nach Projektname (auch bei Sortierung nach Autor für zwei Knoten-Komponenten mit demselben Autor)
+            	if(sorting==0 || (sorting==2 && this.get_node(a).li_attr["data-author"]==this.get_node(b).li_attr["data-author"]))
+            		compare = (""+this.get_node(a).li_attr["data-name"]).toLowerCase().replace(/[äöüß]/g, function($0) { return sortReplacements[$0] }) >
+            				  (""+this.get_node(b).li_attr["data-name"]).toLowerCase().replace(/[äöüß]/g, function($0) { return sortReplacements[$0] }) ? 1 : -1;
+            	// Sortierung nach Erstellungsdatum
+            	else if(sorting==1)
+            		compare = this.get_node(a).li_attr["data-createtime"] < this.get_node(b).li_attr["data-createtime"] ? 1 : -1;
+            	// Sortierung nach Autor (bei übereinstimmenden Autoren erfolgt Sortierung nach Projektname s.o.)
+            	else if(sorting==2)
+            		compare = this.get_node(a).li_attr["data-author"] > this.get_node(b).li_attr["data-author"] ? 1 : -1;
+            	
+            	return compare*sortOrder;
 			}
-	});
-	
-	// aktualisiert die Aktivierungen der Menü-Schaltflächen
-	updateMenuButtonsInvitation();
-}
-
-/*
- * Erstellt ein neues Projekt mit dem übergebenen Namen.
- *
- * @param name Name für das zu erstellende Projekt
- */
-function createProject(name) {
-	
-	// erzeugt severseitig ein neues Projekt mit dem festgelegten Namen
-	documentsJsonRequest({
-			'command': 'projectcreate',
-			'name': name
-		}, function(result,data) {
-			// wenn ein entsprechendes Projekt erstellt wurde, ist der Erstellungs-Vorgang abgeschlossen
-			if(result) {
+        });
+        
+        treeInstProjects = $('.projectswrapper').jstree();
+        
+		// ----------------------------------------------------------------------------------------------------
+		//                                               LISTENER                                              
+		// ----------------------------------------------------------------------------------------------------
+		
+		// Erzeugungs-Listener (für Auto-Selektion)
+		treeProjects.bind('create_node.jstree',function(e,data) {
+			
+			// selektiert die erzeugte Knoten-Komponente
+			selectNode(data.node);
+			
+		});
+		
+		// ----------------------------------------------------------------------------------------------------
+		
+		// Auswahl-Listener
+		treeProjects.bind('select_node.jstree',function(e,data) {
+			
+			// Deselektion (die der Selection-ID zugehörige Knoten-Komponente wurde erneut selektiert)
+			if(selectedNodeIDProjects===data.node.id) {
 				
-				// setzt die Erstellungs-ID zurück
-				creatingNodeID = null;
+				// deselektiert die betroffene Knoten-Komponente
+				treeInstProjects.deselect_node(data.node.id);
+				// setzt die Selection-ID zurück
+				selectedNodeIDProjects = "";
+				
+				// setzt den Autor zurück
+				currentAuthor = user;
+				
+			}
+			// Selektion (eine Knoten-Komponente wurde selektiert, deren ID nicht mit der Selection-ID übereinstimmt)
+			else {
+				
+				// aktualisiert die Selection-ID gemäß der ausgewählten Knoten-Komponente
+				selectedNodeIDProjects = data.node.id;
+				currentAuthor = data.node.li_attr["data-author"];
+				prevSelectedNodeID = data.node.id;
+				
+			}
+			
+			// aktualisiert die Aktivierungen der Menü-Schaltflächen
+			updateMenuButtonsProject();
+		});
+		
+		// ----------------------------------------------------------------------------------------------------
+		
+		// Doppelklick-Listener
+		treeProjects.bind("dblclick.jstree",function(e) {
+			
+			openProject();
+			
+		});
+		
+		// ----------------------------------------------------------------------------------------------------
+		
+		// Tasten-Listener
+		treeProjects.bind('keydown',function(e) {
+			
+			// Entf-Taste
+			if(e.keyCode===46 && !editMode) {
+				deletingNodeID = selectedNodeIDProjects;
+				$('#modal_deleteConfirmation').modal('show');
+			}
+			
+		});
+		
+		// ----------------------------------------------------------------------------------------------------
+		
+		// Umbenennungs-Listener (für 'Erstellen', 'Umbenennen' und 'Duplizieren')
+		treeProjects.bind('rename_node.jstree',function(e) {
+			
+			// blendet das Eingabe-Popover aus
+			$('.input_popover').popover('hide');
+			
+			editMode = false;
+			
+			// wenn die Eingabe des Namens eines neuen Projektes bestätigt wurde (= Erstellen eines Projektes), ...
+			if(creatingNodeID!=null) {
+				
+				// ... und kein Name eingegeben wurde, ...
+				if(treeInstProjects.get_text(creatingNodeID)==="") {
+					// ... wird der Erstellungs-Vorgang abgebrochen
+					treeInstProjects.delete_node(creatingNodeID);
+					creatingNodeID = null;
+					updateMenuButtonsProject();
+				}
+				// ... und ein Name eingegeben wurde, ...
+				else
+					// ... wird severseitig ein neues Projekt mit dem festgelegten Namen erzeugt
+					createProject(treeInstProjects.get_text(creatingNodeID));
+				}
+			// wenn die Eingabe des Names eines zu duplizierenden Projektes bestätigt wurde (= Duplizieren eines Projektes), ...
+			else if(duplicateID!=null) {
+			
+				// ... und kein Name eingegeben wurde, ...
+				if(treeInstProjects.get_text(duplicateNodeID)==="") {
+					// ... wird der Duplizierungs-Vorgang abgebrochen
+					treeInstProjects.delete_node(duplicateNodeID);
+					duplicateNodeID = null;
+					duplicateID = null;
+					updateMenuButtonsProject();
+				}
+				// ... und ein Name eingegeben wurde, ...
+				else
+					// ... wird serverseitig das zum duplizieren ausgewählte Projekt mit dem festgelegten Namen dupliziert
+					duplicateProject(duplicateID,treeInstProjects.get_text(duplicateNodeID));
+			}
+			// wenn der neue Name für ein bestehendes Projekt bestätigt wurde (= Umbenennen)
+			else if(renameID!=null) {
+				
+				// ... und kein oder derselbe Name eingegeben wurde, ...
+				if(treeInstProjects.get_text(renameID)==="" || treeInstProjects.get_text(renameID)===prevName) {
+					// ... wird der Umbenennungs-Vorgang abgebrochen
+					renameID = null;
+					refreshProjects();
+				}
+				// ... und ein, vom bisherigen Namen verschiedener, Name eingegeben wurde, ...
+				else
+					// ... wird das serverseitige Umbenennen des betroffenen Projektes eingeleitet
+					renameProject(treeInstProjects.get_text(renameID));
+			}
+			
+		});
+	}
+	
+	// ----------------------------------------------------------------------------------------------------
+	
+    var projectTemplate = doT.template($("#template_projectsitem").text());
+	
+	function transcodeProjectsData(rawData) {
+		
+        var jsTreeProjectsData = [];
+        
+        $.each(rawData || [], function (i,project) {
+        	
+        	project.createTime = getRelativeTime(project.createtime);
+        	
+            jsTreeProjectsData.push({
+                id: project.id,
+                text: projectTemplate(project),
+                li_attr: {"class": "projectsitem", "data-id": project.id,
+                								   "data-name": project.name,
+                								   "data-createtime": project.createtime,
+                								   "data-author": project.ownername,
+                								   "data-rootid": project.rootid}
+            });
+        });
+
+        return jsTreeProjectsData;
+    }
+	
+	// ----------------------------------------------------------------------------------------------------
+	//                                               JSTREE                                                
+	//                                             EINLADUNGEN                                             
+	// ----------------------------------------------------------------------------------------------------
+	
+	/*
+	 * Aktualisiert die Anzeige der Einladungen des Benutzers.
+	 */
+	function refreshInvitations() {
+		
+		// aktualisiert den JSTree anhand der bestehenden Einladungen
+		documentsJsonRequest({
+			'command': 'listunconfirmedcollaborativeprojects',
+			}, function(result,data) {
+				if(result) {
+					renderInvitations(data.response);
+				}
+		});
+		
+		// aktualisiert die Aktivierungen der Menü-Schaltflächen
+		if(treeInstInvitations)
+			updateMenuButtonsInvitation();
+	}
+	
+    var treeInvitations = null;
+    function renderInvitations(data) {
+    	
+        var jsTreeInvitationsData = transcodeInvitationsData(data);
+
+        if(treeInvitations) {
+            treeInstInvitations.settings.core.data = jsTreeInvitationsData;
+            treeInstInvitations.refresh();
+            return;
+        }
+        
+		treeInvitations = $('.invitationswrapper').jstree({
+			core: {
+				check_callback: true,
+				multiple: false,
+				data: jsTreeInvitationsData
+			},
+			plugins: ["state"]
+		});
+        
+        treeInstInvitations = $('.invitationswrapper').jstree();
+        
+		// ----------------------------------------------------------------------------------------------------
+		//                                               LISTENER                                              
+		// ----------------------------------------------------------------------------------------------------
+		
+		// Auswahl-Listener
+		treeInvitations.bind('select_node.jstree',function(e,data) {
+			
+			// Deselektion (die der Selection-ID zugehörige Knoten-Komponente wurde erneut selektiert)
+			if(selectedNodeIDInvitations===data.node.id) {
+				
+				// deselektiert die betroffene Knoten-Komponente
+				treeInstInvitations.deselect_node(data.node.id);
+				// setzt die Selection-ID zurück
+				selectedNodeIDInvitations = "";
+				
+			}
+			// Selektion (eine Knoten-Komponente werde selektiert, deren ID nicht mit der Selection-ID übereinstimmt)
+			else {
+				
+				// aktualisiert die Selection-ID gemäß der ausgewählten Knoten-Komponente
+				selectedNodeIDInvitations = data.node.id;
+				
+			}
+			
+			// aktualisiert die Aktivierungen der Menü-Schaltflächen
+			updateMenuButtonsInvitation();
+		});
+	
+	}
+	
+	// ----------------------------------------------------------------------------------------------------
+	
+	function transcodeInvitationsData(rawData) {
+		
+        var jsTreeInvitationsData = [];
+        
+        $.each(rawData || [], function (i,invitation) {
+        	
+        	invitation.createTime = getRelativeTime(invitation.createtime);
+        	
+            jsTreeInvitationsData.push({
+                id: invitation.id,
+                text: projectTemplate(invitation),
+                li_attr: {"class": "invitationsitem", "data-id": invitation.id,
+                									  "data-name": invitation.name,
+                									  "data-author": invitation.ownername,
+                									  "data-rootid": invitation.rootid}
+            });
+        });
+        
+        return jsTreeInvitationsData;
+    }
+    
+    
+    
+	// ----------------------------------------------------------------------------------------------------
+	//                                           FUNKTIONALITÄTEN                                          
+	//                                      (client- und serverseitig)                                     
+	// ----------------------------------------------------------------------------------------------------
+	
+	/*
+	 * Öffnet das momentan ausgewählte Projekt durch Wechseln zu dessen Datei-Übersicht.
+	 */
+	function openProject() {
+		
+		document.location.assign('/dateien/#' + treeInstProjects.get_node(prevSelectedNodeID).li_attr["data-rootid"]);
+		
+	}
+	
+	/*
+	 * Erstellt ein neues Projekt mit dem übergebenen Namen.
+	 *
+	 * @param name Name für das zu erstellende Projekt
+	 */
+	function createProject(name) {
+		
+		// erzeugt severseitig ein neues Projekt mit dem festgelegten Namen
+		documentsJsonRequest({
+				'command': 'projectcreate',
+				'name': name
+			}, function(result,data) {
+					// wenn ein entsprechendes Projekt erstellt wurde, ist der Erstellungs-Vorgang abgeschlossen
+					if(result) {
+						
+						treeInstProjects.set_id(treeInstProjects.get_node(creatingNodeID),data.response.id);
+						
+						if(name!=data.response.name)
+							showAlertDialog("Projekt erstellen",
+											"Ein Projekt mit dem Namen "+name+" existiert bereits:<br>"+
+											"Es wurde ein neues Projekt <b>"+data.response.name+"</b> erstellt.");
+						}
+					// wenn ein entsprechendes Projekt nicht angelegt werden konnte, ...
+					else {
+						// ... wird die Knoten-Komponente zur Angabe eines neuen Namens erneut in den Bearbeitungsmodus versetzt (s. Umbenennungs-Listener)
+						// node = treeInstProjects.get_node(creatingNodeID);
+						// treeInstProjects.set_text(node,getHTML(node));
+						// treeInstProjects.edit(creatingNodeID,"");
+						showAlertDialog("Projekt erstellen",data.response);
+					}
+					
+					// setzt die Erstellungs-ID zurück
+					creatingNodeID = null;
+					
+					// aktualisiert die Anzeige der Projekte
+					refreshProjects();
+			});
+	}
+	
+	/*
+	 * Löscht das momentan ausgewählte Projekt.
+	 */
+	function deleteProject() {
+	
+		documentsJsonRequest({
+				'command': isProjectsPage ? 'projectrm' : 'templaterm',
+				'id': deletingNodeID
+			}, function(result,data) {
+				if(result) {
+					
+					// entfernt die zugehörige Knoten-Komponente
+					treeInstProjects.delete_node(deletingNodeID);
+					
+					// setzt die Löschung-ID zurück
+					deletingNodeID = null;
+					// setzt die Selektions-ID zurück
+					selectedNodeIDProjects = "";
+					
+				}
+				else
+					showAlertDialog((isProjectsPage ? "Projekt" : "Vorlage")+" löschen",data.response);
 				
 				// aktualisiert die Anzeige der Projekte
 				refreshProjects();
-
-				if(name==data.response.name)
-					showAlertDialog("Projekt erstellen",
-									"Sie haben das Projekt erfolgreich erstellt.");
-				else
-					showAlertDialog("Projekt erstellen",
-									"Ein Projekt mit dem Namen "+name+" existiert bereits:<br>"+
-									"Es wurde ein neues Projekt <b>"+data.response.name+"</b> erstellt.");
-			}
-			// wenn ein entsprechendes Projekt nicht angelegt werden konnte, ...
-			else {
-				// ... wird die Knoten-Komponente zur Angabe eines neuen Namens erneut in den Bearbeitungsmodus versetzt (s. Umbenennungs-Listener)
-				node = treeInstProjects.get_node(creatingNodeID);
-				treeInstProjects.set_text(node,getHTML(node));
-				treeInstProjects.edit(creatingNodeID,"");
-				showAlertDialog("Projekt erstellen",data.response);
-			}
-	});
-}
-
-/*
- * Löscht das momentan ausgewählte Projekt.
- */
-function deleteProject() {
-
-	documentsJsonRequest({
-			'command': isProjectsPage ? 'projectrm' : 'templaterm',
-			'id': deletingNodeID
-		}, function(result,data) {
-			// wenn das ausgewählte Projekt erfolgreich gelöscht wurde
-			if(result) {
-				
-				// entfernt die zugehörige Knoten-Komponente
-				treeInstProjects.delete_node(selectedNodeIDProjects);
-				
-				// setzt die Löschung-ID zurück
-				deletingNodeID = null;
-				// setzt die Selektions-ID zurück
-				selectedNodeIDProjects = "";
-				
-				// aktualisiert die Aktivierungen der Menü-Schaltflächen
-				updateMenuButtonsProject();
-				refreshProjects();
-				showAlertDialog((isProjectsPage ? "Projekt" : "Vorlage")+" löschen",
-								"Sie haben "+(isProjectsPage ? "das Projekt" : "die Vorlage")+" erfolgreich gelöscht.");
-
-			}
-			else {
-				showAlertDialog((isProjectsPage ? "Projekt" : "Vorlage")+" löschen",data.response);
-			}
-	});
-}
-
-/*
- * Benennt das betroffene Projekt nach dem angegebenen Namen um.
- * 
- * @param name neuer Name für das übergebene Projekt
- */
-function renameProject(name) {
+		});
+	}
 	
-	documentsJsonRequest({
-			'command': isProjectsPage ? 'projectrename' : 'templaterename',
-			'id': renameID,
-			'name' : name
-		}, function(result,data) {
-			// wenn das ausgewählte Projekt erfolgreich umbenannt wurde, ist der Umbenennungs-Vorgang abgeschlossen
-			if(result) {
+	/*
+	 * Benennt das betroffene Projekt nach dem angegebenen Namen um.
+	 * 
+	 * @param name neuer Name für das übergebene Projekt
+	 */
+	function renameProject(name) {
+		
+		documentsJsonRequest({
+				'command': isProjectsPage ? 'projectrename' : 'templaterename',
+				'id': renameID,
+				'name' : name
+			}, function(result,data) {
+				
+				// wenn das ausgewählte Projekt für den übergebenen Namen nicht umbenannt werden konnte
+				if(!result)
+					showAlertDialog((isProjectsPage ? "Projekt" : "Vorlage")+" umbenennen",data.response);
 				
 				// setzt die Umbenennungs-IDs zurück
 				renameID = null;
@@ -669,35 +707,35 @@ function renameProject(name) {
 				
 				// aktualisiert die Anzeige der Projekte
 				refreshProjects();
-				showAlertDialog((isProjectsPage ? "Projekt" : "Vorlage")+" umbenennen",
-								"Sie haben "+(isProjectsPage ? "das Projekt" : "die Vorlage")+" erfolgreich umbenannt.");
-			}
-			// wenn das ausgewählte Projekt für den übergebenen Namen nicht umbenannt werden konnte, ...
-			else {
-				// ... wird die Knoten-Komponente zur Angabe eines neuen Namens erneut in den Bearbeitungsmodus versetzt (s. Umbenennungs-Listener)
-				treeInstProjects.edit(renameID,"");
-				
-				showAlertDialog((isProjectsPage ? "Projekt" : "Vorlage")+" umbenennen",data.response);
-			}
-	});
-}
-
-/*
- * Dupliziert das, der übergebenen ID entsprechende, Projekt unter dem angegebenen Namen.
- *
- * @param projectID ID des zu duplizierenden Projektes
- * @param name Name für das anzulegende Projekt
- */
-function duplicateProject(projectID,name) {
+		});
+	}
 	
-	// dupliziert severseitig das, der übergebenen ID entsprechende, Projekte unter dem angegebenen Namen
-	documentsJsonRequest({
-			'command': 'projectclone',
-			'id': projectID,
-			'name': name
-		}, function(result,data) {
-			// wenn ein entsprechendes Projekt angelegt wurde, ist der Duplizierungs-Vorgang abgeschlossen
-			if(result) {
+	/*
+	 * Dupliziert das, der übergebenen ID entsprechende, Projekt unter dem angegebenen Namen.
+	 *
+	 * @param projectID ID des zu duplizierenden Projektes
+	 * @param name Name für das anzulegende Projekt
+	 */
+	function duplicateProject(projectID,name) {
+		
+		// dupliziert severseitig das, der übergebenen ID entsprechende, Projekte unter dem angegebenen Namen
+		documentsJsonRequest({
+				'command': 'projectclone',
+				'id': projectID,
+				'name': name
+			}, function(result,data) {
+				
+				// wenn ein entsprechendes Projekt angelegt wurde, ist der Duplizierungs-Vorgang abgeschlossen
+				if(result) {
+					treeInstProjects.set_id(treeInstProjects.get_node(duplicateNodeID),data.response.id);
+					if(name!=data.response.name)
+						showAlertDialog("Projekt duplizieren",
+										"Ein Projekt mit dem Namen "+name+" existiert bereits:<br>"+
+										"Es wurde ein neues Projekt <b>"+data.response.name+"</b> erstellt.");
+				}
+				// wenn ein entsprechendes Projekt nicht angelegt werden konnte, ...
+				else
+					showAlertDialog("Projekt duplizieren",data.response);
 				
 				// setzt die Duplizierungs-IDs zurück
 				duplicateNodeID = null;
@@ -705,411 +743,432 @@ function duplicateProject(projectID,name) {
 				
 				// aktualisiert die Anzeige der Projekte
 				refreshProjects();
-
-				if(name==data.response.name)
-					showAlertDialog("Projekt duplizieren",
-									"Sie haben das Projekt erfolgreich dupliziert.");
-				else
-					showAlertDialog("Projekt duplizieren",
-									"Ein Projekt mit dem Namen "+name+" existiert bereits:<br>"+
-									"Es wurde ein neues Projekt <b>"+data.response.name+"</b> erstellt.");
-			}
-			// wenn ein entsprechendes Projekt nicht angelegt werden konnte, ...
-			else {
-				// ... wird die Knoten-Komponente zur Angabe eines neuen Namens erneut in den Bearbeitungsmodus versetzt (s. Umbenennungs-Listener)
-				treeInstProjects.edit(duplicateNodeID,"");
-				
-				showAlertDialog("Projekt duplizieren",data.response);
-			}
-	});
-}
-
-/*
- * Wandelt das momentan ausgewählte Projekt in eine Vorlage um.
- *
- * @param name Name für die zu erzeugende Vorlage
- */ 
-function projectToTemplate(name) {
+		});
+	}
 	
-	// wandelt severseitig das, der übergebenen ID entsprechende, Projekt in eine Vorlage unter dem angegebenen Namen um
-	documentsJsonRequest({
-			'command': 'project2template',
-			'id': templatizedID,
-			'name': name
-		}, function(result,data) {
-			// wenn eine entsprechende Vorlage angelegt wurde, ist der Umwandlungs-Vorgang abgeschlossen
-			if(result) {
-				
-				// setzt die Umwandlungs-IDs zurück
+	/*
+	 * Wandelt das momentan ausgewählte Projekt in eine Vorlage um.
+	 *
+	 * @param name Name für die zu erzeugende Vorlage
+	 */ 
+	function projectToTemplate(name) {
+		
+		// wandelt severseitig das, der übergebenen ID entsprechende, Projekt in eine Vorlage unter dem angegebenen Namen um
+		documentsJsonRequest({
+				'command': 'project2template',
+				'id': templatizedID,
+				'name': name
+			}, function(result,data) {
+			
+				// setzt die Umwandlungs-ID zurück
 				templatizedID = null;
 				document.getElementById('modal_alertDialog').style.display = 'none';
 				
-				if(name==data.response.name)
-					showAlertDialog("Projekt in Vorlage umwandeln",
-					                "Sie haben das Projekt erfolgreich in eine Vorlage umgewandelt.",
-					                "/vorlagen/");
+				// wenn eine entsprechende Vorlage angelegt wurde, ist der Umwandlungs-Vorgang abgeschlossen
+				if(result) {
+					
+					if(name!=data.response.name)
+						showAlertDialog("Projekt in Vorlage umwandeln",
+						                "Eine Vorlage mit dem Namen "+name+" existiert bereits:<br>"+
+									    "Es wurde eine neue Vorlage <b>"+data.response.name+"</b> erstellt.",
+									    "/vorlagen/");
+					else
+						// Weiterleitung zu den Vorlagen
+						window.location.replace("/vorlagen/");
+				}
+				// wenn eine entsprechende Vorlage nicht angelegt werden konnte
 				else
-					showAlertDialog("Projekt in Vorlage umwandeln",
-					                "Eine Vorlage mit dem Namen "+name+" existiert bereits:<br>"+
-								    "Es wurde eine neue Vorlage <b>"+data.response.name+"</b> erstellt.",
-								    "/vorlagen/");
-			}
-			// wenn eine entsprechende Vorlage nicht angelegt werden konnte
-			else {
-				showAlertDialog("Projekt in Vorlage umwandeln",data.response);
-			}
-	});
-}
-
-/*
- * Exportiert ein Projekt als Zip und bietet diese zum Download an.
- * @param id ID des Projektes
- *
- */
-function exportZip() {
-    documentsRedirect({
-        'command' : 'exportzip',
-        'id' : treeInstProjects.get_node(prevSelectedNodeID).rootid,
-
-    }, function(result,data) {
-        if(result) {
-            console.log('Export Done!')
-            }
-        }
-    );
-}
-
-/*
- * Wandelt eine Vorlage in ein Projekt um
- * id (ID der Vorlage, aus der ein Projekt erzeugt wird)
- * name (Name des zu erzeugenden Projektes, dies darf nicht mit einem vorhandenen Projekt übereinstimmen)
- */
-function templateToProject(name) {
-	documentsJsonRequest({
-            'command': 'template2project',
-            'id': projectTempID,
-            'name': name
-        },
-        
-        function(result,data) {
-			if(result) {
-			    projectTempID = null;
-				
-				if(name==data.response.name)
-					showAlertDialog("Vorlage in Projekt umwandeln",
-					                "Sie haben die Vorlage erfolgreich in ein Projekt umgewandelt.",
-					                "/projekt/");
-				else
-					showAlertDialog("Vorlage in Projekt umwandeln",
-					                "Ein Projekt mit dem Namen "+name+" existiert bereits:<br>"+
-								    "Es wurde ein neues Projekt <b>"+data.response.name+"</b> erstellt.",
-								    "/projekt/");
-			} else {
-				showAlertDialog("Vorlage in Projekt umwandeln",data.response);
-            }
-	});
-}
-
-/*
- * Fügt eine neue Knoten-Komponente anhand des übergebenen Projektes hinzu.
- * 
- * @param project Projekt, anhand dessen Daten eine neue Knoten-Komponente hinzugefügt werden soll
- * @param type - Einladung oder Projekt
- * @return die ID der erzeugten Knoten-Komponente
- */
-function addNode(type,project) {
-	
-	// fügt eine neue Knoten-Komponente hinzu und füllt die Attribute der Knoten-Komponente mit den Werten des übergebenen Projektes
-	if (type == 'project'){
-		return fillNode(type,treeInstProjects.create_node("#",""),project);
+					showAlertDialog("Projekt in Vorlage umwandeln",data.response);
+		});
 	}
-	if (type == 'invitation'){
-		return fillNode(type,treeInstInvitations.create_node("#",""),project);
-	}
-}
-
-/*
- * Versetzt die, der übergebenen ID entsprechende, Knoten-Komponente in den Bearbeitungsmodus.
- *
- * @param nodeID ID der Knoten-Komponente, deren Name bearbeitet werden soll
- * @param text Text-Vorgabe zur Editierung
- */
-function editNode(nodeID,text) {
-	
-	editMode = true;
-	
-	// zeigt das Eingabe-Popover in relativer Position zur betroffenen Knoten-Komponente an
-	showPopover(treeInstProjects.get_node(nodeID));
-	// versetzt die betroffene Knoten-Komponente in den Bearbeitungsmodus
-	treeInstProjects.edit(nodeID,text);
-}
-
-/*
- * Füllt die Attribute der übergebenen Knoten-Komponente mit den Werten des angegebenen Projektes.
- * 
- * @param nodeID ID der Knoten-Komponente, deren Attribute gemäß des angegebenen Projektes gesetzt werden sollen
- * @param project Projekt, anhand dessen Daten die Attribute der übergebenen Knoten-Komponente gesetzt werden sollen
- *
- * @return die ID der Knoten-Komponente
- */
-function fillNode(type, nodeID,project) {
-	if (type == 'project'){
-		node = treeInstProjects.get_node(nodeID);
-		
-		if(project!=null) {
-			
-			// setzt die ID der Knoten-Komponente auf die des übergebenen Projektes
-			treeInstProjects.set_id(node,project.id);
-			
-			// setzt die weiteren Attribute des Projektes
-			node.projectname 		= project.name;
-			node.author 			= project.ownername;
-			node.createtime 		= project.createtime;
-			node.rootid 			= project.rootid;
-			
-		}
-		
-		// setzt die Bezeichnung der Knoten-Komponente anhand der Daten des übergebenen Projektes
-		treeInstProjects.set_text(node,getHTML(node));
-		
-		return node.id;
-	}
-	if (type == 'invitation'){
-		node = treeInstInvitations.get_node(nodeID);
-		
-		if(project!=null) {
-			
-			// setzt die ID der Knoten-Komponente auf die des übergebenen Projektes
-			treeInstInvitations.set_id(node,project.id);
-			
-			// setzt die weiteren Attribute des Projektes
-			node.projectname 		= project.name;
-			node.author 			= project.ownername;
-			node.createtime 		= project.createtime;
-			node.rootid 			= project.rootid;
-			
-		}
-		
-		// setzt die Bezeichnung der Knoten-Komponente anhand der Daten des übergebenen Projektes
-		treeInstInvitations.set_text(node,getHTML(node));
-		
-		return node.id;
-	}
-}
-
-/*
- * Liefert die html-Repräsentation der übergebenen Knoten-Komponente.
- *
- * @param node Knoten-Komponente, deren zugehörige html-Repräsentation zurückgegeben werden soll
- *
- * @return die html-Repräsentation der übergebenen Knoten-Komponente
- */
-function getHTML(node) {
-	
-	var relTime = getRelativeTime(node.createtime);
-	
-	return  "<div class=\"node_item\">"+
-				"<li class=\"node_item_"+node.id+"\">"+
-					"<span class=\"fadeblock projectitem-name\">"+node.projectname+"</span>"+
-					"<span class=\"projectitem-createdate\" title=\"erstellt "+relTime+"\">"+relTime+"</span>"+
-		    		"<span class=\"projectitem-author\">"+node.author+"</span>"+
-		    	"</li>"+
-		    "</div>";
-}
-
-/*
- * Aktualisiert die Anzeige der Projekte des Benutzers.
- */
-function refreshProjects() {
-	
-	// leert den JSTrees
-	treeInstProjects.settings.core.data = null;
-	treeInstProjects.refresh();
-	
-	// aktualisiert den JSTree anhand der bestehenden Projekte
-	documentsJsonRequest({
-		'command': isProjectsPage ? 'listprojects' : 'listtemplates',
-		}, function(result,data) {
-			if(result) {
-				allprojects=data.response;
-				// legt für jedes Projekt eine Knoten-Komponente an
-				for(var i=0; i<data.response.length; ++i)
-					addNode('project',data.response[i]);
-			}
-	});
-	
-	// aktualisiert die Aktivierungen der Menü-Schaltflächen
-	updateMenuButtonsProject();
-}
-
-/*
- * Selektiert die, der übergebenen ID entsprechende, Knoten-Komponente.
- * Hierbei wird die momentan ausgewählte Knoten-Komponente deselektiert.
- *
- * @param nodeID ID der Knoten-Komponente, welche selektiert werden soll
- */
-function selectNode(nodeID) {
-	
-	treeInstProjects.deselect_node(treeInstProjects.get_selected());
-	if(treeInstProjects.get_node(nodeID)!=null) {
-	
-		treeInstProjects.select_node(nodeID);
-		selectedNodeIDProjects = nodeID;
-		currentAuthor = treeInstProjects.get_node(nodeID).author;
-		prevSelectedNodeID = nodeID;
-	}
-	else {
-		
-		selectedNodeIDProjects = "";
-		currentAuthor = user;
-	}
-}
-
-/*
- * Zeigt das Popover in relativer Position zur übergebenen Knoten-Komponente an.
- *
- * @param node Knoten-Komponente zu deren Position das Popover relativ angezeigt werden soll
- */
-function showPopover(node) {
-	
-	if(node!=null && treeInstProjects.get_node(node.id)) {
-		
-		var popover = $('.input_popover');
-		
-		// zeigt das Popover an und richtet es links über der Knoten-Komponente aus
-		// (Reihenfolge nicht verändern!)
-		popover.popover('show');
-        $('.popover').css('left',$("#"+node.id).position().left+'px');
-        $('.popover').css('top',($("#"+node.id).position().top-43)+'px');
-	}
-}
-
-/*
- * Aktualisiert die Aktivierungen der Menü-Schaltflächen des Projektes.
- */
-function updateMenuButtonsProject() {
 	
 	/*
-	 * flag für die Aktivierung derjenigen Schaltflächen,
-	 * deren zugehörige Funktionalitäten KEINER Selektion bedürfen
-	 * ('Erstellen' und 'Import')
+	 * Exportiert ein Projekt als Zip und bietet diese zum Download an.
+	 * @param id ID des Projektes
+	 *
 	 */
-	var flag_basic;
-	/*
-	 * flag für die Aktivierung derjenigen Schaltflächen,
-	 * deren zugehörige Funktionalitäten einer Selektion bedürfen UND ausschließlich dem ProjectOwner vorbehalten sind
-	 * ('Löschen', 'Umbenennen', 'Freigeben' und 'Freigabe entziehen')
-	 */
-	var flag_owner;
-	/*
-	 * flag für die Aktivierung derjenigen Schaltflächen,
-	 * deren zugehörige Funktionalitäten einer Selektion bedürfen
-	 */
-	var flag_remain;
+	function exportZip() {
+	    documentsRedirect({
+	        'command' : 'exportzip',
+	        'id' : treeInstProjects.get_node(prevSelectedNodeID).li_attr["data-rootid"],
 	
-	
-	// Editierungsmodus
-	if(editMode) {
-		
-		// keine Aktivierungen, solange Editierungsmodus aktiv
-		flag_basic  = false;
-		flag_owner  = false;
-		flag_remain = false;
-		
-	}
-	// Selektion
-	else if(treeInstProjects.get_selected().length!=0) {
-		
-		// Aktivierung aller Schaltflächen ohne notwendige ProjectOwner-Rechte
-		flag_basic  = true;
-		flag_remain = true;
-		
-		// Aktivierung der Schaltflächen mit notwendigen ProjectOwner-Rechten
-		flag_owner  = currentAuthor==user;
-		
-	}
-	// keine Selektion
-	else {
-		
-		// Aktivierung lediglich der nicht-selektionsabhängigen Schaltflächen
-		flag_basic  = true;
-		flag_remain = false;
-		flag_owner  = false;
+	    }, function(result,data) {
+	        if(result) {
+	            console.log('Export Done!')
+	            }
+	        }
+	    );
 	}
 	
-	$('.projecttoolbar-open').prop("disabled", !flag_remain);
-	$('.projecttoolbar-new').prop("disabled", !flag_basic);
-	$('.projecttoolbar-delete').prop("disabled", !flag_owner);
-	$('.projecttoolbar-rename').prop("disabled", !flag_owner);
-	$('.projecttoolbar-duplicate').prop("disabled", !flag_remain);
-	$('.projecttoolbar-converttotemplate').prop("disabled", !flag_remain);
-	$('.projecttoolbar-export').prop("disabled", !flag_remain);
-	$('.projecttoolbar-import').prop("disabled", !flag_basic);
-	$('.projecttoolbar-share').prop("disabled", !flag_owner);
-	$('.projecttoolbar-quitCollaboration').prop("disabled", !flag_remain || flag_owner);
-	
 	/*
-	 * Aktualisiert die 'Freigabe entziehen'-Menü-Schaltfläche
-	 * in Abhängigkeit dessen, ob für das selektierte Projekt eingeladene Nutzer vorliegen
+	 * Sendet an den Account mit der übergebenen E-Mail Adresse eines Nutzers eine Einladung zum Projekt.
+	 * @param projectId - Die Id des Projektes, für das der Nutzer eingeladen wird
+	 * @param email - E-Mail Adresse des eingeladenen Nutzers
 	 */
-	if(isProjectsPage && !editMode && flag_owner) {
+	function sendProjectInvitation(projectId,email) {
+		
 		documentsJsonRequest({
-				'command': 'hasinvitedusers',
+				'command': 'inviteuser',
+				'name': email,
+				'id':projectId
+			}, function(result,data) {
+				if(result) {
+					showAlertDialog("Projekt freigeben","Der Nutzer wurde zur Kollaboration Ihres Projektes eingeladen.");
+					$('.projecttoolbar-deny').prop("disabled", false);
+	
+				}
+				else {
+					showAlertDialog("Projekt freigeben",data.response);
+				}
+		});
+	}
+	
+	/*
+	 * Entzieht einem Nutzer für ein angegebenes Projekt die Rechte.
+	 * @param projectId - Die Id des Projektes, von dem für den Nutzer die Rechte entzogen werden.
+	 * @param user - Der Nutzer, dem die Rechte entzogen werden.
+	 */
+	function denyProjectAccess(projectId,user) {
+		documentsJsonRequest({
+				'command': 'cancelcollaboration',
+				'name': user,
+				'id':projectId
+			}, function(result,data) {
+				if(result) {
+					showAlertDialog("Freigabe entziehen","Sie haben dem Benutzer erfolgreich die Projektfreigabe entzogen.")
+				}
+				else {
+					showAlertDialog("Freigabe entziehen",data.response);
+				}
+				updateMenuButtonsProject();
+		});
+	}
+	
+	/*
+	 * Der Nutzer beendet die Kollaboration.
+	 * @param projectId - Die Id des Projektes, dessen Einladung vom Nutzer abgelehnt wurde.
+	 */
+	function quitCollaboration() {
+		documentsJsonRequest({
+				'command': 'quitcollaboration',
 				'id':selectedNodeIDProjects
-			},
-			function(result,data) {
-				if(result)
-					$('.projecttoolbar-deny').prop("disabled", !data.response);
-			});
-	}
-	else
-		$('.projecttoolbar-deny').prop("disabled", true);
-	
-	$('.templatestoolbar-use').prop("disabled", !flag_remain);
-}
-
-/*
- * Setzt den Inhalt des Alert Dialogs.
- *
- * @param title Titel für diesen Dialog
- * @param message Informationstext für diesen Dialog
- * @param redirection Pfad zur Weiterleitung bei Betätigung der Ok-Schaltfläche (optional)
- */
-function showAlertDialog(title,message,redirection){
-	$('#modal_alertDialog').modal('show');
-	document.getElementById('modal_alertDialog_title').innerHTML = title;
-	document.getElementById('modal_alertDialog_message').innerHTML = message;
-	
-	$('.modal_alertDialogConfirm').on("click", function() {
-		if(redirection!=undefined)
-			document.location.assign(redirection);
-	})
-}
-
-/*
- * Entfernt die alten Nachrichten aus dem Alert Dialog.
- */
-function clearAlertDialog(){
-	showAlertDialog("","");
-}
-
-
-/*
- * Aktualisiert die Aktivierungen der Menü-Schaltflächen der Einladung.
- */
-function updateMenuButtonsInvitation() {
-	
-	// flag für die Aktivierung der selektionsabhängigen Schaltflächen
-	var flag_remain;
-	
-	// Selektion
-	if(treeInstInvitations.get_selected().length!=0) {
-		// vollständig Aktivierung
-		flag_remain = true;
+			}, function(result,data) {
+				if(result) {
+					refreshProjects();
+					showAlertDialog("Kollaboration beenden","Sie haben die Kollaboration beendet.");
+				}
+				else {
+					showAlertDialog("Kollaboration beenden",data.response);
+				}
+		});
 	}
 	
+	/*
+	 * Der Nutzer akzeptiert die Einladung zum Projekt und nimmt an der Kollabaration teil.
+	 * @param projectId - Die Id des Projektes, dessen Einladung vom Nutzer akzeptiert wurde.
+	 */
+	function acceptInvitation() {
+		documentsJsonRequest({
+				'command': 'activatecollaboration',
+				'id':selectedNodeIDInvitations
+			}, function(result,data) {
+				if(result) {
+					refreshProjects();
+					refreshInvitations();
+					showAlertDialog("Einladung zur Kollaboration annehmen","Sie haben die Einladung zur Kollaboration angenommen.");
+				}
+				else {
+					showAlertDialog("Einladung zur Kollaboration annehmen",data.response);
+				}
+		});
+	}
 	
-	// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
-	$('.invitationtoolbar-acceptInvitation').prop("disabled", !flag_remain);
-	$('.invitationtoolbar-denyInvitation').prop("disabled", !flag_remain);
-}
+	/*
+	 * Der Nutzer lehnt die Einladung zum Projekt zur Kollaboration ab.
+	 * @param projectId - Die Id des Projektes, dessen Einladung vom Nutzer abgelehnt wurde.
+	 */
+	function denyInvitation() {
+		documentsJsonRequest({
+				'command': 'quitcollaboration',
+				'id':selectedNodeIDInvitations
+			}, function(result,data) {
+				if(result) {
+					refreshProjects();
+					refreshInvitations();
+					showAlertDialog("Einladung zur Kollaboration ablehnen","Sie haben die Einladung zur Kollaboration abgelehnt.");
+				}
+				else {
+					showAlertDialog("Einladung zur Kollaboration ablehnen",data.response);
+				}
+		});
+	}
+	
+	/*
+	 * Wandelt eine Vorlage in ein Projekt um
+	 * id (ID der Vorlage, aus der ein Projekt erzeugt wird)
+	 * name (Name des zu erzeugenden Projektes, dies darf nicht mit einem vorhandenen Projekt übereinstimmen)
+	 */
+	function templateToProject(name) {
+		documentsJsonRequest({
+	            'command': 'template2project',
+	            'id': projectTempID,
+	            'name': name
+	        },
+	        
+	        function(result,data) {
+	        	
+				// setzt die Umwandlungs-ID zurück
+				projectTempID = null;
+	        	
+	        	// wenn ein entsprechendes Projekt angelegt wurde, ist der Umwandlungs-Vorgang abgeschlossen
+				if(result) {
+					
+					if(name!=data.response.name)
+						showAlertDialog("Vorlage in Projekt umwandeln",
+						                "Ein Projekt mit dem Namen "+name+" existiert bereits:<br>"+
+									    "Es wurde ein neues Projekt <b>"+data.response.name+"</b> erstellt.",
+									    "/projekt/");
+					else
+						// Weiterleitung zu den Projekten
+						window.location.replace("/projekt/");
+				} else {
+					showAlertDialog("Vorlage in Projekt umwandeln",data.response);
+	            }
+		});
+	}
+	
+	
+	// ----------------------------------------------------------------------------------------------------
+	//                                      ALLGEMEINE HILFSFUNKTIONEN                                     
+	// ----------------------------------------------------------------------------------------------------
+	
+	/*
+	 * Versetzt die, der übergebenen ID entsprechende, Knoten-Komponente in den Bearbeitungsmodus.
+	 *
+	 * @param nodeID ID der Knoten-Komponente, deren Name bearbeitet werden soll
+	 * @param text Text-Vorgabe zur Editierung
+	 */
+	function editNode(nodeID,text) {
+		
+		editMode = true;
+		
+		// zeigt das Eingabe-Popover in relativer Position zur betroffenen Knoten-Komponente an
+		showPopover(treeInstProjects.get_node(nodeID));
+		// versetzt die betroffene Knoten-Komponente in den Bearbeitungsmodus
+		treeInstProjects.edit(nodeID,text);
+	}
+	
+	/*
+	 * Selektiert die, der übergebenen ID entsprechende, Knoten-Komponente.
+	 * Hierbei wird die momentan ausgewählte Knoten-Komponente deselektiert.
+	 *
+	 * @param nodeID ID der Knoten-Komponente, welche selektiert werden soll
+	 */
+	function selectNode(nodeID) {
+		
+		treeInstProjects.deselect_node(treeInstProjects.get_selected());
+		if(treeInstProjects.get_node(nodeID)!=null) {
+		
+			treeInstProjects.select_node(nodeID);
+			selectedNodeIDProjects = nodeID;
+			currentAuthor = treeInstProjects.get_node(nodeID).author;
+			prevSelectedNodeID = nodeID;
+		}
+		else {
+			
+			selectedNodeIDProjects = "";
+			currentAuthor = user;
+		}
+	}
+	
+	/*
+	 * Zeigt die eingeladenen Benutzer an. 
+	 * @param projectId - ID des Projektes, das freigegeben wurde.
+	 */
+	function showInvitedUser(){
+		documentsJsonRequest({
+				'command': 'listinvitedusers',
+				'id':selectedNodeIDProjects
+			}, function(result,data) {
+				if(result) {
+					var number_of_invitedusers = data.response.length;
+					document.getElementById('invitedUser').innerHTML = "";
+					for (var i = 0; i < number_of_invitedusers; i++){
+						document.getElementById('invitedUser').innerHTML = document.getElementById('invitedUser').innerHTML+"<div class=\"row\"><div class=\"col-lg-6\"><div class=\"input-group\"><span class=\"input-group-addon\"><input name=\"denyProjectAccess\" value=\""+data.response[i]+"\" type=\"checkbox\" aria-label=\"checked\"></span><input type=\"text\" class=\"form-control\" disabled aria-label=\"user\" value=\""+data.response[i]+"\"></div></div></div>";
+					}
+				}
+		});
+	}
+	
+	/*
+	 * Zeigt das Popover in relativer Position zur übergebenen Knoten-Komponente an.
+	 *
+	 * @param node Knoten-Komponente zu deren Position das Popover relativ angezeigt werden soll
+	 */
+	function showPopover(node) {
+		
+		if(node!=null && treeInstProjects.get_node(node.id)) {
+			
+			var popover = $('.input_popover');
+			
+			// zeigt das Popover an und richtet es links über der Knoten-Komponente aus
+			// (Reihenfolge nicht verändern!)
+			popover.popover('show');
+	        $('.popover').css('left',$("#"+node.id).position().left+'px');
+	        $('.popover').css('top',($("#"+node.id).position().top-43)+'px');
+		}
+	}
+	
+	/*
+	 * Aktualisiert die Aktivierungen der Menü-Schaltflächen des Projektes.
+	 */
+	function updateMenuButtonsProject() {
+		
+		/*
+		 * flag für die Aktivierung derjenigen Schaltflächen,
+		 * deren zugehörige Funktionalitäten KEINER Selektion bedürfen
+		 * ('Erstellen' und 'Import')
+		 */
+		var flag_basic;
+		/*
+		 * flag für die Aktivierung derjenigen Schaltflächen,
+		 * deren zugehörige Funktionalitäten einer Selektion bedürfen UND ausschließlich dem ProjectOwner vorbehalten sind
+		 * ('Löschen', 'Umbenennen', 'Freigeben' und 'Freigabe entziehen')
+		 */
+		var flag_owner;
+		/*
+		 * flag für die Aktivierung derjenigen Schaltflächen,
+		 * deren zugehörige Funktionalitäten einer Selektion bedürfen
+		 */
+		var flag_remain;
+		
+		
+		// Editierungsmodus
+		if(editMode) {
+			
+			// keine Aktivierungen, solange Editierungsmodus aktiv
+			flag_basic  = false;
+			flag_owner  = false;
+			flag_remain = false;
+			
+		}
+		// Selektion
+		else if(treeInstProjects && treeInstProjects.get_selected().length!=0) {
+			
+			// Aktivierung aller Schaltflächen ohne notwendige ProjectOwner-Rechte
+			flag_basic  = true;
+			flag_remain = true;
+			
+			// Aktivierung der Schaltflächen mit notwendigen ProjectOwner-Rechten
+			flag_owner  = currentAuthor==user;
+			
+		}
+		// keine Selektion
+		else {
+			
+			// Aktivierung lediglich der nicht-selektionsabhängigen Schaltflächen
+			flag_basic  = true;
+			flag_remain = false;
+			flag_owner  = false;
+		}
+		
+		$('.projecttoolbar-open').prop("disabled", !flag_remain);
+		$('.projecttoolbar-new').prop("disabled", !flag_basic);
+		$('.projecttoolbar-delete').prop("disabled", !flag_owner);
+		$('.projecttoolbar-rename').prop("disabled", !flag_owner);
+		$('.projecttoolbar-duplicate').prop("disabled", !flag_remain);
+		$('.projecttoolbar-converttotemplate').prop("disabled", !flag_remain);
+		$('.projecttoolbar-export').prop("disabled", !flag_remain);
+		$('.projecttoolbar-import').prop("disabled", !flag_basic);
+		$('.projecttoolbar-share').prop("disabled", !flag_owner);
+		$('.projecttoolbar-quitCollaboration').prop("disabled", !flag_remain || flag_owner);
+		
+		/*
+		 * Aktualisiert die 'Freigabe entziehen'-Menü-Schaltfläche
+		 * in Abhängigkeit dessen, ob für das selektierte Projekt eingeladene Nutzer vorliegen
+		 */
+		if(isProjectsPage && !editMode && flag_owner) {
+			documentsJsonRequest({
+					'command': 'hasinvitedusers',
+					'id':selectedNodeIDProjects
+				},
+				function(result,data) {
+					if(result)
+						$('.projecttoolbar-deny').prop("disabled", !data.response);
+				});
+		}
+		else
+			$('.projecttoolbar-deny').prop("disabled", true);
+		
+		$('.templatestoolbar-use').prop("disabled", !flag_remain);
+	}
+	
+	/*
+	 * Entfernt die alten Nachrichten aus dem Alert Dialog.
+	 */
+	function clearAlertDialog(){
+		showAlertDialog("","");
+	}
+	
+	/*
+	 * Aktualisiert die Aktivierungen der Menü-Schaltflächen der Einladung.
+	 */
+	function updateMenuButtonsInvitation() {
+		
+		// flag für die Aktivierung der selektionsabhängigen Schaltflächen
+		var flag_remain;
+		
+		// Selektion
+		if(treeInstInvitations.get_selected().length!=0) {
+			// vollständig Aktivierung
+			flag_remain = true;
+		}
+		
+		
+		// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
+		$('.invitationtoolbar-acceptInvitation').prop("disabled", !flag_remain);
+		$('.invitationtoolbar-denyInvitation').prop("disabled", !flag_remain);
+	}
+	
+	/*
+	 * Aktualisiert die Sortierung gemäß des übergebenen Sortierungswertes.
+	 *
+	 * @param newSorting neuer Sortierungswert ( 0 = Name, 1 = Erstellungsdatum, 2 = Autor )
+	 */
+	function updateSorting(newSorting) {
+		
+		// derzeitiges Sortierungsicon
+		var icon = 'glyphicon-arrow-down';
+		if(sortOrder==-1)
+			icon = 'glyphicon-arrow-up';
+		
+		// Icon der derzeitigen Sortierung wird entfernt bzw. versteckt
+		if(sorting==newSorting)
+			$('.sort-'+sorting).children('.glyphicon').removeClass(icon);
+		else {
+			if($('.sort-'+sorting).children('.glyphicon').hasClass('glyphicon-arrow-up'))
+				$('.sort-'+sorting).children('.glyphicon').removeClass(icon).addClass('glyphicon-arrow-down');
+			$('.sort-'+sorting).children('.glyphicon').attr("data-hidden","hidden");
+		}	
+		
+		// neue Sortierungsrichtung
+		if(sorting==newSorting)
+			sortOrder *= -1;
+		else
+			sortOrder = 1;
+		
+		// neues Sortierungsicon
+		icon = 'glyphicon-arrow-down';
+		if(sortOrder==-1)
+			icon = 'glyphicon-arrow-up';
+		
+		// fügt das Icon für die neue Sortierung hinzu
+		$('.sort-'+newSorting).children('.glyphicon').addClass(icon);
+		$('.sort-'+newSorting).children('.glyphicon').removeAttr("data-hidden");
+		
+		sorting = newSorting;
+		ignoreSorting = false;
+		treeInstProjects.refresh();
+		
+	}
+});

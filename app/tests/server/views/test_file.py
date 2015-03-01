@@ -317,13 +317,37 @@ class FileTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
 
-
+        # user1 ändert den source code der main.tex Datei aus dem user2_sharedproject
         sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
         response = util.documentPoster(self, command='updatefile', idpara=sharedproject_maintex.id,
                                        content=self._new_code1)
 
         util.validateJsonSuccessResponse(self, response.content, {})
         self.assertEqual(TexFile.objects.get(id=sharedproject_maintex.id).source_code, self._new_code1)
+
+
+
+        # -user1 ändert den source code einer Datei, welcher von dem user2 gesperrt wurde -> Fehler
+        sharedproject_maintex_source_code = sharedproject_maintex.source_code
+        sharedproject_maintex.lock(self._user2)
+
+        response = util.documentPoster(self, command='updatefile', idpara=sharedproject_maintex.id,
+                                       content="test code")
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILELOCKED'])
+        self.assertEqual(TexFile.objects.get(id=sharedproject_maintex.id).source_code, sharedproject_maintex_source_code)
+
+
+        # -user1 ändert den source code einer Datei, welcher user1 selbst gesperrt hat -> Erfolg
+        sharedproject_maintex.unlock()
+        sharedproject_maintex.lock(self._user1)
+        response = util.documentPoster(self, command='updatefile', idpara=sharedproject_maintex.id,
+                                       content="test code")
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertEqual(TexFile.objects.get(id=sharedproject_maintex.id).source_code, "test code")
+
+
+
+
 
 
 
@@ -901,7 +925,7 @@ class FileTestClass(ViewTestCase):
         self.assertEqual(response['Content-Type'], mimetypes.types_map['.tex'])
         # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
         ori_file = self._user1_tex1.getContent()
-        self.assertEqual(response['Content-Length'], str(util.getFileSize(ori_file)))
+        self.assertTrue(0.99 < (int(response['Content-Length']) / util.getFileSize(ori_file)) < 1.01)
         ori_file.close()
 
         # Content-Disposition sollte 'attachment; filename='test_bin.bin'' sein
@@ -925,7 +949,7 @@ class FileTestClass(ViewTestCase):
         self.assertEqual(response['Content-Type'], mimetypes.types_map['.tex'])
         # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
         file_content = sharedproject_maintex.getContent()
-        self.assertEqual(response['Content-Length'], str(util.getFileSize(file_content)))
+        self.assertTrue(0.99 < (int(response['Content-Length']) / util.getFileSize(file_content)) < 1.01)
 
         # Content-Disposition sollte 'attachment; filename='main.tex'' sein
         self.assertEqual(response['Content-Disposition'], ('attachment; filename=\"' + sharedproject_maintex.name) + '\"')
@@ -970,7 +994,9 @@ class FileTestClass(ViewTestCase):
             'size': fileobj.size,
             'mimetype': fileobj.mimeType,
             'ownerid': projectobj.author.id,
-            'ownername': projectobj.author.username
+            'ownername': projectobj.author.username,
+            'lasteditor': '',
+            'isallowedit': True
         }
 
         # überprüfe die Antwort des Servers
@@ -1001,7 +1027,9 @@ class FileTestClass(ViewTestCase):
             'size': fileobj.size,
             'mimetype': fileobj.mimeType,
             'ownerid': projectobj.author.id,
-            'ownername': projectobj.author.username
+            'ownername': projectobj.author.username,
+            'lasteditor': '',
+            'isallowedit': True
         }
 
         # überprüfe die Antwort des Servers
@@ -1054,6 +1082,75 @@ class FileTestClass(ViewTestCase):
             'size': fileobj.size,
             'mimetype': fileobj.mimeType,
             'ownerid': projectobj.author.id,
-            'ownername': projectobj.author.username
+            'ownername': projectobj.author.username,
+            'lasteditor': '',
+            'isallowedit': True
         }
         util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+
+
+    def test_lockFile(self):
+        """Test der lockFile() Methode des file view
+
+        Teste die Datei sperren,
+
+        Testfälle:
+        - user1 sperrt eine Datei -> Erfolg
+        - user2 sperrt bereits gesperrte von user1 Datei -> Fehler
+        - user2 sperrt entsperrte Datei -> Erfolg
+
+        :return: None
+        """
+
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        response = util.documentPoster(self, command='lockfile', idpara=sharedproject_maintex.id)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        sharedproject_maintex = TexFile.objects.get(pk=sharedproject_maintex.pk)
+        self.assertTrue(sharedproject_maintex.isLocked())
+        self.assertEqual(sharedproject_maintex.lockedBy(), self._user1)
+
+
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        response = util.documentPoster(self, command='lockfile', idpara=sharedproject_maintex.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILELOCKED'])
+        sharedproject_maintex = TexFile.objects.get(pk=sharedproject_maintex.pk)
+        self.assertTrue(sharedproject_maintex.isLocked())
+        self.assertEqual(sharedproject_maintex.lockedBy(), self._user1)
+
+
+        sharedproject_maintex.unlock()
+        response = util.documentPoster(self, command='lockfile', idpara=sharedproject_maintex.id)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        sharedproject_maintex = TexFile.objects.get(pk=sharedproject_maintex.pk)
+        self.assertTrue(sharedproject_maintex.isLocked())
+        self.assertEqual(sharedproject_maintex.lockedBy(), self._user2)
+
+
+    def test_unlockFile(self):
+        """Test der unlockFile() Methode des file view
+
+        Teste die Datei entsperren,
+
+        Testfälle:
+        - user1 entsperrt gesperrte von user2 Datei -> Fehler
+        - user2 entsperrt seine gesperrte Datei -> Erfolg
+
+        :return: None
+        """
+
+        sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        sharedproject_maintex.lock(self._user2)
+
+        response = util.documentPoster(self, command='unlockfile', idpara=sharedproject_maintex.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['UNLOCKERROR'])
+        sharedproject_maintex = TexFile.objects.get(pk=sharedproject_maintex.pk)
+        self.assertTrue(sharedproject_maintex.isLocked())
+        self.assertEqual(sharedproject_maintex.lockedBy(), self._user2)
+
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        response = util.documentPoster(self, command='unlockfile', idpara=sharedproject_maintex.id)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        sharedproject_maintex = TexFile.objects.get(pk=sharedproject_maintex.pk)
+        self.assertFalse(sharedproject_maintex.isLocked())
+        self.assertEqual(sharedproject_maintex.lockedBy(), None)
