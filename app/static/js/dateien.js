@@ -89,6 +89,7 @@ $(function () {
 		// erzeugt eine neue Knoten-Komponente (als Datei) im ausgewählten Verzeichnis
 		ignoreSorting = true;
 		creatingFileNodeID = treeInst.create_node(par,{"type": "file"});
+		treeInst.set_icon(creatingFolderNodeID,"glyphicon glyphicon-file");
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
 		editNode(creatingFileNodeID,"");
 		
@@ -112,6 +113,7 @@ $(function () {
 		// erzeugt eine neue Knoten-Komponente (als Verzeichnis) im ausgewählten Verzeichnis
 		ignoreSorting = true;
 		creatingFolderNodeID = treeInst.create_node(par,{"type": "folder"});
+		treeInst.set_icon(creatingFolderNodeID,"glyphicon glyphicon-folder-open");
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
 		editNode(creatingFolderNodeID,"");
 		
