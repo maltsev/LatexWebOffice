@@ -833,7 +833,7 @@ $(function() {
 				'id':projectId
 			}, function(result,data) {
 				if(result) {
-					showAlertDialog("Freigabe entziehen","Sie haben dem Benutzer erfolgreich die Projektfreigabe entzogen.")
+					showAlertDialog("Freigabe entziehen","Sie haben den ausgewählten Benutzern erfolgreich die Projektfreigabe entzogen.")
 				}
 				else {
 					showAlertDialog("Freigabe entziehen",data.response);
