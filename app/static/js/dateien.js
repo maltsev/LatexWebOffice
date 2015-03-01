@@ -13,6 +13,11 @@ var tree;
 var treeInst;
 var folderUntilRoot = 0;
 
+var sorting = 0;						// Sortierungsvariable ( 0 = Name, 1 = Größe, 2 = Erstellungsdatum, 3 = Änderungsdatum, 4 = Typ )
+var sortOrder = 1;						// Sortierungsrichtung ( 1 = aufsteigend, -1 = absteigend )
+var ignoreSorting = false;				// für temporäres Ignorieren der Sortierung bei anlegender Knoten-Komponente ('Erstellen')
+var sortReplacements = {"ä":"a", "ö":"o", "ü":"u", "ß":"ss" };
+
 /*
 @author: Timo Dümke, Ingolf Bracht, Kirill Maltsev
 @creation: 12.12.2014 - sprint-nr: 3
@@ -36,19 +41,43 @@ $(function () {
 	
 	
     reloadProject();
+    
+    // 'Sortieren nach Name'-Button
+	$('.sort-0').click(function() {
+		updateSorting(0);
+	});
+	// 'Sortieren nach Erstellungsdatum'-Button
+	$('.sort-1').click(function() {
+		updateSorting(1);
+	});
+	// 'Sortieren nach Autor'-Button
+	$('.sort-2').click(function() {
+		updateSorting(2);
+	})
+	// 'Sortieren nach Autor'-Button
+	$('.sort-3').click(function() {
+		updateSorting(3);
+	})
+	// 'Sortieren nach Autor'-Button
+	$('.sort-4').click(function() {
+		updateSorting(4);
+	})
+	// initialisiert das Sortierungsicon im entsprechenden Menü-Eintrag
+	$('.sort-'+sorting).children('.glyphicon').addClass('glyphicon-arrow-down');
+	$('.sort-'+sorting).children('.glyphicon').removeAttr("data-hidden");
 
 
-	// -------------------------------------------------------------------------
-	//                              MENÜ-EINTRÄGE
-	// -------------------------------------------------------------------------
-
+	// ----------------------------------------------------------------------------------------------------
+	//                                             MENÜ-EINTRÄGE                                           
+	// ----------------------------------------------------------------------------------------------------
+	
     // "Öffnen"-Schaltfläche
 	$(".filestoolbar-open").click(function() {
 	    var selectedNode = getSelectedNodeObject();
 		calculateFolderUntilRoot();
 		window.location.assign("/editor/#" + selectedNode.data("file-id"));
 	});
-
+	
 	// "Datei Erstellen"-Schaltfläche
 	$(".filestoolbar-newfile").click(function() {
 		
@@ -59,6 +88,7 @@ $(function () {
 			par = "folder"+selectedFolderID;
 		
 		// erzeugt eine neue Knoten-Komponente (als Datei) im ausgewählten Verzeichnis
+		ignoreSorting = true;
 		creatingFileNodeID = treeInst.create_node(par,{"type": "file"});
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
 		editNode(creatingFileNodeID,"");
@@ -81,6 +111,7 @@ $(function () {
 			par = "folder"+selectedFolderID;
 		
 		// erzeugt eine neue Knoten-Komponente (als Verzeichnis) im ausgewählten Verzeichnis
+		ignoreSorting = true;
 		creatingFolderNodeID = treeInst.create_node(par,{"type": "folder"});
 		// versetzt die erzeugte leere Knoten-Komponente in den Bearbeitungsmodus
 		editNode(creatingFolderNodeID,"");
@@ -109,7 +140,7 @@ $(function () {
 		// ID der/des umzubenennenden Datei/Verzeichnisses
 		renamingNodeID = node.id;
 		// derzeitiger Name der/des Datei/Verzeichnisses (für etwaiges Zurückbenennen)
-		prevName = $("#"+renamingNodeID).data("name");
+		prevName = ""+$("#"+renamingNodeID).data("name");
 		
 		// versetzt die Knoten-Komponente in den Bearbeitungsmodus
 		editNode(renamingNodeID,prevName);
@@ -148,9 +179,10 @@ $(function () {
 	});
 	
 	// ----------------------------------------------------------------------------------------------------
+	
 	function calculateFolderUntilRoot(){
 		
-		var pathString = treeInst.get_path(selectedNodeID,"~#####~");
+		var pathString = treeInst.get_path(prevSelectedNodeID,"~#####~");
 		var splittedPathString = pathString.split("~#####~");
 		
 		folderUntilRoot = 0;
@@ -162,6 +194,11 @@ $(function () {
 		window.top.name = rootFolderId + "/" + folderUntilRoot;
 		
 	}
+	
+	// ----------------------------------------------------------------------------------------------------
+	//                                                JSTREE                                               
+	// ----------------------------------------------------------------------------------------------------
+	
 	function reloadProject() {
 		
 		documentsJsonRequest({
@@ -190,6 +227,7 @@ $(function () {
 
         if (tree) {
             treeInst.settings.core.data = jsTreeData;
+            ignoreSorting = false;
             treeInst.refresh();
             return;
         }
@@ -200,11 +238,9 @@ $(function () {
                 multiple: false,
                 data: jsTreeData
             },
-
             dnd: {
                 "inside_pos": "last"
             },
-
             types: {
                 "default":{
                     "icon" : "glyphicon glyphicon-file",
@@ -219,8 +255,50 @@ $(function () {
                     "valid_children": ["file", "default", "folder"]
                 }
             },
-
-            plugins: ["types", "dnd", "state"]
+            plugins: ["dnd","sort","state","types"],
+            sort: function(a,b) {
+            	
+            	if(ignoreSorting)
+            		return -1;
+            	
+            	var compare = 0;
+            	
+            	var is_a_file = this.get_node(a).li_attr["data-file-id"],
+            		is_b_file = this.get_node(b).li_attr["data-file-id"];
+            	
+            	// Verzeichnisse vor Dateien
+            	if(is_a_file && !is_b_file)
+            		return 1;
+            	else if(!is_a_file && is_b_file)
+            		return -1;
+            	
+            	// nur Dateien
+            	if(is_a_file && is_b_file) {
+            		
+            		// Sortierung nach Größe (bei übereinstimmenden Größen zweier Dateien erfolgt Sortierung nach Name s.u.)
+            		if(sorting==1 && this.get_node(a).li_attr["data-file-size"]!=this.get_node(b).li_attr["data-file-size"])
+            			compare = this.get_node(a).li_attr["data-file-size"] > this.get_node(b).li_attr["data-file-size"] ? 1 : -1;
+            		// Sortierung nach Erstellungsdatum
+            		else if(sorting==2)
+						compare = this.get_node(a).li_attr["data-file-createtime"] < this.get_node(b).li_attr["data-file-createtime"] ? 1 : -1;
+					// Sortierung nach Änderungsdatum
+					else if(sorting==3)
+						compare = this.get_node(a).li_attr["data-file-lastmodifiedtime"] < this.get_node(b).li_attr["data-file-lastmodifiedtime"] ? 1 : -1;
+					// Sortierung nach Typ (bei übereinstimmenden Typen zweier Dateien erfolgt Sortierung nach Name s.u.)
+					else if(sorting==4 && (this.get_node(a).li_attr["data-file-mime"])!=(this.get_node(b).li_attr["data-file-mime"]))
+						compare = (""+this.get_node(a).li_attr["data-file-mime"]) > (""+this.get_node(b).li_attr["data-file-mime"]) ? 1 : -1;
+            		
+            	}
+            	
+            	// wenn noch kein Vergleich (s.o.) erfolgt ist, ...
+            	if(compare==0) {
+            		// ... wird nach dem Namen sortiert
+            		compare = (""+this.get_node(a).li_attr["data-name"]).toLowerCase().replace(/[äöüß]/g, function($0) { return sortReplacements[$0] }) >
+            				  (""+this.get_node(b).li_attr["data-name"]).toLowerCase().replace(/[äöüß]/g, function($0) { return sortReplacements[$0] }) ? 1 : -1;
+            	}
+            	
+            	return compare*sortOrder;
+			}
         });
 
         treeInst = $(".fileswrapper").jstree(true);
@@ -382,11 +460,63 @@ $(function () {
             },
         });
     }
+    
+    
+	// ----------------------------------------------------------------------------------------------------
+    
+    var fileTemplate = doT.template($("#template_filesitem-file").text()),
+        folderTemplate = doT.template($("#template_filesitem-folder").text());
+    
+    function convertRawDataToJsTreeData(rawData) {
+        var jsTreeData = [];
 
+        $.each(rawData.folders || [], function (i, folder) {
+        	
+            jsTreeData.push({
+                id: "folder" + folder.id,
+                text: folderTemplate(folder),
+                li_attr: {"class": "filesitem-folder", "data-folder-id": folder.id,
+                									   "data-name": folder.name},
+                children: convertRawDataToJsTreeData(folder)
+            });
+        });
+
+        $.each(rawData.files || [], function (i, file) {
+        	
+        	var attrCreateTime = file.createTime,
+        		attrLastModifiedTime = file.lastModifiedTime;
+        	
+            file.createTime = getRelativeTime(file.createTime);
+            file.lastModifiedTime = getRelativeTime(file.lastModifiedTime);
+            file.size = Math.round(file.size / 1024); // in KB
+            
+            jsTreeData.push({
+                id: "file" + file.id,
+                text: fileTemplate(file),
+                li_attr: {"class": "filesitem-file", "data-file-id": file.id,
+                									 "data-name": file.name,
+                									 "data-file-createtime": attrCreateTime,
+                									 "data-file-lastmodifiedtime": attrLastModifiedTime,
+                									 "data-file-mime": file.mimetype,
+                									 "data-file-size": file.size}
+            });
+        });
+
+        return jsTreeData;
+    }
+	
+	
+	
+	// ----------------------------------------------------------------------------------------------------
+	//                                           FUNKTIONALITÄTEN                                          
+	//                                      (client- und serverseitig)                                     
+	// ----------------------------------------------------------------------------------------------------
+	
     /**
      * Öffnet den ausgewählten Knoten im Editor.
      */
     function openSelectedNode() {
+    	
     	var node = getSelectedNode();
 
     	// ist ein Knoten ausgewählt?
@@ -396,7 +526,124 @@ $(function () {
     		window.location.assign("/editor/#" + node.data("file-id"));
     	}
     }
-    
+	
+	/*
+	 * Erstellt eine neue tex-Datei mit dem übergebenen Namen im zuvor ausgewählten Verzeichnis.
+	 *
+	 * @param name Name für die zu erstellende Datei
+	 */
+	function createFile(name) {
+		
+		// vermeiden "filename.tex.tex" Namen
+		name = name.replace(/\.tex/i, "") + ".tex";
+		
+		var selectedFolderId = getSelectedFolderId();
+		
+		// erzeugt severseitig eine neue tex-Datei mit dem festgelegten Namen im aktuellen Verzeichnis
+		documentsJsonRequest({
+				'command': 'createtex',
+				'id': selectedFolderId,
+				'name': name
+			}, function(result,data) {
+				
+				// wenn eine entsprechendes Datei angelegt werden konnte
+				if(result)
+					treeInst.set_id(treeInst.get_node(creatingFileNodeID),"file"+data.response.id);
+				else
+					showAlertDialog("Datei erstellen",data.response);
+				
+				// setzt die Erstellungs-ID zurück
+				creatingFileNodeID = null;
+				
+				// aktualisiert die Anzeige der Dateistruktur
+				reloadProject();
+		});
+	}
+	
+	/*
+	 * Erstellt ein neues Verzeichnis mit dem übergebenen Namen im zuvor ausgewählten Verzeichnis.
+	 *
+	 * @param name Name für das zu erstellende Verzeichnis
+	 */
+	function createFolder(name) {
+		
+		var selectedFolderId = getSelectedFolderId();
+		
+		// erzeugt severseitig ein neues Verzeichnis mit dem festgelegten Namen im aktuellen Verzeichnis
+		documentsJsonRequest({
+				'command': 'createdir',
+				'id': selectedFolderId,
+				'name': name
+			}, function(result,data) {
+				
+				// wenn ein entsprechendes Verzeichnis nicht angelegt werden konnte
+				if(result)
+					treeInst.set_id(treeInst.get_node(creatingFolderNodeID),"folder"+data.response.id);
+				else
+					showAlertDialog("Verzeichnis erstellen",data.response);
+				
+				// setzt die Erstellungs-ID zurück
+				creatingFolderNodeID = null;
+				
+				// aktualisiert die Anzeige der Verzeichnisstruktur
+				reloadProject();
+		});
+	}
+	
+	/*
+	 * Löscht die/das momentan ausgewählte Datei/Verzeichnis.
+	 */
+	function deleteItem() {
+		
+		var selectedNode = $("#"+deletingNodeID);
+		
+		if(selectedNode.hasClass("filesitem-file")) {
+			documentsJsonRequest({
+					'command': 'deletefile',
+					'id': selectedNode.data("file-id")
+				}, function(result,data) {
+					if(result) {
+						
+						// entfernt die zugehörige Knoten-Komponente
+						treeInst.delete_node(deletingNodeID);
+						
+						// setzt die Löschung-ID zurück
+						deletingNodeID = null;
+						// setzt die Selektions-ID zurück
+						selectedNodeID = "";
+					}
+					else
+						showAlertDialog("Datei löschen",data.response);
+					
+					// aktualisiert die Anzeige der Verzeichnisstruktur
+					reloadProject();
+			});
+		}
+		else if(selectedNode.hasClass("filesitem-folder")) {
+			documentsJsonRequest({
+					'command': 'rmdir',
+					'id': selectedNode.data("folder-id")
+				}, function(result,data) {
+					if(result) {
+						
+						// entfernt die zugehörige Knoten-Komponente
+						treeInst.delete_node(deletingNodeID);
+						
+						// setzt die Löschung-ID zurück
+						deletingNodeID = null;
+						// setzt die Selektions-ID zurück
+						selectedNodeID = "";
+						
+					}
+					else
+						showAlertDialog("Verzeichnis löschen",data.response);
+					
+					// aktualisiert die Anzeige der Verzeichnisstruktur
+					reloadProject();
+			});
+		}
+	}
+	
     /**
      * Zeigt einen Dialog zum Löschen des ausgewählten Knotens an.
      */
@@ -425,7 +672,49 @@ $(function () {
     		$('.filesdialog-delete').modal('show');
     	}
     }
-    
+	
+	/*
+	 * Benennt die/das betroffene Datei/Verzeichnis nach dem angegebenen Namen um.
+	 * 
+	 * @param name neuer Name für die/das betroffene Datei/Verzeichnis
+	 */
+	function renameItem(name) {
+		
+		var selectedNodeObj	= $("#"+renamingNodeID),
+			commandName		= selectedNodeObj.hasClass("filesitem-folder") ? "renamedir" : "renamefile",
+			itemId			= selectedNodeObj.data("file-id") || selectedNodeObj.data("folder-id");
+		
+		if(selectedNodeObj.hasClass("filesitem-file") && name.indexOf(".")===-1) {
+			showAlertDialog("Datei umbenennen","Bitte geben Sie auch die Datei-Namenserweiterung ein.");
+			reloadProject();
+			return;
+		}
+		
+		documentsJsonRequest({
+				'command': commandName,
+				'id': itemId,
+				'name': name
+			}, function(result, data) {
+				// wenn die/das ausgewählte Datei/Verzeichnis erfolgreich umbenannt wurde, ist der Umbenennungs-Vorgang abgeschlossen
+	            if(result) {
+					
+					//$("> .jstree-anchor .filesitem-name", selectedNodeObj).text(name);
+					//selectedNodeObj.data("name",name);
+					
+	            	// setzt die Umbenennungs-IDs zurück
+					renamingNodeID = null;
+					prevName = null;
+					
+	            }
+	            // wenn die/das ausgewählte Datei/Verzeichnis für den übergebenen Namen nicht umbenannt werden konnte, ...
+				else
+					showAlertDialog((selectedNodeObj.hasClass("filesitem-file") ? "Datei" : "Verzeichnis")+" umbenennen",data.response);
+				
+				// aktualisiert die Anzeige der Verzeichnisstruktur
+				reloadProject();
+			});
+	}
+	
     /**
      * Zeigt einen Dialog zum Hochladen einer Datei an.
      */
@@ -491,314 +780,165 @@ $(function () {
 
     	$('.filesdialog-upload').modal('show');
     }
-
-
-    var fileTemplate = doT.template($("#template_filesitem-file").text()),
-        folderTemplate = doT.template($("#template_filesitem-folder").text());
-
-    function convertRawDataToJsTreeData(rawData) {
-        var jsTreeData = [];
-
-        $.each(rawData.folders || [], function (i, folder) {
-            jsTreeData.push({
-                id: "folder" + folder.id,
-                text: folderTemplate(folder),
-                li_attr: {"class": "filesitem-folder", "data-folder-id": folder.id, "data-name": folder.name},
-                children: convertRawDataToJsTreeData(folder)
-            });
-        });
-
-        $.each(rawData.files || [], function (i, file) {
-            file.createTime = getRelativeTime(file.createTime);
-            file.lastModifiedTime = getRelativeTime(file.lastModifiedTime);
-            file.size = Math.round(file.size / 1024); // in KB
-            
-            jsTreeData.push({
-                id: "file" + file.id,
-                text: fileTemplate(file),
-                li_attr: {"class": "filesitem-file", "data-file-id": file.id, "data-name": file.name, "data-file-mime": file.mimetype}
-            });
-        });
-
-        return jsTreeData;
-    }
-
-
-
-/*
- * Erstellt eine neue tex-Datei mit dem übergebenen Namen im zuvor ausgewählten Verzeichnis.
- *
- * @param name Name für die zu erstellende Datei
- */
-function createFile(name) {
 	
-	// vermeiden "filename.tex.tex" Namen
-	name = name.replace(/\.tex/i, "") + ".tex";
+	// ----------------------------------------------------------------------------------------------------
+	//                                      ALLGEMEINE HILFSFUNKTIONEN                                     
+	// ----------------------------------------------------------------------------------------------------
 	
-	var selectedFolderId = getSelectedFolderId();
-	
-	// erzeugt severseitig eine neue tex-Datei mit dem festgelegten Namen im aktuellen Verzeichnis
-	documentsJsonRequest({
-			'command': 'createtex',
-			'id': selectedFolderId,
-			'name': name
-		}, function(result,data) {
-			
-			// wenn eine entsprechendes Datei angelegt werden konnte
-			if(result)
-				treeInst.set_id(treeInst.get_node(creatingFileNodeID),"file"+data.response.id);
-			else
-				showAlertDialog("Datei erstellen",data.response);
-			
-			// setzt die Erstellungs-ID zurück
-			creatingFileNodeID = null;
-			
-			// aktualisiert die Anzeige der Dateistruktur
-			reloadProject();
-	});
-}
-
-/*
- * Erstellt ein neues Verzeichnis mit dem übergebenen Namen im zuvor ausgewählten Verzeichnis.
- *
- * @param name Name für das zu erstellende Verzeichnis
- */
-function createFolder(name) {
-	
-	var selectedFolderId = getSelectedFolderId();
-	
-	// erzeugt severseitig ein neues Verzeichnis mit dem festgelegten Namen im aktuellen Verzeichnis
-	documentsJsonRequest({
-			'command': 'createdir',
-			'id': selectedFolderId,
-			'name': name
-		}, function(result,data) {
-			
-			// wenn ein entsprechendes Verzeichnis nicht angelegt werden konnte
-			if(result)
-				treeInst.set_id(treeInst.get_node(creatingFolderNodeID),"folder"+data.response.id);
-			else
-				showAlertDialog("Verzeichnis erstellen",data.response);
-			
-			// setzt die Erstellungs-ID zurück
-			creatingFolderNodeID = null;
-			
-			// aktualisiert die Anzeige der Verzeichnisstruktur
-			reloadProject();
-	});
-}
-
-/*
- * Löscht die/das momentan ausgewählte Datei/Verzeichnis.
- */
-function deleteItem() {
-	
-	var selectedNode = $("#"+deletingNodeID);
-	
-	if(selectedNode.hasClass("filesitem-file")) {
-		documentsJsonRequest({
-				'command': 'deletefile',
-				'id': selectedNode.data("file-id")
-			}, function(result,data) {
-				if(result) {
-					
-					// entfernt die zugehörige Knoten-Komponente
-					treeInst.delete_node(deletingNodeID);
-					
-					// setzt die Löschung-ID zurück
-					deletingNodeID = null;
-					// setzt die Selektions-ID zurück
-					selectedNodeID = "";
-				}
-				else
-					showAlertDialog("Datei löschen",data.response);
-				
-				// aktualisiert die Anzeige der Verzeichnisstruktur
-				reloadProject();
-		});
-	}
-	else if(selectedNode.hasClass("filesitem-folder")) {
-		documentsJsonRequest({
-				'command': 'rmdir',
-				'id': selectedNode.data("folder-id")
-			}, function(result,data) {
-				if(result) {
-					
-					// entfernt die zugehörige Knoten-Komponente
-					treeInst.delete_node(deletingNodeID);
-					
-					// setzt die Löschung-ID zurück
-					deletingNodeID = null;
-					// setzt die Selektions-ID zurück
-					selectedNodeID = "";
-					
-				}
-				else
-					showAlertDialog("Verzeichnis löschen",data.response);
-				
-				// aktualisiert die Anzeige der Verzeichnisstruktur
-				reloadProject();
-		});
-	}
-}
-
-/*
- * Benennt die/das betroffene Datei/Verzeichnis nach dem angegebenen Namen um.
- * 
- * @param name neuer Name für die/das betroffene Datei/Verzeichnis
- */
-function renameItem(name) {
-	
-	var selectedNodeObj	= $("#"+renamingNodeID),
-		commandName		= selectedNodeObj.hasClass("filesitem-folder") ? "renamedir" : "renamefile",
-		itemId			= selectedNodeObj.data("file-id") || selectedNodeObj.data("folder-id");
-	
-	if(selectedNodeObj.hasClass("filesitem-file") && name.indexOf(".")===-1) {
-		showAlertDialog("Datei umbenennen","Bitte geben Sie auch die Datei-Namenserweiterung ein.");
-		reloadProject();
-		return;
-	}
-	
-	documentsJsonRequest({
-			'command': commandName,
-			'id': itemId,
-			'name': name
-		}, function(result, data) {
-			// wenn die/das ausgewählte Datei/Verzeichnis erfolgreich umbenannt wurde, ist der Umbenennungs-Vorgang abgeschlossen
-            if(result) {
-				
-				//$("> .jstree-anchor .filesitem-name", selectedNodeObj).text(name);
-				//selectedNodeObj.data("name",name);
-				
-            	// setzt die Umbenennungs-IDs zurück
-				renamingNodeID = null;
-				prevName = null;
-				
-            }
-            // wenn die/das ausgewählte Datei/Verzeichnis für den übergebenen Namen nicht umbenannt werden konnte, ...
-			else
-				showAlertDialog((selectedNodeObj.hasClass("filesitem-file") ? "Datei" : "Verzeichnis")+" umbenennen",data.response);
-			
-			// aktualisiert die Anzeige der Verzeichnisstruktur
-			reloadProject();
-		});
-}
-
-
-// ----------------------------------------------------------------------------------------------------
-
-/*
- * Versetzt die, der übergebenen ID entsprechende, Knoten-Komponente in den Bearbeitungsmodus.
- *
- * @param nodeID ID der Knoten-Komponente, deren Name bearbeitet werden soll
- * @param text Text-Vorgabe zur Editierung
- */
-function editNode(nodeID,text) {
-	
-	editMode = true;
-	
-	// zeigt das Eingabe-Popover in relativer Position zur betroffenen Knoten-Komponente an
-	showPopover(treeInst.get_node(nodeID));
-	// versetzt die betroffene Knoten-Komponente in den Bearbeitungsmodus
-	treeInst.edit(nodeID,text);
-}
-
-/*
- * Liefert die ID des aktuellen Verzeichnisses.
- *
- * @return die ID des aktuell selektierten Verzeichnisses, sofern ein Verzeichnis selektiert ist oder
- *         die ID des direkten Überverzeichnisses der aktuell selektierten Datei, sofern eine Datei selektiert ist oder
- *         die ID des root-Verzeichnisses, sofern weder ein Verzeichnis, noch eine Datei selektiert sind
- */
-function getSelectedFolderId() {
-	
-	var selectedNodeObj = getSelectedNodeObject();
-	
-	if(selectedNodeObj.hasClass("filesitem-folder"))
-		var selectedFolder = selectedNodeObj;
-	else
-		selectedFolder = selectedNodeObj.closest(".filesitem-folder");
-	
-	return selectedFolder.data("folder-id") || rootFolderId;
-}
-
-/*
- * Liefert das Objekt der momentan ausgewählten Knoten-Komponente.
- *
- * @return das Objekt der momentan ausgewählten Knoten-Komponente
- */
-function getSelectedNodeObject() {
-	
-	return $("#"+treeInst.get_selected());
-	
-}
-
-/*
- * Selektiert die, der übergebenen ID entsprechende, Knoten-Komponente.
- * Hierbei wird die momentan ausgewählte Knoten-Komponente deselektiert.
- *
- * @param nodeID ID der Knoten-Komponente, welche selektiert werden soll
- */
-function selectNode(nodeID) {
-	
-	treeInst.deselect_node(treeInst.get_selected());
-	treeInst.select_node(nodeID);
-	selectedNodeID = nodeID;
-}
-
-/*
- * Zeigt das Popover in relativer Position zur übergebenen Knoten-Komponente an.
- *
- * @param node Knoten-Komponente zu deren Position das Popover relativ angezeigt werden soll
- */
-function showPopover(node) {
-	
-	if(node!=null && treeInst.get_node(node.id)) {
+	/*
+	 * Versetzt die, der übergebenen ID entsprechende, Knoten-Komponente in den Bearbeitungsmodus.
+	 *
+	 * @param nodeID ID der Knoten-Komponente, deren Name bearbeitet werden soll
+	 * @param text Text-Vorgabe zur Editierung
+	 */
+	function editNode(nodeID,text) {
 		
-		var popover = $('.input_popover');
+		editMode = true;
 		
-		// zeigt das Popover an und richtet es links über der Knoten-Komponente aus
-		// (Reihenfolge nicht verändern!)
-		popover.popover('show');
-        $('.popover').css('left',$("#"+node.id).position().left+'px');
-        $('.popover').css('top',($("#"+node.id).position().top-43)+'px');
+		// zeigt das Eingabe-Popover in relativer Position zur betroffenen Knoten-Komponente an
+		showPopover(treeInst.get_node(nodeID));
+		// versetzt die betroffene Knoten-Komponente in den Bearbeitungsmodus
+		treeInst.edit(nodeID,text);
 	}
-}
-
-/*
- * Aktualisiert die Aktivierungen der Menü-Schaltflächen.
- */
-function updateMenuButtons() {
 	
-	// flags für die Aktivierung der Schaltflächen
-	var basic = true;
-	
-	// Editierungsmodus
-	if(editMode) {
-		// keine Aktivierungen
-		basic 		= false;
-		selected 	= false;
-		folder 		= false;
-		file 		= true;
-		texFile 	= false;
-	}
-	else {
+	/*
+	 * Liefert die ID des aktuellen Verzeichnisses.
+	 *
+	 * @return die ID des aktuell selektierten Verzeichnisses, sofern ein Verzeichnis selektiert ist oder
+	 *         die ID des direkten Überverzeichnisses der aktuell selektierten Datei, sofern eine Datei selektiert ist oder
+	 *         die ID des root-Verzeichnisses, sofern weder ein Verzeichnis, noch eine Datei selektiert sind
+	 */
+	function getSelectedFolderId() {
+		
 		var selectedNodeObj = getSelectedNodeObject();
 		
-		// flag für die Aktivierung der selektionsabhängigen Schaltflächen
-		selected = selectedNodeObj.length;
-		folder = selected && selectedNodeObj.hasClass("filesitem-folder");
-		file = selected && selectedNodeObj.hasClass("filesitem-file");
-		texFile = file && $.inArray(selectedNodeObj.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1;
+		if(selectedNodeObj.hasClass("filesitem-folder"))
+			var selectedFolder = selectedNodeObj;
+		else
+			selectedFolder = selectedNodeObj.closest(".filesitem-folder");
+		
+		return selectedFolder.data("folder-id") || rootFolderId;
 	}
 	
-	// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
-	$(".filestoolbar-open").prop("disabled", !texFile);
-	$(".filestoolbar-newfile").prop("disabled", !basic);
-	$(".filestoolbar-newfolder").prop("disabled", !basic);
-	$(".filestoolbar-delete").prop("disabled", !selected);
-	$(".filestoolbar-rename").prop("disabled", !selected);
-	$(".filestoolbar-download").prop("disabled", !selected);
-	$(".filestoolbar-upload").prop("disabled", file);
-}
+	/*
+	 * Liefert das Objekt der momentan ausgewählten Knoten-Komponente.
+	 *
+	 * @return das Objekt der momentan ausgewählten Knoten-Komponente
+	 */
+	function getSelectedNodeObject() {
+		
+		return $("#"+treeInst.get_selected());
+		
+	}
+	
+	/*
+	 * Selektiert die, der übergebenen ID entsprechende, Knoten-Komponente.
+	 * Hierbei wird die momentan ausgewählte Knoten-Komponente deselektiert.
+	 *
+	 * @param nodeID ID der Knoten-Komponente, welche selektiert werden soll
+	 */
+	function selectNode(nodeID) {
+		
+		treeInst.deselect_node(treeInst.get_selected());
+		treeInst.select_node(nodeID);
+		selectedNodeID = nodeID;
+	}
+	
+	/*
+	 * Zeigt das Popover in relativer Position zur übergebenen Knoten-Komponente an.
+	 *
+	 * @param node Knoten-Komponente zu deren Position das Popover relativ angezeigt werden soll
+	 */
+	function showPopover(node) {
+		
+		if(node!=null && treeInst.get_node(node.id)) {
+			
+			var popover = $('.input_popover');
+			
+			// zeigt das Popover an und richtet es links über der Knoten-Komponente aus
+			// (Reihenfolge nicht verändern!)
+			popover.popover('show');
+	        $('.popover').css('left',$("#"+node.id).position().left+'px');
+	        $('.popover').css('top',($("#"+node.id).position().top-43)+'px');
+		}
+	}
+	
+	/*
+	 * Aktualisiert die Aktivierungen der Menü-Schaltflächen.
+	 */
+	function updateMenuButtons() {
+		
+		// flags für die Aktivierung der Schaltflächen
+		var basic = true;
+		
+		// Editierungsmodus
+		if(editMode) {
+			// keine Aktivierungen
+			basic 		= false;
+			selected 	= false;
+			folder 		= false;
+			file 		= true;
+			texFile 	= false;
+		}
+		else {
+			var selectedNodeObj = getSelectedNodeObject();
+			
+			// flag für die Aktivierung der selektionsabhängigen Schaltflächen
+			selected = selectedNodeObj.length;
+			folder = selected && selectedNodeObj.hasClass("filesitem-folder");
+			file = selected && selectedNodeObj.hasClass("filesitem-file");
+			texFile = file && $.inArray(selectedNodeObj.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1;
+		}
+		
+		// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
+		$(".filestoolbar-open").prop("disabled", !texFile);
+		$(".filestoolbar-newfile").prop("disabled", !basic);
+		$(".filestoolbar-newfolder").prop("disabled", !basic);
+		$(".filestoolbar-delete").prop("disabled", !selected);
+		$(".filestoolbar-rename").prop("disabled", !selected);
+		$(".filestoolbar-download").prop("disabled", !selected);
+		$(".filestoolbar-upload").prop("disabled", file);
+	}
+	
+	/*
+	 * Aktualisiert die Sortierung gemäß des übergebenen Sortierungswertes.
+	 *
+	 * @param newSorting neuer Sortierungswert ( 0 = Name, 1 = Erstellungsdatum, 2 = Autor )
+	 */
+	function updateSorting(newSorting) {
+		
+		// derzeitiges Sortierungsicon
+		var icon = 'glyphicon-arrow-down';
+		if(sortOrder==-1)
+			icon = 'glyphicon-arrow-up';
+		
+		// Icon der derzeitigen Sortierung wird entfernt bzw. versteckt
+		if(sorting==newSorting)
+			$('.sort-'+sorting).children('.glyphicon').removeClass(icon);
+		else {
+			if($('.sort-'+sorting).children('.glyphicon').hasClass('glyphicon-arrow-up'))
+				$('.sort-'+sorting).children('.glyphicon').removeClass(icon).addClass('glyphicon-arrow-down');
+			$('.sort-'+sorting).children('.glyphicon').attr("data-hidden","hidden");
+		}	
+		
+		// neue Sortierungsrichtung
+		if(sorting==newSorting)
+			sortOrder *= -1;
+		else
+			sortOrder = 1;
+		
+		// neues Sortierungsicon
+		icon = 'glyphicon-arrow-down';
+		if(sortOrder==-1)
+			icon = 'glyphicon-arrow-up';
+		
+		// fügt das Icon für die neue Sortierung hinzu
+		$('.sort-'+newSorting).children('.glyphicon').addClass(icon);
+		$('.sort-'+newSorting).children('.glyphicon').removeAttr("data-hidden");
+		
+		sorting = newSorting;
+		ignoreSorting = false;
+		treeInst.refresh();
+		
+	}
 });

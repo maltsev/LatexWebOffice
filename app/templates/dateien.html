@@ -167,6 +167,32 @@
             <button type="button" class="btn btn-default filestoolbar-download" disabled>Herunterladen</button>
             <button type="button" class="btn btn-default filestoolbar-upload">Hochladen</button>
         </div>
+        
+        <div class="btn-group" role="group">
+        	<button type="button" class="btn btn-default dropdown-toggle filestoolbar-sort" data-toggle="dropdown">Sortieren <span class="caret"></span></button>
+   				<ul class="dropdown-menu" role="menu">
+      				<li><a href="javascript:void(0);" class='sort-0'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Name
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-1'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Größe
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-2'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Erstellungsdatum
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-3'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Änderungsdatum
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-4'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Typ
+      				</a></li>
+   				</ul>
+       	</div>
     </div>
 
     <div class="btn-toolbar visible-xs-block filestoolbar" role="toolbar">
@@ -199,14 +225,41 @@
                 <span class="glyphicon glyphicon-open" aria-hidden="true"></span>
             </button>
         </div>
+        
+        <div class="btn-group" role="group">
+           	<button type="button" class="btn btn-default dropdown-toggle filestoolbar-sort" data-toggle="dropdown">
+           		<span class="glyphicon glyphicon-sort-by-attributes"> <span class="caret"></span></button>
+   				<ul class="dropdown-menu" role="menu">
+      				<li><a href="javascript:void(0);" class='sort-0'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Name
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-1'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Größe
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-2'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Erstellungsdatum
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-3'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Änderungsdatum
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-4'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Typ
+      				</a></li>
+   				</ul>
+        </div>
     </div>
-
+    
     {% verbatim %}
     <script id="template_filesitem-file" type="text/template">
-        <span class="filesitem-name fadeblock" title="{{= it.mimetype }}, erstellt {{= it.createdate }}">
+        <span class="filesitem-name fadeblock" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
             <span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
         </span>
-        <span class="filesitem-editdate" title="Verändert {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
+        <span class="filesitem-editdate" title="verändert {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
     </script>
     {% endverbatim %}
 
