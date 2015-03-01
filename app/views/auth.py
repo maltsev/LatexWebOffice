@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : Sa 28 Feb 2015 00:19:42 CET
+* Last Modified : So 01 Mär 2015 22:23:20 CET
 
 * Author :  maltsev
 
@@ -158,7 +158,7 @@ def registration(request):
             messages.error(request, ERROR_MESSAGES['NOEMPTYFIELDS'])
             foundErrors = True
         # email already registered
-        if User.objects.filter(username=email).count() != 0:
+        if User.objects.filter(username__iexact=email).count() != 0:
             messages.error(request, ERROR_MESSAGES['EMAILALREADYEXISTS'])
             foundErrors = True
         # no valid email format
