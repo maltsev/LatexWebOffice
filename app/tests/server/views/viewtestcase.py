@@ -25,6 +25,7 @@ from app.models.project import Project
 from app.models.projecttemplate import ProjectTemplate
 from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
+from app.models.collaboration import Collaboration
 
 
 class ViewTestCase(TestCase):
@@ -73,6 +74,27 @@ class ViewTestCase(TestCase):
         self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2)
         self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2)
         self._user2_template1 = ProjectTemplate.objects.create(name='user2_template1', author=self._user2)
+
+
+    def setUpCollaborations(self):
+        self._user2_sharedproject = Project.objects.create(name='user2_sharedproject', author=self._user2)
+        self._user2_sharedproject_folder1 = Folder.objects.create(name='user2_sharedproject_folder1',
+                                                                  parent=self._user2_sharedproject.rootFolder,
+                                                                  root=self._user2_sharedproject.rootFolder)
+        self._user2_sharedproject_folder2 = Folder.objects.create(name='user2_sharedproject_folder2',
+                                                                  parent=self._user2_sharedproject.rootFolder,
+                                                                  root=self._user2_sharedproject.rootFolder)
+
+        maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        maintex.source_code = 'Hallo!'
+        maintex.save()
+
+
+        self._user2_sharedproject_folder1_texfile = TexFile(name='temp.tex', folder=self._user2_sharedproject_folder1,
+                                                    source_code='invalidtex source code')
+
+
+        Collaboration.objects.create(user=self._user1, project=self._user2_sharedproject, isConfirmed=True)
 
 
     def setUpSingleUser(self):

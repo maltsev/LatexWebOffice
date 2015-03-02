@@ -4,13 +4,13 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Thu 22 Jan 2015 11:29:20 AM CET
+* Last Modified : Fr 20 Feb 2015 02:16:00 CET
 
 * Author :  christian
 
-* Coauthors : mattis
+* Coauthors : mattis, ingo, Kirill
 
-* Sprintnumber : 2, 3
+* Sprintnumber : 2, 3, 5
 
 * Backlog entry : -
 
@@ -20,8 +20,11 @@ import zipfile
 import shutil
 import os
 
-from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE
+from django.contrib.auth.models import User
+
+from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE, DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM
 from app.common import util
+from app.models.collaboration import Collaboration
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.plaintextfile import PlainTextFile
@@ -66,7 +69,9 @@ class ProjectTestClass(ViewTestCase):
         - user1 erstellt ein Projekt, dessen Projektname nur Leerzeichen enthält -> Fehler
         - user1 erstellt ein Projekt, dessen Projektname ein leerer String ist -> Fehler
         - user1 erstellt ein Projekt, dessen Projektname ungültige Sonderzeichen enthält -> Fehler
-        - user1 erstellt ein Projekt, dessen Projektname bereits existiert -> Fehler
+        - user1 erstellt ein Projekt, dessen Projektname bereits existiert -> Erfolg (Name des erzeugten Projektes mit Suffix '(2)')
+        - user1 erstellt ein weiteres Projekt mit dem Projektnamen des vorherigen Testfalls (Wiederholung des vorherigen Testfalls)
+                -> Erfolg (Name des erzeugten Projektes mit Suffix '(3)')
 
         :return: None
         """
@@ -156,20 +161,50 @@ class ProjectTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
         # --------------------------------------------------------------------------------------------------------------
+        
         # erzeuge ein weiteres Projekt mit einem bereits existierenden Namen
-        response = util.documentPoster(self, command='projectcreate', name=self._newname1.upper())
-
-        # es sollte nur ein Projekt mit dem Namen newname1 in der Datenbank vorhanden sein
-        self.assertTrue((Project.objects.filter(name=self._newname1, author=self._user1)).count() == 1)
-
+        response = util.documentPoster(self, command='projectcreate', name=self._newname1)
+        
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(self._newname1.upper())
+        serveranswer = {'id': Project.objects.get(author=self._user1,
+                                                  name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM)).id,
+                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM)}
+        
+        # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']))
+        # es sollte ein rootFolder angelegt worden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder)
+        # die main.tex Datei sollte im Hauptverzeichnis vorhanden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder.getMainTex())
 
-        # überprüfe die Antwort des Server
-        # status sollte failure sein
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
 
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # erzeuge ein weiteres Projekt mit dem Namen des vorherigen Testfalls
+        response = util.documentPoster(self, command='projectcreate', name=self._newname1)
+        
+        # erwartete Antwort des Servers
+        serveranswer = {'id': Project.objects.get(author=self._user1,
+                                                  name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
+                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)}
+        
+        # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']))
+        # es sollte ein rootFolder angelegt worden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder)
+        # die main.tex Datei sollte im Hauptverzeichnis vorhanden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder.getMainTex())
+
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+    
+    
     def test_projectClone(self):
         """Test der projectClone() Methode aus dem project view
 
@@ -181,7 +216,9 @@ class ProjectTestClass(ViewTestCase):
         - user1 dupliziert ein Projekt, dessen Projektname nur Leerzeichen enthält -> Fehler
         - user1 dupliziert ein Projekt, dessen Projektname ein leerer String ist -> Fehler
         - user1 dupliziert ein Projekt, dessen Projektname ungültige Sonderzeichen enthält -> Fehler
-        - user1 dupliziert ein Projekt, dessen Projektname bereits existiert -> Fehler
+        - user1 dupliziert ein Projekt, dessen Projektname bereits existiert -> Erfolg (Name des erzeugten Projektes mit Suffix '(2)')
+        - user1 dupliziert das Projekt des vorherigen Testfalls erneut -> Erfolg (Name des erzeugten Projektes mit Suffix '(3)')
+        - user1 dupliziert ein freigegebenes Projekt -> Erfolg
 
         :return: None
         """
@@ -266,22 +303,61 @@ class ProjectTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
         # --------------------------------------------------------------------------------------------------------------
+        
         # dupliziere ein Projekt mit einem bereits existierenden Namen
         response = util.documentPoster(self, command='projectclone', idpara=self._user1_project2.id,
-                                       name=self._newname1.upper())
-
-        # es sollte nur ein Projekt mit dem Namen newname1 in der Datenbank vorhanden sein
-        self.assertTrue((Project.objects.filter(name=self._newname1, author=self._user1)).count() == 1)
-
+                                       name=self._user1_project2.name)
+        
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(self._newname1.upper())
-
-        # überprüfe die Antwort des Server
-        # status sollte failure sein
+        serveranswer = {'id': Project.objects.get(author=self._user1,
+                                                  name=DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM)).id,
+                        'name': DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM)}
+        
+        # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']))
+        # es sollte ein rootFolder angelegt worden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder)
+        # die main.tex Datei sollte im Hauptverzeichnis vorhanden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder.getMainTex())
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
-        util.validateJsonFailureResponse(self, response.content, serveranswer)
-
-
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # dupliziere das Projekt des vorherigen Testfalls erneut
+        response = util.documentPoster(self, command='projectclone', idpara=self._user1_project2.id,
+                                       name=self._user1_project2.name)
+        
+        # erwartete Antwort des Servers
+        serveranswer = {'id': Project.objects.get(author=self._user1,
+                                                  name=DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
+                        'name': DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM+1)}
+        
+        # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']))
+        # es sollte ein rootFolder angelegt worden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder)
+        # die main.tex Datei sollte im Hauptverzeichnis vorhanden sein
+        self.assertTrue(Project.objects.get(id=serveranswer['id']).rootFolder.getMainTex())
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        collaboration = Collaboration.objects.create(project=self._user2_project1, user=self._user1, isConfirmed=True)
+        response = util.documentPoster(self, command='projectclone', idpara=self._user2_project1.id,
+                                       name=self._newname3)
+        projects = Project.objects.filter(name=self._newname3, author=self._user1)
+        self.assertEqual(len(projects), 1)
+        util.validateJsonSuccessResponse(self, response.content, {'id': projects[0].id, 'name': self._newname3})
+    
+    
     def test_projectRm(self):
         """Test der  projectRm() Methode aus dem project view
 
@@ -489,17 +565,24 @@ class ProjectTestClass(ViewTestCase):
 
     def test_listProjects(self):
         """Test der listprojects() Methode aus dem project view
-
+        
         Teste das Auflisten aller Projekte eines Benutzers.
-
+        
         Testfälle:
         - user1 fordert eine Liste aller Projekte an -> Erfolg (Liste sollte nur Projekte von user1 beinhalten)
         - user2 fordert eine Liste aller Projekte an -> Erfolg (Liste sollte nur Projekte von user2 beinhalten)
         - user3 fordert eine Liste aller Projekte an -> Erfolg (Liste sollte leer sein)
-
+        - user1 lädt user2 zum Projekt user1_project1 und
+          user2 fordert eine Liste aller Projekte an -> Erfolg (Liste sollte nur Projekte von user2 beinhalten)
+        - user2 bestätigt die Kollaboration am Projekt user1_project1 und
+                fordert eine Liste aller Projekte an -> Erfolg (Liste sollte alle Projekte von user2 und user1_project1 beinhalten)
+        - user2 kündigt die Kollaboration am Projekt user1_project1 und
+                fordert eine Liste aller Projekte an -> Erfolg (Liste sollte alle Projekte von user2 und
+                                                                das neuerzeugte Duplikat von user1_project1 mit user2 als Autor beinhalten)
+        
         :return: None
         """
-
+        
         # Sende Anfrage zum Auflisten aller Projekte von user1
         response = util.documentPoster(self, command='listprojects')
 
@@ -591,6 +674,111 @@ class ProjectTestClass(ViewTestCase):
 
         # logout von user3
         self.client.logout()
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # login von user1
+        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
+        
+        # user1 lädt user2 zum Projekt user1_project1 ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
+        
+        # logout von user1
+        self.client.logout()
+        # login von user2
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        
+        # sende Anfrage zum Auflisten aller Projekte von user2
+        response = util.documentPoster(self, command='listprojects')
+        
+        # erwartete Antwort des Servers
+        serveranswer = [
+            {'id': self._user2_project1.id,
+             'name': self._user2_project1.name,
+             'ownerid': self._user2_project1.author.id,
+             'ownername': self._user2_project1.author.username,
+             'createtime': util.datetimeToString(self._user2_project1.createTime),
+             'rootid': self._user2_project1.rootFolder.id},
+            {'id': self._user2_project2.id,
+             'name': self._user2_project2.name,
+             'ownerid': self._user2_project2.author.id,
+             'ownername': self._user2_project2.author.username,
+             'createtime': util.datetimeToString(self._user2_project2.createTime),
+             'rootid': self._user2_project2.rootFolder.id}
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # user2 bestätigt die Kollaboration am Projekt user1_project1
+        util.documentPoster(self, command='activatecollaboration', idpara=self._user1_project1.id)
+        
+        # sende Anfrage zum Auflisten aller Projekte von user2
+        response = util.documentPoster(self, command='listprojects')
+        
+        # erwartete Antwort des Servers
+        serveranswer = [
+            {'id': self._user2_project1.id,
+             'name': self._user2_project1.name,
+             'ownerid': self._user2_project1.author.id,
+             'ownername': self._user2_project1.author.username,
+             'createtime': util.datetimeToString(self._user2_project1.createTime),
+             'rootid': self._user2_project1.rootFolder.id},
+            {'id': self._user2_project2.id,
+             'name': self._user2_project2.name,
+             'ownerid': self._user2_project2.author.id,
+             'ownername': self._user2_project2.author.username,
+             'createtime': util.datetimeToString(self._user2_project2.createTime),
+             'rootid': self._user2_project2.rootFolder.id},
+            {'id': self._user1_project1.id,
+             'name': self._user1_project1.name,
+             'ownerid': self._user1_project1.author.id,
+             'ownername': self._user1_project1.author.username,
+             'createtime': util.datetimeToString(self._user1_project1.createTime),
+             'rootid': self._user1_project1.rootFolder.id}
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # user2 kündigt die Kollaboration am Projekt user1_project1
+        util.documentPoster(self, command='quitcollaboration', idpara=self._user1_project1.id)
+        
+        # sende Anfrage zum Auflisten aller Projekte von user2
+        response = util.documentPoster(self, command='listprojects')
+        
+        # erwartete Antwort des Servers
+        serveranswer = [
+            {'id': self._user2_project1.id,
+             'name': self._user2_project1.name,
+             'ownerid': self._user2_project1.author.id,
+             'ownername': self._user2_project1.author.username,
+             'createtime': util.datetimeToString(self._user2_project1.createTime),
+             'rootid': self._user2_project1.rootFolder.id},
+            {'id': self._user2_project2.id,
+             'name': self._user2_project2.name,
+             'ownerid': self._user2_project2.author.id,
+             'ownername': self._user2_project2.author.username,
+             'createtime': util.datetimeToString(self._user2_project2.createTime),
+             'rootid': self._user2_project2.rootFolder.id},
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # logout von user2
+        self.client.logout()
+
 
     def test_importZip(self):
         """Test der importZip() Methode aus dem project view
@@ -932,27 +1120,536 @@ class ProjectTestClass(ViewTestCase):
         # --------------------------------------------------------------------------------------------------------------
         # sende Anfrage zum exportieren eines Ordners mit einer ungültigen projectid
         response = util.documentPoster(self, command='exportzip', idpara=self._invalidid)
-
-        # überprüfe die Antwort des Servers
-        # sollte status code 404 liefern
-        self.assertEqual(response.status_code, 404)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['DIRECTORYNOTEXIST'])
 
         # --------------------------------------------------------------------------------------------------------------
         # sende Anfrage zum exportieren eines Projektes mit einer rootfolderID die user2 gehört (als user1)
         response = util.documentPoster(self, command='exportzip', idpara=self._user2_project1.rootFolder.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
 
-        # überprüfe die Antwort des Servers
-        # sollte status code 404 liefern
-        self.assertEqual(response.status_code, 404)
 
-    def test_shareProject(self):
-        """Test der shareProject() Methode des project view
-
-        Teste die Freigabe eines Projektes für andere Benutzer.
-
+    def test_inviteUser(self):
+        """Test der inviteUser()-Methode des project view
+        
+        Teste das Einladen eines Nutzers zur Kollaboration an einem Projekt.
+        
         Testfälle:
-        +++ Methode noch nicht implementiert +++
+        - user1 lädt sich selbst ein -> Fehler
+        - user1 lädt unter Angabe einer leeren E-Mail-Adresse ein -> Fehler
+        - user1 lädt einen nicht registrierten Nutzer ein -> Fehler
+        - user1 lädt zu einem Projekt mit einer ungültigen Projekt-ID ein -> Fehler
+        - user1 lädt einen registrierten, noch nicht zum betroffenen Projekt eingeladenen Nutzer user2 ein -> Erfolg
+        - user1 lädt einen registrierten, bereits zum betroffenen Projekt eingeladenen Nutzer user2 ein -> Fehler
+        - user2 lädt zu einem Projekt ein, für welches er nicht der Project-Owner ist -> Fehler
 
         :return: None
         """
-        pass
+        
+        # sende Anfrage zum Einladen von sich selbst
+        response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user1.username)
+        
+        # es sollte keine entsprechende Kollaboration mit Nutzer user1 und Projekt user1_project1 in der Datenbank vorhanden sein
+        self.assertFalse(Collaboration.objects.filter(user=self._user1, project=self._user1_project1))
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['USERALREADYINVITED'].format(self._user1.username)
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # ermittelt Anzahl der Kollaborationen zum Projekt user1_project1
+        count = Collaboration.objects.filter(project=self._user1_project1).count()
+        
+        # sende Anfrage zum Einladen eines Nutzers durch Angabe einer leeren E-Mail-Adresse
+        response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name="")
+        
+        # es sollte keine Kollaboration für das Projekt user1_project1 in der Datenbank hinzugekommen sein
+        self.assertTrue(Collaboration.objects.filter(project=self._user1_project1).count()==count)
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['BLANKNAME']
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # teste, ob noch kein Nutzer mit der Kennung notregistered@latexweboffice.de registriert ist
+        self.assertFalse(User.objects.filter(username="notregistered@latexweboffice.de"))
+        
+        # sende Anfrage zum Einladen eines nicht registrierten Nutzers
+        response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name="notregistered@latexweboffice.de")
+        
+        not_registered_user = User.objects.create_user(username="notregistered@latexweboffice.de",
+                                                       email="notregistered@latexweboffice.de", password="123456",
+                                                       first_name="None")
+        # es sollte keine entsprechende Kollaboration mit Nutzer not_registered_user und Projekt user1_project1 in der Datenbank vorhanden sein
+        self.assertFalse(Collaboration.objects.filter(user=not_registered_user, project=self._user1_project1))
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['USERNOTFOUND'].format("notregistered@latexweboffice.de")
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # ermittelt Anzahl der Kollaborationen mit Nutzer user2
+        count = Collaboration.objects.filter(user=self._user2).count()
+        
+        # sende Anfrage zum Einladen zu einem Projekt mit einer ungültigen Projekt-ID
+        response = util.documentPoster(self, command='inviteuser', idpara=self._invalidid, name=self._user2.username)
+        
+        # es sollte keine Kollaboration mit Nutzer user2 in der Datenbank hinzugekommen sein
+        self.assertTrue(Collaboration.objects.filter(user=self._user2).count()==count)
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['PROJECTNOTEXIST']
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # teste, ob noch keine Kollaboration mit Nutzer user2 und Projekt user1_project1 vorhanden ist
+        self.assertFalse(Collaboration.objects.filter(user=self._user2, project=self._user1_project1))
+        
+        # sende Anfrage zum Einladen eines noch nicht zum betroffenen Projekt eingeladenen Nutzers
+        response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
+        
+        # die entsprechende Kollaboration mit Nutzer user2 und Projekt user1_project1 sollte in der Datenbank vorhanden und abrufbar sein
+        self.assertTrue(Collaboration.objects.get(user=self._user2, project=self._user1_project1))
+        
+        # erwartete Antwort des Servers
+        serveranswer = {}
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # sende Anfrage zum Einladen eines bereits zum betroffenen Projekt eingeladenen Nutzers (Wiederholung der vorherigen Anfrage)
+        response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
+        
+        # es sollte genau eine entsprechende Kollaboration mit Nutzer user2 und Projekt user1_project1 in der Datenbank vorhanden sein
+        self.assertTrue((Collaboration.objects.filter(user=self._user2, project=self._user1_project1)).count() == 1)
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['USERALREADYINVITED'].format(self._user2.username)
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # logout von user1
+        self.client.logout()
+        # login von user2
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        
+        # sende Anfrage zum Einladen zu einem Projekt, für welches der einladende Nutzer nicht der Project-Owner ist
+        response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user3.username)
+        
+        # es sollte keine entsprechende Kollaboration mit Nutzer user3 und Projekt user1_project1 in der Datenbank vorhanden sein
+        self.assertFalse(Collaboration.objects.filter(user=self._user3, project=self._user1_project1))
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # logout von user2
+        self.client.logout()
+    
+    def test_listInvitedUsers(self):
+        """Test der listInvitedUsers()-Methode aus dem project view
+        
+        Teste das Auflisten den Nutzernamen aller zu einem Projekt eingeladener Benutzer.
+        
+        Testfälle:
+        - user1 fordert eine Liste aller zum Projekt user1_project1 eingeladener Benutzer an -> Erfolg (Liste sollte leer sein)
+        - user1 lädt user3 zum Projekt user1_project1 ein und
+                fordert eine Liste aller zum Projekt user1_project1 eingeladener Benutzer an -> Erfolg (Liste sollte ausschließlich user3 umfassen)
+        - user1 lädt user2 zum Projekt user1_project1 ein und
+                fordert eine Liste aller zum Projekt user1_project1 eingeladener Benutzer an -> Erfolg (Liste sollte in Reihenfolge user2 und user3 umfassen)
+        - user1 fordert eine Liste aller eingeladener Benutzer zu einem Projekt mit einer ungültigen Projekt-ID an -> Fehler
+        - user1 fordert eine Liste aller eingeladener Benutzer zu einem Projekt an, für welches er nicht der Project-Owner ist -> Fehler
+        
+        :return: None
+        """
+        
+        # sende Anfrage zum Auflisten aller zum Projekt user1_project1 eingeladener Benutzer
+        response = util.documentPoster(self, command='listinvitedusers', idpara=self._user1_project1.id)
+        
+        # erwartete Antwort des Servers
+        serveranswer = []
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # user1 lädt user3 zum Projekt user1_project1 ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user3.username)
+        
+        # sende Anfrage zum Auflisten aller zum Projekt user1_project1 eingeladener Benutzer
+        response = util.documentPoster(self, command='listinvitedusers', idpara=self._user1_project1.id)
+        
+        # erwartete Antwort des Servers
+        serveranswer = [self._user3.username]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # user1 lädt user2 zum Projekt user1_project1 ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
+        
+        # sende Anfrage zum Auflisten aller zum Projekt user1_project1 eingeladener Benutzer
+        response = util.documentPoster(self, command='listinvitedusers', idpara=self._user1_project1.id)
+        
+        # erwartete Antwort des Servers
+        serveranswer = [self._user2.username,
+                        self._user3.username]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # sende Anfrage zum Auflisten aller zu einem Projekt mit einer ungültigen Projekt-ID eingeladener Benutzer
+        response = util.documentPoster(self, command='listinvitedusers', idpara=self._invalidid)
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['PROJECTNOTEXIST']
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # sende Anfrage zum Auflisten aller zu einem Projekt, für welches der aufrufende Nutzer nicht der Project-Owner ist
+        response = util.documentPoster(self, command='listinvitedusers', idpara=self._user2_project1.id)
+        
+        # erwartete Antwort des Servers
+        serveranswer = ERROR_MESSAGES['NOTENOUGHRIGHTS']
+        
+        # überprüfe die Antwort des Servers
+        # status sollte failure sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonFailureResponse(self, response.content, serveranswer)
+
+        
+    def test_listUnconfirmedCollaborativeProjects(self):
+        """Test der listUnconfirmedCollaborativeProjects()-Methode aus dem project view
+        
+        Teste das Auflisten aller Projekte, zu deren Kollaboration ein Benutzer eingeladen ist, diese jedoch noch nicht bestätigt hat.
+        
+        Testfälle:
+        - user1 fordert eine Liste aller unbestätigten Kollaborationsprojekte an -> Erfolg (Liste sollte leer sein)
+        - user1 lädt user2 zum Projekt user1_project1 ein und
+          user2 fordert eine Liste aller unbestätigten Kollaborationsprojekte an -> Erfolg (Liste sollte ausschließlich user1_project1 umfassen)
+        - user1 lädt user3 zum Projekt user1_project1 ein und
+          user3 fordert eine Liste aller unbestätigten Kollaborationsprojekte an -> Erfolg (Liste sollte ausschließlich user1_project1 umfassen)
+        - user1 lädt user2 zu all seinen Projekten ein und
+          user2 fordert eine Liste aller unbestätigten Kollaborationsprojekte an -> Erfolg (Liste sollte sämtliche Projekte von user1 umfassen)
+        - user2 bestätigt die Kollaboration am Projekt user1_project1 und
+                fordert eine Liste aller unbestätigten Kollaborationsprojekte an -> Erfolg (Liste sollte alle Projekte von user1
+                                                                                            mit Ausnahme von user1_project1 umfassen)
+
+        :return: None
+        """
+        
+        # sende Anfrage zum Auflisten aller Projekte, zu deren Kollaboration user1 eingeladen ist, diese jedoch noch nicht bestätigt hat
+        response = util.documentPoster(self, command='listunconfirmedcollaborativeprojects')
+        
+        # erwartete Antwort des Servers
+        serveranswer = []
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # user1 lädt user2 zum Projekt user1_project1 ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
+        
+        # logout von user1
+        self.client.logout()
+        # login von user2
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        
+        # sende Anfrage zum Auflisten aller Projekte, zu deren Kollaboration user2 eingeladen ist, diese jedoch noch nicht bestätigt hat
+        response = util.documentPoster(self, command='listunconfirmedcollaborativeprojects')
+        
+        # erwartete Antwort des Servers
+        serveranswer = [
+            {'id': self._user1_project1.id,
+             'name': self._user1_project1.name,
+             'ownerid': self._user1_project1.author.id,
+             'ownername': self._user1_project1.author.username,
+             'createtime': util.datetimeToString(self._user1_project1.createTime),
+             'rootid': self._user1_project1.rootFolder.id}
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # logout von user2
+        self.client.logout()
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # login von user1
+        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
+        
+        # user1 lädt user3 zum Projekt user1_project1 ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user3.username)
+        
+        # logout von user1
+        self.client.logout()
+        # login von user3
+        self.client.login(username=self._user3.username, password=self._user3._unhashedpw)
+        
+        # sende Anfrage zum Auflisten aller Projekte, zu deren Kollaboration user3 eingeladen ist, diese jedoch noch nicht bestätigt hat
+        response = util.documentPoster(self, command='listunconfirmedcollaborativeprojects')
+        
+        # erwartete Antwort des Servers
+        serveranswer = [
+            {'id': self._user1_project1.id,
+             'name': self._user1_project1.name,
+             'ownerid': self._user1_project1.author.id,
+             'ownername': self._user1_project1.author.username,
+             'createtime': util.datetimeToString(self._user1_project1.createTime),
+             'rootid': self._user1_project1.rootFolder.id}
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # logout von user3
+        self.client.logout()
+        
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # login von user1
+        self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
+        
+        # user1 lädt user2 zu all seinen Projekten ein
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name=self._user2.username)
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project2.id, name=self._user2.username)
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project3.id, name=self._user2.username)
+        util.documentPoster(self, command='inviteuser', idpara=self._user1_project4.id, name=self._user2.username)
+        
+        # logout von user1
+        self.client.logout()
+        # login von user2
+        self.client.login(username=self._user2.username, password=self._user2._unhashedpw)
+        
+        # sende Anfrage zum Auflisten aller Projekte, zu deren Kollaboration user2 eingeladen ist, diese jedoch noch nicht bestätigt hat
+        response = util.documentPoster(self, command='listunconfirmedcollaborativeprojects')
+        
+        serveranswer = [
+            {'id': self._user1_project1.id,
+             'name': self._user1_project1.name,
+             'ownerid': self._user1_project1.author.id,
+             'ownername': self._user1_project1.author.username,
+             'createtime': util.datetimeToString(self._user1_project1.createTime),
+             'rootid': self._user1_project1.rootFolder.id},
+            {'id': self._user1_project2.id,
+             'name': self._user1_project2.name,
+             'ownerid': self._user1_project2.author.id,
+             'ownername': self._user1_project2.author.username,
+             'createtime': util.datetimeToString(self._user1_project2.createTime),
+             'rootid': self._user1_project2.rootFolder.id},
+            {'id': self._user1_project3.id,
+             'name': self._user1_project3.name,
+             'ownerid': self._user1_project3.author.id,
+             'ownername': self._user1_project3.author.username,
+             'createtime': util.datetimeToString(self._user1_project3.createTime),
+             'rootid': self._user1_project3.rootFolder.id},
+            {'id': self._user1_project4.id,
+             'name': self._user1_project4.name,
+             'ownerid': self._user1_project4.author.id,
+             'ownername': self._user1_project4.author.username,
+             'createtime': util.datetimeToString(self._user1_project4.createTime),
+             'rootid': self._user1_project4.rootFolder.id}
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+       
+        # --------------------------------------------------------------------------------------------------------------
+        
+        # user2 bestätigt die Kollaboration am Projekt user1_project1
+        util.documentPoster(self, command='activatecollaboration', idpara=self._user1_project1.id)
+        
+        # sende Anfrage zum Auflisten aller Projekte, zu deren Kollaboration user2 eingeladen ist, diese jedoch noch nicht bestätigt hat
+        response = util.documentPoster(self, command='listunconfirmedcollaborativeprojects')
+        
+        serveranswer = [
+            {'id': self._user1_project2.id,
+             'name': self._user1_project2.name,
+             'ownerid': self._user1_project2.author.id,
+             'ownername': self._user1_project2.author.username,
+             'createtime': util.datetimeToString(self._user1_project2.createTime),
+             'rootid': self._user1_project2.rootFolder.id},
+            {'id': self._user1_project3.id,
+             'name': self._user1_project3.name,
+             'ownerid': self._user1_project3.author.id,
+             'ownername': self._user1_project3.author.username,
+             'createtime': util.datetimeToString(self._user1_project3.createTime),
+             'rootid': self._user1_project3.rootFolder.id},
+            {'id': self._user1_project4.id,
+             'name': self._user1_project4.name,
+             'ownerid': self._user1_project4.author.id,
+             'ownername': self._user1_project4.author.username,
+             'createtime': util.datetimeToString(self._user1_project4.createTime),
+             'rootid': self._user1_project4.rootFolder.id}
+        ]
+        
+        # überprüfe die Antwort des Servers
+        # status sollte success sein
+        # die Antwort des Servers sollte mit serveranswer übereinstimmen
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+        
+        # logout von user2
+        self.client.logout()
+
+
+    def test_activateCollaboration(self):
+        """Test der activateCollaboration()-Methode aus dem project view
+
+        Teste der Bestätigung einer Einladung zur Kollaboration an einem Projekt
+
+        Testfälle:
+        - Nicht existierende Kollaboration bestätigen -> COLLABORATIONNOTFOUND Fehler
+        - user1 bestätigt die Kollaboration von user2 -> COLLABORATIONNOTFOUND Fehler
+        - user1 bestätigt seine Kollaboration -> Erfolg
+
+        :return: None
+        """
+
+        # Es gibt keine Kollaboration für das Projekt mit ID 1
+        response = util.documentPoster(self, command='activatecollaboration', idpara=1)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['COLLABORATIONNOTFOUND'])
+
+
+        collaboration = Collaboration.objects.create(user=self._user2, project=self._user1_project1)
+        response = util.documentPoster(self, command='activatecollaboration', idpara=self._user1_project1.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['COLLABORATIONNOTFOUND'])
+        self.assertFalse(Collaboration.objects.get(pk=collaboration.id).isConfirmed)
+
+
+        collaboration2 = Collaboration.objects.create(user=self._user1, project=self._user2_project2)
+        response = util.documentPoster(self, command='activatecollaboration', idpara=self._user2_project2.id)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertTrue(Collaboration.objects.get(pk=collaboration2.id).isConfirmed)
+
+
+    def test_quitCollaboration(self):
+        """Test der quitCollaboration()-Methode aus dem project view
+
+        Teste der Kündigung der Kollaboration (bzw. Einladung) an einem Projekt
+
+        Testfälle:
+        - user1 kündigt die Kollaboration an seinem Projekt -> SELFCOLLABORATIONCANCEL Fehler
+        - user1 kündigt der nicht bestätigten Einladung -> Erfolg
+        - user1 kündigt der Kollaboration -> Erfolg
+
+        :return: None
+        """
+
+        response = util.documentPoster(self, command='quitcollaboration', idpara=self._user1_project1.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['SELFCOLLABORATIONCANCEL'])
+
+
+        # Kollaboration ist nicht bestätigt
+        collaboration2 = Collaboration.objects.create(user=self._user1, project=self._user2_project2)
+        response = util.documentPoster(self, command='quitcollaboration', idpara=self._user2_project2.id)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(Collaboration.objects.filter(pk=collaboration2.id).exists())
+        # Es soll keine Kopie vom Projekt erstellt worden sein
+        self.assertFalse(Project.objects.filter(author=self._user1, name=self._user2_project2.name).exists())
+
+
+        collaboration3 = Collaboration.objects.create(user=self._user1, project=self._user2_project2)
+        collaboration3.isConfirmed = True
+        collaboration3.save()
+        response = util.documentPoster(self, command='quitcollaboration', idpara=self._user2_project2.id)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(Collaboration.objects.filter(pk=collaboration3.id).exists())
+        # Es soll keine Kopie vom Projekt erstellt worden sein
+        self.assertFalse(Project.objects.filter(author=self._user1, name=self._user2_project2.name).exists())
+
+
+    def test_cancelCollaboration(self):
+        """Test der cancelCollaboration()-Methode aus dem project view
+
+        Teste der Entziehung der Freigabe
+
+        Testfälle:
+        - user1 entzieht der Freigabe für nicht existierenden Nutzer -> COLLABORATIONNOTFOUND Fehler
+        - user1 entzieht der Freigabe an seinem Projekt -> SELFCOLLABORATIONCANCEL Fehler
+        - user1 entzieht der nicht bestätigten Freigabe -> Erfolg
+        - user1 entzieht der bestätigten Freigabe -> Erfolg
+
+        :return: None
+        """
+
+        response = util.documentPoster(self, command='cancelcollaboration', idpara=self._user1_project1.id, name='not@exists.com')
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['COLLABORATIONNOTFOUND'])
+
+
+        response = util.documentPoster(self, command='cancelcollaboration', idpara=self._user1_project1.id, name=self._user1.username)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['SELFCOLLABORATIONCANCEL'])
+
+
+        # Kollaboration ist nicht bestätigt
+        collaboration = Collaboration.objects.create(user=self._user2, project=self._user1_project1)
+        response = util.documentPoster(self, command='cancelcollaboration', idpara=self._user1_project1.id, name=self._user2.username)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(Collaboration.objects.filter(pk=collaboration.id).exists())
+        self.assertFalse(Project.objects.filter(author=self._user2, name=self._user1_project1.name).exists())
+
+
+        # Kollaboration ist bestätigt
+        collaboration2 = Collaboration.objects.create(user=self._user2, project=self._user1_project2, isConfirmed=True)
+        response = util.documentPoster(self, command='cancelcollaboration', idpara=self._user1_project2.id, name=self._user2.username)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(Collaboration.objects.filter(pk=collaboration2.id).exists())
+        self.assertFalse(Project.objects.filter(author=self._user2, name=self._user1_project2.name).exists())

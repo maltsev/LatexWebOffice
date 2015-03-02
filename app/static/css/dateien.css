@@ -39,3 +39,7 @@
 	border-color: #000000;
 	color: #000000;
 }
+
+[data-hidden="hidden"] {
+   visibility: hidden;
+}

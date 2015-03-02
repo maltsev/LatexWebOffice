@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mo 15 Dez 2014 13:36:32 CET
+* Last Modified : Mo 23 Feb 2015 17:35:02 CET
 
 * Author :  christian
 
@@ -15,13 +15,11 @@
 * Backlog entry : TEK1, 3ED9, DOK8
 
 """
-import logging
 import json
 import mimetypes
 import os
 
-from core import settings
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from django.views.static import serve
 
 from app.models.folder import Folder
@@ -32,7 +30,7 @@ from app.models.file.binaryfile import BinaryFile
 from app.models.file.pdf import PDF
 from app.common import util
 from app.common.compile import latexcompile
-from app.common.constants import ERROR_MESSAGES, STANDARDENCODING
+from app.common.constants import ERROR_MESSAGES
 
 
 def createTexFile(request, user, folderid, texname):
@@ -77,6 +75,7 @@ def updateFile(request, user, fileid, filecontenttostring):
     # versuche den source code in der Datenbank durch den übergebenen String zu ersetzen
     try:
         plaintextobj.source_code = filecontenttostring
+        plaintextobj.lasteditor = user
         plaintextobj.save()
         return util.jsonResponse({}, True, request)
     except:
@@ -207,20 +206,6 @@ def downloadFile(request, user, fileid):
     :return: filestream (404 im Fehlerfall)
     """
 
-    # setze das logging level auf ERROR
-    # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben wird
-    logger = logging.getLogger('django.request')
-    previous_level = logger.getEffectiveLevel()
-    logger.setLevel(logging.ERROR)
-
-    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
-    if not rights:
-        raise Http404
-
-    # setze das logging level wieder auf den ursprünglichen Wert
-    logger.setLevel(previous_level)
-
     if PlainTextFile.objects.filter(id=fileid).exists():
         # hole das Dateiobjekt
         downloadfileobj = PlainTextFile.objects.get(id=fileid)
@@ -250,7 +235,7 @@ def downloadFile(request, user, fileid):
     _, encoding = mimetypes.guess_type(downloadfileobj.name)
 
     response['Content-Type'] = downloadfileobj.mimeType
-    response['Content-Length'] = downloadfileobj_size
+    response['Content-Length'] = len(response.content)
     if encoding is not None:
         response['Content-Encoding'] = encoding
 
@@ -278,6 +263,8 @@ def fileInfo(request, user, fileid):
 
     # Sende die Datei-Informationen als JSON response
 
+    isallowedit = not fileobj.isLocked() or fileobj.lockedBy() == user
+
     # Sende die id und den Namen der Datei sowie des Ordners als JSON response
     dictionary = {'fileid': fileobj.id,
                   'filename': fileobj.name,
@@ -288,6 +275,8 @@ def fileInfo(request, user, fileid):
                   'createtime': util.datetimeToString(fileobj.createTime),
                   'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
                   'size': fileobj.size,
+                  'isallowedit': isallowedit,
+                  'lasteditor': fileobj.lasteditor.username if fileobj.lasteditor else "",
                   'mimetype': fileobj.mimeType,
                   'ownerid': projectobj.author.id,
                   'ownername': projectobj.author.username
@@ -360,3 +349,37 @@ def getLog(request, user, fileid):
         log = ERROR_MESSAGES['NOLOGFILE']
 
     return util.jsonResponse({'log': log}, True, request)
+
+
+def lockFile(request, user, fileid):
+    """Sperrt die Datei.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der Datei welche gesperrt werden soll
+    :return: HttpResponse (JSON)
+    """
+
+    file = File.objects.get(pk=fileid)
+    if file.isLocked() and file.lockedBy() != user:
+        return util.jsonErrorResponse(ERROR_MESSAGES['FILELOCKED'], request)
+
+    file.lock(user)
+    return util.jsonResponse({}, True, request)
+
+
+def unlockFile(request, user, fileid):
+    """Entsperrt die Datei.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der Datei welche entsperrt werden soll
+    :return: HttpResponse (JSON)
+    """
+
+    file = File.objects.get(pk=fileid)
+    if file.isLocked() and file.lockedBy() != user:
+        return util.jsonErrorResponse(ERROR_MESSAGES['UNLOCKERROR'], request)
+
+    file.unlock()
+    return util.jsonResponse({}, True, request)

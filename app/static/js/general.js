@@ -136,3 +136,22 @@ function getRelativeTime(rawDateTime) {
 
     return dateTime.fromNow();
 }
+
+/*
+ * Setzt den Inhalt des Alert Dialogs.
+ *
+ * @param title Titel für diesen Dialog
+ * @param message Informationstext für diesen Dialog
+ * @param redirection Pfad zur Weiterleitung bei Betätigung der Ok-Schaltfläche (optional)
+ */
+function showAlertDialog(title, message, redirection){
+	$('#modal_alertDialog').modal('show');
+	document.getElementById('modal_alertDialog_title').innerHTML = title;
+	document.getElementById('modal_alertDialog_message').innerHTML = message;
+
+	$('.modal_alertDialogConfirm').on("click", function() {
+		if (redirection!=undefined) {
+			document.location.assign(redirection);
+        }
+	})
+}

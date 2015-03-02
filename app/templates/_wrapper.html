@@ -46,10 +46,9 @@
     <script src="/static/js/moments.locale.de.js"></script>
     <script>moment.locale("de");</script>
 	<script src="/static/js/nav/nav.js"></script>
-    <script src="/static/js/scrollableblock.js"></script>
     <script src="/static/js/general.js"></script>
 	<script>var ERROR_MESSAGES=JSON.parse("{{ ERROR_MESSAGES }}".replace(/&quot;/g, "\"").replace(/(?:\r\n|\r|\n)/g,''));</script> <!-- Standard Fehlermeldungen vom Server (kann nicht in den static Ordner) -->
-
+	<script>var user = "{{ user.username }}";</script>
 	<!-- seitenspezifische Header -->
 	{% block header %}{% endblock %}
 </head>
@@ -113,6 +112,24 @@
 	Daher sollte jede andere HMTL datei diese wrapper_datei erweitern und lediglich den content block überschreiben 
 	-->
     <div id='maincontainer' class="container-fluid container-fill container-fluid-content">{% block content %}{% endblock %}
+
+    <!-- Modal Alert Dialog -->
+    <div class="modal fade" id="modal_alertDialog" role="dialog" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="modal_alertDialog_title"></h4>
+          </div>
+          <div class="modal-body">
+            <p id="modal_alertDialog_message"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary modal_alertDialogConfirm" data-dismiss="modal">Okay</button>
+          </div>
+        </div>
+      </div>
+    </div>
 </body>
 
 </html>

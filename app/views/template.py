@@ -23,43 +23,44 @@ from app.common.constants import ERROR_MESSAGES
 
 def template2Project(request, user, templateid, projectname):
     """Wandelt eine Vorlage in ein Projekt um.
-
+       Hierbei wird der übergebene Projektname für das zu erzeugende Projekt ggf. mit einem generierten numerischen Suffix versehen,
+       sofern dieser Name bereits für ein Projekt des betroffenen Benutzers verwendet wird.
+    
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
     :param templateid: Id der Vorlage, welche umgewandelt werden soll
     :param projectname: Name des zu erstellenden Projektes
     :return: HttpResponse (JSON)
     """
-
-    # Überprüfe, ob es den Projektnamen schon gibt
-    if Project.objects.filter(name__iexact=projectname.lower(), author=user).exists():
-        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(projectname), request)
-
+    
+    # ermittelt einen noch nicht verwendeten Projektnamen anhand des übergebenen Namens
+    validname = util.getNextValidProjectName(user,projectname)
+    
     # Erstelle Projekt aus der Vorlage
     template = ProjectTemplate.objects.get(id=templateid)
-    project = Project.objects.createFromProjectTemplate(
-        template=template, name=projectname)
-
+    project = Project.objects.createFromProjectTemplate(template=template, name=validname)
+    
     return util.jsonResponse({'id': project.id, 'name': project.name, 'rootid': project.rootFolder.id}, True, request)
 
 
 def project2Template(request, user, projectid, templatename):
     """Wandelt ein Projekt in eine Vorlage um.
-
+       Hierbei wird der übergebene Vorlagenname für die zu erzeugende Vorlage ggf. mit einem generierten numerischen Suffix versehen,
+       sofern dieser Name bereits für eine Vorlage des betroffenen Benutzers verwendet wird.
+    
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
     :param projectid: Id des Projektes, welches umgewandelt werden soll
     :param templatename: Name der zu erstellenden Vorlage
     :return: HttpResponse (JSON)
     """
-
-    # Überprüfe, ob es den Vorlagenamen schon gibt
-    if ProjectTemplate.objects.filter(name__iexact=templatename.lower(), author=user).exists():
-        return util.jsonErrorResponse(ERROR_MESSAGES['TEMPLATEALREADYEXISTS'].format(templatename), request)
+    
+    # ermittelt einen noch nicht verwendeten Vorlagennamen anhand des übergebenen Namens
+    validname = util.getNextValidTemplateName(user,templatename)
 
     # Erstelle template aus dem Project
     project = Project.objects.get(id=projectid)
-    template = ProjectTemplate.objects.createFromProject(project=project, name=templatename)
+    template = ProjectTemplate.objects.createFromProject(project=project, name=validname, author=user)
 
     return util.jsonResponse({'id': template.id, 'name': template.name}, True, request)
 

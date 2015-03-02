@@ -1,7 +1,7 @@
 <!--
-@author: Martin Koláček, Franziska Everinghoff, Kirill Maltsev, Thore Thießen
+@author: Martin Koláček, Franziska Everinghoff, Kirill Maltsev, Thore Thießen, Timo Dümke
 @creation: 03.11.2014 - sprint-nr: 1
-@last-change: 08.01.2015 - sprint-nr: 4
+@last-change: 01.03.2015 - sprint-nr: 6
 -->
 
 <!-- embedding file: _wrapper.html -->
@@ -98,11 +98,11 @@
 				<p class="filesdialog-delete-text"></p>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default filesdialog-delete-yes" data-dismiss="modal">
-					Ja
-				</button>
-				<button type="button" class="btn btn-primary filesdialog-delete-no" data-dismiss="modal">
+				<button type="button" class="btn btn-default filesdialog-delete-no" data-dismiss="modal">
 					Nein
+				</button>
+				<button type="button" class="btn btn-primary filesdialog-delete-yes" data-dismiss="modal">
+					Ja
 				</button>
 			</div>
 		</div>
@@ -135,11 +135,11 @@
 				</form>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default filesdialog-upload-do">
-					Hochladen
-				</button>
-				<button type="button" class="btn btn-primary filesdialog-delete-abort" data-dismiss="modal">
+				<button type="button" class="btn btn-default filesdialog-delete-abort" data-dismiss="modal">
 					Abbrechen
+				</button>
+				<button type="button" class="btn btn-primary filesdialog-upload-do">
+					Hochladen
 				</button>
 			</div>
 		</div>
@@ -151,64 +151,115 @@
 <h1>Dateien und Ordner</h1>
 
 <div class="filescolumn">
-    <div class="scrollableblock">
-        <div class="btn-toolbar hidden-xs filestoolbar" role="toolbar">
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-default filestoolbar-open" disabled>Öffnen</button>
-            </div>
-
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-default filestoolbar-newfile">Datei erstellen</button>
-                <button type="button" class="btn btn-default filestoolbar-newfolder">Verzeichnis erstellen</button>
-                <button type="button" class="btn btn-default filestoolbar-delete" disabled>Löschen</button>
-                <button type="button" class="btn btn-default filestoolbar-rename" disabled>Umbennenen</button>
-            </div>
-
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-default filestoolbar-download" disabled>Herunterladen</button>
-                <button type="button" class="btn btn-default filestoolbar-upload">Hochladen</button>
-            </div>
+    <div class="btn-toolbar hidden-xs filestoolbar" role="toolbar">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-default filestoolbar-open" disabled>Öffnen</button>
         </div>
 
-        <div class="btn-toolbar visible-xs-block filestoolbar" role="toolbar">
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-default filestoolbar-open" disabled>
-                    <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
-                </button>
-            </div>
-
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-default filestoolbar-newfile">
-                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                </button>
-                <button type="button" class="btn btn-default filestoolbar-newfolder">
-                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                </button>
-                <button type="button" class="btn btn-default filestoolbar-delete" disabled>
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                </button>
-                <button type="button" class="btn btn-default filestoolbar-rename" disabled>
-                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-                </button>
-            </div>
-
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-default filestoolbar-download" disabled>
-                    <span class="glyphicon glyphicon-save" aria-hidden="true"></span>
-                </button>
-                <button type="button" class="btn btn-default filestoolbar-upload">
-                    <span class="glyphicon glyphicon-open" aria-hidden="true"></span>
-                </button>
-            </div>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-default filestoolbar-newfile">Datei erstellen</button>
+            <button type="button" class="btn btn-default filestoolbar-newfolder">Verzeichnis erstellen</button>
+            <button type="button" class="btn btn-default filestoolbar-delete" disabled>Löschen</button>
+            <button type="button" class="btn btn-default filestoolbar-rename" disabled>Umbennenen</button>
         </div>
+
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-default filestoolbar-download" disabled>Herunterladen</button>
+            <button type="button" class="btn btn-default filestoolbar-upload">Hochladen</button>
+        </div>
+        
+        <div class="btn-group" role="group">
+        	<button type="button" class="btn btn-default dropdown-toggle filestoolbar-sort" data-toggle="dropdown">Sortieren <span class="caret"></span></button>
+   				<ul class="dropdown-menu" role="menu">
+      				<li><a href="javascript:void(0);" class='sort-0'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Name
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-1'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Größe
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-2'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Erstellungsdatum
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-3'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Änderungsdatum
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-4'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Typ
+      				</a></li>
+   				</ul>
+       	</div>
     </div>
 
+    <div class="btn-toolbar visible-xs-block filestoolbar" role="toolbar">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-default filestoolbar-open" disabled>
+                <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+            </button>
+        </div>
+
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-default filestoolbar-newfile">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="btn btn-default filestoolbar-newfolder">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="btn btn-default filestoolbar-delete" disabled>
+                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="btn btn-default filestoolbar-rename" disabled>
+                <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+            </button>
+        </div>
+
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-default filestoolbar-download" disabled>
+                <span class="glyphicon glyphicon-save" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="btn btn-default filestoolbar-upload">
+                <span class="glyphicon glyphicon-open" aria-hidden="true"></span>
+            </button>
+        </div>
+        
+        <div class="btn-group" role="group">
+           	<button type="button" class="btn btn-default dropdown-toggle filestoolbar-sort" data-toggle="dropdown">
+           		<span class="glyphicon glyphicon-sort-by-attributes"> <span class="caret"></span></button>
+   				<ul class="dropdown-menu" role="menu">
+      				<li><a href="javascript:void(0);" class='sort-0'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Name
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-1'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Größe
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-2'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Erstellungsdatum
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-3'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Änderungsdatum
+      				</a></li>
+      				<li><a href="javascript:void(0);" class='sort-4'>
+        				<span class="glyphicon glyphicon-arrow-down" data-hidden="hidden"></span>
+        				nach Typ
+      				</a></li>
+   				</ul>
+        </div>
+    </div>
+    
     {% verbatim %}
     <script id="template_filesitem-file" type="text/template">
         <span class="filesitem-name fadeblock" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
             <span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
         </span>
-        <span class="filesitem-editdate" title="Verändert {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
+        <span class="filesitem-editdate" title="verändert {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
     </script>
     {% endverbatim %}
 

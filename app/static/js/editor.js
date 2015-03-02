@@ -46,7 +46,6 @@ $(document).ready(function() {
             initClosed: true,
             size: '35%',
         },
-        
         // Editor automatisch an Fenstergröße anpassen
         onresize: function () {
             setTimeout(
@@ -56,13 +55,12 @@ $(document).ready(function() {
                 editorResizeTimeout);
         },
     });
-	
 	// Datei-ID abfragen
 	id = parseInt(location.hash.substr(1));
-	if (isNaN(id))
+	if (isNaN(id)) {
 		// ungültige ID
 		backToProject();
-	else {
+	} else {
 		// ACE-Editor laden
 		editor = ace.edit('editor');
 		editor.setTheme('ace/theme/clouds');
@@ -86,6 +84,29 @@ $(document).ready(function() {
 			if (!changesSaved)
 				return('Ungespeicherte Änderungen, wollen Sie den Editor wirklich verlassen?');
 		});
+
+		//Die im Editor geöffnete Datei wird bei Änderungen nach 10 Min. automatisch gespeichert.
+	    //Hier ist "setTimeout" auf 10000=10 Sek. gesetzt zwecks Testen. 600000= 10 Min.
+		var timeoutId;
+		$(window).bind('change keypress paste click', function(){
+		clearTimeout(timeoutId);
+		timeoutId = setTimeout(function(){autoSave(id);}, 10000);
+		});
+
+		function autoSave(id) {
+	        documentsJsonRequest({
+			'command': 'updatefile',
+			'id': id,
+			'content': editor.getValue()
+		    }, function(result, data) {
+			    if (result) {
+				    changesSaved = true;
+                    setMsg('Automatische Speicherung...');
+                } else {
+                    alert(data.response);
+                }
+	            });
+        }
         
         // Editor automatisch an Fenstergröße anpassen
         $(window).bind('resize', function () { 
@@ -124,7 +145,11 @@ $(document).ready(function() {
 
 // Dialogfenster Editor zurück
 function confirmExit() {
-	saveFile(id);
+	if (! $("#maincontainer").hasClass("disabled")) {
+	    saveFile(id);
+	    unlock();
+	}
+
 	$('#dialog_editor_verlassen').dialog();
 }
 
@@ -184,7 +209,6 @@ function loadFile(id) {
 				editor.setValue(data, 0);
 				editor.getSelection().selectTo(0, 0);
 				changesSaved = true;
-                compile();
 			} else
 				backToProject();
 	});
@@ -203,9 +227,40 @@ function saveFile(id) {
 			if (result) {
 				changesSaved = true;
                 setMsg('Datei gespeichert');
+            } else {
+                showAlertDialog("Datei speichern", data.response);
             }
 	});
 }
+
+/*
+ * Sperrt die Datei
+ */
+function lock() {
+	documentsJsonRequest({
+            'command': 'lockfile',
+            'id': id
+        }, function(result, data) {
+            if (! result) {
+                showAlertDialog("Datei sperren", data.response);
+            }
+	});
+}
+
+/*
+ * Entsperrt die Datei
+ */
+function unlock() {
+	documentsJsonRequest({
+            'command': 'unlockfile',
+            'id': id
+        }, function(result, data) {
+            if (! result) {
+                showAlertDialog("Datei entsperren", data.response);
+            }
+	});
+}
+
 
 /**
  * Kompiliert eine Datei und zeigt die PDF an.
@@ -343,22 +398,34 @@ function clear_table() {
 * Baumstruktur mittels JSTree erstellen
 */
 var tree = null;
+var projectRootFolderId = (window.top.name).split("/")[0];
 
-$(function () {
+function createImageTree() {
 	// ausgewählter Knoten
 	var selectedNode = null;
 
     // ID zum vorliegenden Projekt
 	var rootFolderId = parseInt(location.hash.substr(1), 10);
-	createJSTree();
+	//createJSTree();
+	reloadProject();
 	function createJSTree(){
 		//get folder id
 		documentsJsonRequest({
 				'command': 'fileinfo',
 				'id': rootFolderId,
 			}, function(result, data) {
-				if (result)
-				{
+				if (result) {
+				    if (data.response.isallowedit) {
+				        lock();
+				        compile();
+				    } else {
+				        disableEditor();
+				        if (data.response.lasteditor) {
+				        	var text = data.response.lasteditor + " bearbeitet gerade diese Datei";
+				            $("#pdfviewer_msg").html('<p class="text-primary">' + text + '</p>');
+				        }
+				    }
+
 					rootFolderId = data.response.folderid;
 					reloadProject();
 				}
@@ -366,12 +433,13 @@ $(function () {
 	}
 	
     function reloadProject() {
-        documentsJsonRequest({command: "listfiles", id: rootFolderId}, function(result, data) {
+        documentsJsonRequest({command: "listfiles", id: projectRootFolderId}, function(result, data) {
             if (! result) {
                 alert(ERROR_MESSAGES.PROJECTNOTEXIST);
                 return;
             }
             renderProject(data.response);
+			$('#graphik-assistent').modal('show');
         });
     }
 
@@ -495,7 +563,7 @@ $(function () {
     }
 
 
-});
+}
 
 /**
 * Einfügen des Dateipfades in die tex Datei
@@ -522,6 +590,17 @@ function insertImageWithID(fileID, filePath){
 	});
 
 }
+
+/*
+ * Deaktiviert den Editor
+ */
+function disableEditor() {
+    $("#maincontainer").addClass("disabled");
+    $("#editorsymbols button:not(#backtoprojekt)").prop("disabled", true);
+
+    editor.setReadOnly(true);
+}
+
 
 /**
 * Aufruf durch dialog_grafik_einfuegen
@@ -569,7 +648,9 @@ function insertGraphics(){
 						}
 
 					}
-					
+					for(var x = 0; x < (window.top.name).split("/")[1]; x++){
+						filePath = "../"+filePath;
+					}
 					//wenn die schleife beendet wurde rufe die methode mit der file id auf und dem entsprechenden pfad
 					insertImageWithID(substringID, filePath);
 			   }
