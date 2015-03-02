@@ -6,14 +6,15 @@ LatexWebOffice
 
 ### Abhängigkeiten
 1. [Python 3.4+](https://www.python.org/downloads/)
-2. [Python-magic](https://pypi.python.org/pypi/python-magic/)
-3. [Einen Webserver](http://httpd.apache.org/)
-4. [Einen Pythonapplikationserver (apache mod wsgi, gunicorn, ...)](https://code.google.com/p/modwsgi/) 
-5. [Mysql](http://www.mysql.de/)
+2. [Django 1.7.1](https://www.djangoproject.com/)
+3. [Python-magic](https://pypi.python.org/pypi/python-magic/)
+4. [Einen Webserver](http://httpd.apache.org/)
+5. [Einen Pythonapplikationserver (apache mod wsgi, gunicorn, ...)](https://code.google.com/p/modwsgi/) 
+6. [Mysql](http://www.mysql.de/)
 
 ### Installation
 1. klone das Projekte in einen beliebigen Ordner
-2. passe core/latexwebofficeconf.py mit den Daten der eigenen Datenbank an
+2. passe core/latexwebofficeconf.py mit den Daten der eigenen Datenbank und smptp Server an
 3. passe core/wsgi.py anhand des verwendeten Pythonservers an
 
 
@@ -28,7 +29,7 @@ grant usage on *.* to latexweboffice@localhost identified by '123456';
 grant all privileges on latexweboffice.* to latexweboffice@localhost ;
 ```
 
-## Apache mit wsgi
+## Apache Einstellungen mit WSGI
 # apache
 ```
 Alias /static/ /var/www/LatexWebOffice/app/static/
@@ -49,7 +50,7 @@ WSGIScriptAlias / /var/www/LatexWebOffice/core/wsgi.py
 	</Files>
 </Directory>
 ```
-# wsgi.py
+# core/wsgi.py
 ```
 import sys
 sys.path.append('/var/www/LatexWebOffice')
