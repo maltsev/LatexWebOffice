@@ -1,228 +1,261 @@
 {% extends "_wrapper.html" %}
+
 <!-- Header -->
 {% block header %}
-    <!-- Einbindung der SplitView Funktionalität -->
-    <!-- benötigt jquery.min.js und jquery-ui.min.js -->
-    <script type="text/javascript" src="/static/js/jquery.layout-latest.js"></script>
-    <script src="/static/js/jquery.validate.min.js"></script>
-    <script src="/static/js/jquery.validate.additional-methods.min.js"></script><!-- benötigt um pattern matching (regexp) nutzen zu können -->
-    <script src="/static/js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
-    <script src="/static/js/auth/scaling.js"></script><!-- validate einstellungen speziell für die Registrierung -->
-    <!-- Einbindung der Icons für den Editor -->
-    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
-    <!-- Einbindung der Funktionalität für den Grafikassisten -->
-    <link rel="stylesheet" href="/static/css/dateien.css">
-    <script src="/static/js/doT.min.js"></script>
-    <script src="/static/jstree/jstree.min.js"></script>
-    <!-- Einbindung der Funktionalität vom ACE Editor -->
-    <script src="/static/js/ace/ace.js"></script>
-    <script src="/static/js/ace/ext-language_tools.js"></script>
-    <script src="/static/js/editor.js"></script>
-    <link href="/static/bootstrap/css/bootstrap.icon-large.min.css" rel="stylesheet">
-    <!-- Einbindung der Funktionalität des Tabellenassistenen -->
-    <script data-jsfiddle="common" src="/static/handsontable/dist/handsontable.js"></script>
-    <link data-jsfiddle="common" rel="stylesheet" media="screen" href="/static/handsontable/dist/handsontable.css">
-    <!-- Stylesheet für Editor Einstellungen -->
-    <link href="/static/css/editor.css" rel="stylesheet">
-    <style type="text/css">
-       .ace_content{
-       padding-bottom: 20px;
-       }
-    </style>
+<meta charset="utf-8"/>
+
+<!-- Einbindung der SplitView Funktionalität -->
+<!-- benötigt jquery.min.js und jquery-ui.min.js -->
+<script type="text/javascript" src="/static/js/jquery.layout-latest.js"></script>
+
+<script src="/static/js/jquery.validate.min.js"></script>
+<!-- benötigt um pattern matching (regexp) nutzen zu können -->
+<script src="/static/js/jquery.validate.additional-methods.min.js"></script>
+
+<!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
+<script src="/static/js/auth/validate.js"></script>
+<!-- validate einstellungen speziell für die Registrierung -->
+<script src="/static/js/auth/scaling.js"></script>
+
+<!-- Einbindung der Icons für den Editor -->
+<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+<link href="/static/bootstrap/css/bootstrap.icon-large.min.css" rel="stylesheet">
+
+<!-- Einbindung der Funktionalität für den Grafikassisten -->
+<link rel="stylesheet" href="/static/css/dateien.css">
+<script src="/static/js/doT.min.js"></script>
+<script src="/static/jstree/jstree.min.js"></script>
+
+<!-- Einbindung der Funktionalität des Tabellenassistenen -->
+<script data-jsfiddle="common" src="/static/handsontable/dist/handsontable.js"></script>
+<link data-jsfiddle="common" rel="stylesheet" media="screen" href="/static/handsontable/dist/handsontable.css">
+
+<!-- Einbindung der Funktionalität vom Editor -->
+<script src="/static/codemirror/lib/codemirror.js"></script>
+<link href="/static//codemirror/lib/codemirror.css" rel="stylesheet">
+<link href="/static//codemirror/theme/ambiance.css" rel="stylesheet">
+<link href="/static//codemirror/addon/hint/show-hint.css" rel="stylesheet">
+<!-- CodeMirror Modes -->
+<script src="/static/codemirror/mode/stex/stex.js"></script>
+<!-- CodeMirror Addons -->
+<script src="/static/codemirror/addon/edit/matchbrackets.js"></script>
+<script src="/static/codemirror/addon/edit/closebrackets.js"></script>
+<script src="/static/codemirror/addon/selection/active-line.js"></script>
+<script src="/static/codemirror/addon/hint/show-hint.js"></script>
+<script src="/static/codemirror/addon/search/searchcursor.js"></script>
+<script src="/static/codemirror/addon/dialog/dialog.js"></script>
+<link href="/static//codemirror/addon/dialog/dialog.css" rel="stylesheet">
+<script src="/static/codemirror/addon/search/search.js"></script>
+
+
+<script src="/static/codemirror/addon/hint/javascript-hint.js"></script>
+
+<!-- Stylesheet für Editor Einstellungen -->
+<link href="/static/css/editor.css" rel="stylesheet">
+<script src="/static/js/editor.js"></script>
 <!-- Header Ende -->
 {% endblock %}
 
 <!-- Body -->
 {% block content %}
-    <!-- Editor Container -->
-    <div class="ui-layout-center" style="overflow: hidden;" id='centerdiv'>
-       <div id="inhalt" style="min-height: 100%; height: 100%;">
-          <div id="dialog_editor_verlassen" title="Editor verlassen"style="display: none;">
-             <p>Wollen Sie den Editor wirklich verlassen?</p>
-             <button onClick="history.back()">Ja</button>
-             <button onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')">Nein</button>
-          </div>
-          <!--
-             Menü des Graphikassistenten
-             @author: Franzi Everinghoff, Martin Kolaczek
-             // -->
-          <div class="modal fade" id="graphik-assistent" tabindex="-1" role="dialog" aria-hidden="&times">
-             <div class="modal-dialog">
-                <div class="modal-content">
-                   <div class="modal-header">
-                      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                      <h4 class="modal-title" id="table-assistent-label">Graphikassistent</h4>
-                   </div>
-                   <div class="modal-body">
-                      {% verbatim %}
-                      <div>
-                         Bitte wählen Sie eine oder mehrere Graphiken aus.
-                      </div>
-                      <script id="template_filesitem-file" type="text/template">
-                         <span class="filesitem-name" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
-                             <span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
-                         </span>
-                         <span class="filesitem-editdate" title="Verändert {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
-                      </script>
-                      {% endverbatim %}
-                      {% verbatim %}
-                      <script id="template_filesitem-folder" type="text/template">
-                         <span class="filesitem-name" title="Verzeichnis">
-                             <span class="filesitem-nameWrapper">{{= it.name }}</span>
-                         </span>
-                      </script>
-                      {% endverbatim %}
-                      <div id="fileswrapper" class="fileswrapper"></div>
-                      <div class="row">
-                         <div class="col-sm-2" >
-                            <form class="form-horizontal" id="scale" data-toggle="validator" action="#" method="post" role="form">
-                               <div class="form-group has-feedback">
-                                  <label for="value" class="control-label"  placeholder="1.0">Skalierung</label>
-                                  <div class="reg-input-group">
-                                     <input type="text" class="form-control" id="imageWidth" name="value" value="{{ value }}" placeholder="1.0" aria-describedby="inputError2Status">
-                                     <div class="help-block with-errors"></div>
-                                  </div>
-                               </div>
-                            </form>
-                         </div>
-                         <!--
-                            <div class="col-md-10" >
-                                <form class="form-horizontal" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
-                                    <div class="form-group has-feedback">
-                                <label for="inputTableDescription" >Beschriftung</label>
-                                        <div>
-                                <input type="text" class="form-control" id="table-description" placeholder="Die Graphik zeigt ...">
-                                            <div class="help-block with-errors"></div>
-                                        </div>
+<!-- Editor Container -->
+<div class="ui-layout-center" style="overflow: hidden;" id='centerdiv'>
+   <div id="inhalt" style="min-height: 100%; height: 100%;">
+
+      <!-- Editor verlassen Dialog Box --> 
+      <div id="dialog_editor_verlassen" title="Editor verlassen"style="display: none;">
+         <p>Wollen Sie den Editor wirklich verlassen?</p>
+         <button onClick="history.back()">Ja</button>
+         <button onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')">Nein</button>
+      </div>
+
+      <!--
+         Menü des Graphikassistenten
+         @author: Franzi Everinghoff, Martin Kolaczek
+         // -->
+      <div class="modal fade" id="graphik-assistent" tabindex="-1" role="dialog" aria-hidden="&times">
+         <div class="modal-dialog">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                  <h4 class="modal-title" id="table-assistent-label">Graphikassistent</h4>
+               </div>
+               <div class="modal-body">
+                  {% verbatim %}
+                  <div>
+                     Bitte wählen Sie eine oder mehrere Graphiken aus.
+                  </div>
+                  <script id="template_filesitem-file" type="text/template">
+                     <span class="filesitem-name" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
+                         <span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
+                     </span>
+                     <span class="filesitem-editdate" title="Verändert {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
+                  </script>
+                  {% endverbatim %}
+                  {% verbatim %}
+                  <script id="template_filesitem-folder" type="text/template">
+                     <span class="filesitem-name" title="Verzeichnis">
+                         <span class="filesitem-nameWrapper">{{= it.name }}</span>
+                     </span>
+                  </script>
+                  {% endverbatim %}
+                  <div id="fileswrapper" class="fileswrapper"></div>
+                  <div class="row">
+                     <div class="col-sm-2" >
+                        <form class="form-horizontal" id="scale" data-toggle="validator" action="#" method="post" role="form">
+                           <div class="form-group has-feedback">
+                              <label for="value" class="control-label"  placeholder="1.0">Skalierung</label>
+                              <div class="reg-input-group">
+                                 <input type="text" class="form-control" id="imageWidth" name="value" value="{{ value }}" placeholder="1.0" aria-describedby="inputError2Status">
+                                 <div class="help-block with-errors"></div>
+                              </div>
+                           </div>
+                        </form>
+                     </div>
+                     <!--
+                        <div class="col-md-10" >
+                            <form class="form-horizontal" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
+                                <div class="form-group has-feedback">
+                            <label for="inputTableDescription" >Beschriftung</label>
+                                    <div>
+                            <input type="text" class="form-control" id="table-description" placeholder="Die Graphik zeigt ...">
+                                        <div class="help-block with-errors"></div>
                                     </div>
-                                </form>
-                            </div>-->
-                      </div>
-                   </div>
-                   <div class="modal-footer">
-                      <button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
-                      <button type="button" class="btn btn-primary"  onclick="insertGraphics();" data-dismiss="modal">Übernehmen</button>
-                   </div>
-                </div>
-             </div>
-          </div>
-          <!--
-             Menü des Tabellenassistenten
-             @author: Martin Kolaczek
-             // -->
-          <div class="modal fade" id="table-assistent" tabindex="-1" role="dialog" aria-hidden="&times">
-             <div class="modal-dialog">
-                <div class="modal-content">
-                   <div class="modal-header">
-                      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                      <h4 class="modal-title" id="table-assistent-label">Tabellenassistent</h4>
-                   </div>
-                   <div class="modal-body">
-                      <div style='overflow:scroll; width:550px'>
-                         <div id="example">
-                            <script data-jsfiddle="example">
-                               var data = [
-                                [,,],
-                                [,,],
-                                [,,],
-                                ];
-                               var container = document.getElementById('example');
-                               var hot = new Handsontable(container,
-                               {
-                               data: data,
-                               minSpareRows: 1,
-                               colHeaders: true,
-                               rowHeaders: true,
-                               contextMenu: true,
-                               overflow: scroll
-                               });
-                            </script>
-                         </div>
-                      </div>
-                      <div class="table-title">
-                         <label for="inputTableDescription">Beschriftung</label>
-                         <input type="text" class="form-control" id="table-description" placeholder="Die Tabelle beinhaltet ...">
-                      </div>
-                   </div>
-                   <div class="modal-footer">
-                      <button type="button" class="btn btn-danger" onclick="clear_table();">Tabelle löschen</button>
-                      <button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
-                      <button type="button" class="btn btn-primary"  onclick="table_readout_input();" data-dismiss="modal">Übernehmen</button>
-                   </div>
-                </div>
-             </div>
-          </div>
-          <nav class="navbar navbar-default symbolbar_bg">
-             <div id="toggle" style="float: left;text-align: left;width: 100%;margin-left: 0;">
-                <button type="button" id="editormenu" style="float: left;"
-                   class="navbar-toggle collapsed beg"
-                   data-toggle="collapse" data-target="#editorsymbols"
-                   aria-expanded="false" aria-controls="editorsymbols">
-                Menü
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                </button>
-             </div>
-             <div id="editorsymbols" class="navbar-collapse collapse">
-                <div class="btn-group" role="group">
-                   <button id="backtoprojekt" type="button" class="btn btn-default"
-                      title="Zurück zur Dateiübersicht des Projekts"
-                      onClick="confirmExit()">
-                      <i class="fa fa-angle-left"></i> <!-- Zurück zur Dateiübersicht des Projekts -->
-                   </button>
-                   <button id="save" type="button" class="btn btn-default" title="Speichern">
-                   <i class="fa fa-floppy-o"></i>
-                   </button>
-                   <button id="pdfExport" type="button" class="btn btn-default" title="PDF-Export">
-                      <i class="fa fa-file-pdf-o"></i> <!-- PDF-Export -->
-                   </button>
-                   <div class="btn-group">
-                      <button id="export" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Exportieren als ...">
-                         <i class="fa fa-file-code-o"></i> <!-- HTML-Export -->
-                         <span class="caret"></span>
-                      </button>
-                      <ul class="dropdown-menu">
-                         <li><a id="export_html" style="cursor:pointer;">HTML</a></li>
-                         <li><a id="export_dvi" style="cursor:pointer;">DVI</a></li>
-                         <li><a id="export_ps" style="cursor:pointer;">PS</a></li>
-                      </ul>
-                   </div>
-                   <button type="button" class="btn btn-default" data-toggle="modal" data-target="#graphik-assistent">
-                   <i class="fa fa-image"></i>
-                   </button>
-                   <button type="button" class="btn btn-default" data-toggle="modal" data-target="#table-assistent">
-                   <i class="fa fa-table"></i>
-                   </button>
-                   <button id="compile" type="button" class="btn btn-default" title="Tex Datei kompilieren">
-                      <i class="fa fa-refresh"></i> <!-- parallele Anzeige von TEX und PDF-Ausgabe -->
-                   </button>
-                    <div class="btn-group">
-                        <button id="compiler" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Exportieren als ...">
-                            PDFLaTeX
-                            <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a id="pdflatex" style="cursor:pointer;">PDFLaTeX</a></li>
-                            <li><a id="lualatex" style="cursor:pointer;">LuaLaTeX</a></li>
-                            <li><a id="xelatex" style="cursor:pointer;">XeLaTeX</a></li>
-                        </ul>
-                    </div>
-                </div>
-             </div>
-          </nav>
-          <!-- verwendeter Editor: ACE Editor -->
-          <div style="min-height: 92%;height:auto !important;overflow: hidden;" id="editor"></div>
-       </div>
-       <!-- Editor Container Ende -->
-    </div>
-    <!-- PDF Viewer Container -->
-    <div id="pdf" class="ui-layout-east">
-       <script src="/static/js/pdf.js"></script>
-       <div id="pdf-viewer"></div>
-       <!-- PDF Viewer Container Ende -->
-    </div>
-    <div id="compile_log" class="ui-layout-south"></div>
-    <!-- Body Ende -->
+                                </div>
+                            </form>
+                        </div>-->
+                  </div>
+               </div>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+                  <button type="button" class="btn btn-primary"  onclick="insertGraphics();" data-dismiss="modal">Übernehmen</button>
+               </div>
+            </div>
+         </div>
+      </div>
+      <!--
+         Menü des Tabellenassistenten
+         @author: Martin Kolaczek
+         // -->
+      <div class="modal fade" id="table-assistent" tabindex="-1" role="dialog" aria-hidden="&times">
+         <div class="modal-dialog">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                  <h4 class="modal-title" id="table-assistent-label">Tabellenassistent</h4>
+               </div>
+               <div class="modal-body">
+                  <div style='overflow:scroll; width:550px'>
+                     <div id="example">
+                        <script data-jsfiddle="example">
+                           var data = [
+                            [,,],
+                            [,,],
+                            [,,],
+                            ];
+                           var container = document.getElementById('example');
+                           var hot = new Handsontable(container,
+                           {
+                           data: data,
+                           minSpareRows: 1,
+                           colHeaders: true,
+                           rowHeaders: true,
+                           contextMenu: true,
+                           overflow: scroll
+                           });
+                        </script>
+                     </div>
+                  </div>
+                  <div class="table-title">
+                     <label for="inputTableDescription">Beschriftung</label>
+                     <input type="text" class="form-control" id="table-description" placeholder="Die Tabelle beinhaltet ...">
+                  </div>
+               </div>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" onclick="clear_table();">Tabelle löschen</button>
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+                  <button type="button" class="btn btn-primary"  onclick="table_readout_input();" data-dismiss="modal">Übernehmen</button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Editor Symbolleiste / Mobile Layout-->
+      <nav class="navbar navbar-default symbolbar_bg">
+         <div id="toggle" style="float: left;text-align: left;width: 100%;margin-left: 0;">
+            <button type="button" id="editormenu" style="float: left;"
+               class="navbar-toggle collapsed beg"
+               data-toggle="collapse" data-target="#editorsymbols"
+               aria-expanded="false" aria-controls="editorsymbols">
+            Menü
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            </button>
+         </div>
+         <!-- Editor Symbolleiste / Desktop Layout-->
+         <div id="editorsymbols" class="navbar-collapse collapse">
+            <div class="btn-group" role="group">
+               <button id="backtoprojekt" type="button" class="btn btn-default"
+                  title="Zurück zur Dateiübersicht des Projekts"
+                  onClick="confirmExit()">
+                  <i class="fa fa-angle-left"></i> <!-- Zurück zur Dateiübersicht des Projekts -->
+               </button>
+               <button id="save" type="button" class="btn btn-default" title="Speichern">
+               <i class="fa fa-floppy-o"></i> <!-- Datei speichern -->
+               </button>
+               <button id="pdfExport" type="button" class="btn btn-default" title="PDF-Export">
+                  <i class="fa fa-file-pdf-o"></i> <!-- PDF-Export -->
+               </button>
+               <div class="btn-group">
+                  <button id="export" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Exportieren als ...">
+                     <i class="fa fa-file-code-o"></i> <!-- HTML-Export -->
+                     <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                     <li><a id="export_html" style="cursor:pointer;">HTML</a></li>
+                     <li><a id="export_dvi" style="cursor:pointer;">DVI</a></li>
+                     <li><a id="export_ps" style="cursor:pointer;">PS</a></li>
+                  </ul>
+               </div>
+               <button type="button" class="btn btn-default" data-toggle="modal" onClick="createImageTree();">
+               <i class="fa fa-image"></i>
+               </button>
+               <button type="button" class="btn btn-default" data-toggle="modal" data-target="#table-assistent">
+               <i class="fa fa-table"></i>
+               </button>
+               <button id="compile" type="button" class="btn btn-default" title="Tex Datei kompilieren">
+                  <i class="fa fa-refresh"></i> <!-- parallele Anzeige von TEX und PDF-Ausgabe -->
+               </button>
+               <div class="btn-group compiler-btn">
+                  <button id="compiler" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Compiler">
+                  PDFLaTeX
+                  <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                     <li><a id="0_pdflatex" style="cursor:pointer;">PDFLaTeX</a></li>
+                     <li><a id="1_lualatex" style="cursor:pointer;">LuaLaTeX</a></li>
+                     <li><a id="2_xelatex" style="cursor:pointer;">XeLaTeX</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </nav>
+       <div id="pdfviewer_msg"></div>
+      <!-- verwendeter Editor: CodeMirror / TextArea wird in editor.js ersetzt-->
+      <div id="codemirror" name="codemirror"></div>
+   </div>
+<!-- Editor Container Ende -->
+</div>
+
+<!-- PDF Viewer Container -->
+<div id="pdf" class="ui-layout-east">
+   <script src="/static/pdfjs/build/pdf.js"></script>
+   <div id="pdf-viewer"></div>
+<!-- PDF Viewer Container Ende -->
+</div>
+
+<!-- Anzeige der Log Datei vom Kompilieren im Fehlerfall -->
+<div id="compile_log" class="ui-layout-south"></div>
 {% endblock %}

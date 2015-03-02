@@ -52,11 +52,15 @@ def latexcompile(texid, formatid=0, compilerid=0):
     # tex-File der übergebenen ID
     texobj = TexFile.objects.get(id=texid)
 
+
     if formatid == '0' or formatid == 0:
         pdfobj = PDF.objects.filter(name=texobj.name[:-3] + 'pdf', folder=texobj.folder)
 
         if pdfobj.exists():
-            if pdfobj[0].createTime >= texobj.lastModifiedTime:
+            print('pdf' + str(pdfobj[0].id))
+            print(pdfobj[0].createTime)
+            print(texobj.lastModifiedTime)
+            if pdfobj[0].createTime > texobj.lastModifiedTime:
                 return None, {'id': pdfobj[0].id, 'name': pdfobj[0].name}
 
     # Pfad des root-Verzeichnisses
@@ -161,6 +165,15 @@ def latexmk(args, console_output):
     command = ["perl", latexmk_path(), "-f", "-interaction=nonstopmode", "-outdir=" + args['outdirpath'], "-bibtex",
                '-pdflatex=' + args['compilerargs'], args['format'], args['texpath']]
 
+    # Name der Ziel-Datei
+    file_name = args['texobj'].name[:-3] + args['format'][1:]
+    # Pfad der Ziel-Datei
+    file_path = os.path.join(args['outdirpath'], file_name)
+    # benenne die alte PDF Datei um
+    if os.path.isfile(file_path):
+        tempPdfPath = os.path.join(args['outdirpath'], file_name + '_old')
+        os.rename(file_path, tempPdfPath)
+
     # kompiliert die tex-Datei gemäß der gesetzten Argumente:
     rc = execute_command(command, args['cwd'], console_output=console_output)
 
@@ -190,10 +203,6 @@ def latexmk(args, console_output):
                                                   size=util.getFileSize(logfile))
             logfile.close()
 
-    # Name der Ziel-Datei
-    file_name = args['texobj'].name[:-3] + args['format'][1:]
-    # Pfad der Ziel-Datei
-    file_path = os.path.join(args['outdirpath'], file_name)
 
     # alte PDF
     file_src = objecttype.objects.filter(name=file_name, folder=args['texobj'].folder)
@@ -211,12 +220,13 @@ def latexmk(args, console_output):
         file = open(file_path, 'rb')
         mimetype = util.getMimetypeFromFile(file, file_name)
         # erzeugt das Model aus der Datei
-        fileobj = objecttype.objects.createFromFile(name=file_name, folder=args['texobj'].folder, file=file,
+        pdfobj = objecttype.objects.createFromFile(name=file_name, folder=args['texobj'].folder, file=file,
                                                     mimeType=mimetype)
         file.close()
 
+
         # Rückgabewert
-        file_data = {'id': fileobj.id, 'name': fileobj.name}
+        file_data = {'id': pdfobj.id, 'name': pdfobj.name}
 
     return rc, file_data
 

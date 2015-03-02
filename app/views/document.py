@@ -76,7 +76,7 @@ available_commands = {
     },
     'exportzip': {
         'command': project.exportZip,
-        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
+        'parameters': [{'para': globalparas['id']}]
     },
     'inviteuser': {
         'command': project.inviteUser,
@@ -143,7 +143,7 @@ available_commands = {
     },
     'downloadfile': {
         'command': file.downloadFile,
-        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']}]
+        'parameters': [{'para': globalparas['id']}]
     },
     'fileinfo': {
         'command': file.fileInfo,

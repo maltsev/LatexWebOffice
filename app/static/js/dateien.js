@@ -12,6 +12,7 @@ var prevSelectedNodeID 	= "";			// ID der selektierten Knoten-Komponente (wird n
 var tree;
 var treeInst;
 var folderUntilRoot = 0;
+var rootFolderId
 
 /*
 @author: Timo Dümke, Ingolf Bracht, Kirill Maltsev
@@ -21,7 +22,7 @@ var folderUntilRoot = 0;
 $(function () {
 	
     // ID zum vorliegenden Projekt
-	var rootFolderId = parseInt(location.hash.substr(1), 10);
+	rootFolderId = parseInt(location.hash.substr(1), 10);
 	window.top.name = rootFolderId;
 	if (! rootFolderId) {
 		window.location.replace("/projekt/");

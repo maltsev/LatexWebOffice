@@ -18,8 +18,9 @@
 import json
 import mimetypes
 import os
+import logging
 
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.views.static import serve
 
 from app.models.folder import Folder
@@ -205,6 +206,19 @@ def downloadFile(request, user, fileid):
     :param fileid: Id der Datei welcher heruntergeladen werden soll
     :return: filestream (404 im Fehlerfall)
     """
+    # setze das logging level auf ERROR
+    # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben wird
+    logger = logging.getLogger('django.request')
+    previous_level = logger.getEffectiveLevel()
+    logger.setLevel(logging.ERROR)
+
+    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request, ['owner', 'collaborator'])
+    if not rights:
+        raise Http404
+
+    # setze das logging level wieder auf den ursprünglichen Wert
+    logger.setLevel(previous_level)
 
     if PlainTextFile.objects.filter(id=fileid).exists():
         # hole das Dateiobjekt
