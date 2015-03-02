@@ -88,7 +88,7 @@ $(document).ready(function() {
 		//Die im Editor geöffnete Datei wird bei Änderungen nach 10 Min. automatisch gespeichert.
 	    //Hier ist "setTimeout" auf 10000=10 Sek. gesetzt zwecks Testen. 600000= 10 Min.
 		var timeoutId;
-		$(window).bind('change keypress paste click', function(){
+		editor.on('change', function(){
 		clearTimeout(timeoutId);
 		timeoutId = setTimeout(function(){autoSave(id);}, 10000);
 		});
