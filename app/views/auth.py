@@ -5,7 +5,7 @@
 
 * Creation Date : 22-10-2014
 
-* Last Modified : So 01 Mär 2015 22:23:20 CET
+* Last Modified : Mo 02 Mär 2015 15:23:28 CET
 
 * Author :  maltsev
 
@@ -101,7 +101,7 @@ def lostPwHandler(request):
             key=request.GET['key']
             if User.objects.filter(email__iexact=email).exists():
                 user=User.objects.get(email__iexact=email) 
-                if user and user.passwordlostkey==key and ((user.passwordlostdate+datetime.timedelta(days=7))>=timezone.now()):
+                if user and user.passwordlostkey==key and ((user.passwordlostdate+datetime.timedelta(days=1))>=timezone.now()):
                     return render_to_response('passwordrecover.html',{'email':email,'key':key}, context_instance=RequestContext(request))
 
     elif request.method=='POST':
@@ -110,7 +110,7 @@ def lostPwHandler(request):
                     key=request.POST['key']
                     if User.objects.filter(email__iexact=email).exists():
                         user=User.objects.get(email__iexact=email) 
-                        if user and user.passwordlostkey==key and ((user.passwordlostdate+datetime.timedelta(days=7))>=timezone.now()):
+                        if user and user.passwordlostkey==key and ((user.passwordlostdate+datetime.timedelta(days=1))>=timezone.now()):
                             user.set_password(request.POST['password1'])
                             user.invalidateRecoverKey()
                             user.save()
