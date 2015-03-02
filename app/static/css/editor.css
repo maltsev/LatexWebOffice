@@ -21,7 +21,7 @@ body,html {
     border: 0;
 }
 
-#table-assistent,#graphik-assistent{
+#table-assistent,#graphik-assistent,#formel-assistent{
 top:60px;
 outline: none;
 }

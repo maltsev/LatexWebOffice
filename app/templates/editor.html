@@ -50,6 +50,62 @@
 				<button onClick="history.back()">Ja</button>
 				<button onClick=" $( '#dialog_editor_verlassen' ).dialog('destroy')">Nein</button>
             </div>
+			
+	        
+<!--
+	Menü des Formelassistenten
+	@author: Martin Kolaczek
+	// -->
+	<div class="modal fade" id="formel-assistent" tabindex="-1" role="dialog" aria-hidden="&times">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="table-assistent-label">Tabellenassistent</h4>
+				</div>
+				<div class="modal-body">
+					<div role="tabpanel">
+
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active"><a href="#math" aria-controls="home" role="tab" data-toggle="tab">Mathematik</a></li>
+    <li role="presentation"><a href="#phys" aria-controls="profile" role="tab" data-toggle="tab">Physik</a></li>
+    <li role="presentation"><a href="#chem" aria-controls="messages" role="tab" data-toggle="tab">Chemie</a></li>
+    <li role="presentation"><a href="#biol" aria-controls="settings" role="tab" data-toggle="tab">Biologie</a></li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="math">hi</div>
+    <div role="tabpanel" class="tab-pane" id="phys">
+		<div class="row">
+			<div class="col-md-1">
+<a class="btn btn-default" href="#" role="button"><strong>∫</strong>...d<var>x</var></a>			
+			</div>
+			<div class="col-md-4">.col-md-4</div>
+		</div>
+		
+	
+	</div>
+    <div role="tabpanel" class="tab-pane" id="chem">...</div>
+    <div role="tabpanel" class="tab-pane" id="biol">...</div>
+  </div>
+
+</div>
+					<div class="table-title">
+						<label for="inputTableDescription">Eingabefeld</label>
+						<input type="text" class="form-control" id="table-description" placeholder="Die Tabelle beinhaltet ...">
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-danger" onclick="clear_table();">Tabelle löschen</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+					<button type="button" class="btn btn-primary"  onclick="table_readout_input();" data-dismiss="modal">Übernehmen</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
             
 	<!--
 	Menü des Graphikassistenten
@@ -243,6 +299,10 @@
                         
 						<button type="button" class="btn btn-default" data-toggle="modal" data-target="#table-assistent">
 							<i class="fa fa-table"></i> 
+						</button>
+						
+						<button type="button" class="btn btn-default" data-toggle="modal" data-target="#formel-assistent">
+							<i class="fa fa-superscript"></i> 
 						</button>
 						<!--
                         <button id="formula" type="button" class="btn btn-default" title="Formeln eingeben" 
