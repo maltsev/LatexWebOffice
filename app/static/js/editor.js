@@ -720,3 +720,7 @@ function renderPDF(url, canvasContainer, options) {
     PDFJS.workerSrc = '/static/js/pdf.worker.js';    
     PDFJS.getDocument(url).then(renderPages);
 }
+
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
