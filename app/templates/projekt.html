@@ -220,11 +220,21 @@
             <button type="button" class="btn btn-default projecttoolbar-export" disabled>Export</button>
             <button type="button" class="btn btn-default projecttoolbar-import" data-toggle="modal" data-target="#projekt-import-modal">Import</button>
         </div>
-        <div class="btn-group" role="group">
+        <div class="btn-group">
+                <button type="button" id="share" data-toggle="dropdown" class="btn btn-default dropdown-toggle">Freigabe <span class="caret"></span></button>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="share">
+                        <li role="presentation"><a role="menuitem" tabindex="-1" class="projecttoolbar-share" data-toggle="modal" data-target="#project-share-modal">Freigeben</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" class="projecttoolbar-deny" data-toggle="modal" data-target="#project-deny-modal">Freigabe entziehen</a></li>
+                        <li class="divider"></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" class="projecttoolbar-quitCollaboration" data-toggle="modal" data-target="#project-quitCollaboration-modal">Kollaboration beenden</a></li>
+                    </ul>
+        </div>
+
+        <!-- <div class="btn-group" role="group">
             <button type="button" class="btn btn-default projecttoolbar-share" data-toggle="modal" data-target="#project-share-modal" disabled>Freigeben</button>
             <button type="button" class="btn btn-default projecttoolbar-deny" data-toggle="modal" data-target="#project-deny-modal" disabled>Freigabe entziehen</button>
             <button type="button" class="btn btn-default projecttoolbar-quitCollaboration" data-toggle="modal" data-target="#project-quitCollaboration-modal" disabled>Kollaboration beenden</button>
-        </div>
+        </div> -->
         <div class="btn-group" role="group">
             <button type="button" class="btn btn-default dropdown-toggle projecttoolbar-sort" data-toggle="dropdown">Sortieren <span class="caret"></span></button>
                 <ul class="dropdown-menu" role="menu">

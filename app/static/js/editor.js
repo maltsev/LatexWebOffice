@@ -46,7 +46,6 @@ $(document).ready(function() {
             initClosed: true,
             size: '35%',
         },
-        
         // Editor automatisch an Fenstergröße anpassen
         onresize: function () {
             setTimeout(
@@ -56,7 +55,6 @@ $(document).ready(function() {
                 editorResizeTimeout);
         },
     });
-	
 	// Datei-ID abfragen
 	id = parseInt(location.hash.substr(1));
 	if (isNaN(id)) {
@@ -86,6 +84,29 @@ $(document).ready(function() {
 			if (!changesSaved)
 				return('Ungespeicherte Änderungen, wollen Sie den Editor wirklich verlassen?');
 		});
+
+		//Die im Editor geöffnete Datei wird bei Änderungen nach 10 Min. automatisch gespeichert.
+	    //Hier ist "setTimeout" auf 10000=10 Sek. gesetzt zwecks Testen. 600000= 10 Min.
+		var timeoutId;
+		$(window).bind('change keypress paste click', function(){
+		clearTimeout(timeoutId);
+		timeoutId = setTimeout(function(){autoSave(id);}, 10000);
+		});
+
+		function autoSave(id) {
+	        documentsJsonRequest({
+			'command': 'updatefile',
+			'id': id,
+			'content': editor.getValue()
+		    }, function(result, data) {
+			    if (result) {
+				    changesSaved = true;
+                    setMsg('Automatische Speicherung...');
+                } else {
+                    alert(data.response);
+                }
+	            });
+        }
         
         // Editor automatisch an Fenstergröße anpassen
         $(window).bind('resize', function () { 
