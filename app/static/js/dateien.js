@@ -151,7 +151,7 @@ $(function () {
 		// ID der/des umzubenennenden Datei/Verzeichnisses
 		renamingNodeID = node.id;
 		// derzeitiger Name der/des Datei/Verzeichnisses (für etwaiges Zurückbenennen)
-		prevName = ""+$("#"+renamingNodeID).data("name");
+		prevName = ""+treeInst.get_node(renamingNodeID).li_attr["data-name"];
 		
 		// versetzt die Knoten-Komponente in den Bearbeitungsmodus
 		editNode(renamingNodeID,prevName);
@@ -235,7 +235,7 @@ $(function () {
     var tree = null;
     function renderProject(data) {
         var jsTreeData = convertRawDataToJsTreeData(data);
-
+        
         if (tree) {
             treeInst.settings.core.data = jsTreeData;
             ignoreSorting = false;
@@ -443,10 +443,11 @@ $(function () {
 		
         tree.on({
             "ready.jstree refresh.jstree before_open.jstree": function () {
+            	
                 $(".jstree-node").each(function () {
                     var node = $(this),
                         type = node.hasClass("filesitem-folder") ? "folder" : "file";
-
+                    
                     treeInst.set_type(node, type);
                 });
             }
@@ -490,7 +491,7 @@ $(function () {
     
     function convertRawDataToJsTreeData(rawData) {
         var jsTreeData = [];
-
+        
         $.each(rawData.folders || [], function (i, folder) {
         	
             jsTreeData.push({

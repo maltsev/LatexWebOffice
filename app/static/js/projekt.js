@@ -182,7 +182,7 @@ $(function() {
 		// Projekt-ID des umzubenennenden Projektes
 		renameID = node.id;
 		// derzeitiger Name des Projektes (für etwaiges Zurückbenennen)
-		prevName = ""+$("#"+renameID).data("name");
+		prevName = ""+treeInstProjects.get_node(renameID).li_attr["data-name"];
 		
 		// versetzt die Knoten-Komponente in den Bearbeitungsmodus
 		editNode(renameID,prevName);
