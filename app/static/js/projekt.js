@@ -18,6 +18,7 @@ var currentAuthor = user;
 var selectedNodeIDProjects = "";
 var selectedNodeIDInvitations = "";
 var prevSelectedNodeID 	= "";
+var postSelection = false;			// gibt an, ob eine explizite Nachselektion notwendig ist (bei 'Umbenennen')
 
 var allprojects=null;				// Array von allen Projekten
 
@@ -359,6 +360,22 @@ $(function() {
 		//                                               LISTENER                                              
 		// ----------------------------------------------------------------------------------------------------
 		
+		// Refresh-Listener (für Nachselektion, notwendig beim 'Umbenennen')
+		treeProjects.bind('refresh.jstree',function(e) {
+			
+			if(postSelection) {
+				
+				// stellt den Zustand des JSTrees (zusätzlich) wieder her
+				// (es erfolgt keine zusätzliche Zustandsspeicherung)
+				treeInstProjects.restore_state();
+				
+				postSelection = false;
+			}
+			
+		});
+		
+		// ----------------------------------------------------------------------------------------------------
+		
 		// Erzeugungs-Listener (für Auto-Selektion)
 		treeProjects.bind('create_node.jstree',function(e,data) {
 			
@@ -463,6 +480,9 @@ $(function() {
 			}
 			// wenn der neue Name für ein bestehendes Projekt bestätigt wurde (= Umbenennen)
 			else if(renameID!=null) {
+				
+				// indiziert explizite Nachselektion (s. Refresh-Listener)
+				postSelection = true;
 				
 				// ... und kein oder derselbe Name eingegeben wurde, ...
 				if(treeInstProjects.get_text(renameID)==="" || treeInstProjects.get_text(renameID)===prevName) {

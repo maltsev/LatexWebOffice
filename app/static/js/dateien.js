@@ -10,6 +10,7 @@ var selectedNodeID = "";				// ID der selektierten Knoten-Komponente
 var prevSelectedNodeID 	= "";			// ID der selektierten Knoten-Komponente (wird nur durch neue Auswahl überschrieben) (notwendig bei Doppelklick)
 var prevDnDParentFolderID = "";			// ID des vorherigen Überverzeichnisses einer vom Drag-and-Drop betroffenen Knoten-Komponente
 										// (notwendig zur Unterscheidung, ob ein tatsächliches Verschieben erfolgt ist)
+var postSelection = false;				// gibt an, ob eine explizite Nachselektion notwendig ist (bei 'Umbenennen')
 
 var tree;
 var treeInst;
@@ -318,6 +319,22 @@ $(function () {
 		//                                               LISTENER                                              
 		// ----------------------------------------------------------------------------------------------------
 		
+		// Refresh-Listener (für Nachselektion, notwendig beim 'Umbenennen')
+		tree.bind('refresh.jstree',function(e) {
+			
+			if(postSelection) {
+				
+				// stellt den Zustand des JSTrees (zusätzlich) wieder her
+				// (es erfolgt keine zusätzliche Zustandsspeicherung)
+				treeInst.restore_state();
+				
+				postSelection = false;
+			}
+			
+		});
+		
+		// ----------------------------------------------------------------------------------------------------
+		
 		// Erzeugungs-Listener (für Auto-Selektion)
 		tree.bind('create_node.jstree',function(e,data) {
 			
@@ -425,6 +442,9 @@ $(function () {
 			}
 			// wenn der neue Name für ein(e) bestehende(s) Datei/Verzeichnis bestätigt wurde (= Umbenennen)
 			else if(renamingNodeID!=null) {
+				
+				// indiziert explizite Nachselektion (s. Refresh-Listener)
+				postSelection = true;
 				
 				// ... und kein oder derselbe Name eingegeben wurde, ...
 				if(treeInst.get_text(renamingNodeID)=="" || treeInst.get_text(renamingNodeID)===prevName) {
