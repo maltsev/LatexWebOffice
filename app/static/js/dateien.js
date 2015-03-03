@@ -485,7 +485,8 @@ $(function () {
         $.each(rawData.files || [], function (i, file) {
         	
         	var attrCreateTime = file.createTime,
-        		attrLastModifiedTime = file.lastModifiedTime;
+        		attrLastModifiedTime = file.lastModifiedTime,
+        		attrSize = file.size;
         	
             file.createTime = getRelativeTime(file.createTime);
             file.lastModifiedTime = getRelativeTime(file.lastModifiedTime);
@@ -499,7 +500,7 @@ $(function () {
                 									 "data-file-createtime": attrCreateTime,
                 									 "data-file-lastmodifiedtime": attrLastModifiedTime,
                 									 "data-file-mime": file.mimetype,
-                									 "data-file-size": file.size}
+                									 "data-file-size": attrSize}
             });
         });
 
