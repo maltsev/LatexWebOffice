@@ -1,7 +1,7 @@
 <!--
-@author: Thore Thießen, Kirill Maltsev
+@author: Thore Thießen, Kirill Maltsev, Munzir Mohamed
 @creation: 04.12.2014 - sprint-nr: 2
-@last-change: 02.03.2015 - sprint-nr: 6
+@last-change: 03.03.2015 - sprint-nr: 6
 -->
 
 {% extends "_wrapper.html" %}
@@ -221,7 +221,7 @@
             <button type="button" class="btn btn-default projecttoolbar-import" data-toggle="modal" data-target="#projekt-import-modal">Import</button>
         </div>
         <div class="btn-group">
-                <button type="button" data-toggle="dropdown" class="btn btn-default dropdown-toggle">Kollaboration <span class="caret"></span></button>
+                <button type="button" data-toggle="dropdown" class="btn btn-default dropdown-toggle projecttoolbar-collabo">Kollaboration <span class="caret"></span></button>
                     <ul class="dropdown-menu" role="menu">
                         <li role="presentation"><a role="menuitem"  class="projecttoolbar-share" data-toggle="modal" data-target="#project-share-modal">Freigeben</a></li>
                         <li role="presentation"><a role="menuitem" tabindex="-1" class="projecttoolbar-deny" data-toggle="modal" data-target="#project-deny-modal">Entziehen</a></li>
@@ -299,7 +299,7 @@
             </button>
         </div> -->
          <div class="btn-group" role="group">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle projecttoolbar-collabo" disabled data-toggle="dropdown">
                 <span class="glyphicon glyphicon-share"> <span class="caret"></span></button>
                 <ul class="dropdown-menu" role="menu">
                         <li role="presentation"><a role="menuitem"  class="projecttoolbar-share" data-toggle="modal" data-target="#project-share-modal">Freigeben</a></li>

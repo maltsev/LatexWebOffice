@@ -1,7 +1,7 @@
 /*
  * @author: Thore Thießen, Ingolf Bracht, Munzir Mohamed, Kirill Maltsev
  * @creation: 04.12.2014 - sprint-nr: 2
- * @last-change: 27.02.2015 - sprint-nr: 6
+ * @last-change: 03.02.2015 - sprint-nr: 6
  */
 
 var creatingNodeID = null;			// ID der Knoten-Komponente des derzeitig zu erstellenden Projektes
@@ -142,7 +142,12 @@ $(function() {
 	// ----------------------------------------------------------------------------------------------------
 	//                                             MENÜ-EINTRÄGE                                           
 	// ----------------------------------------------------------------------------------------------------
-	
+
+	// 'Kollaboration'-Dropdown
+	$('.projecttoolbar-collabo').on("click", function() {
+	    // mach gar nichts
+	});
+
 	// 'Öffnen'-Schaltfläche
 	$('.projecttoolbar-open').on("click", function() {
 		
@@ -1124,6 +1129,7 @@ $(function() {
 		$('.projecttoolbar-converttotemplate').prop("disabled", !flag_remain);
 		$('.projecttoolbar-export').prop("disabled", !flag_remain);
 		$('.projecttoolbar-import').prop("disabled", !flag_basic);
+		$('.projecttoolbar-collabo').prop("disabled", !flag_remain);
 		$('.projecttoolbar-share').prop("disabled", !flag_owner);
 		$('.projecttoolbar-quitCollaboration').prop("disabled", !flag_remain || flag_owner);
 		

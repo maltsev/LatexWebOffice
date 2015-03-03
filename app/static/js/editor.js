@@ -1,5 +1,5 @@
 /*
-@author: Thore Thießen, Timo Dümke, Franziska Everinghoff
+@author: Thore Thießen, Timo Dümke, Franziska Everinghoff, Munzir Mohamed
 @creation: 21.11.2014 - sprint-nr: 2
 @last-change: 02.03.2015 - sprint-nr: 6
 */
