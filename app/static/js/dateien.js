@@ -74,9 +74,17 @@ $(function () {
 	
     // "Öffnen"-Schaltfläche
 	$(".filestoolbar-open").click(function() {
-	    var selectedNode = getSelectedNodeObject();
-		calculateFolderUntilRoot();
-		window.location.assign("/editor/#" + selectedNode.data("file-id"));
+		
+		var selectedNodeObj = getSelectedNodeObject();
+		
+		// Datei
+		if(selectedNodeObj.hasClass("filesitem-file")) {
+			calculateFolderUntilRoot();
+			window.location.assign("/editor/#" + selectedNodeObj.data("file-id"));
+		}
+		// Verzeichnis
+		else if(selectedNodeObj.hasClass("filesitem-folder"))
+			treeInst.toggle_node(selectedNodeID);
 	});
 	
 	// "Datei Erstellen"-Schaltfläche
@@ -951,7 +959,7 @@ $(function () {
 		}
 		
 		// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
-		$(".filestoolbar-open").prop("disabled", !texFile);
+		$(".filestoolbar-open").prop("disabled", !texFile && file);
 		$(".filestoolbar-newfile").prop("disabled", !basic);
 		$(".filestoolbar-newfolder").prop("disabled", !basic);
 		$(".filestoolbar-delete").prop("disabled", !selected);
