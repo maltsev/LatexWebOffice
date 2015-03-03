@@ -1,7 +1,7 @@
 /*
 @author: Thore Thießen, Timo Dümke, Franziska Everinghoff
 @creation: 21.11.2014 - sprint-nr: 2
-@last-change: 18.12.2014 - sprint-nr: 3
+@last-change: 02.03.2015 - sprint-nr: 6
 */
 
 /// ID der im Editor geöffneten Datei
