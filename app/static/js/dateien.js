@@ -8,6 +8,8 @@ var editMode = false;					// gibt an, ob sich eine der Knoten-Komponenten derzei
 
 var selectedNodeID = "";				// ID der selektierten Knoten-Komponente
 var prevSelectedNodeID 	= "";			// ID der selektierten Knoten-Komponente (wird nur durch neue Auswahl überschrieben) (notwendig bei Doppelklick)
+var prevDnDParentFolderID = "";			// ID des vorherigen Überverzeichnisses einer vom Drag-and-Drop betroffenen Knoten-Komponente
+										// (notwendig zur Unterscheidung, ob ein tatsächliches Verschieben erfolgt ist)
 
 var tree;
 var treeInst;
@@ -444,19 +446,29 @@ $(function () {
 		
 		// ----------------------------------------------------------------------------------------------------
 		
+		$(document).on({
+            "dnd_start.vakata": function (event, data) {
+            	prevDnDParentFolderID = treeInst.get_node(data.data.nodes[0]).parent;
+            }
+        });
         $(document).on({
             "dnd_stop.vakata": function (event, data) {
+            	
                 var node = treeInst.get_node(data.data.nodes[0]),
                     nodeId = node.li_attr["data-file-id"] || node.li_attr["data-folder-id"],
                     command = node.type === "folder" ? "movedir" : "movefile",
                     folderId = parseInt(node.parent.replace("folder", ""), 10) || rootFolderId;
-
+                           
                 documentsJsonRequest({command: command, id: nodeId, folderid: folderId}, function(result, data) {
-                    if(!result) {
+                    if(!result)
                         showAlertDialog((node.type==="folder" ? "Verzeichnis" : "Datei")+" verschieben",data.response);
-                        reloadProject();
-                        return;
-                    }
+					
+					// wenn ein tatsächliches Verschieben (unterschiedliche Überverzeichnisse) erfolgte
+					if(prevDnDParentFolderID!=node.parent)
+						// aktualisiert die Anzeige der Dateistruktur
+						reloadProject();
+					
+					prevDnDParentFolderID = "";
                 });
             },
         });
