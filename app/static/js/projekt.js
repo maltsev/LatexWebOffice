@@ -901,15 +901,13 @@ $(function() {
 				'id':selectedNodeIDInvitations
 			}, function(result,data) {
 				if(result) {
-
+					refreshProjects();
+					refreshInvitations();
 					showAlertDialog("Einladung zur Kollaboration annehmen","Sie haben die Einladung zur Kollaboration angenommen.");
 				}
 				else {
 					showAlertDialog("Einladung zur Kollaboration annehmen",data.response);
 				}
-				
-									refreshProjects();
-					refreshInvitations();
 		});
 	}
 	
