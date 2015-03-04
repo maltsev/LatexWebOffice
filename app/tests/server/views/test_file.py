@@ -253,7 +253,8 @@ class FileTestClass(ViewTestCase):
         self.assertEqual(TexFile.objects.get(id=self._user1_tex1.id).source_code, self._new_code1)
 
         # erwartete Antwort des Servers
-        serveranswer = {}
+        serveranswer = {'id': self._user1_tex1.id,
+                        'name': self._user1_tex1.name}
 
         # überprüfe die Antwort des Servers
         # status sollte success sein
@@ -269,7 +270,8 @@ class FileTestClass(ViewTestCase):
         self.assertEqual(TexFile.objects.get(id=self._user1_tex1.id).source_code, self._name_blank)
 
         # erwartete Antwort des Servers
-        serveranswer = {}
+        serveranswer = {'id': self._user1_tex1.id,
+                        'name': self._user1_tex1.name}
 
         # überprüfe die Antwort des Servers
         # status sollte success sein
@@ -322,7 +324,8 @@ class FileTestClass(ViewTestCase):
         response = util.documentPoster(self, command='updatefile', idpara=sharedproject_maintex.id,
                                        content=self._new_code1)
 
-        util.validateJsonSuccessResponse(self, response.content, {})
+        util.validateJsonSuccessResponse(self, response.content,
+                                         {'id': sharedproject_maintex.id, 'name': sharedproject_maintex.name})
         self.assertEqual(TexFile.objects.get(id=sharedproject_maintex.id).source_code, self._new_code1)
 
 
@@ -333,7 +336,10 @@ class FileTestClass(ViewTestCase):
 
         response = util.documentPoster(self, command='updatefile', idpara=sharedproject_maintex.id,
                                        content="test code")
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILELOCKED'])
+        dictionary = util.jsonDecoder(response.content)
+        # die tex datei sollte unter neuem Namen abgespeichert sein
+        self.assertEqual(dictionary['status'], 'success')
+        self.assertNotEqual(dictionary['response']['name'], sharedproject_maintex.name)
         self.assertEqual(TexFile.objects.get(id=sharedproject_maintex.id).source_code, sharedproject_maintex_source_code)
 
 
@@ -342,7 +348,8 @@ class FileTestClass(ViewTestCase):
         sharedproject_maintex.lock(self._user1)
         response = util.documentPoster(self, command='updatefile', idpara=sharedproject_maintex.id,
                                        content="test code")
-        util.validateJsonSuccessResponse(self, response.content, {})
+        util.validateJsonSuccessResponse(self, response.content,
+                                         {'id': sharedproject_maintex.id, 'name': sharedproject_maintex.name})
         self.assertEqual(TexFile.objects.get(id=sharedproject_maintex.id).source_code, "test code")
 
 
@@ -934,15 +941,31 @@ class FileTestClass(ViewTestCase):
         # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Download einer Datei als user1 mit der fileid einer .tex Datei die user2 gehört
         response = util.documentPoster(self, command='downloadfile', idpara=self._user2_tex1.id)
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+
+        # überprüfe die Antwort des Servers
+        # sollte status code 404 liefern
+        self.assertEqual(response.status_code, 404)
+        # es sollte keine Datei mitgesendet worden sein
+        self.assertNotIn('Content-Disposition', response)
+        # Content-Type sollte text/html sein
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        # Content-Length sollte nicht vorhanden sein
+        self.assertNotIn('Content-Length', response)
 
         # --------------------------------------------------------------------------------------------------------------
         # Sende Anfrage zum Download der Datei als user1 mit einer fileid
         # die auf dem Server in der Datenbank nicht existiert
         response = util.documentPoster(self, command='downloadfile', idpara=self._invalidid)
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILENOTEXIST'])
 
-
+        # überprüfe die Antwort des Servers
+        # sollte status code 404 liefern
+        self.assertEqual(response.status_code, 404)
+        # es sollte keine Datei mitgesendet worden sein
+        self.assertNotIn('Content-Disposition', response)
+        # Content-Type sollte text/html sein
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        # Content-Length sollte nicht vorhanden sein
+        self.assertNotIn('Content-Length', response)
 
         sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
         response = util.documentPoster(self, command='downloadfile', idpara=sharedproject_maintex.id)

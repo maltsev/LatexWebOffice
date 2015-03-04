@@ -15,43 +15,63 @@
 <div class="page-header">
 	<h1>Login</h1>
 </div>
-{% if messages %} <!-- falls messages vorhanden sind, muss das login/pw falsch sein oder der useraccount ist inaktiv-->
-	{% for message in messages %}
-		<div class="alert alert-warning alert-dismissible fade in" role="alert">
-			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
-			{{ message }}
-		</div>
-	{% endfor %}
-	<script>
-		$(document).ready(function() {
-			$('#logininputdiv').addClass('has-error');
-			setTimeout(function(){
-				$('#logininputdiv').removeClass('has-error');
-			},2000);
 
-		});
-	</script>
-{% endif %}
-<form class="form-horizontal" id="loginform" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
-	<div id="logininputdiv">
-		<div class="form-group has-feedback">
-			<label for="email" class="col-sm-2 control-label" placeholder="email">Email</label>
-			<div class="reg-input-group col-sm-10">
-				<input type="email" class="form-control" id="email" name="email" placeholder="Email" value="{{ email }}" aria-describedby="inputError2Status">
-				<div class="help-block with-errors"></div>
-			</div>
+{% for message in messages %}
+    <div class="alert alert-dismissible alert-{{ message.tags }}" role="alert">
+	    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    {{ message }}
+    </div>
+{% endfor %}
+
+
+<div role="tabpanel">
+	<ul class="nav nav-pills latexoffice-tab-menu" role="tablist">
+		<li role="presentation" class="active"><a href="#login" aria-controls="login" aria-expanded="true" role="tab" data-toggle="tab">Login</a></li>
+		<li role="presentation" class=""><a href="#password-lost" aria-controls="password-lost" role="tab" data-toggle="tab">Passwort vergessen?</a></li>
+	</ul>
+	<div class="tab-content">
+
+		<div role="tabpanel" class="tab-pane active" id="login">
+			<form class="form-horizontal" id="loginform" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
+				<div id="logininputdiv">
+					<input type="hidden" name="action" value="login">
+					<div class="form-group has-feedback">
+						<label for="email" class="col-sm-2 control-label" placeholder="email">Email</label>
+						<div class="reg-input-group col-sm-10">
+							<input type="email" class="form-control" id="email" name="email" placeholder="Email" value="{{ email }}" aria-describedby="inputError2Status">
+						</div>
+					</div>
+					<div class="form-group has-feedback">
+						<label for="password" class="col-sm-2 control-label" placeholder="Passwort">Passwort</label>
+						<div class="reg-input-group col-sm-10">
+							<input type="password" class="form-control" id="password" name="password" placeholder="Passwort" aria-describedby="inputError2Status">
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-offset-2">
+					<button type="submit" class="btn btn-lg btn-primary btn-block">einloggen</button>
+				</div>
+			</form>
 		</div>
-		<div class="form-group has-feedback">
-			<label for="password" class="col-sm-2 control-label" placeholder="Passwort">Passwort</label>
-			<div class="reg-input-group col-sm-10">
-				<input type="password" class="form-control" id="password" name="password" placeholder="Passwort" aria-describedby="inputError2Status">
-				<div class="help-block with-errors"></div>
-			</div>
+
+		<div role="tabpanel" class="tab-pane" id="password-lost">
+			<form class="form-horizontal" id="password-lost-form" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
+				<input type="hidden" name="action" value="password-lost">
+				<div id="logininputdiv">
+					<div class="form-group has-feedback">
+						<label for="email" class="col-sm-2 control-label" placeholder="email">Email</label>
+						<div class="reg-input-group col-sm-10">
+							<input type="email" class="form-control" id="email" name="email" placeholder="Email" value="{{ email }}" aria-describedby="inputError2Status">
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-offset-2">
+					<button type="submit" class="btn btn-lg btn-primary btn-block">Senden</button>
+				</div>
+			</form>
+
 		</div>
 	</div>
-	<div class="col-sm-offset-2">
-		<button type="submit" class="btn btn-lg btn-primary btn-block">einloggen</button>
-	</div>
-</form>
+</div>
 </div>
 {% endblock %}

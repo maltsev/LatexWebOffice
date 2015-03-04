@@ -4,4 +4,5 @@ $(document).ready(function() {
         $(this).parent().parent().find('.active').removeClass('active');
     });
     $('.nav').find('a[href="' + location.pathname + '"]').parents('li').addClass('active');
+    
 });

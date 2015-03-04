@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fr 20 Feb 2015 02:11:00 CET
+* Last Modified : Di 24 Feb 2015 15:23:40 CET
 
 * Author :  christian
 
@@ -652,8 +652,8 @@ def validateJsonSuccessResponse(self, responsecontent, response):
     return _validateServerJsonResponse(self, responsecontent, SUCCESS, response)
 
 
-def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, idpara3=None, content=None, name=None,
-                   files=None):
+def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, idpara3=None, idpara4=None, idpara5=None,
+                   content=None, name=None, files=None):
     """Hilfsmethode um leichter die verschiedenen commands des document views durchzutesten.
 
     :param command: Befehl der ausgeführt werden soll
@@ -674,6 +674,10 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, idpara3
         dictionary['folderid'] = idpara2
     if idpara3 != None:
         dictionary['formatid'] = idpara3
+    if idpara4 != None:
+        dictionary['compilerid'] = idpara4
+    if idpara5 != None:
+        dictionary['forcecompile'] = idpara5
     if content != None:
         dictionary['content'] = content
     if name != None:

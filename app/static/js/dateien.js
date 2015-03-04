@@ -15,6 +15,7 @@ var postSelection = false;				// gibt an, ob eine explizite Nachselektion notwen
 var tree;
 var treeInst;
 var folderUntilRoot = 0;
+var rootFolderId
 
 var sorting = 0;						// Sortierungsvariable ( 0 = Name, 1 = Größe, 2 = Erstellungsdatum, 3 = Änderungsdatum, 4 = Typ )
 var sortOrder = 1;						// Sortierungsrichtung ( 1 = aufsteigend, -1 = absteigend )
@@ -29,7 +30,7 @@ var sortReplacements = {"ä":"a", "ö":"o", "ü":"u", "ß":"ss" };
 $(function () {
 	
     // ID zum vorliegenden Projekt
-	var rootFolderId = parseInt(location.hash.substr(1), 10);
+	rootFolderId = parseInt(location.hash.substr(1), 10);
 	window.top.name = rootFolderId;
 	if (! rootFolderId) {
 		window.location.replace("/projekt/");

@@ -1,18 +1,39 @@
 /*
-@author: Thore Thießen, Timo Dümke, Franziska Everinghoff, Munzir Mohamed
+@author: Thore Thießen, Timo Dümke, Franziska Everinghoff, Christian Lohmann
 @creation: 21.11.2014 - sprint-nr: 2
-@last-change: 02.03.2015 - sprint-nr: 6
+@last-change: .02.03.2015 - sprint-nr: 6
 */
 
 /// ID der im Editor geöffneten Datei
 var id;
+
+// ID des verwendeten Compilers
+// 0 - pdflatex
+// 1 - lualatex
+// 2 - xelatex
+var compilerid = 0;
+
+var rootid = -1;
 
 /// Editor
 var editor;
 
 /// Änderungen im Editor gespeichert?
 var changesSaved = true;
-	
+
+// wurde der Compiler gewechselt?
+var compilerChanged = false;
+
+var file_locked = false;
+
+var file_name = '';
+
+// Timer zur automatischen Speicherung
+var autosaveTimer;
+
+// automatisches Speichern alle 5 Minuten
+var autosaveInterval = 300000;
+
 /// Grafikassistentdropdownmenue
 var dropdownWindow = false;
 
@@ -22,8 +43,15 @@ var selectionid = 0;
 // notwendig für jquery-layout
 var myLayout;
 
+var eastIsOpen = true;
+var southIsOpen = false;
+
 // Zeit bis der Editor nach einer Änderung der Fenstergröße aktualisiert wird
-var editorResizeTimeout = 250;
+var editorResizeTimeout = 50;
+
+// Zeit bis die Buttons wieder aktiviert werden, falls keine Antwort vom Server kommt
+var btnCompileExportTimeout = 15000;
+var btnCompileExportTimeout_HTML = 60000;
 
 /**
  * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
@@ -31,18 +59,30 @@ var editorResizeTimeout = 250;
 $(document).ready(function() {
     var width = $(window).width();
     var height = $(window).height();
-            
+
+    var mobile = window.mobilecheck();
+
+    $('[data-toggle="tooltip"]').tooltip();
+
     // Funktion für SplitView, setzt die Breite der Trennlinie
     myLayout = $('#maincontainer').layout({
-        defaults: {
-            spacing_open: 12,
-            spacing_close: 12,
+        center: {
+            spacing_open: 14,
+            spacing_closed: 14,
+            slidable: false,
+            size: (mobile?'100%':'60%'),
         },
         east: {
-            initClosed: (width<1366?true:false),
-            size: '40%',
+            spacing_open: 14,
+            spacing_closed: 14,
+            slidable: false,
+            initClosed: (mobile?true:false),
+            size: (mobile?'100%':'40%'),
         },
         south: {
+            spacing_open: 14,
+            spacing_closed: 14,
+            slidable: false,
             initClosed: true,
             size: '35%',
         },
@@ -50,108 +90,77 @@ $(document).ready(function() {
         onresize: function () {
             setTimeout(
                 function() {
-                    editor.resize();
+                    editor.refresh();
                 },
-                editorResizeTimeout);
+                editorResizeTimeout
+            );
         },
     });
+
 	// Datei-ID abfragen
 	id = parseInt(location.hash.substr(1));
 	if (isNaN(id)) {
 		// ungültige ID
 		backToProject();
 	} else {
-		// ACE-Editor laden
-		editor = ace.edit('editor');
-		editor.setTheme('ace/theme/clouds');
-		editor.getSession().setMode('ace/mode/latex');
-		editor.getSession().setUseWrapMode(true);
-		editor.setOptions({'enableBasicAutocompletion': true,autoScrollEditorIntoView: true});
+	    // da das Dokument gerade geladen wird, gab es noch keine Änderungen an der tex Datei
+	    changesSaved = true;
 
-		// Vertikale Zeichenbegrenzung (80 Zeichen) ausgeblendet	
-		editor.setShowPrintMargin(false);
+        loadFile();
 
-		// automatisches Setzen von Klammern
-		editor.on('change', autoBraceCompletion);
-
-		// TODO: automatische Vervollständigung von Blöcken (\begin{…} … \end{…})
-
-		// Speicheraufforderung bei ungespeicherten Änderungen
-		editor.on('change', function() {
-			changesSaved = false;
-		});
+        // Speichern und freigeben der tex Datei beim Schließen des Editors
 		$(window).bind('beforeunload', function() {
-			if (!changesSaved)
-				return('Ungespeicherte Änderungen, wollen Sie den Editor wirklich verlassen?');
+			if (!changesSaved && !file_locked) {
+				saveFile(true);
+	        }
 		});
 
-		//Die im Editor geöffnete Datei wird bei Änderungen nach 10 Min. automatisch gespeichert.
-	    //Hier ist "setTimeout" auf 10000=10 Sek. gesetzt zwecks Testen. 600000= 10 Min.
-		var timeoutId;
-		editor.on('change', function(){
-		clearTimeout(timeoutId);
-		timeoutId = setTimeout(function(){autoSave(id);}, 10000);
+        // automatisches Speichern, falls Fenster/Tab inaktiv (sofern es Änderungen gab)
+		$(window).blur(function() {
+			if (!changesSaved && !file_locked) {
+				saveFile(true);
+			}
 		});
-
-		function autoSave(id) {
-	        documentsJsonRequest({
-			'command': 'updatefile',
-			'id': id,
-			'content': editor.getValue()
-		    }, function(result, data) {
-			    if (result) {
-				    changesSaved = true;
-                    setMsg('Automatische Speicherung...');
-                } else {
-                    alert(data.response);
-                }
-	            });
-        }
         
-        // Editor automatisch an Fenstergröße anpassen
-        $(window).bind('resize', function () { 
-            setTimeout(function(){editor.resize();}, editorResizeTimeout);
-        });
-
 		// Button für das Speichern belegen
 		$('#save').click(function() {
-			saveFile(id);
+			saveFile(false);
 		});
-
 		// Button für das PDF Exportieren belegen
 		$('#pdfExport').click(function() {
-			exportFile(id, 0);
+			exportFile(0);
 		});
-        
         // Button für das HTML Exportieren belegen
 		$('#export_html').click(function() {
-			exportFile(id, 1);
+			exportFile(1);
 		});
-		//$('#export_html_pdf').click(function() {
-		//	exportFile(id, 2);
-		//});
+		// Button für das DVI Exportieren belegen
 		$('#export_dvi').click(function() {
-			exportFile(id, 3);
+			exportFile(2);
 		});
+	    // Button für das PS Exportieren belegen
 		$('#export_ps').click(function() {
-			exportFile(id, 4);
+			exportFile(3);
 		});
-		$('.ace_scroller').on('scroll', function () {
-			$('.ace_gutter').scrollTop($(this).scrollTop());
+	    // Button für das Kompilieren (aktualisieren der PDF Anzeige) belegen
+		$('#compile').click(function() {
+			compile(true);
 		});
-		loadFile(id);
+		$('#backtofileview').click(function() {
+			backToFileView();
+		});
+        // Dropdowm Button Text je nach Auswahl des Compilers richtig setzen und die compilerID ändern
+		$("#compiler-dropdown li a").click(function(){
+            $(this).parents(".compiler-btn").find('.btn').html($(this).text()+" <span class=\"caret\"></span>");
+            if (compilerid != $(this).attr('value')) {
+                // Compiler wurde verändert, dadurch wird beim nächsten Kompilieren der forcecompile Parameter gesetzt,
+                // so dass die Datei auf jeden Fall neu kompiliert wird, auch wenn es keine Änderungen an der tex Datei gab
+                compilerChanged = true;
+                co0mpilerid = $(this).attr('value');
+            }
+        });
 	};
 });
-
-// Dialogfenster Editor zurück
-function confirmExit() {
-	if (! $("#maincontainer").hasClass("disabled")) {
-	    saveFile(id);
-	    unlock();
-	}
-
-	$('#dialog_editor_verlassen').dialog();
-}
 
 // Dialogfenster Tabellenassistent
 function createTable() {
@@ -165,72 +174,166 @@ function openInsertImageDialog() {
 	width:'auto'});
 }
 
-// Klammern, welche automatisch geschlossen werden sollen
-var braces = {
-	'{': '}',
-	'[': ']'
+function hidePanes() {
+    eastIsOpen = !myLayout.state.east.isClosed;
+    southIsOpen = !myLayout.state.south.isClosed;
+    if (eastIsOpen) {
+        myLayout.close("east");
+    }
+    if (southIsOpen) {
+        myLayout.close("south");
+    }
+
 }
 
-/**
- * Fügt automatisch die schließende zu einer eingegebenen öffnenden Klammer ein.
- * @param e Event
- */
-function autoBraceCompletion(e) {
-	if (e.data.action == 'insertText') {
-		var pos = editor.getSelection().getCursor();
-		if (e.data.text in braces && 
-				editor.getSession().getLine(pos.row).charAt(pos.column - 1) != '\\') {
-			// schließende Klammer zu einer eingegebenen öffnenden hinzufügen
-			editor.moveCursorTo(pos.row, pos.column + 1);
-			editor.insert(braces[e.data.text]);
-			editor.moveCursorToPosition(pos);
-		}
-	}
+function resetPanes() {
+    if (eastIsOpen) {
+        myLayout.open("east");
+    }
+    if (southIsOpen) {
+        myLayout.open("south");
+    }
+
 }
 
 /**
  * Leitet den Benutzer zurück zur Projektverwaltung.
  */
 function backToProject() {
-	// TODO: auf das richtige Projekt verweisen
 	window.location.replace('/projekt/');
 }
 
 /**
- * Lädt eine Datei in den Editor.
- * @param id ID der Datei
+ * Leitet den Benutzer zurück zur Dateiansicht des aktuellen Projektes.
  */
-function loadFile(id) {
-	documentsDataRequest({
-			'command': 'downloadfile',
+function backToFileView() {
+    if (!file_locked) {
+	    documentsJsonRequest({
+            'command': 'unlockfile',
+            'id': id
+        }, function(result, data) {
+            file_locked = false;
+            if (! result) {
+                showAlertDialog("Datei entsperren", data.response);
+            }
+            if (rootid != -1) {
+                window.location.replace('/dateien/#' + rootid);
+            }
+            else {
+                backToProject();
+            }
+	    });
+	}
+}
+
+/**
+ * Lädt die Tex Datei in den Editor.
+ */
+function loadFile() {
+	return documentsJsonRequest({
+			'command': 'gettext',
 			'id': id
 		}, function(result, data) {
 			if (result) {
-				editor.setValue(data, 0);
-				editor.getSelection().selectTo(0, 0);
-				changesSaved = true;
-			} else
-				backToProject();
-	});
+			    // setze die rootid, um zur Dateiübersicht zurückgelangen zu können
+			    rootid = data.response.rootid;
+			    file_name = data.response.filename;
+
+			    // Einstellungen des Editors
+                editor = CodeMirror(document.getElementById('codemirror'), {
+                mode: "stex",                                // LaTeX Modus
+                theme: "default",                            // Standard Theme
+                keyMap: "default",                           // Standard Tastaturbelegung
+                autofocus: true,                             // automatisch das Textfeld fokussieren
+                value: data.response.content,                // Inhalt des Editors setzen
+                lineNumbers: true,                           // Zeilennummern anzeigen
+                lineWrapping: true,                          // automatischer Zeilenumbruch bei Änderung der Fenstergröße
+                matchBrackets: true,                         // zeigt zusammengehörige Klammern an
+                autoCloseBrackets: true,                     // automatisches Hinzufügen von schließenden Klammern
+                styleActiveLine: true,                       // die ausgewählte Zeile wird farblich markiert
+                tabSize: 4,                                  // Tab entspricht 4 Leerzeichen
+                extraKeys: {                                 // zusätzliche Tastaturbelegungen
+                    "Ctrl-Space": "autocomplete",
+                    "Ctrl-S": function() { saveFile(false); },
+                    "Ctrl-K": function() {
+                        (editor.getOption("autoCloseBrackets")?editor.setOption("autoCloseBrackets", false):
+                        editor.setOption("autoCloseBrackets", true));
+                        },
+                    },
+                });
+
+                if (data.response.isallowedit) {
+                    compile();
+                } else {
+                    file_locked = true;
+                    disableEditor();
+                    if (data.response.lasteditor) {
+                        var text = data.response.lasteditor + " bearbeitet gerade diese Datei";
+                        $("#pdfviewer_msg").html('<p class="text-primary">' + text + '</p>');
+                    }
+                }
+
+                // Editor Event, wenn es Änderungen im Textfeld gibt
+                editor.on("change", function () {
+                    changesSaved = false;
+                    if (autosaveInterval != 0 && !autosaveTimer) {
+                        autosaveTimer = setInterval(function() {
+                            if (changesSaved) {
+                                return;
+                            }
+                            saveFile(true);
+                        }, autosaveInterval);
+                    }
+                });
+                // Editor automatisch an Fenstergröße anpassen
+                $(window).bind('resize', function () {
+                    setTimeout(function(){editor.refresh();}, editorResizeTimeout);
+                });
+            } else {
+                backToProject();
+            }
+	    }
+	);
 }
 
 /**
  * Speichert den Inhalt aus dem Editor in eine Datei.
- * @param id ID der Datei
+ * @param autosave boolean, gibt an ob die Autsave Nachricht angezeigt werden soll
  */
-function saveFile(id) {
-	documentsJsonRequest({
-			'command': 'updatefile',
-			'id': id,
-			'content': editor.getValue()
-		}, function(result, data) {
-			if (result) {
-				changesSaved = true;
-                setMsg('Datei gespeichert');
+function saveFile(autosave) {
+    documentsJsonRequest({
+            'command': 'updatefile',
+            'id': id,
+            'content': editor.getValue()
+        }, function(result, data) {
+            if (result) {
+                changesSaved = true;
+                if (file_name != data.response.name) {
+                    console.log(data.response.name);
+                    showAlertDialog("Datei speichern",
+                                    "Diese Datei wird gerade bearbeitet von:<br>"+
+                                    data.response.lasteditor + ".<br>"+
+                                    "Die Datei wurde gespeichert als: <br>" +
+                                    "<b>"+data.response.name+"</b>");
+                    file_locked = true;
+                    disableEditor();
+                }
+                else {
+                    if (autosave) {
+                        setMsg('Automatisches Speichern...');
+                    } else {
+                        setMsg('Datei gespeichert');
+                    }
+                }
+
             } else {
+                if(data.response == ERROR_MESSAGES['FILELOCKED']) {
+                    file_locked = true;
+                    disableEditor();
+                }
                 showAlertDialog("Datei speichern", data.response);
             }
-	});
+    });
 }
 
 /*
@@ -241,6 +344,7 @@ function lock() {
             'command': 'lockfile',
             'id': id
         }, function(result, data) {
+            file_locked = true;
             if (! result) {
                 showAlertDialog("Datei sperren", data.response);
             }
@@ -258,39 +362,74 @@ function unlock() {
             if (! result) {
                 showAlertDialog("Datei entsperren", data.response);
             }
+            else {
+                console.log('unlocked');
+            }
+
 	});
+}
+
+function compile() {
+    // setze den Inhalt des Log Containers zurück
+    setLogText('');
+
+    // Kompiliere nur wenn der Text im Editor nicht leer ist
+    if (editor.getValue() != '') {
+        // wenn keine Änderung an der tex Datei vorgenommen wurden, kompiliere die tex Datei direkt
+        if (changesSaved) {
+            compileTex();
+        }
+        // sonst speichere die tex Datei zunächst und kompiliere danach
+        else {
+            // speichere die tex Datei
+            documentsJsonRequest({
+                'command': 'updatefile',
+                'id': id,
+                'content': editor.getValue()
+            }, function(result, data) {
+                if (result) {
+                    changesSaved = true;
+                    setMsg('Datei gespeichert');
+                    compileTex();
+                }
+            })
+        }
+    }
 }
 
 
 /**
  * Kompiliert eine Datei und zeigt die PDF an.
  */
-function compile() {
-    setLogText('');
-    // Kompiliere nur wenn der Text im Editor nicht leer ist
-    if (editor.getValue() != '') {
-        var pdf_url = null;
-        // TexID welche dem Editor übergeben wurde
-        id = parseInt(location.hash.substr(1));
-        documentsJsonRequest({
-                'command': 'compile',
-                'id': id,
-                'formatid': 0,
-            }, function(result, data) {
-                var pdfid = data.response.id 
-                
-                if (!pdfid) {
-                    pdfid = -1
-                }
+function compileTex() {
+    // Buttons deaktivieren
+    disableCompileExportBtn();
+
+    // timer starten, so dass Buttons nach einiger Zeit auf jeden Fall wieder aktiviert werden
+    timeout = setTimeout('enableCompileExportBtn()', btnCompileExportTimeout);
+    documentsJsonRequest({
+            'command': 'compile',
+            'id': id,
+            'formatid': 0,
+            'compilerid': compilerid,
+            'forcecompile': (compilerChanged?1:0)
+        }, function(result, data) {
+            var pdfid = data.response.id;
+            var pdf_url = null;
+
+            if (isNaN(pdfid)) {
+                pdf_url = "/static/default.pdf";
+                setErrorMsg("Fehler beim Kompilierem");
+            }
+            else {
                 // URL der PDF Datei
                 // schickt einen GET Request an den Server
                 // dieser liefert die PDF Datei, falls vorhanden
                 // sonst wird eine default PDF geschickt
                 pdf_url = "/documents/?command=getpdf&id=" + pdfid +"&t=" + Math.random();
-                // Anzeige der PDF Datei
-                renderPDF(pdf_url, document.getElementById('pdf-viewer'));
 
                 if (result) {
+                    compilerChanged = false;
                     setMsg("Kompilieren erfolgreich");
                     setLogText('Kompilieren erfolgreich, keine Log Datei vorhanden.');
                 }
@@ -298,8 +437,32 @@ function compile() {
                     setErrorMsg("Fehler beim Kompilieren");
                     setCompileLog();
                 }
-        });
-    }
+                // timer abbrechen
+                clearTimeout(timeout);
+                // aktiviere die Buttons wieder
+                enableCompileExportBtn();
+            }
+
+            // Anzeige der PDF Datei
+            renderPDF(pdf_url, document.getElementById('pdf-viewer'));
+        }
+    );
+}
+
+/**
+ * Deaktiviert die Kompilier und Export Buttons
+ */
+function disableCompileExportBtn() {
+    document.getElementById("compile").disabled = true;
+    document.getElementById("export").disabled = true;
+}
+
+/**
+ * Aktiviert die Kompilier und Export Buttons
+ */
+function enableCompileExportBtn() {
+    document.getElementById("compile").disabled = false;
+    document.getElementById("export").disabled = false;
 }
 
 /**
@@ -324,21 +487,37 @@ function setCompileLog() {
  * Kompiliert eine tex Datei und lädt die entsprechende Datei runter.
  * @param id ID der Datei
  */
-function exportFile(id, formatid) {
+function exportFile(formatid) {
+    // Buttons deaktivieren
+    disableCompileExportBtn();
+    if (timeout) {
+        timeout = clearTimeout(timeout);
+    }
+    // timer starten, so dass Buttons nach einiger Zeit auf jeden Fall wieder aktiviert werden
+    timeout = setTimeout('enableCompileExportBtn()', (formatid==1?btnCompileExportTimeout_HTML:btnCompileExportTimeout));
+    console.log(compilerid);
     documentsJsonRequest({
 			'command': 'compile',
 			'id': id,
             'formatid': formatid,
+            'compilerid': compilerid,
+            'forcecompile': (compilerChanged?1:0)
 		}, function(result, data) {
-			if (result)
+			if (result) {
+			    compilerChanged = false;
 				documentsRedirect({
 					'command': 'downloadfile', 
 					'id': data.response.id
                 });
-            else {
+            } else {
                 setErrorMsg('Fehler beim Kompilieren');
                 setCompileLog();
-            }	
+            }
+            // timer abbrechen
+            clearTimeout(timeout);
+            // aktiviere die Buttons wieder
+            enableCompileExportBtn();
+            console.log(compilerid);
 	});
 }
 
@@ -361,14 +540,13 @@ function table_readout_input() {
 				rowcontent += hot.getDataAtCell(j,i++)+"\\\\";
 				fulltable += rowcontent +"\n";
 		}
-		editor = ace.edit('editor');
 		var caption = document.getElementById('table-description').value;
 		if (caption == "") {
-			editor.insert("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
-			+ fulltable+"\\end{tabular}\n"+"\\end{table}\n");
+			editor.replaceSelection("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
+			+ fulltable+"\\end{tabular}\n"+"\\end{table}\n", "end");
 		} else {
-		editor.insert("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
-		+ fulltable+"\\end{tabular}\n"+"\\caption{"+caption+"}\n"+"\\end{table}\n");
+		editor.replaceSelection("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
+		+ fulltable+"\\end{tabular}\n"+"\\caption{"+caption+"}\n"+"\\end{table}\n", "end");
 		}
 
 		var data = [
@@ -415,17 +593,6 @@ function createImageTree() {
 				'id': rootFolderId,
 			}, function(result, data) {
 				if (result) {
-				    if (data.response.isallowedit) {
-				        lock();
-				        compile();
-				    } else {
-				        disableEditor();
-				        if (data.response.lasteditor) {
-				        	var text = data.response.lasteditor + " bearbeitet gerade diese Datei";
-				            $("#pdfviewer_msg").html('<p class="text-primary">' + text + '</p>');
-				        }
-				    }
-
 					rootFolderId = data.response.folderid;
 					reloadProject();
 				}
@@ -552,17 +719,6 @@ function createImageTree() {
     function getSelectedNode() {
         return $("#" + tree.jstree().get_selected());
     }
-
-
-    /*
-     * Leitet den Benutzer zurück zur Projektverwaltung.
-     */
-    function backToProject() {
-        // TODO: auf das richtige Projekt verweisen?
-        window.location.replace("/projekt/");
-    }
-
-
 }
 
 /**
@@ -584,7 +740,7 @@ function insertImageWithID(fileID, filePath){
 						imageWidth = document.getElementById("imageWidth").value;
 					}
 					
-					editor.insert("\\includegraphics[width="+imageWidth+"\\textwidth]{"+filePath+data.response.filename+"}"+"\n"); 
+					editor.replaceSelection("\\includegraphics[width="+imageWidth+"\\textwidth]{"+filePath+data.response.filename+"}"+"\n", "end");
 				};				
 			}
 	});
@@ -595,10 +751,16 @@ function insertImageWithID(fileID, filePath){
  * Deaktiviert den Editor
  */
 function disableEditor() {
-    $("#maincontainer").addClass("disabled");
-    $("#editorsymbols button:not(#backtoprojekt)").prop("disabled", true);
+    // Editor Buttons bis auf "Zurück" deaktivieren
+    $("#editorsymbols button:not(#backtofileview)").prop("disabled", true);
 
-    editor.setReadOnly(true);
+    // CodeMirror Hintergrund Farbe auf grau setzen
+    $(".CodeMirror").css('background', "#cfcfcf");
+    $(".CodeMirror-linenumbers").css('background', "#cfcfcf");
+    editor.setOption("readOnly", true);
+    editor.setOption("extraKeys", {});
+    myLayout.hide("east");
+    myLayout.hide("south");
 }
 
 
@@ -686,27 +848,31 @@ function setLogText(text) {
     $("#compile_log").html(text)
 }
 
+/**
+* Funktion zur Anzeige der PDF Datei mit PDSJS
+*/
 function renderPDF(url, canvasContainer, options) {
 
-    var options = options || { scale: 1 };
-        
+    var pdfscale = 2;
+
     function renderPage(page) {
-        var viewport = page.getViewport(options.scale);
+        var viewport = page.getViewport(pdfscale);
         var canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
+
+        canvas.style.cssText = 'border:1px solid #000000;';
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        canvas.style.height = '100%';
+        canvas.style.width = '100%';
+
+        canvasContainer.appendChild(canvas);
 
         var renderContext = {
           canvasContext: ctx,
           viewport: viewport
         };
-        //canvas.style.height = '100%';
-        //canvas.style.width = '100%';
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-        canvasContainer.appendChild(canvas);
-        
-        canvasContainer.appendChild (document.createElement("hr"));
-        
+
         page.render(renderContext);
     }
     
@@ -717,10 +883,73 @@ function renderPDF(url, canvasContainer, options) {
     }
 
     //PDFJS.disableWorker = true;
-    PDFJS.workerSrc = '/static/js/pdf.worker.js';    
+    PDFJS.workerSrc = '/static/pdfjs//build/pdf.worker.js';
     PDFJS.getDocument(url).then(renderPages);
 }
 
-$(function () {
-  $('[data-toggle="tooltip"]').tooltip()
-})
+/**
+* Lädt das Editor Theme mit dem entsprechenden Namen.
+* die passende CSS Datei wird dabei automatisch mitgeladen
+*/
+function loadEditorTheme(theme) {
+    // in diesem Ordner befinden sich die CodeMirror Themes
+    var cmthemeurl = '/static/codemirror/theme/'
+
+    // Lade die zugehörige css Datei, falls diese noch nicht geladen wurde
+    if (!document.getElementById(theme))
+    {
+        var head  = document.getElementsByTagName('head')[0];
+        var link  = document.createElement('link');
+        link.id   = theme;
+        link.rel  = 'stylesheet';
+        link.type = 'text/css';
+        link.href = cmthemeurl + theme + ".css";
+        link.media = 'all';
+        head.appendChild(link);
+    }
+
+    // Setze das neue Theme im Editor
+    editor.setOption("theme", theme);
+}
+
+/**
+* Lädt die Editor KeyMap mit dem entsprechenden Namen.
+* die passende JS Datei wird dabei automatisch mitgeladen
+*/
+function loadKeyMap(keymap) {
+    // in diesem Ordner befinden sich die CodeMirror KeyMaps
+    var cmkeymapurl = '/static/codemirror/keymap/';
+    console.log(keymap);
+    // Lädt die zugehörige js Datei, falls diese noch nicht geladen wurde
+    if (!document.getElementById(keymap))
+    {
+        var head  = document.getElementsByTagName('head')[0];
+        var link  = document.createElement('script');
+        link.id   = keymap;
+        link.type = 'text/javascript';
+        link.src = cmkeymapurl + keymap + ".js";
+        head.appendChild(link);
+    }
+
+    // setze die entsprechende KeyMap im Editor
+    if (keymap == 'emacs' || keymap == 'sublime') {
+        editor.setOption("keyMap", keymap);
+    } else if (keymap == 'vim') {
+        editor.setOption("keyMap", keymap);
+        editor.setOption("vimMode", true);
+    }
+}
+
+function setFontSize(fontsize, refresh) {
+    $(".CodeMirror").css('font-size', fontsize + "pt");
+    if (refresh) {
+        editor.refresh();
+    }
+}
+
+function setFontFamily(fontfamily, refresh) {
+    $(".CodeMirror").css('font-family', fontfamily);
+    if (refresh) {
+        editor.refresh();
+    }
+}
