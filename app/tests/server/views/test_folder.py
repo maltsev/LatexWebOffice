@@ -658,7 +658,8 @@ class FolderTestClass(ViewTestCase):
                  'mimetype': maintex.mimeType,
                  'size': maintex.size,
                  'createTime': str(maintex.createTime),
-                 'lastModifiedTime': str(maintex.lastModifiedTime)}
+                 'lastModifiedTime': str(maintex.lastModifiedTime),
+                 'isAllowEdit': not maintex.isLocked()}
             ],
             'folders': [{
                             'id': self._user2_project1_folder1.id,
@@ -701,14 +702,15 @@ class FolderTestClass(ViewTestCase):
                  'mimetype': maintex.mimeType,
                  'size': maintex.size,
                  'createTime': str(maintex.createTime),
-                 'lastModifiedTime': str(maintex.lastModifiedTime)
-                 },
+                 'lastModifiedTime': str(maintex.lastModifiedTime),
+                 'isAllowEdit': not maintex.isLocked()},
                 {'id': self._user1_tex2.id,
                  'name': self._user1_tex2.name,
                  'mimetype': self._user1_tex2.mimeType,
                  'size': self._user1_tex2.size,
                  'createTime': str(self._user1_tex2.createTime),
-                 'lastModifiedTime': str(self._user1_tex2.lastModifiedTime)}
+                 'lastModifiedTime': str(self._user1_tex2.lastModifiedTime),
+                 'isAllowEdit': not self._user1_tex2.isLocked()}
             ],
             'folders': [
                 {
@@ -721,13 +723,15 @@ class FolderTestClass(ViewTestCase):
                          'mimetype': self._user1_tex3.mimeType,
                          'size': self._user1_tex3.size,
                          'createTime': str(self._user1_tex3.createTime),
-                         'lastModifiedTime': str(self._user1_tex3.lastModifiedTime)},
+                         'lastModifiedTime': str(self._user1_tex3.lastModifiedTime),
+                         'isAllowEdit': not self._user1_tex3.isLocked()},
                         {'id': self._user1_tex4.id,
                          'name': self._user1_tex4.name,
                          'mimetype': self._user1_tex4.mimeType,
                          'size': self._user1_tex4.size,
                          'createTime': str(self._user1_tex4.createTime),
-                         'lastModifiedTime': str(self._user1_tex4.lastModifiedTime)}
+                         'lastModifiedTime': str(self._user1_tex4.lastModifiedTime),
+                         'isAllowEdit': not self._user1_tex4.isLocked()}
                     ]
                 },
                 {
@@ -742,19 +746,22 @@ class FolderTestClass(ViewTestCase):
                               'mimetype': self._user1_binary1.mimeType,
                               'size': self._user1_binary1.size,
                               'createTime': str(self._user1_binary1.createTime),
-                              'lastModifiedTime': str(self._user1_binary1.lastModifiedTime)},
+                              'lastModifiedTime': str(self._user1_binary1.lastModifiedTime),
+                              'isAllowEdit': not self._user1_binary1.isLocked()},
                              {'id': self._user1_binary2.id,
                               'name': self._user1_binary2.name,
                               'mimetype': self._user1_binary2.mimeType,
                               'size': self._user1_binary2.size,
                               'createTime': str(self._user1_binary2.createTime),
-                              'lastModifiedTime': str(self._user1_binary2.lastModifiedTime)},
+                              'lastModifiedTime': str(self._user1_binary2.lastModifiedTime),
+                              'isAllowEdit': not self._user1_binary2.isLocked()},
                              {'id': self._user1_binary3.id,
                               'name': self._user1_binary3.name,
                               'mimetype': self._user1_binary3.mimeType,
                               'size': self._user1_binary3.size,
                               'createTime': str(self._user1_binary3.createTime),
-                              'lastModifiedTime': str(self._user1_binary3.lastModifiedTime)}
+                              'lastModifiedTime': str(self._user1_binary3.lastModifiedTime),
+                              'isAllowEdit': not self._user1_binary3.isLocked()}
                          ],
                          'folders': []},
                     ],
@@ -811,7 +818,8 @@ class FolderTestClass(ViewTestCase):
                          'mimetype': maintex.mimeType,
                          'size': maintex.size,
                          'createTime': str(maintex.createTime),
-                         'lastModifiedTime': str(maintex.lastModifiedTime)}],
+                         'lastModifiedTime': str(maintex.lastModifiedTime),
+                         'isAllowEdit': not maintex.isLocked()}],
             'folders': []
         }
         self.maxDiff = None
