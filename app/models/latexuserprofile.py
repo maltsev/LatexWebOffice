@@ -4,7 +4,7 @@
 
 * Creation Date : 26-02-2015
 
-* Last Modified : Sa 28 Feb 2015 00:33:46 CET
+* Last Modified : Mi 04 Mär 2015 19:53:26 CET
 
 * Author :  mattis
 
@@ -105,6 +105,8 @@ class LatexWebUser(AbstractBaseUser):
         self.passwordlostdate=datetime.datetime(1970,1,1,0,0)
 
 
-
+    def has_module_perms(self, app):
+        # Simplest possible answer: Yes, always
+        return True
 
 
