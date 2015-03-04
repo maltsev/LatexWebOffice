@@ -495,7 +495,6 @@ function exportFile(formatid) {
     }
     // timer starten, so dass Buttons nach einiger Zeit auf jeden Fall wieder aktiviert werden
     timeout = setTimeout('enableCompileExportBtn()', (formatid==1?btnCompileExportTimeout_HTML:btnCompileExportTimeout));
-    console.log(compilerid);
     documentsJsonRequest({
 			'command': 'compile',
 			'id': id,
@@ -517,7 +516,6 @@ function exportFile(formatid) {
             clearTimeout(timeout);
             // aktiviere die Buttons wieder
             enableCompileExportBtn();
-            console.log(compilerid);
 	});
 }
 
