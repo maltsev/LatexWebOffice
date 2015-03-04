@@ -111,7 +111,13 @@ $(document).ready(function() {
         // Speichern und freigeben der tex Datei beim Schließen des Editors
 		$(window).bind('beforeunload', function() {
 			if (!changesSaved && !file_locked) {
-				saveFile(true);
+				    documentsJsonRequest({
+                        'command': 'updatefile',
+                        'id': id,
+                        'content': editor.getValue()
+                    }, function(result, data) {
+                        unlock();
+                });
 	        }
 		});
 
@@ -853,7 +859,7 @@ function setLogText(text) {
 */
 function renderPDF(url, canvasContainer, options) {
 
-    var pdfscale = 2;
+    var pdfscale = 1.5;
 
     function renderPage(page) {
         var viewport = page.getViewport(pdfscale);

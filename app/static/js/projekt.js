@@ -102,7 +102,8 @@ $(function() {
 		$('#checkboxdiv').addClass('hidden');	
 		for (var i=0;i<allprojects.length;i++){
 			var proj=allprojects[i].name;
-			if (proj==filename){
+			var owner=allprojects[i].ownername;
+			if (proj==filename && owner==user){
 				$('#overwritecheckbox').prop("checked", false);
 				$('#checkboxdiv').removeClass('hidden');
 			}
