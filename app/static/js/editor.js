@@ -223,6 +223,13 @@ function backToFileView() {
                 backToProject();
             }
 	    });
+	} else {
+        if (rootid != -1) {
+            window.location.replace('/dateien/#' + rootid);
+        }
+        else {
+            backToProject();
+        }
 	}
 }
 
