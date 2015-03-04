@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Fr 12 Dez 2014 14:25:06 CET
+* Last Modified : Wed 4 Mar 2015 20:04:40 CET
 
 * Author :  mattis
 
@@ -149,6 +149,6 @@ def listFiles(request, user, folderid):
     current_folderobj = Folder.objects.get(id=folderid)
 
     # erstelle die Ordner- und Dateistruktur als JSON
-    folderandfiles_structure = util.getFolderAndFileStructureAsDict(current_folderobj)
+    folderandfiles_structure = util.getFolderAndFileStructureAsDict(current_folderobj, user)
 
     return util.jsonResponse(folderandfiles_structure, True, request)

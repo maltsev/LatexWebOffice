@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Tu 17 Feb 2015 21:32:00 CET
+* Last Modified : Wed 4 Mar 2015 20:04:40 CET
 
 * Author :  mattis
 
@@ -660,7 +660,7 @@ class FolderTestClass(ViewTestCase):
                  'size': maintex.size,
                  'createTime': str(maintex.createTime),
                  'lastModifiedTime': str(maintex.lastModifiedTime),
-                 'isAllowEdit': not maintex.isLocked()}
+                 'isAllowEdit': True}
             ],
             'folders': [{
                             'id': self._user2_project1_folder1.id,
@@ -705,14 +705,14 @@ class FolderTestClass(ViewTestCase):
                  'size': maintex.size,
                  'createTime': str(maintex.createTime),
                  'lastModifiedTime': str(maintex.lastModifiedTime),
-                 'isAllowEdit': not maintex.isLocked()},
+                 'isAllowEdit': True},
                 {'id': self._user1_tex2.id,
                  'name': self._user1_tex2.name,
                  'mimetype': self._user1_tex2.mimeType,
                  'size': self._user1_tex2.size,
                  'createTime': str(self._user1_tex2.createTime),
                  'lastModifiedTime': str(self._user1_tex2.lastModifiedTime),
-                 'isAllowEdit': not self._user1_tex2.isLocked()}
+                 'isAllowEdit': True}
             ],
             'folders': [
                 {
@@ -726,14 +726,14 @@ class FolderTestClass(ViewTestCase):
                          'size': self._user1_tex3.size,
                          'createTime': str(self._user1_tex3.createTime),
                          'lastModifiedTime': str(self._user1_tex3.lastModifiedTime),
-                         'isAllowEdit': not self._user1_tex3.isLocked()},
+                         'isAllowEdit': True},
                         {'id': self._user1_tex4.id,
                          'name': self._user1_tex4.name,
                          'mimetype': self._user1_tex4.mimeType,
                          'size': self._user1_tex4.size,
                          'createTime': str(self._user1_tex4.createTime),
                          'lastModifiedTime': str(self._user1_tex4.lastModifiedTime),
-                         'isAllowEdit': not self._user1_tex4.isLocked()}
+                         'isAllowEdit': True}
                     ]
                 },
                 {
@@ -749,21 +749,21 @@ class FolderTestClass(ViewTestCase):
                               'size': self._user1_binary1.size,
                               'createTime': str(self._user1_binary1.createTime),
                               'lastModifiedTime': str(self._user1_binary1.lastModifiedTime),
-                              'isAllowEdit': not self._user1_binary1.isLocked()},
+                              'isAllowEdit': True},
                              {'id': self._user1_binary2.id,
                               'name': self._user1_binary2.name,
                               'mimetype': self._user1_binary2.mimeType,
                               'size': self._user1_binary2.size,
                               'createTime': str(self._user1_binary2.createTime),
                               'lastModifiedTime': str(self._user1_binary2.lastModifiedTime),
-                              'isAllowEdit': not self._user1_binary2.isLocked()},
+                              'isAllowEdit': True},
                              {'id': self._user1_binary3.id,
                               'name': self._user1_binary3.name,
                               'mimetype': self._user1_binary3.mimeType,
                               'size': self._user1_binary3.size,
                               'createTime': str(self._user1_binary3.createTime),
                               'lastModifiedTime': str(self._user1_binary3.lastModifiedTime),
-                              'isAllowEdit': not self._user1_binary3.isLocked()}
+                              'isAllowEdit': True}
                          ],
                          'folders': []},
                     ],
@@ -809,9 +809,11 @@ class FolderTestClass(ViewTestCase):
 
         collaboration.isConfirmed = True
         collaboration.save()
-        response = util.documentPoster(self, command='listfiles', idpara=self._user2_project2.rootFolder.id)
 
         maintex = self._user2_project2.rootFolder.getMainTex()
+        maintex.lock(self._user2)
+
+        response = util.documentPoster(self, command='listfiles', idpara=self._user2_project2.rootFolder.id)
         serveranswer = {
             'id': self._user2_project2.rootFolder.id,
             'name': self._user2_project2.rootFolder.name,
@@ -822,7 +824,7 @@ class FolderTestClass(ViewTestCase):
                          'size': maintex.size,
                          'createTime': str(maintex.createTime),
                          'lastModifiedTime': str(maintex.lastModifiedTime),
-                         'isAllowEdit': not maintex.isLocked()}],
+                         'isAllowEdit': False}],
             'folders': []
         }
         self.maxDiff = None

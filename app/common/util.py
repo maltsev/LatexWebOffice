@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Di 24 Feb 2015 15:23:40 CET
+* Last Modified : Wed 4 Mar 2015 20:04:40 CET
 
 * Author :  christian
 
@@ -266,20 +266,22 @@ def checkFileForInvalidString(name, request):
     return checkObjectForInvalidString(file_name, request)
 
 
-def getFolderAndFileStructureAsDict(folderobj):
+def getFolderAndFileStructureAsDict(folderobj, user):
     """Liefert die Ordner- und Dateistruktur eines gegebenen Ordner Objektes als Dictionary.
 
     :param folderobj: Ordner Objekt, für den die gesamte Unterordner- und Dateistruktur geliefert werden soll
+    :param user: User Objekt (eingeloggter Benutzer)
     :return: dict
     """
 
-    return _getFoldersAndFilesJson(folderobj, data={'project': folderobj.getProject().name})
+    return _getFoldersAndFilesJson(folderobj, user, data={'project': folderobj.getProject().name})
 
 
-def _getFoldersAndFilesJson(folderobj, data={}):
+def _getFoldersAndFilesJson(folderobj, user, data={}):
     """Hilfsmethode zur rekursiven Bestimmung der Ordner- und Dateistruktur eines gegebenen Ordner Objektes.
 
     :param folderobj: Ordner Objekt, für den die gesamte Unterordner- und Dateistruktur geliefert werden soll
+    :param user: User Objekt (eingeloggter Benutzer)
     :param data: Dictionary, in welchem die angeforderte Struktur gespeichert wird
     :return: dict
     """
@@ -297,8 +299,7 @@ def _getFoldersAndFilesJson(folderobj, data={}):
     # durchlaufe alle Dateien im aktuellen Ordner Objekt (folderobj)
     for f in files:
         if not '<log>' in f.name:
-            # TODO Hier muss man auch f.lockedBy() == authUser überprüfen
-            isAllowEdit = not f.isLocked()
+            isAllowEdit = not f.isLocked() or f.lockedBy() == user
             filelist.append({'id': f.id, 'name': f.name, 'mimetype': f.mimeType, 'size': f.size,
                             'createTime': str(f.createTime), 'lastModifiedTime': str(f.lastModifiedTime), 'isAllowEdit': isAllowEdit})
 
@@ -308,7 +309,7 @@ def _getFoldersAndFilesJson(folderobj, data={}):
     # durchlaufe alle Unterordner im aktuellen Ordner Objekt
     for f in folders:
         # rufe diese Methode rekursiv mit dem Unterordner auf, und füge die Daten dem Dictionary hinzu
-        folderlist.append(_getFoldersAndFilesJson(f, data={}))
+        folderlist.append(_getFoldersAndFilesJson(f, user, data={}))
 
     return data
 
