@@ -531,36 +531,40 @@ function exportFile(formatid) {
  */
 
 function table_readout_input() {
-	var header = "";
-	for (var i =  0; i < hot.countCols();i++)
-		header += "l";
-		
-	var fulltable = "";
-		for (var j = 0; j < hot.countRows()-1;j++)
-		{
-			var rowcontent = "";
-			for (var i =  0; i < hot.countCols()-1;i++){
-				rowcontent += hot.getDataAtCell(j,i)+"&";
-				}
-				rowcontent += hot.getDataAtCell(j,i++)+"\\\\";
-				fulltable += rowcontent +"\n";
-		}
-		var caption = document.getElementById('table-description').value;
-		if (caption == "") {
-			editor.replaceSelection("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
-			+ fulltable+"\\end{tabular}\n"+"\\end{table}\n", "end");
-		} else {
-		editor.replaceSelection("\\begin{table}[h]\n" + "\\begin{tabular}{"+header+"}\n "
-		+ fulltable+"\\end{tabular}\n"+"\\caption{"+caption+"}\n"+"\\end{table}\n", "end");
-		}
+    var header = "";
+    for (var i = 0; i < hot.countCols(); i++)
+        header += "l";
 
-		var data = [
-									[,,],
-									[,,],
-									[,,],
-									];
-		hot.loadData(data);
-		document.getElementById('table-description').value ="";
+    var fulltable = "";
+    for (var j = 0; j < hot.countRows() - 1; j++) {
+        var rowcontent = "";
+        for (var i = 0; i < hot.countCols(); i++) {
+            if (hot.getDataAtCell(j, i) !== null && typeof hot.getDataAtCell(j, i) !== "undefined") {
+                rowcontent += hot.getDataAtCell(j, i);
+            }
+            if (i!=hot.countCols()-1)
+            {
+                rowcontent+='&';
+            }
+
+        }
+        rowcontent += "\\\\";
+        fulltable += rowcontent + "\n";
+    }
+    var caption = document.getElementById('table-description').value;
+    if (caption == "") {
+        editor.replaceSelection("\\begin{table}[h]\n" + "\\begin{tabular}{" + header + "}\n " + fulltable + "\\end{tabular}\n" + "\\end{table}\n", "end");
+    } else {
+        editor.replaceSelection("\\begin{table}[h]\n" + "\\begin{tabular}{" + header + "}\n " + fulltable + "\\end{tabular}\n" + "\\caption{" + caption + "}\n" + "\\end{table}\n", "end");
+    }
+
+    var data = [
+        [, , ],
+        [, , ],
+        [, , ],
+    ];
+    hot.loadData(data);
+    document.getElementById('table-description').value = "";
 }
 
 /**

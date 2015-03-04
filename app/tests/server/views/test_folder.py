@@ -652,6 +652,7 @@ class FolderTestClass(ViewTestCase):
         serveranswer = {
             'id': rootfolder.id,
             'name': rootfolder.name,
+            'project': rootfolder.getProject().name,
             'files': [
                 {'id': maintex.id,
                  'name': maintex.name,
@@ -696,6 +697,7 @@ class FolderTestClass(ViewTestCase):
         serveranswer = {
             'id': rootfolder.id,
             'name': rootfolder.name,
+            'project': rootfolder.getProject().name,
             'files': [
                 {'id': maintex.id,
                  'name': maintex.name,
@@ -813,6 +815,7 @@ class FolderTestClass(ViewTestCase):
         serveranswer = {
             'id': self._user2_project2.rootFolder.id,
             'name': self._user2_project2.rootFolder.name,
+            'project': self._user2_project2.name,
             'files': [  {'id': maintex.id,
                          'name': maintex.name,
                          'mimetype': maintex.mimeType,

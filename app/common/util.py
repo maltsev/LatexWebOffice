@@ -273,7 +273,7 @@ def getFolderAndFileStructureAsDict(folderobj):
     :return: dict
     """
 
-    return _getFoldersAndFilesJson(folderobj, data={})
+    return _getFoldersAndFilesJson(folderobj, data={'project': folderobj.getProject().name})
 
 
 def _getFoldersAndFilesJson(folderobj, data={}):

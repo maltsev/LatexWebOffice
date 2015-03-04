@@ -237,7 +237,7 @@ $(function () {
     var tree = null;
     function renderProject(data) {
         var jsTreeData = convertRawDataToJsTreeData(data);
-        
+        $("#headline").html("Dateien und Ordner - " + data.project);
         if (tree) {
             treeInst.settings.core.data = jsTreeData;
             ignoreSorting = false;
