@@ -207,9 +207,9 @@
                      <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu">
-                     <li><a id="export_html" value='1' style="cursor:pointer;">HTML</a></li>
-                     <li><a id="export_dvi" value='2' style="cursor:pointer;">DVI</a></li>
-                     <li><a id="export_ps" value='3' style="cursor:pointer;">PS</a></li>
+                     <li><a id="export_html" style="cursor:pointer;">HTML</a></li>
+                     <li><a id="export_dvi" style="cursor:pointer;">DVI</a></li>
+                     <li><a id="export_ps" style="cursor:pointer;">PS</a></li>
                   </ul>
                </div>
                <button type="button" class="btn btn-default" data-toggle="modal" onClick="hidePanes(); createImageTree();">
@@ -226,7 +226,7 @@
                   PDFLaTeX
                   <span class="caret"></span>
                   </button>
-                  <ul class="dropdown-menu">
+                  <ul class="dropdown-menu" id="compiler-dropdown">
                      <li><a id="0_pdflatex" value="0" style="cursor:pointer;">PDFLaTeX</a></li>
                      <li><a id="1_lualatex" value="1" style="cursor:pointer;">LuaLaTeX</a></li>
                      <li><a id="2_xelatex" value="2" style="cursor:pointer;">XeLaTeX</a></li>
