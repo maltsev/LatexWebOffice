@@ -150,14 +150,13 @@ $(document).ready(function() {
 			backToFileView();
 		});
         // Dropdowm Button Text je nach Auswahl des Compilers richtig setzen und die compilerID ändern
-		$(".dropdown-menu li a").click(function(){
+		$("#compiler-dropdown li a").click(function(){
             $(this).parents(".compiler-btn").find('.btn').html($(this).text()+" <span class=\"caret\"></span>");
             if (compilerid != $(this).attr('value')) {
                 // Compiler wurde verändert, dadurch wird beim nächsten Kompilieren der forcecompile Parameter gesetzt,
                 // so dass die Datei auf jeden Fall neu kompiliert wird, auch wenn es keine Änderungen an der tex Datei gab
                 compilerChanged = true;
                 compilerid = $(this).attr('value');
-                console.log(compilerid);
             }
         });
 	};
