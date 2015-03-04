@@ -156,7 +156,7 @@ $(document).ready(function() {
                 // Compiler wurde verändert, dadurch wird beim nächsten Kompilieren der forcecompile Parameter gesetzt,
                 // so dass die Datei auf jeden Fall neu kompiliert wird, auch wenn es keine Änderungen an der tex Datei gab
                 compilerChanged = true;
-                compilerid = $(this).attr('value');
+                co0mpilerid = $(this).attr('value');
             }
         });
 	};
@@ -495,6 +495,7 @@ function exportFile(formatid) {
     }
     // timer starten, so dass Buttons nach einiger Zeit auf jeden Fall wieder aktiviert werden
     timeout = setTimeout('enableCompileExportBtn()', (formatid==1?btnCompileExportTimeout_HTML:btnCompileExportTimeout));
+    console.log(compilerid);
     documentsJsonRequest({
 			'command': 'compile',
 			'id': id,
@@ -516,6 +517,7 @@ function exportFile(formatid) {
             clearTimeout(timeout);
             // aktiviere die Buttons wieder
             enableCompileExportBtn();
+            console.log(compilerid);
 	});
 }
 
