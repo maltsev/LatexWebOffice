@@ -5,7 +5,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : So 01 Mär 2015 22:39:38 CET
+* Last Modified : Wed 4 Mar 2015 20:04:40 CET
 
 * Author :  maltsev
 
@@ -21,6 +21,8 @@ from datetime import timedelta
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+
+from app import common
 
 
 class FileManager(models.Manager):
