@@ -980,7 +980,7 @@ $(function () {
 		}
 		
 		// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
-		$(".filestoolbar-open").prop("disabled", !texFile && file);
+		$(".filestoolbar-open").prop("disabled", (!texFile && file) || !selected);
 		$(".filestoolbar-newfile").prop("disabled", !basic);
 		$(".filestoolbar-newfolder").prop("disabled", !basic);
 		$(".filestoolbar-delete").prop("disabled", !selected);
