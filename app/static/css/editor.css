@@ -55,7 +55,10 @@ ul.nav li button {
 .btn-group {
     border: 0;
 }
-
+#editormenu {
+    height: 56px;
+    width: 56px;
+}
 .editorbtn-group .btn {
     border-radius: 0px;
 }

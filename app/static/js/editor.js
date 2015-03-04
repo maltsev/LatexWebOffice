@@ -281,8 +281,7 @@ function loadFile() {
                     file_locked = true;
                     disableEditor();
                     if (data.response.lasteditor) {
-                        var text = data.response.lasteditor + " bearbeitet gerade diese Datei";
-                        $("#pdfviewer_msg").html('<p class="text-primary">' + text + '</p>');
+                        $("#pdfviewer_msg").html('<p class="text-danger"><span class="glyphicon glyphicon-lock"></span> ' + data.response.lasteditor + '</p>');
                     }
                 }
 
