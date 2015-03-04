@@ -18,8 +18,11 @@
 import json
 import mimetypes
 import os
+import logging
 
-from django.http import HttpResponse
+from datetime import datetime
+
+from django.http import HttpResponse, Http404
 from django.views.static import serve
 
 from app.models.folder import Folder
@@ -72,12 +75,31 @@ def updateFile(request, user, fileid, filecontenttostring):
     # lese die PlainTextFile Datei ein
     plaintextobj = PlainTextFile.objects.get(id=fileid)
 
+    isallowedit = not plaintextobj.isLocked() or plaintextobj.lockedBy() == user
+
+    # wenn die Datei vom aktuellen Benutzer nicht bearbeitet werden darf (gesperrt bzw. nicht selber gesperrt)
+    if not isallowedit:
+        # speichere den Inhalt als neue Datei mit dem aktuellen Datum als Suffix
+        newplaintextobj_name = plaintextobj.name + '_' + user.username + '_' \
+                               + util.datetimeToString(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+        if not PlainTextFile.objects.filter(name=newplaintextobj_name, folder=plaintextobj.folder).exists():
+
+            newplaintextobj = TexFile.objects.create(name=newplaintextobj_name, folder=plaintextobj.folder,
+                                                     source_code=filecontenttostring)
+            return util.jsonResponse({'id': newplaintextobj.id, 'name': newplaintextobj.name,
+                                      'lasteditor': plaintextobj.lasteditor.username if plaintextobj.lasteditor else ""},
+                                     True, request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['FILELOCKED'])
+
+    # sonst sperre die Datei
+    plaintextobj.lock(user)
+
     # versuche den source code in der Datenbank durch den übergebenen String zu ersetzen
     try:
         plaintextobj.source_code = filecontenttostring
         plaintextobj.lasteditor = user
         plaintextobj.save()
-        return util.jsonResponse({}, True, request)
+        return util.jsonResponse({'id': plaintextobj.id, 'name': plaintextobj.name}, True, request)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
@@ -205,6 +227,19 @@ def downloadFile(request, user, fileid):
     :param fileid: Id der Datei welcher heruntergeladen werden soll
     :return: filestream (404 im Fehlerfall)
     """
+    # setze das logging level auf ERROR
+    # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben wird
+    logger = logging.getLogger('django.request')
+    previous_level = logger.getEffectiveLevel()
+    logger.setLevel(logging.ERROR)
+
+    # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request, ['owner', 'collaborator'])
+    if not rights:
+        raise Http404
+
+    # setze das logging level wieder auf den ursprünglichen Wert
+    logger.setLevel(previous_level)
 
     if PlainTextFile.objects.filter(id=fileid).exists():
         # hole das Dateiobjekt
@@ -246,6 +281,35 @@ def downloadFile(request, user, fileid):
     return response
 
 
+def getText(request, user, fileid):
+    """Liefert eine vom Client angeforderte Text Datei als JSON.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der Text Datei welcher heruntergeladen werden soll
+    :return: HttpResponse (JSON)
+    """
+
+    # hole das tex Datei Objekt
+    plaintextobj = PlainTextFile.objects.get(id=fileid)
+
+    isallowedit = not plaintextobj.isLocked() or plaintextobj.lockedBy() == user
+
+    if isallowedit:
+        plaintextobj.lock(user)
+
+    dictionary = {
+        'fileid': plaintextobj.id,
+        'filename': plaintextobj.name,
+        'rootid': plaintextobj.folder.getRoot().id,
+        'content': plaintextobj.source_code,
+        'lastmodifiedtime': util.datetimeToString(plaintextobj.lastModifiedTime),
+        'isallowedit': isallowedit,
+        'lasteditor': plaintextobj.lasteditor.username if plaintextobj.lasteditor else ""
+    }
+
+    return util.jsonResponse(dictionary, True, request)
+
 def fileInfo(request, user, fileid):
     """Liefert Informationen zur angeforderten Datei.
 
@@ -285,7 +349,7 @@ def fileInfo(request, user, fileid):
     return util.jsonResponse(dictionary, True, request)
 
 
-def latexCompile(request, user, fileid, formatid, compilerid):
+def latexCompile(request, user, fileid, formatid, compilerid, forcecompile):
     """Kompiliert eine LaTeX Datei.
 
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
@@ -295,7 +359,7 @@ def latexCompile(request, user, fileid, formatid, compilerid):
     :return: HttpResponse (JSON)
     """
 
-    errors, success = latexcompile(fileid, formatid=formatid, compilerid=compilerid)
+    errors, success = latexcompile(fileid, formatid=formatid, compilerid=compilerid, forcecompile=forcecompile)
     if errors:
         if success:
             ret = success

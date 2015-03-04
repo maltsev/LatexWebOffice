@@ -5,7 +5,7 @@
 
 * Creation Date : 20-11-2014
 
-* Last Modified : Do 26 Feb 2015 13:39:01 CET
+* Last Modified : Mi 04 Mär 2015 14:03:35 CET
 
 * Author :  Kirill
 
@@ -15,10 +15,13 @@
 
 """
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from app.models import projecttemplate, folder, collaboration
 from django.conf import settings
+from django.contrib.auth.models import User
+from app.models.file.texfile import TexFile
+
 
 class ProjectManager(models.Manager):
     def createFromProject(self, **kwargs):
@@ -50,6 +53,16 @@ class ProjectManager(models.Manager):
         folder.Folder.objects.copy(project.rootFolder, newProject.rootFolder)
         return newProject
 
+    def createWithMainTex(self, **kwargs):
+        if 'author' not in kwargs:
+            raise AttributeError('Author ist nicht eingegeben')
+        if 'name' not in kwargs:
+            raise AttributeError('Name ist nicht eingegeben')
+
+        newProject = self.create(name=kwargs['name'], author=kwargs['author'])
+
+        TexFile.objects.get_or_create(name='main.tex', folder=newProject.rootFolder)
+        return newProject
 
 class Project(projecttemplate.ProjectTemplate):
     collaborators = models.ManyToManyField(settings.AUTH_USER_MODEL, through='Collaboration', through_fields=('project', 'user'))

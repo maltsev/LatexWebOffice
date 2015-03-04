@@ -31,6 +31,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from app.models.collaboration import Collaboration
 from app.models.folder import Folder
 from app.models.project import Project
+from app.models.file.texfile import TexFile
 from app.common import util
 from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE, STANDARDENCODING
 
@@ -52,7 +53,7 @@ def projectCreate(request, user, projectname):
     
     # versucht das Projekt in der Datenbank zu erstellen
     try:
-        newproject = Project.objects.create(author=user, name=validname)
+        newproject = Project.objects.createWithMainTex(author=user, name=validname)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
     
@@ -203,9 +204,6 @@ def importZip(request, user):
     # Erstelle das neue Projekt mit einen Namen, welcher ungültig ist.
     projectobj = Project.objects.create(name=project_name + '<old', author=user)
 
-    # Lösche main.tex die vom Projekt angelegt wurde
-    projectobj.rootFolder.getMainTex().delete()
-
     # dictionary in der als keyword der Pfad und als value ein Folder objekt gespeichert werden soll.
     # Dies soll dafür sorgen, dass wir später ohne probleme das
     # Elternverzeichnis eines Verzeichnis herausfinden können
@@ -283,6 +281,18 @@ def exportZip(request, user, folderid):
     :param folderid: Id des Ordners, welcher als zip Datei exportiert werden soll (rootId für komplettes Projekt)
     :return: filestream (404 im Fehlerfall)
     """
+    # setze das logging level auf ERROR
+    # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben wird
+    logger = logging.getLogger('django.request')
+    previous_level = logger.getEffectiveLevel()
+    logger.setLevel(logging.ERROR)
+
+    # Überprüfe ob das Projekt, und der Benutzer die entsprechenden Rechte besitzt
+    rights, failurereturn = util.checkIfDirExistsAndUserHasRights(folderid, user, request, ['owner', 'collaborator'])
+    if not rights:
+        raise Http404
+    # setze das logging level wieder auf den ursprünglichen Wert
+    logger.setLevel(previous_level)
 
     folderobj = Folder.objects.get(id=folderid)
 

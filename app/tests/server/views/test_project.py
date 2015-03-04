@@ -19,6 +19,7 @@
 import zipfile
 import shutil
 import os
+import mimetypes
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -1121,12 +1122,30 @@ class ProjectTestClass(ViewTestCase):
         # --------------------------------------------------------------------------------------------------------------
         # sende Anfrage zum exportieren eines Ordners mit einer ungültigen projectid
         response = util.documentPoster(self, command='exportzip', idpara=self._invalidid)
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['DIRECTORYNOTEXIST'])
+
+        # überprüfe die Antwort des Servers
+        # sollte status code 404 liefern
+        self.assertEqual(response.status_code, 404)
+        # es sollte keine Datei mitgesendet worden sein
+        self.assertNotIn('Content-Disposition', response)
+        # Content-Type sollte text/html sein
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        # Content-Length sollte nicht vorhanden sein
+        self.assertNotIn('Content-Length', response)
 
         # --------------------------------------------------------------------------------------------------------------
         # sende Anfrage zum exportieren eines Projektes mit einer rootfolderID die user2 gehört (als user1)
         response = util.documentPoster(self, command='exportzip', idpara=self._user2_project1.rootFolder.id)
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+
+        # überprüfe die Antwort des Servers
+        # sollte status code 404 liefern
+        self.assertEqual(response.status_code, 404)
+        # es sollte keine Datei mitgesendet worden sein
+        self.assertNotIn('Content-Disposition', response)
+        # Content-Type sollte text/html sein
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        # Content-Length sollte nicht vorhanden sein
+        self.assertNotIn('Content-Length', response)
 
 
     def test_inviteUser(self):

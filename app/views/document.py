@@ -42,6 +42,7 @@ globalparas = {
     'name': {'name': 'name', 'type': str},
     'formatid': {'name': 'formatid', 'type': int},
     'compilerid': {'name': 'compilerid', 'type': int},
+    'forcecompile': {'name': 'forcecompile', 'type': int}
 }
 
 # dictionary mit verfügbaren Befehlen und den entsprechenden Aktionen
@@ -76,7 +77,7 @@ available_commands = {
     },
     'exportzip': {
         'command': project.exportZip,
-        'parameters': [{'para': globalparas['id'], 'type': Folder, 'requirerights': ['owner', 'collaborator']}]
+        'parameters': [{'para': globalparas['id']}]
     },
     'inviteuser': {
         'command': project.inviteUser,
@@ -117,7 +118,7 @@ available_commands = {
     'updatefile': {
         'command': file.updateFile,
         'parameters': [{'para': globalparas['id'], 'type': PlainTextFile,
-                        'requirerights': ['owner', 'collaborator'], 'lockcheck': True},
+                        'requirerights': ['owner', 'collaborator'], 'lockcheck': False},
                        {'para': globalparas['content']}]
     },
     'deletefile': {
@@ -143,7 +144,11 @@ available_commands = {
     },
     'downloadfile': {
         'command': file.downloadFile,
-        'parameters': [{'para': globalparas['id'], 'type': File, 'requirerights': ['owner', 'collaborator']}]
+        'parameters': [{'para': globalparas['id']}]
+    },
+    'gettext': {
+        'command': file.getText,
+        'parameters': [{'para': globalparas['id'], 'type': PlainTextFile, 'requirerights': ['owner', 'collaborator']}]
     },
     'fileinfo': {
         'command': file.fileInfo,
@@ -153,7 +158,8 @@ available_commands = {
         'command': file.latexCompile,
         'parameters': [{'para': globalparas['id'], 'type': TexFile,
                         'requirerights': ['owner', 'collaborator'], 'lockcheck': True},
-                       {'para': globalparas['formatid']}, {'para': globalparas['compilerid']}]
+                       {'para': globalparas['formatid']}, {'para': globalparas['compilerid']},
+                       {'para': globalparas['forcecompile']}]
     },
     'lockfile': {
         'command': file.lockFile,

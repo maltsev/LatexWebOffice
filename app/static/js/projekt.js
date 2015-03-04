@@ -1,7 +1,7 @@
 /*
  * @author: Thore Thießen, Ingolf Bracht, Munzir Mohamed, Kirill Maltsev
  * @creation: 04.12.2014 - sprint-nr: 2
- * @last-change: 27.02.2015 - sprint-nr: 6
+ * @last-change: 03.02.2015 - sprint-nr: 6
  */
 
 var creatingNodeID = null;			// ID der Knoten-Komponente des derzeitig zu erstellenden Projektes
@@ -18,6 +18,7 @@ var currentAuthor = user;
 var selectedNodeIDProjects = "";
 var selectedNodeIDInvitations = "";
 var prevSelectedNodeID 	= "";
+var postSelection = false;			// gibt an, ob eine explizite Nachselektion notwendig ist (bei 'Umbenennen')
 
 var allprojects=null;				// Array von allen Projekten
 
@@ -142,7 +143,12 @@ $(function() {
 	// ----------------------------------------------------------------------------------------------------
 	//                                             MENÜ-EINTRÄGE                                           
 	// ----------------------------------------------------------------------------------------------------
-	
+
+	// 'Kollaboration'-Dropdown
+	$('.projecttoolbar-collabo').on("click", function() {
+	    // mach gar nichts
+	});
+
 	// 'Öffnen'-Schaltfläche
 	$('.projecttoolbar-open').on("click", function() {
 		
@@ -182,7 +188,7 @@ $(function() {
 		// Projekt-ID des umzubenennenden Projektes
 		renameID = node.id;
 		// derzeitiger Name des Projektes (für etwaiges Zurückbenennen)
-		prevName = ""+$("#"+renameID).data("name");
+		prevName = ""+treeInstProjects.get_node(renameID).li_attr["data-name"];
 		
 		// versetzt die Knoten-Komponente in den Bearbeitungsmodus
 		editNode(renameID,prevName);
@@ -355,6 +361,22 @@ $(function() {
 		//                                               LISTENER                                              
 		// ----------------------------------------------------------------------------------------------------
 		
+		// Refresh-Listener (für Nachselektion, notwendig beim 'Umbenennen')
+		treeProjects.bind('refresh.jstree',function(e) {
+			
+			if(postSelection) {
+				
+				// stellt den Zustand des JSTrees (zusätzlich) wieder her
+				// (es erfolgt keine zusätzliche Zustandsspeicherung)
+				treeInstProjects.restore_state();
+				
+				postSelection = false;
+			}
+			
+		});
+		
+		// ----------------------------------------------------------------------------------------------------
+		
 		// Erzeugungs-Listener (für Auto-Selektion)
 		treeProjects.bind('create_node.jstree',function(e,data) {
 			
@@ -459,6 +481,9 @@ $(function() {
 			}
 			// wenn der neue Name für ein bestehendes Projekt bestätigt wurde (= Umbenennen)
 			else if(renameID!=null) {
+				
+				// indiziert explizite Nachselektion (s. Refresh-Listener)
+				postSelection = true;
 				
 				// ... und kein oder derselbe Name eingegeben wurde, ...
 				if(treeInstProjects.get_text(renameID)==="" || treeInstProjects.get_text(renameID)===prevName) {
@@ -1125,6 +1150,7 @@ $(function() {
 		$('.projecttoolbar-converttotemplate').prop("disabled", !flag_remain);
 		$('.projecttoolbar-export').prop("disabled", !flag_remain);
 		$('.projecttoolbar-import').prop("disabled", !flag_basic);
+		$('.projecttoolbar-collabo').prop("disabled", !flag_remain);
 		$('.projecttoolbar-share').prop("disabled", !flag_owner);
 		$('.projecttoolbar-quitCollaboration').prop("disabled", !flag_remain || flag_owner);
 		

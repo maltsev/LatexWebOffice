@@ -17,8 +17,6 @@
 import os
 
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.core.exceptions import ObjectDoesNotExist
 
 from app.models.file.texfile import TexFile
@@ -180,9 +178,3 @@ class Folder(models.Model):
                 return "{}/".format(self.name)
         else:
             return "{}{}/".format(self.parent, self.name)
-
-
-@receiver(post_save, sender=Folder)
-def folderPostSave(instance, **kwargs):
-    if instance.isRoot() and kwargs.get('created'):
-        TexFile.objects.get_or_create(name='main.tex', folder=instance)

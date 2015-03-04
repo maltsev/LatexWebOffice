@@ -8,10 +8,14 @@ var editMode = false;					// gibt an, ob sich eine der Knoten-Komponenten derzei
 
 var selectedNodeID = "";				// ID der selektierten Knoten-Komponente
 var prevSelectedNodeID 	= "";			// ID der selektierten Knoten-Komponente (wird nur durch neue Auswahl überschrieben) (notwendig bei Doppelklick)
+var prevDnDParentFolderID = "";			// ID des vorherigen Überverzeichnisses einer vom Drag-and-Drop betroffenen Knoten-Komponente
+										// (notwendig zur Unterscheidung, ob ein tatsächliches Verschieben erfolgt ist)
+var postSelection = false;				// gibt an, ob eine explizite Nachselektion notwendig ist (bei 'Umbenennen')
 
 var tree;
 var treeInst;
 var folderUntilRoot = 0;
+var rootFolderId
 
 var sorting = 0;						// Sortierungsvariable ( 0 = Name, 1 = Größe, 2 = Erstellungsdatum, 3 = Änderungsdatum, 4 = Typ )
 var sortOrder = 1;						// Sortierungsrichtung ( 1 = aufsteigend, -1 = absteigend )
@@ -26,7 +30,7 @@ var sortReplacements = {"ä":"a", "ö":"o", "ü":"u", "ß":"ss" };
 $(function () {
 	
     // ID zum vorliegenden Projekt
-	var rootFolderId = parseInt(location.hash.substr(1), 10);
+	rootFolderId = parseInt(location.hash.substr(1), 10);
 	window.top.name = rootFolderId;
 	if (! rootFolderId) {
 		window.location.replace("/projekt/");
@@ -72,9 +76,17 @@ $(function () {
 	
     // "Öffnen"-Schaltfläche
 	$(".filestoolbar-open").click(function() {
-	    var selectedNode = getSelectedNodeObject();
-		calculateFolderUntilRoot();
-		window.location.assign("/editor/#" + selectedNode.data("file-id"));
+		
+		var selectedNodeObj = getSelectedNodeObject();
+		
+		// Datei
+		if(selectedNodeObj.hasClass("filesitem-file")) {
+			calculateFolderUntilRoot();
+			window.location.assign("/editor/#" + selectedNodeObj.data("file-id"));
+		}
+		// Verzeichnis
+		else if(selectedNodeObj.hasClass("filesitem-folder"))
+			treeInst.toggle_node(selectedNodeID);
 	});
 	
 	// "Datei Erstellen"-Schaltfläche
@@ -141,7 +153,7 @@ $(function () {
 		// ID der/des umzubenennenden Datei/Verzeichnisses
 		renamingNodeID = node.id;
 		// derzeitiger Name der/des Datei/Verzeichnisses (für etwaiges Zurückbenennen)
-		prevName = ""+$("#"+renamingNodeID).data("name");
+		prevName = ""+treeInst.get_node(renamingNodeID).li_attr["data-name"];
 		
 		// versetzt die Knoten-Komponente in den Bearbeitungsmodus
 		editNode(renamingNodeID,prevName);
@@ -225,7 +237,7 @@ $(function () {
     var tree = null;
     function renderProject(data) {
         var jsTreeData = convertRawDataToJsTreeData(data);
-
+        
         if (tree) {
             treeInst.settings.core.data = jsTreeData;
             ignoreSorting = false;
@@ -306,6 +318,22 @@ $(function () {
         
 		// ----------------------------------------------------------------------------------------------------
 		//                                               LISTENER                                              
+		// ----------------------------------------------------------------------------------------------------
+		
+		// Refresh-Listener (für Nachselektion, notwendig beim 'Umbenennen')
+		tree.bind('refresh.jstree',function(e) {
+			
+			if(postSelection) {
+				
+				// stellt den Zustand des JSTrees (zusätzlich) wieder her
+				// (es erfolgt keine zusätzliche Zustandsspeicherung)
+				treeInst.restore_state();
+				
+				postSelection = false;
+			}
+			
+		});
+		
 		// ----------------------------------------------------------------------------------------------------
 		
 		// Erzeugungs-Listener (für Auto-Selektion)
@@ -416,6 +444,9 @@ $(function () {
 			// wenn der neue Name für ein(e) bestehende(s) Datei/Verzeichnis bestätigt wurde (= Umbenennen)
 			else if(renamingNodeID!=null) {
 				
+				// indiziert explizite Nachselektion (s. Refresh-Listener)
+				postSelection = true;
+				
 				// ... und kein oder derselbe Name eingegeben wurde, ...
 				if(treeInst.get_text(renamingNodeID)=="" || treeInst.get_text(renamingNodeID)===prevName) {
 					// ... wird der Umbenennungs-Vorgang abgebrochen
@@ -433,10 +464,11 @@ $(function () {
 		
         tree.on({
             "ready.jstree refresh.jstree before_open.jstree": function () {
+            	
                 $(".jstree-node").each(function () {
                     var node = $(this),
                         type = node.hasClass("filesitem-folder") ? "folder" : "file";
-
+                    
                     treeInst.set_type(node, type);
                 });
             }
@@ -444,19 +476,29 @@ $(function () {
 		
 		// ----------------------------------------------------------------------------------------------------
 		
+		$(document).on({
+            "dnd_start.vakata": function (event, data) {
+            	prevDnDParentFolderID = treeInst.get_node(data.data.nodes[0]).parent;
+            }
+        });
         $(document).on({
             "dnd_stop.vakata": function (event, data) {
+            	
                 var node = treeInst.get_node(data.data.nodes[0]),
                     nodeId = node.li_attr["data-file-id"] || node.li_attr["data-folder-id"],
                     command = node.type === "folder" ? "movedir" : "movefile",
                     folderId = parseInt(node.parent.replace("folder", ""), 10) || rootFolderId;
-
+                           
                 documentsJsonRequest({command: command, id: nodeId, folderid: folderId}, function(result, data) {
-                    if(!result) {
+                    if(!result)
                         showAlertDialog((node.type==="folder" ? "Verzeichnis" : "Datei")+" verschieben",data.response);
-                        reloadProject();
-                        return;
-                    }
+					
+					// wenn ein tatsächliches Verschieben (unterschiedliche Überverzeichnisse) erfolgte
+					if(prevDnDParentFolderID!=node.parent)
+						// aktualisiert die Anzeige der Dateistruktur
+						reloadProject();
+					
+					prevDnDParentFolderID = "";
                 });
             },
         });
@@ -470,7 +512,7 @@ $(function () {
     
     function convertRawDataToJsTreeData(rawData) {
         var jsTreeData = [];
-
+        
         $.each(rawData.folders || [], function (i, folder) {
         	
             jsTreeData.push({
@@ -485,7 +527,8 @@ $(function () {
         $.each(rawData.files || [], function (i, file) {
         	
         	var attrCreateTime = file.createTime,
-        		attrLastModifiedTime = file.lastModifiedTime;
+        		attrLastModifiedTime = file.lastModifiedTime,
+        		attrSize = file.size;
         	
             file.createTime = getRelativeTime(file.createTime);
             file.lastModifiedTime = getRelativeTime(file.lastModifiedTime);
@@ -499,7 +542,7 @@ $(function () {
                 									 "data-file-createtime": attrCreateTime,
                 									 "data-file-lastmodifiedtime": attrLastModifiedTime,
                 									 "data-file-mime": file.mimetype,
-                									 "data-file-size": file.size}
+                									 "data-file-size": attrSize}
             });
         });
 
@@ -938,7 +981,7 @@ $(function () {
 		}
 		
 		// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
-		$(".filestoolbar-open").prop("disabled", !texFile);
+		$(".filestoolbar-open").prop("disabled", !texFile && file);
 		$(".filestoolbar-newfile").prop("disabled", !basic);
 		$(".filestoolbar-newfolder").prop("disabled", !basic);
 		$(".filestoolbar-delete").prop("disabled", !selected);

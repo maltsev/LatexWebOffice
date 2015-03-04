@@ -61,10 +61,10 @@ class ViewTestCase(TestCase):
         self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
 
         # erstelle ein Projekt als user1
-        self._user1_project1 = Project.objects.create(name='user1_project1', author=self._user1)
-        self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1)
-        self._user1_project3 = Project.objects.create(name='user1_project3', author=self._user1)
-        self._user1_project4 = Project.objects.create(name='Übungsprojekt 01', author=self._user1)
+        self._user1_project1 = Project.objects.createWithMainTex(name='user1_project1', author=self._user1)
+        self._user1_project2 = Project.objects.createWithMainTex(name='user1_project2', author=self._user1)
+        self._user1_project3 = Project.objects.createWithMainTex(name='user1_project3', author=self._user1)
+        self._user1_project4 = Project.objects.createWithMainTex(name='Übungsprojekt 01', author=self._user1)
 
         # erstelle eine Vorlage als user1
         self._user1_template1 = ProjectTemplate.objects.create(name='user1_template1', author=self._user1)
@@ -72,13 +72,13 @@ class ViewTestCase(TestCase):
         self._user1_template3 = ProjectTemplate.objects.create(name='user1_template2´3', author=self._user1)
 
         # erstelle ein Projekt als user2
-        self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2)
-        self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2)
+        self._user2_project1 = Project.objects.createWithMainTex(name='user2_project1', author=self._user2)
+        self._user2_project2 = Project.objects.createWithMainTex(name='user2_project2', author=self._user2)
         self._user2_template1 = ProjectTemplate.objects.create(name='user2_template1', author=self._user2)
 
 
     def setUpCollaborations(self):
-        self._user2_sharedproject = Project.objects.create(name='user2_sharedproject', author=self._user2)
+        self._user2_sharedproject = Project.objects.createWithMainTex(name='user2_sharedproject', author=self._user2)
         self._user2_sharedproject_folder1 = Folder.objects.create(name='user2_sharedproject_folder1',
                                                                   parent=self._user2_sharedproject.rootFolder,
                                                                   root=self._user2_sharedproject.rootFolder)
