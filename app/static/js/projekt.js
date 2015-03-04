@@ -535,18 +535,23 @@ $(function() {
 	 */
 	function refreshInvitations() {
 		
+		// Einladungen-Bereich wird versteckt
+		// (wieder sichtbar gesetzt unter updateMenuButtonsInvitation(), sofern Einladungen vorliegen)
+		$('#invitations').hide();
+		
 		// aktualisiert den JSTree anhand der bestehenden Einladungen
 		documentsJsonRequest({
 			'command': 'listunconfirmedcollaborativeprojects',
 			}, function(result,data) {
 				if(result) {
+					
 					renderInvitations(data.response);
+					
+					// wenn Einladungen vorliegen
+					if(data.response.length!=0)
+						updateMenuButtonsInvitation();
 				}
 		});
-		
-		// aktualisiert die Aktivierungen der Menü-Schaltflächen
-		if(treeInstInvitations)
-			updateMenuButtonsInvitation();
 	}
 	
     var treeInvitations = null;
@@ -896,13 +901,15 @@ $(function() {
 				'id':selectedNodeIDInvitations
 			}, function(result,data) {
 				if(result) {
-					refreshProjects();
-					refreshInvitations();
+
 					showAlertDialog("Einladung zur Kollaboration annehmen","Sie haben die Einladung zur Kollaboration angenommen.");
 				}
 				else {
 					showAlertDialog("Einladung zur Kollaboration annehmen",data.response);
 				}
+				
+									refreshProjects();
+					refreshInvitations();
 		});
 	}
 	
@@ -1185,15 +1192,15 @@ $(function() {
 	 */
 	function updateMenuButtonsInvitation() {
 		
+		$('#invitations').show();
+		
 		// flag für die Aktivierung der selektionsabhängigen Schaltflächen
 		var flag_remain;
 		
 		// Selektion
-		if(treeInstInvitations.get_selected().length!=0) {
+		if(treeInstInvitations.get_selected().length!=0)
 			// vollständig Aktivierung
 			flag_remain = true;
-		}
-		
 		
 		// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
 		$('.invitationtoolbar-acceptInvitation').prop("disabled", !flag_remain);
