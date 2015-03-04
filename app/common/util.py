@@ -436,7 +436,7 @@ def uploadFile(f, folder, request, fromZip=False):
     # und ob sie eine Dateiendung besitzen
     illegalstring, failurereturn = checkFileForInvalidString(name, request)
     if not illegalstring:
-        return False, failurereturn
+        return False, ERROR_MESSAGES['INVALIDNAME']
 
     # wenn die Datei leer ist (python-magic liefert hier 'application/x-empty'),
     # bestimme den Mimetype über die Dateiendung
@@ -466,9 +466,20 @@ def uploadFile(f, folder, request, fromZip=False):
                 return False, ERROR_MESSAGES['DATABASEERROR']
     # wenn der Mimetype eine erlaubte Plaintext Datei ist
     elif mime in ALLOWEDMIMETYPES['plaintext']:
+        encoding = 'utf-8'
         try:
-            file = ALLOWEDMIMETYPES['plaintext'][mime].objects.create(name=name, source_code=f.read().decode('utf-8'),
+            import magic
+            plaintextfile = f.read()
+            m = magic.Magic(mime_encoding=True)
+            encoding = m.from_buffer(plaintextfile).decode(encoding='utf-8')
+            f.seek(0)
+        except:
+            pass
+
+        try:
+            file = ALLOWEDMIMETYPES['plaintext'][mime].objects.create(name=name, source_code=f.read().decode(encoding),
                                                                       folder=folder, mimeType=mime)
+
             file.save()
         except:
             return False, ERROR_MESSAGES['DATABASEERROR']
