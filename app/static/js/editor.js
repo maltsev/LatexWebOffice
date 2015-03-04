@@ -309,7 +309,6 @@ function saveFile(autosave) {
             if (result) {
                 changesSaved = true;
                 if (file_name != data.response.name) {
-                    console.log(data.response.name);
                     showAlertDialog("Datei speichern",
                                     "Diese Datei wird gerade bearbeitet von:<br>"+
                                     data.response.lasteditor + ".<br>"+
@@ -362,10 +361,6 @@ function unlock() {
             if (! result) {
                 showAlertDialog("Datei entsperren", data.response);
             }
-            else {
-                console.log('unlocked');
-            }
-
 	});
 }
 
@@ -495,7 +490,6 @@ function exportFile(formatid) {
     }
     // timer starten, so dass Buttons nach einiger Zeit auf jeden Fall wieder aktiviert werden
     timeout = setTimeout('enableCompileExportBtn()', (formatid==1?btnCompileExportTimeout_HTML:btnCompileExportTimeout));
-    console.log(compilerid);
     documentsJsonRequest({
 			'command': 'compile',
 			'id': id,
@@ -517,7 +511,6 @@ function exportFile(formatid) {
             clearTimeout(timeout);
             // aktiviere die Buttons wieder
             enableCompileExportBtn();
-            console.log(compilerid);
 	});
 }
 
@@ -919,7 +912,6 @@ function loadEditorTheme(theme) {
 function loadKeyMap(keymap) {
     // in diesem Ordner befinden sich die CodeMirror KeyMaps
     var cmkeymapurl = '/static/codemirror/keymap/';
-    console.log(keymap);
     // Lädt die zugehörige js Datei, falls diese noch nicht geladen wurde
     if (!document.getElementById(keymap))
     {
