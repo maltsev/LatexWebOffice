@@ -6,7 +6,7 @@
 
 <!-- Einbindung der SplitView Funktionalität -->
 <!-- benötigt jquery.min.js und jquery-ui.min.js -->
-<script type="text/javascript" src="/static/js/jquery.layout-latest.js"></script>
+<script type="text/javascript" src="/static/jquery-ui-layout/source/stable/jquery.layout.min.js"></script>
 
 <script src="/static/js/jquery.validate.min.js"></script>
 <!-- benötigt um pattern matching (regexp) nutzen zu können -->
@@ -31,24 +31,12 @@
 <link data-jsfiddle="common" rel="stylesheet" media="screen" href="/static/handsontable/dist/handsontable.css">
 
 <!-- Einbindung der Funktionalität vom Editor -->
-<script src="/static/codemirror/lib/codemirror.js"></script>
+<!-- codemirror-compressed beinhaltet auch alle addons, erstellt mit http://codemirror.net/doc/compress.html -->
+<script src="/static/codemirror/lib/codemirror-compressed.js"></script>
 <link href="/static//codemirror/lib/codemirror.css" rel="stylesheet">
 <link href="/static//codemirror/theme/ambiance.css" rel="stylesheet">
 <link href="/static//codemirror/addon/hint/show-hint.css" rel="stylesheet">
-<!-- CodeMirror Modes -->
-<script src="/static/codemirror/mode/stex/stex.js"></script>
-<!-- CodeMirror Addons -->
-<script src="/static/codemirror/addon/edit/matchbrackets.js"></script>
-<script src="/static/codemirror/addon/edit/closebrackets.js"></script>
-<script src="/static/codemirror/addon/selection/active-line.js"></script>
-<script src="/static/codemirror/addon/hint/show-hint.js"></script>
-<script src="/static/codemirror/addon/search/searchcursor.js"></script>
-<script src="/static/codemirror/addon/dialog/dialog.js"></script>
 <link href="/static//codemirror/addon/dialog/dialog.css" rel="stylesheet">
-<script src="/static/codemirror/addon/search/search.js"></script>
-
-
-<script src="/static/codemirror/addon/hint/javascript-hint.js"></script>
 
 <!-- Stylesheet für Editor Einstellungen -->
 <link href="/static/css/editor.css" rel="stylesheet">
