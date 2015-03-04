@@ -485,7 +485,7 @@ $(function() {
 				postSelection = true;
 				
 				// ... und kein oder derselbe Name eingegeben wurde, ...
-				if(treeInstProjects.get_text(renameID)==="" || treeInstProjects.get_text(renameID)===prevName) {
+				if(treeInstProjects.get_text(renameID)==="" || treeInstProjects.get_text(renameID).toLowerCase()===prevName.toLowerCase()) {
 					// ... wird der Umbenennungs-Vorgang abgebrochen
 					renameID = null;
 					refreshProjects();

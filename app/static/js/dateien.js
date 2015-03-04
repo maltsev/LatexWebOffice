@@ -447,7 +447,7 @@ $(function () {
 				postSelection = true;
 				
 				// ... und kein oder derselbe Name eingegeben wurde, ...
-				if(treeInst.get_text(renamingNodeID)=="" || treeInst.get_text(renamingNodeID)===prevName) {
+				if(treeInst.get_text(renamingNodeID)=="" || treeInst.get_text(renamingNodeID).toLowerCase()===prevName.toLowerCase()) {
 					// ... wird der Umbenennungs-Vorgang abgebrochen
 					renamingID = null;
 					reloadProject();
