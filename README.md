@@ -32,6 +32,7 @@ grant all privileges on latexweboffice.* to latexweboffice@localhost ;
 
 ## Apache Einstellungen mit WSGI
 # Apache
+Beispielkonfiguration für Apache um LatexWebOffice als Hauptdomain auf Port 80 zu nutzen. [Apache Dokumentation](http://httpd.apache.org/docs/2.2/de/configuring.html#main) für genauere Anweisungen.  
 ```
 Alias /static/ /var/www/LatexWebOffice/app/static/
 
