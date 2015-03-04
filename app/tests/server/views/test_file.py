@@ -324,7 +324,8 @@ class FileTestClass(ViewTestCase):
         response = util.documentPoster(self, command='updatefile', idpara=sharedproject_maintex.id,
                                        content=self._new_code1)
 
-        util.validateJsonSuccessResponse(self, response.content, {})
+        util.validateJsonSuccessResponse(self, response.content,
+                                         {'id': sharedproject_maintex.id, 'name': sharedproject_maintex.name})
         self.assertEqual(TexFile.objects.get(id=sharedproject_maintex.id).source_code, self._new_code1)
 
 
@@ -335,7 +336,10 @@ class FileTestClass(ViewTestCase):
 
         response = util.documentPoster(self, command='updatefile', idpara=sharedproject_maintex.id,
                                        content="test code")
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['FILELOCKED'])
+        dictionary = util.jsonDecoder(response.content)
+        # die tex datei sollte unter neuem Namen abgespeichert sein
+        self.assertEqual(dictionary['status'], 'success')
+        self.assertNotEqual(dictionary['response']['name'], sharedproject_maintex.name)
         self.assertEqual(TexFile.objects.get(id=sharedproject_maintex.id).source_code, sharedproject_maintex_source_code)
 
 
@@ -344,7 +348,8 @@ class FileTestClass(ViewTestCase):
         sharedproject_maintex.lock(self._user1)
         response = util.documentPoster(self, command='updatefile', idpara=sharedproject_maintex.id,
                                        content="test code")
-        util.validateJsonSuccessResponse(self, response.content, {})
+        util.validateJsonSuccessResponse(self, response.content,
+                                         {'id': sharedproject_maintex.id, 'name': sharedproject_maintex.name})
         self.assertEqual(TexFile.objects.get(id=sharedproject_maintex.id).source_code, "test code")
 
 

@@ -60,7 +60,9 @@ $(document).ready(function() {
     var width = $(window).width();
     var height = $(window).height();
 
-    var mobile = window.mobilecheck()
+    var mobile = window.mobilecheck();
+
+    $('[data-toggle="tooltip"]').tooltip();
 
     // Funktion für SplitView, setzt die Breite der Trennlinie
     myLayout = $('#maincontainer').layout({
@@ -119,7 +121,7 @@ $(document).ready(function() {
 				saveFile(true);
 			}
 		});
-
+        
 		// Button für das Speichern belegen
 		$('#save').click(function() {
 			saveFile(false);
@@ -155,6 +157,7 @@ $(document).ready(function() {
                 // so dass die Datei auf jeden Fall neu kompiliert wird, auch wenn es keine Änderungen an der tex Datei gab
                 compilerChanged = true;
                 compilerid = $(this).attr('value');
+                console.log(compilerid);
             }
         });
 	};
@@ -282,6 +285,10 @@ function loadFile() {
                             saveFile(true);
                         }, autosaveInterval);
                     }
+                });
+                // Editor automatisch an Fenstergröße anpassen
+                $(window).bind('resize', function () {
+                    setTimeout(function(){editor.refresh();}, editorResizeTimeout);
                 });
             } else {
                 backToProject();
@@ -489,6 +496,7 @@ function exportFile(formatid) {
     }
     // timer starten, so dass Buttons nach einiger Zeit auf jeden Fall wieder aktiviert werden
     timeout = setTimeout('enableCompileExportBtn()', (formatid==1?btnCompileExportTimeout_HTML:btnCompileExportTimeout));
+    console.log(compilerid);
     documentsJsonRequest({
 			'command': 'compile',
 			'id': id,
@@ -510,6 +518,7 @@ function exportFile(formatid) {
             clearTimeout(timeout);
             // aktiviere die Buttons wieder
             enableCompileExportBtn();
+            console.log(compilerid);
 	});
 }
 
