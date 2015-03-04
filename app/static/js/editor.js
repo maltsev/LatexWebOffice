@@ -13,11 +13,20 @@ var id;
 // 2 - xelatex
 var compilerid = 0;
 
+var rootid = -1;
+
 /// Editor
 var editor;
 
 /// Änderungen im Editor gespeichert?
 var changesSaved = true;
+
+// wurde der Compiler gewechselt?
+var compilerChanged = false;
+
+var file_locked = false;
+
+var file_name = '';
 
 // Timer zur automatischen Speicherung
 var autosaveTimer;
@@ -33,6 +42,9 @@ var selectionid = 0;
 
 // notwendig für jquery-layout
 var myLayout;
+
+var eastIsOpen = true;
+var southIsOpen = false;
 
 // Zeit bis der Editor nach einer Änderung der Fenstergröße aktualisiert wird
 var editorResizeTimeout = 50;
@@ -72,8 +84,7 @@ $(document).ready(function() {
             initClosed: true,
             size: '35%',
         },
-
-         // Editor automatisch an Fenstergröße anpassen
+        // Editor automatisch an Fenstergröße anpassen
         onresize: function () {
             setTimeout(
                 function() {
@@ -95,24 +106,23 @@ $(document).ready(function() {
 
         loadFile();
 
-
-
-        // Hinweis falls es beim Schließen des Editor Fensters noch ungespeicherte Änderungen gibt
+        // Speichern und freigeben der tex Datei beim Schließen des Editors
 		$(window).bind('beforeunload', function() {
-			if (!changesSaved)
-				return('Ungespeicherte Änderungen, wollen Sie den Editor wirklich verlassen?');
+			if (!changesSaved && !file_locked) {
+				saveFile(true);
+	        }
 		});
 
         // automatisches Speichern, falls Fenster/Tab inaktiv (sofern es Änderungen gab)
 		$(window).blur(function() {
-			if (!changesSaved) {
-				saveFile();
+			if (!changesSaved && !file_locked) {
+				saveFile(true);
 			}
 		});
 
 		// Button für das Speichern belegen
 		$('#save').click(function() {
-			saveFile();
+			saveFile(false);
 		});
 		// Button für das PDF Exportieren belegen
 		$('#pdfExport').click(function() {
@@ -134,23 +144,21 @@ $(document).ready(function() {
 		$('#compile').click(function() {
 			compile(true);
 		});
+		$('#backtofileview').click(function() {
+			backToFileView();
+		});
         // Dropdowm Button Text je nach Auswahl des Compilers richtig setzen und die compilerID ändern
 		$(".dropdown-menu li a").click(function(){
             $(this).parents(".compiler-btn").find('.btn').html($(this).text()+" <span class=\"caret\"></span>");
-            compilerid = $(this).attr('id').charAt(0);
+            if (compilerid != $(this).attr('value')) {
+                // Compiler wurde verändert, dadurch wird beim nächsten Kompilieren der forcecompile Parameter gesetzt,
+                // so dass die Datei auf jeden Fall neu kompiliert wird, auch wenn es keine Änderungen an der tex Datei gab
+                compilerChanged = true;
+                compilerid = $(this).attr('value');
+            }
         });
 	};
 });
-
-// Dialogfenster Editor zurück
-function confirmExit() {
-	if (! $("#maincontainer").hasClass("disabled")) {
-	    saveFile(id);
-	    unlock();
-	}
-
-	$('#dialog_editor_verlassen').dialog();
-}
 
 // Dialogfenster Tabellenassistent
 function createTable() {
@@ -164,49 +172,104 @@ function openInsertImageDialog() {
 	width:'auto'});
 }
 
+function hidePanes() {
+    eastIsOpen = !myLayout.state.east.isClosed;
+    southIsOpen = !myLayout.state.south.isClosed;
+    if (eastIsOpen) {
+        myLayout.close("east");
+    }
+    if (southIsOpen) {
+        myLayout.close("south");
+    }
+
+}
+
+function resetPanes() {
+    if (eastIsOpen) {
+        myLayout.open("east");
+    }
+    if (southIsOpen) {
+        myLayout.open("south");
+    }
+
+}
+
 /**
  * Leitet den Benutzer zurück zur Projektverwaltung.
  */
 function backToProject() {
-	// TODO: auf das richtige Projekt verweisen
 	window.location.replace('/projekt/');
 }
 
 /**
- * Lädt eine Datei in den Editor.
- * @param id ID der Datei
+ * Leitet den Benutzer zurück zur Dateiansicht des aktuellen Projektes.
+ */
+function backToFileView() {
+    if (!file_locked) {
+	    documentsJsonRequest({
+            'command': 'unlockfile',
+            'id': id
+        }, function(result, data) {
+            file_locked = false;
+            if (! result) {
+                showAlertDialog("Datei entsperren", data.response);
+            }
+            if (rootid != -1) {
+                window.location.replace('/dateien/#' + rootid);
+            }
+            else {
+                backToProject();
+            }
+	    });
+	}
+}
+
+/**
+ * Lädt die Tex Datei in den Editor.
  */
 function loadFile() {
-	return documentsDataRequest({
-			'command': 'downloadfile',
+	return documentsJsonRequest({
+			'command': 'gettext',
 			'id': id
 		}, function(result, data) {
 			if (result) {
-               editor = CodeMirror(document.getElementById('codemirror'), {
-               mode: "stex",                                // LaTeX Modus
-               theme: "default",                            // Standard Theme
-               keyMap: "default",                           // Standard Tastaturbelegung
-               autofocus: true,                             // automatisch das Textfeld fokussieren
-               value: data,                                 // Inhalt des Editors setzen
-               lineNumbers: true,                           // Zeilennummern anzeigen
-               lineWrapping: true,                          // automatischer Zeilenumbruch bei Änderung der Fenstergröße
-               matchBrackets: true,                         // zeigt zusammengehörige Klammern an
-               autoCloseBrackets: true,                     // automatisches Hinzufügen von schließenden Klammern
-               styleActiveLine: true,                       // die ausgewählte Zeile wird farblich markiert
-               tabSize: 4,                                  // Tab entspricht 4 Leerzeichen
-               extraKeys: {                                 // zusätzliche Tastaturbelegungen
-                   "Ctrl-Space": "autocomplete",
-                   "Ctrl-S": function() { saveFile(); },
-                   "Ctrl-K": function() {
-                       (editor.getOption("autoCloseBrackets")?editor.setOption("autoCloseBrackets", false):
-                       editor.setOption("autoCloseBrackets", true));
-                       },
-                   },
-                })
+			    // setze die rootid, um zur Dateiübersicht zurückgelangen zu können
+			    rootid = data.response.rootid;
+			    file_name = data.response.filename;
 
-                // setze die Schriftgröße auf 10pt
-                setFontSize(10, false);
-                setFontFamily('monospace', true);
+			    // Einstellungen des Editors
+                editor = CodeMirror(document.getElementById('codemirror'), {
+                mode: "stex",                                // LaTeX Modus
+                theme: "default",                            // Standard Theme
+                keyMap: "default",                           // Standard Tastaturbelegung
+                autofocus: true,                             // automatisch das Textfeld fokussieren
+                value: data.response.content,                // Inhalt des Editors setzen
+                lineNumbers: true,                           // Zeilennummern anzeigen
+                lineWrapping: true,                          // automatischer Zeilenumbruch bei Änderung der Fenstergröße
+                matchBrackets: true,                         // zeigt zusammengehörige Klammern an
+                autoCloseBrackets: true,                     // automatisches Hinzufügen von schließenden Klammern
+                styleActiveLine: true,                       // die ausgewählte Zeile wird farblich markiert
+                tabSize: 4,                                  // Tab entspricht 4 Leerzeichen
+                extraKeys: {                                 // zusätzliche Tastaturbelegungen
+                    "Ctrl-Space": "autocomplete",
+                    "Ctrl-S": function() { saveFile(false); },
+                    "Ctrl-K": function() {
+                        (editor.getOption("autoCloseBrackets")?editor.setOption("autoCloseBrackets", false):
+                        editor.setOption("autoCloseBrackets", true));
+                        },
+                    },
+                });
+
+                if (data.response.isallowedit) {
+                    compile();
+                } else {
+                    file_locked = true;
+                    disableEditor();
+                    if (data.response.lasteditor) {
+                        var text = data.response.lasteditor + " bearbeitet gerade diese Datei";
+                        $("#pdfviewer_msg").html('<p class="text-primary">' + text + '</p>');
+                    }
+                }
 
                 // Editor Event, wenn es Änderungen im Textfeld gibt
                 editor.on("change", function () {
@@ -216,35 +279,55 @@ function loadFile() {
                             if (changesSaved) {
                                 return;
                             }
-                            saveFile();
+                            saveFile(true);
                         }, autosaveInterval);
                     }
                 });
-
-                compile();
-			} else {
-			    backToProject();
-			}
-	});
+            } else {
+                backToProject();
+            }
+	    }
+	);
 }
 
 /**
  * Speichert den Inhalt aus dem Editor in eine Datei.
- * @param id ID der Datei
+ * @param autosave boolean, gibt an ob die Autsave Nachricht angezeigt werden soll
  */
-function saveFile() {
-	documentsJsonRequest({
-			'command': 'updatefile',
-			'id': id,
-			'content': editor.getValue()
-		}, function(result, data) {
-			if (result) {
-				changesSaved = true;
-                setMsg('Datei gespeichert');
+function saveFile(autosave) {
+    documentsJsonRequest({
+            'command': 'updatefile',
+            'id': id,
+            'content': editor.getValue()
+        }, function(result, data) {
+            if (result) {
+                changesSaved = true;
+                if (file_name != data.response.name) {
+                    console.log(data.response.name);
+                    showAlertDialog("Datei speichern",
+                                    "Diese Datei wird gerade bearbeitet von:<br>"+
+                                    data.response.lasteditor + ".<br>"+
+                                    "Die Datei wurde gespeichert als: <br>" +
+                                    "<b>"+data.response.name+"</b>");
+                    file_locked = true;
+                    disableEditor();
+                }
+                else {
+                    if (autosave) {
+                        setMsg('Automatisches Speichern...');
+                    } else {
+                        setMsg('Datei gespeichert');
+                    }
+                }
+
             } else {
+                if(data.response == ERROR_MESSAGES['FILELOCKED']) {
+                    file_locked = true;
+                    disableEditor();
+                }
                 showAlertDialog("Datei speichern", data.response);
             }
-	});
+    });
 }
 
 /*
@@ -255,6 +338,7 @@ function lock() {
             'command': 'lockfile',
             'id': id
         }, function(result, data) {
+            file_locked = true;
             if (! result) {
                 showAlertDialog("Datei sperren", data.response);
             }
@@ -272,6 +356,10 @@ function unlock() {
             if (! result) {
                 showAlertDialog("Datei entsperren", data.response);
             }
+            else {
+                console.log('unlocked');
+            }
+
 	});
 }
 
@@ -317,7 +405,8 @@ function compileTex() {
             'command': 'compile',
             'id': id,
             'formatid': 0,
-            'compilerid': compilerid
+            'compilerid': compilerid,
+            'forcecompile': (compilerChanged?1:0)
         }, function(result, data) {
             var pdfid = data.response.id;
             var pdf_url = null;
@@ -334,6 +423,7 @@ function compileTex() {
                 pdf_url = "/documents/?command=getpdf&id=" + pdfid +"&t=" + Math.random();
 
                 if (result) {
+                    compilerChanged = false;
                     setMsg("Kompilieren erfolgreich");
                     setLogText('Kompilieren erfolgreich, keine Log Datei vorhanden.');
                 }
@@ -403,14 +493,16 @@ function exportFile(formatid) {
 			'command': 'compile',
 			'id': id,
             'formatid': formatid,
-            'compilerid': compilerid
+            'compilerid': compilerid,
+            'forcecompile': (compilerChanged?1:0)
 		}, function(result, data) {
-			if (result)
+			if (result) {
+			    compilerChanged = false;
 				documentsRedirect({
 					'command': 'downloadfile', 
 					'id': data.response.id
                 });
-            else {
+            } else {
                 setErrorMsg('Fehler beim Kompilieren');
                 setCompileLog();
             }
@@ -493,17 +585,6 @@ function createImageTree() {
 				'id': rootFolderId,
 			}, function(result, data) {
 				if (result) {
-				    if (data.response.isallowedit) {
-				        lock();
-				        compile();
-				    } else {
-				        disableEditor();
-				        if (data.response.lasteditor) {
-				        	var text = data.response.lasteditor + " bearbeitet gerade diese Datei";
-				            $("#pdfviewer_msg").html('<p class="text-primary">' + text + '</p>');
-				        }
-				    }
-
 					rootFolderId = data.response.folderid;
 					reloadProject();
 				}
@@ -630,17 +711,6 @@ function createImageTree() {
     function getSelectedNode() {
         return $("#" + tree.jstree().get_selected());
     }
-
-
-    /*
-     * Leitet den Benutzer zurück zur Projektverwaltung.
-     */
-    function backToProject() {
-        // TODO: auf das richtige Projekt verweisen?
-        window.location.replace("/projekt/");
-    }
-
-
 }
 
 /**
@@ -673,10 +743,16 @@ function insertImageWithID(fileID, filePath){
  * Deaktiviert den Editor
  */
 function disableEditor() {
-    $("#maincontainer").addClass("disabled");
-    $("#editorsymbols button:not(#backtoprojekt)").prop("disabled", true);
+    // Editor Buttons bis auf "Zurück" deaktivieren
+    $("#editorsymbols button:not(#backtofileview)").prop("disabled", true);
 
+    // CodeMirror Hintergrund Farbe auf grau setzen
+    $(".CodeMirror").css('background', "#cfcfcf");
+    $(".CodeMirror-linenumbers").css('background', "#cfcfcf");
     editor.setOption("readOnly", true);
+    editor.setOption("extraKeys", {});
+    myLayout.hide("east");
+    myLayout.hide("south");
 }
 
 

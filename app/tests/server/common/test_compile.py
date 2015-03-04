@@ -53,7 +53,7 @@ class CompilerTestClass(TestCase):
         # ----------------------------------------------------------------------------------------------------
 
         # erstellt ein neues Projekt für den erzeugten Benutzer
-        self.project = Project.objects.create(name='project', author=self.user)
+        self.project = Project.objects.createWithMainTex(name='project', author=self.user)
 
         self.root = self.project.rootFolder
 
@@ -114,6 +114,7 @@ class CompilerTestClass(TestCase):
         pdf_src = PDF.objects.filter(name=pdf['name'], folder=self.file_tex.folder)
         self.assertTrue(pdf_src != None and len(pdf_src) == 1)
 
+
         # ----------------------------------------------------------------------------------------------------
         #                                   KOMPILIEREN DER LEEREN TEX-DATEI                                  
         # ----------------------------------------------------------------------------------------------------
@@ -121,12 +122,12 @@ class CompilerTestClass(TestCase):
         # leert die tex-Datei
         self.file_tex.source_code = ''
         self.file_tex.save()
+        pdf_src[0].delete()
 
         # kompiliert die leere tex-Datei
-        errors, pdf = compile.latexcompile(self.file_tex.id, formatid=0)
+        errors, pdf = compile.latexcompile(self.file_tex.id, formatid=0, forcecompile=1)
 
         # das Kompilieren einer leeren tex-Datei sollte zu einem SYNTAXERROR führen, wobei keine pdf erzeugt wird
-        # TODO
         self.assertTrue(
             errors != None)  # and len(errors)==1 and errors[0].startswith(ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR']))
         #self.assertTrue(pdf == None)
@@ -177,7 +178,6 @@ class CompilerTestClass(TestCase):
         errors, pdf = compile.latexcompile(self.file_tex_img.id, formatid=0)
 
         # das Kompilieren einer tex-Datei mit ungültiger Bild-Referenz sollte zu einem FILENOTFOUND führen, wobei dennoch eine pdf-Datei erzeugt wird
-        # TODO
         self.assertTrue(errors != None)  # and errors[1].startswith(ERROR_MESSAGES['COMPILATIONERROR_FILENOTFOUND']))
         self.assertTrue(pdf != None)
 

@@ -15,9 +15,10 @@
 
 """
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from app.models import projecttemplate, folder, collaboration
+from app.models.file.texfile import TexFile
 from django.contrib.auth.models import User
 
 
@@ -51,6 +52,16 @@ class ProjectManager(models.Manager):
         folder.Folder.objects.copy(project.rootFolder, newProject.rootFolder)
         return newProject
 
+    def createWithMainTex(self, **kwargs):
+        if 'author' not in kwargs:
+            raise AttributeError('Author ist nicht eingegeben')
+        if 'name' not in kwargs:
+            raise AttributeError('Name ist nicht eingegeben')
+
+        newProject = self.create(name=kwargs['name'], author=kwargs['author'])
+
+        TexFile.objects.get_or_create(name='main.tex', folder=newProject.rootFolder)
+        return newProject
 
 
 class Project(projecttemplate.ProjectTemplate):

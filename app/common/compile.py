@@ -11,7 +11,7 @@
 * Coauthors : christian
 
 * Sprintnumber : 2, 4
-This is LuaTeX, Version beta-0.79.1 (TeX Live 2014/Arch Linux) (rev 4971) (format=lualatex 2015.2.12) 25 FEB 2015 11:25
+
 * Backlog entry : TEK1
 
 """
@@ -29,7 +29,7 @@ from app.common import util
 from core.settings import BASE_DIR
 
 
-def latexcompile(texid, formatid=0, compilerid=0):
+def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
     """Kompiliert eine tex Datei mit der übergebenen texid in das entsprechende Ausgabeformat (formatid).
 
     formatid:   0 - PDF
@@ -44,22 +44,23 @@ def latexcompile(texid, formatid=0, compilerid=0):
 
     :param texid: Id der tex Datei
     :param formatid: Id des Ausgabeformates
+    :param forcecompile; Wert 1 führt die Kompilierung immer durch, auch wenn die tex Datei älter als die PDF Datei ist
     :return: Tupel aus folgenden Komponenten:
         1. Liste der Fehlermeldungen, welche beim Kompilieren geworfen wurden oder None, falls keine Fehler auftraten
-        2. Array der ID und des Namens der erzeugten pdf-Datei oder None, sofern keine pdf-Datei erzeugt werden konnte
+-        2. Array der ID und des Namens der erzeugten pdf-Datei oder None, sofern keine pdf-Datei erzeugt werden konnte
     """
+
+    formatid = str(formatid)
+    compilerid = str(compilerid)
+    forcecompile = str(forcecompile)
 
     # tex-File der übergebenen ID
     texobj = TexFile.objects.get(id=texid)
 
-
-    if formatid == '0' or formatid == 0:
+    if forcecompile != '1' and formatid == '0':
         pdfobj = PDF.objects.filter(name=texobj.name[:-3] + 'pdf', folder=texobj.folder)
 
         if pdfobj.exists():
-            print('pdf' + str(pdfobj[0].id))
-            print(pdfobj[0].createTime)
-            print(texobj.lastModifiedTime)
             if pdfobj[0].createTime > texobj.lastModifiedTime:
                 return None, {'id': pdfobj[0].id, 'name': pdfobj[0].name}
 
@@ -70,8 +71,6 @@ def latexcompile(texid, formatid=0, compilerid=0):
     # temp Ordner für die bei der Kompilierung erstellten Dateien
     out_dir_path = tempfile.mkdtemp(dir=texobj.folder.getTempPath())
 
-    formatid = str(formatid)
-    compilerid = str(compilerid)
 
     # returncode der Ausführung von latexmk/htlatex
     rc = 0
@@ -98,7 +97,7 @@ def latexcompile(texid, formatid=0, compilerid=0):
     compilerargs = {
         '0': 'pdflatex --shell-escape %O %S',
         '1': 'lualatex --shell-escape %O %S',
-        '2': 'xelatex -- shell-escape %O %S'
+        '2': 'xelatex --shell-escape %O %S'
     }
 
     args = {
@@ -107,17 +106,19 @@ def latexcompile(texid, formatid=0, compilerid=0):
         'format': '',
         'outdirpath': out_dir_path,
         'compilerargs': compilerargs[compilerid],
-        'cwd': texobj.folder.getTempPath()
+        'cwd': texobj.folder.getTempPath(),
+        'force': '-f'
     }
+
     try:
         # wenn die tex Datei mit latexmk kompiliert werden soll
         if formatid in latexmk_formatargs:
             args['format'] = latexmk_formatargs[formatid]
-            rc, file_data = latexmk(args, console_output=False)
+            rc, file_data = latexmk(args, console_output=debug)
         # HTML Format mit htlatex
         elif formatid == '1':
             args['outdirpath'] = out_dir_path + os.sep
-            rc, file_data = htlatex(args, console_output=False)
+            rc, file_data = htlatex(args, console_output=debug)
         # Ungültige formatid
         else:
             errors = ERROR_MESSAGES['UNKNOWNFORMAT']
@@ -162,7 +163,7 @@ def latexmk(args, console_output):
     :return: returncode des Programmaufrufs, id und name der erstellten Datei
     """
 
-    command = ["perl", latexmk_path(), "-f", "-interaction=nonstopmode", "-outdir=" + args['outdirpath'], "-bibtex",
+    command = ["perl", latexmk_path(), "-interaction=nonstopmode", "-outdir=" + args['outdirpath'], "-bibtex",
                '-pdflatex=' + args['compilerargs'], args['format'], args['texpath']]
 
     # Name der Ziel-Datei
@@ -407,7 +408,7 @@ def execute_command(args, workingdir, console_output=False):
     """
 
     if console_output:
-        return subprocess.call(args)
+        return subprocess.call(args, bufsize=0, cwd=workingdir)
     else:
         return subprocess.call(args, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, bufsize=0, cwd=workingdir)
 
