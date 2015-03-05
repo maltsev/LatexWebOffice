@@ -263,6 +263,10 @@ $(function () {
                     "icon" : "glyphicon glyphicon-file",
                     "valid_children": []
                 },
+                "lockedfile":{
+                    "icon" : "glyphicon glyphicon-lock",
+                    "valid_children": []
+                },
                 "folder":{
                     "icon" : "glyphicon glyphicon-folder-open",
                     "valid_children": ["file", "default", "folder"]
@@ -466,9 +470,16 @@ $(function () {
             "ready.jstree refresh.jstree before_open.jstree": function () {
             	
                 $(".jstree-node").each(function () {
-                    var node = $(this),
-                        type = node.hasClass("filesitem-folder") ? "folder" : "file";
-                    
+                    var node = $(this);
+
+                    if (node.hasClass("filesitem-folder")) {
+                        var type = "folder";
+                    } else if (node.hasClass("filesitem-lockedFile")) {
+                        type = "lockedfile";
+                    } else {
+                        type = "file";
+                    }
+
                     treeInst.set_type(node, type);
                 });
             }
@@ -528,7 +539,12 @@ $(function () {
         	
         	var attrCreateTime = file.createTime,
         		attrLastModifiedTime = file.lastModifiedTime,
-        		attrSize = file.size;
+        		attrSize = file.size,
+        		fileClass = "filesitem-file";
+
+            if (! file.isAllowEdit) {
+                fileClass += " filesitem-lockedFile";
+            }
         	
             file.createTime = getRelativeTime(file.createTime);
             file.lastModifiedTime = getRelativeTime(file.lastModifiedTime);
@@ -537,7 +553,7 @@ $(function () {
             jsTreeData.push({
                 id: "file" + file.id,
                 text: fileTemplate(file),
-                li_attr: {"class": "filesitem-file", "data-file-id": file.id,
+                li_attr: {"class": fileClass, "data-file-id": file.id,
                 									 "data-name": file.name,
                 									 "data-file-createtime": attrCreateTime,
                 									 "data-file-lastmodifiedtime": attrLastModifiedTime,
@@ -978,14 +994,15 @@ $(function () {
 			folder = selected && selectedNodeObj.hasClass("filesitem-folder");
 			file = selected && selectedNodeObj.hasClass("filesitem-file");
 			texFile = file && $.inArray(selectedNodeObj.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1;
+			locked = file && selectedNodeObj.hasClass("filesitem-lockedFile");
 		}
 		
 		// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
 		$(".filestoolbar-open").prop("disabled", (!texFile && file) || !selected);
 		$(".filestoolbar-newfile").prop("disabled", !basic);
 		$(".filestoolbar-newfolder").prop("disabled", !basic);
-		$(".filestoolbar-delete").prop("disabled", !selected);
-		$(".filestoolbar-rename").prop("disabled", !selected);
+		$(".filestoolbar-delete").prop("disabled", !selected || locked);
+		$(".filestoolbar-rename").prop("disabled", !selected || locked);
 		$(".filestoolbar-download").prop("disabled", !selected);
 		$(".filestoolbar-upload").prop("disabled", file);
 	}
