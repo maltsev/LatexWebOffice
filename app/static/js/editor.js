@@ -119,6 +119,10 @@ $(document).ready(function() {
                     }, function(result, data) {
                         unlock();
                 });
+	        } else {
+	            if (!file_locked) {
+	                unlock();
+	            }
 	        }
 		});
 
