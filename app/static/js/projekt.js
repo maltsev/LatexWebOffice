@@ -1160,8 +1160,8 @@ $(function() {
 		$('.projecttoolbar-collabo').prop("disabled", !flag_remain);
 
 		// .projecttoolbar-share ist kein <button>, deshalb funktioniert prop("disabled") nicht
-		$('.projecttoolbar-share').attr("disabled", !flag_owner);
-		$('.projecttoolbar-quitCollaboration').attr("disabled", !flag_remain || flag_owner);
+		$('.projecttoolbar-share').toggleClass("disabled", !flag_owner);
+		$('.projecttoolbar-quitCollaboration').toggleClass("disabled", !flag_remain || flag_owner);
 		
 		/*
 		 * Aktualisiert die 'Freigabe entziehen'-Menü-Schaltfläche
@@ -1174,12 +1174,12 @@ $(function() {
 				},
 				function(result,data) {
 					if(result) {
-						$('.projecttoolbar-deny').attr("disabled", !data.response);
+						$('.projecttoolbar-deny').toggleClass("disabled", !data.response);
                     }
 				});
 		}
 		else
-			$('.projecttoolbar-deny').attr("disabled", true);
+			$('.projecttoolbar-deny').toggleClass("disabled", true);
 		
 		$('.templatestoolbar-use').prop("disabled", !flag_remain);
 	}
