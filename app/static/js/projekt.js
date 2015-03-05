@@ -844,7 +844,7 @@ $(function() {
 			}, function(result,data) {
 				if(result) {
 					showAlertDialog("Projekt freigeben","Der Nutzer wurde zur Kollaboration Ihres Projektes eingeladen.");
-					$('.projecttoolbar-deny').prop("disabled", false);
+					$('.projecttoolbar-deny').toggleClass("disabled", false);
 	
 				}
 				else {
@@ -1167,6 +1167,7 @@ $(function() {
 		 * Aktualisiert die 'Freigabe entziehen'-Menü-Schaltfläche
 		 * in Abhängigkeit dessen, ob für das selektierte Projekt eingeladene Nutzer vorliegen
 		 */
+
 		if(isProjectsPage && !editMode && flag_owner) {
 			documentsJsonRequest({
 					'command': 'hasinvitedusers',
@@ -1177,9 +1178,9 @@ $(function() {
 						$('.projecttoolbar-deny').toggleClass("disabled", !data.response);
                     }
 				});
-		}
-		else
+		} else {
 			$('.projecttoolbar-deny').toggleClass("disabled", true);
+        }
 		
 		$('.templatestoolbar-use').prop("disabled", !flag_remain);
 	}
