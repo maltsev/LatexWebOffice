@@ -76,7 +76,8 @@ $(function() {
     });
 	$('.modal_share_confirm').on("click", function(e) {
 		// Aktion nach Klicken des Share Buttons
-		sendProjectInvitation(selectedNodeIDProjects,$('#modal_shareuser_tf').val());
+		sendProjectInvitation(selectedNodeIDProjects, $('#modal_shareuser_tf').val());
+        $('#modal_shareuser_tf').val("");
 	});
 	$('.modal_deny_confirm').on("click", function(e) {
 		// Aktion nach Klicken des deny Buttons
