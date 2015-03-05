@@ -179,17 +179,17 @@
          <div id="editorsymbols" class="navbar-collapse collapse">
             <div class="btn-group" role="group">
                <button id="backtofileview" type="button" class="btn btn-default"
-                  title="Zurück zur Dateiübersicht des Projekts">
+                  title="Zurück zur Dateiübersicht des Projekts" autocomplete="off">
                   <i class="fa fa-angle-left"></i> <!-- Zurück zur Dateiübersicht des Projekts -->
                </button>
-               <button id="save" type="button" class="btn btn-default" title="Speichern">
+               <button id="save" type="button" class="btn btn-default" title="Speichern" autocomplete="off">
                <i class="fa fa-floppy-o"></i> <!-- Datei speichern -->
                </button>
-               <button id="pdfExport" type="button" class="btn btn-default" title="PDF-Export">
+               <button id="pdfExport" type="button" class="btn btn-default" title="PDF-Export" autocomplete="off">
                   <i class="fa fa-file-pdf-o"></i> <!-- PDF-Export -->
                </button>
                <div class="btn-group">
-                  <button id="export" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Exportieren als ...">
+                  <button id="export" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Exportieren als ..." autocomplete="off">
                      <i class="fa fa-file-code-o"></i> <!-- HTML-Export -->
                      <span class="caret"></span>
                   </button>
@@ -199,17 +199,17 @@
                      <li><a id="export_ps" style="cursor:pointer;">PS</a></li>
                   </ul>
                </div>
-               <button type="button" class="btn btn-default" data-toggle="modal" onClick="hidePanes(); createImageTree();">
+               <button type="button" class="btn btn-default" data-toggle="modal" onClick="hidePanes(); createImageTree();" autocomplete="off">
                <i class="fa fa-image"></i>
                </button>
-               <button type="button" class="btn btn-default" data-toggle="modal" onclick="hidePanes();" data-target="#table-assistent">
+               <button type="button" class="btn btn-default" data-toggle="modal" onclick="hidePanes();" data-target="#table-assistent" autocomplete="off">
                <i class="fa fa-table"></i>
                </button>
-               <button id="compile" type="button" class="btn btn-default" title="Tex Datei kompilieren">
+               <button id="compile" type="button" class="btn btn-default" title="Tex Datei kompilieren" autocomplete="off">
                   <i class="fa fa-refresh"></i> <!-- parallele Anzeige von TEX und PDF-Ausgabe -->
                </button>
                <div class="btn-group compiler-btn">
-                  <button id="compiler" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Compiler">
+                  <button id="compiler" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Compiler" autocomplete="off">
                   PDFLaTeX
                   <span class="caret"></span>
                   </button>

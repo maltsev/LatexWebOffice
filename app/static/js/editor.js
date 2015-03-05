@@ -769,8 +769,13 @@ function disableEditor() {
     $(".CodeMirror-linenumbers").css('background', "#cfcfcf");
     editor.setOption("readOnly", true);
     editor.setOption("extraKeys", {});
-    myLayout.hide("east");
     myLayout.hide("south");
+
+    // URL zur PDF Datei
+    pdf_url = "/documents/?command=getpdf&texid=" + id +"&t=" + Math.random();
+
+    // Anzeige der PDF Datei
+    renderPDF(pdf_url, document.getElementById('pdf-viewer'));
 }
 
 

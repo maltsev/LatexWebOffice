@@ -335,20 +335,30 @@ def execute(request):
         return c['command'](request, user, *args)
     elif request.method == 'GET' and request.GET.get('command'):
         command = request.GET.get('command')
-        fileid = request.GET.get('id')
+        pdfid = request.GET.get('id')
+        texid = request.GET.get('texid')
 
-        if not fileid.isdigit():
-            filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
-            return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
+        defaultpdfPath = filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
 
-        if command == 'getpdf' and fileid:
+        if (pdfid and not pdfid.isdigit()) or (texid and not texid.isdigit()):
+            return serve(request, os.path.basename(defaultpdfPath), os.path.dirname(defaultpdfPath))
+
+        if command == 'getpdf' and pdfid:
             requireRights = ['owner', 'collaborator']
-            rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, request.user, request, requireRights, lockcheck=False,
+            rights, failurereturn = util.checkIfFileExistsAndUserHasRights(pdfid, request.user, request, requireRights, lockcheck=False,
                                                                            objecttype=PDF)
             if not rights:
-                filepath = os.path.join(settings.BASE_DIR, 'app', 'static', 'default.pdf')
-                return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
+                return serve(request, os.path.basename(defaultpdfPath), os.path.dirname(defaultpdfPath))
 
-            return file.getPDF(request, request.user, fileid)
+            return file.getPDF(request, request.user, pdfid=pdfid, default=defaultpdfPath)
+
+        elif command == 'getpdf' and texid:
+            requireRights = ['owner', 'collaborator']
+            rights, failurereturn = util.checkIfFileExistsAndUserHasRights(texid, request.user, request, requireRights, lockcheck=False,
+                                                                           objecttype=TexFile)
+            if not rights:
+                return serve(request, os.path.basename(defaultpdfPath), os.path.dirname(defaultpdfPath))
+
+            return file.getPDF(request, request.user, texid=texid, default=defaultpdfPath)
 
     return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format('unknown'), request)
