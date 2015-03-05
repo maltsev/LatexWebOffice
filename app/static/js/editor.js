@@ -66,6 +66,7 @@ $(document).ready(function() {
 
     // Funktion für SplitView, setzt die Breite der Trennlinie
     myLayout = $('#maincontainer').layout({
+        enableCursorHotkey: false,
         center: {
             spacing_open: 14,
             spacing_closed: 14,
