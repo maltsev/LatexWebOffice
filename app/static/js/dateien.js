@@ -984,7 +984,7 @@ $(function () {
 			selected 	= false;
 			folder 		= false;
 			file 		= true;
-			texFile 	= false;
+			textFile 	= false;
 		}
 		else {
 			var selectedNodeObj = getSelectedNodeObject();
@@ -993,12 +993,12 @@ $(function () {
 			selected = selectedNodeObj.length;
 			folder = selected && selectedNodeObj.hasClass("filesitem-folder");
 			file = selected && selectedNodeObj.hasClass("filesitem-file");
-			texFile = file && $.inArray(selectedNodeObj.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1;
+			textFile = file && selectedNodeObj.data("file-mime").startsWith("text/");
 			locked = file && selectedNodeObj.hasClass("filesitem-lockedFile");
 		}
 		
 		// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
-		$(".filestoolbar-open").prop("disabled", (!texFile && file) || !selected);
+		$(".filestoolbar-open").prop("disabled", (!textFile && file) || !selected);
 		$(".filestoolbar-newfile").prop("disabled", !basic);
 		$(".filestoolbar-newfolder").prop("disabled", !basic);
 		$(".filestoolbar-delete").prop("disabled", !selected || locked);
