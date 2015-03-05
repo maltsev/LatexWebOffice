@@ -94,12 +94,17 @@ def projectToJson(project):
     :return: dict
     """
 
-    return dict(id=project.id,
-                name=project.name,
-                ownerid=project.author.id,
-                ownername=project.author.username,
-                createtime=datetimeToString(project.createTime),
-                rootid=project.rootFolder.id)
+    projectdata = dict(id=project.id,
+                       name=project.name,
+                       ownerid=project.author.id,
+                       ownername=project.author.username,
+                       createtime=datetimeToString(project.createTime),
+                       rootid=project.rootFolder.id)
+
+    if isinstance(project, Project):
+        projectdata["collaboratorsnum"] = len(project.getAllCollaborators())
+
+    return projectdata
 
 
 def checkIfDirExistsAndUserHasRights(folderid, user, request, requirerights, lockcheck=False):

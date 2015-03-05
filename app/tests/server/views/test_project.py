@@ -595,25 +595,29 @@ class ProjectTestClass(ViewTestCase):
              'ownerid': self._user1_project1.author.id,
              'ownername': self._user1_project1.author.username,
              'createtime': util.datetimeToString(self._user1_project1.createTime),
-             'rootid': self._user1_project1.rootFolder.id},
+             'rootid': self._user1_project1.rootFolder.id,
+             'collaboratorsnum': 0},
             {'id': self._user1_project2.id,
              'name': self._user1_project2.name,
              'ownerid': self._user1_project2.author.id,
              'ownername': self._user1_project2.author.username,
              'createtime': util.datetimeToString(self._user1_project2.createTime),
-             'rootid': self._user1_project2.rootFolder.id},
+             'rootid': self._user1_project2.rootFolder.id,
+             'collaboratorsnum': 0},
             {'id': self._user1_project3.id,
              'name': self._user1_project3.name,
              'ownerid': self._user1_project3.author.id,
              'ownername': self._user1_project3.author.username,
              'createtime': util.datetimeToString(self._user1_project3.createTime),
-             'rootid': self._user1_project3.rootFolder.id},
+             'rootid': self._user1_project3.rootFolder.id,
+             'collaboratorsnum': 0},
             {'id': self._user1_project4.id,
              'name': self._user1_project4.name,
              'ownerid': self._user1_project4.author.id,
              'ownername': self._user1_project4.author.username,
              'createtime': util.datetimeToString(self._user1_project4.createTime),
-             'rootid': self._user1_project4.rootFolder.id}
+             'rootid': self._user1_project4.rootFolder.id,
+             'collaboratorsnum': 0}
         ]
 
         # überprüfe die Antwort des Servers
@@ -640,13 +644,15 @@ class ProjectTestClass(ViewTestCase):
              'ownerid': self._user2_project1.author.id,
              'ownername': self._user2_project1.author.username,
              'createtime': util.datetimeToString(self._user2_project1.createTime),
-             'rootid': self._user2_project1.rootFolder.id},
+             'rootid': self._user2_project1.rootFolder.id,
+             'collaboratorsnum': 0},
             {'id': self._user2_project2.id,
              'name': self._user2_project2.name,
              'ownerid': self._user2_project2.author.id,
              'ownername': self._user2_project2.author.username,
              'createtime': util.datetimeToString(self._user2_project2.createTime),
-             'rootid': self._user2_project2.rootFolder.id}
+             'rootid': self._user2_project2.rootFolder.id,
+             'collaboratorsnum': 0}
         ]
 
         # überprüfe die Antwort des Servers
@@ -700,13 +706,15 @@ class ProjectTestClass(ViewTestCase):
              'ownerid': self._user2_project1.author.id,
              'ownername': self._user2_project1.author.username,
              'createtime': util.datetimeToString(self._user2_project1.createTime),
-             'rootid': self._user2_project1.rootFolder.id},
+             'rootid': self._user2_project1.rootFolder.id,
+             'collaboratorsnum': 0},
             {'id': self._user2_project2.id,
              'name': self._user2_project2.name,
              'ownerid': self._user2_project2.author.id,
              'ownername': self._user2_project2.author.username,
              'createtime': util.datetimeToString(self._user2_project2.createTime),
-             'rootid': self._user2_project2.rootFolder.id}
+             'rootid': self._user2_project2.rootFolder.id,
+             'collaboratorsnum': 0}
         ]
         
         # überprüfe die Antwort des Servers
@@ -729,19 +737,22 @@ class ProjectTestClass(ViewTestCase):
              'ownerid': self._user2_project1.author.id,
              'ownername': self._user2_project1.author.username,
              'createtime': util.datetimeToString(self._user2_project1.createTime),
-             'rootid': self._user2_project1.rootFolder.id},
+             'rootid': self._user2_project1.rootFolder.id,
+             'collaboratorsnum': 0},
             {'id': self._user2_project2.id,
              'name': self._user2_project2.name,
              'ownerid': self._user2_project2.author.id,
              'ownername': self._user2_project2.author.username,
              'createtime': util.datetimeToString(self._user2_project2.createTime),
-             'rootid': self._user2_project2.rootFolder.id},
+             'rootid': self._user2_project2.rootFolder.id,
+             'collaboratorsnum': 0},
             {'id': self._user1_project1.id,
              'name': self._user1_project1.name,
              'ownerid': self._user1_project1.author.id,
              'ownername': self._user1_project1.author.username,
              'createtime': util.datetimeToString(self._user1_project1.createTime),
-             'rootid': self._user1_project1.rootFolder.id}
+             'rootid': self._user1_project1.rootFolder.id,
+             'collaboratorsnum': 1}
         ]
         
         # überprüfe die Antwort des Servers
@@ -764,13 +775,15 @@ class ProjectTestClass(ViewTestCase):
              'ownerid': self._user2_project1.author.id,
              'ownername': self._user2_project1.author.username,
              'createtime': util.datetimeToString(self._user2_project1.createTime),
-             'rootid': self._user2_project1.rootFolder.id},
+             'rootid': self._user2_project1.rootFolder.id,
+             'collaboratorsnum': 0},
             {'id': self._user2_project2.id,
              'name': self._user2_project2.name,
              'ownerid': self._user2_project2.author.id,
              'ownername': self._user2_project2.author.username,
              'createtime': util.datetimeToString(self._user2_project2.createTime),
-             'rootid': self._user2_project2.rootFolder.id},
+             'rootid': self._user2_project2.rootFolder.id,
+             'collaboratorsnum': 0},
         ]
         
         # überprüfe die Antwort des Servers
@@ -1437,7 +1450,8 @@ class ProjectTestClass(ViewTestCase):
              'ownerid': self._user1_project1.author.id,
              'ownername': self._user1_project1.author.username,
              'createtime': util.datetimeToString(self._user1_project1.createTime),
-             'rootid': self._user1_project1.rootFolder.id}
+             'rootid': self._user1_project1.rootFolder.id,
+             'collaboratorsnum': 1}
         ]
         
         # überprüfe die Antwort des Servers
@@ -1471,7 +1485,8 @@ class ProjectTestClass(ViewTestCase):
              'ownerid': self._user1_project1.author.id,
              'ownername': self._user1_project1.author.username,
              'createtime': util.datetimeToString(self._user1_project1.createTime),
-             'rootid': self._user1_project1.rootFolder.id}
+             'rootid': self._user1_project1.rootFolder.id,
+             'collaboratorsnum': 2}
         ]
         
         # überprüfe die Antwort des Servers
@@ -1507,25 +1522,29 @@ class ProjectTestClass(ViewTestCase):
              'ownerid': self._user1_project1.author.id,
              'ownername': self._user1_project1.author.username,
              'createtime': util.datetimeToString(self._user1_project1.createTime),
-             'rootid': self._user1_project1.rootFolder.id},
+             'rootid': self._user1_project1.rootFolder.id,
+             'collaboratorsnum': 2},
             {'id': self._user1_project2.id,
              'name': self._user1_project2.name,
              'ownerid': self._user1_project2.author.id,
              'ownername': self._user1_project2.author.username,
              'createtime': util.datetimeToString(self._user1_project2.createTime),
-             'rootid': self._user1_project2.rootFolder.id},
+             'rootid': self._user1_project2.rootFolder.id,
+             'collaboratorsnum': 1},
             {'id': self._user1_project3.id,
              'name': self._user1_project3.name,
              'ownerid': self._user1_project3.author.id,
              'ownername': self._user1_project3.author.username,
              'createtime': util.datetimeToString(self._user1_project3.createTime),
-             'rootid': self._user1_project3.rootFolder.id},
+             'rootid': self._user1_project3.rootFolder.id,
+             'collaboratorsnum': 1},
             {'id': self._user1_project4.id,
              'name': self._user1_project4.name,
              'ownerid': self._user1_project4.author.id,
              'ownername': self._user1_project4.author.username,
              'createtime': util.datetimeToString(self._user1_project4.createTime),
-             'rootid': self._user1_project4.rootFolder.id}
+             'rootid': self._user1_project4.rootFolder.id,
+             'collaboratorsnum': 1}
         ]
         
         # überprüfe die Antwort des Servers
@@ -1547,19 +1566,22 @@ class ProjectTestClass(ViewTestCase):
              'ownerid': self._user1_project2.author.id,
              'ownername': self._user1_project2.author.username,
              'createtime': util.datetimeToString(self._user1_project2.createTime),
-             'rootid': self._user1_project2.rootFolder.id},
+             'rootid': self._user1_project2.rootFolder.id,
+             'collaboratorsnum': 1},
             {'id': self._user1_project3.id,
              'name': self._user1_project3.name,
              'ownerid': self._user1_project3.author.id,
              'ownername': self._user1_project3.author.username,
              'createtime': util.datetimeToString(self._user1_project3.createTime),
-             'rootid': self._user1_project3.rootFolder.id},
+             'rootid': self._user1_project3.rootFolder.id,
+             'collaboratorsnum': 1},
             {'id': self._user1_project4.id,
              'name': self._user1_project4.name,
              'ownerid': self._user1_project4.author.id,
              'ownername': self._user1_project4.author.username,
              'createtime': util.datetimeToString(self._user1_project4.createTime),
-             'rootid': self._user1_project4.rootFolder.id}
+             'rootid': self._user1_project4.rootFolder.id,
+             'collaboratorsnum': 1}
         ]
         
         # überprüfe die Antwort des Servers

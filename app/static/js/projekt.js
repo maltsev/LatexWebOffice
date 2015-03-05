@@ -76,7 +76,8 @@ $(function() {
     });
 	$('.modal_share_confirm').on("click", function(e) {
 		// Aktion nach Klicken des Share Buttons
-		sendProjectInvitation(selectedNodeIDProjects,$('#modal_shareuser_tf').val());
+		sendProjectInvitation(selectedNodeIDProjects, $('#modal_shareuser_tf').val());
+        $('#modal_shareuser_tf').val("");
 	});
 	$('.modal_deny_confirm').on("click", function(e) {
 		// Aktion nach Klicken des deny Buttons
@@ -276,7 +277,6 @@ $(function() {
 	// 'Freigabe entziehen'-Schaltfläche
 	$('.projecttoolbar-deny').on("click", function() {
 		showInvitedUser();
-		
 	});
 	
 	// 'Einladung akzeptieren'-Schaltfläche
@@ -845,9 +845,8 @@ $(function() {
 				if(result) {
 					showAlertDialog("Projekt freigeben","Der Nutzer wurde zur Kollaboration Ihres Projektes eingeladen.");
 					$('.projecttoolbar-deny').toggleClass("disabled", false);
-	
-				}
-				else {
+	                refreshProjects();
+				} else {
 					showAlertDialog("Projekt freigeben",data.response);
 				}
 		});
@@ -865,9 +864,9 @@ $(function() {
 				'id':projectId
 			}, function(result,data) {
 				if(result) {
-					showAlertDialog("Freigabe entziehen","Sie haben den ausgewählten Benutzern erfolgreich die Projektfreigabe entzogen.")
-				}
-				else {
+					showAlertDialog("Freigabe entziehen","Sie haben den ausgewählten Benutzern erfolgreich die Projektfreigabe entzogen.");
+					refreshProjects();
+				} else {
 					showAlertDialog("Freigabe entziehen",data.response);
 				}
 				updateMenuButtonsProject();
@@ -886,8 +885,7 @@ $(function() {
 				if(result) {
 					refreshProjects();
 					showAlertDialog("Kollaboration beenden","Sie haben die Kollaboration beendet.");
-				}
-				else {
+				} else {
 					showAlertDialog("Kollaboration beenden",data.response);
 				}
 		});

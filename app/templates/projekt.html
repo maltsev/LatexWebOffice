@@ -335,6 +335,12 @@
         </span>
         <span class="projectsitem-createdate fadeblock" title="erstellt {{= it.createTime }}">{{= it.createTime }}</span>
         <span class="projectsitem-author">{{= it.ownername }}</span>
+
+        {{? it.collaboratorsnum }}
+            <span class="projectsitem-collaboratorsnum" title="{{= it.collaboratorsnum }} {{? it.collaboratorsnum > 1 }}Kollaborators{{??}}Kollaborator{{?}}">
+                <span class="glyphicon glyphicon-share"></span>{{= it.collaboratorsnum }}
+            </span>
+        {{?}}
     </script>
     {% endverbatim %}
 
