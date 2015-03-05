@@ -79,6 +79,9 @@ $(document).ready(function() {
             slidable: false,
             initClosed: (mobile?true:false),
             size: (mobile?'100%':'40%'),
+            togglerTip_open: "PDF Anzeige schließen",
+            togglerTip_closed: "PDF Anzeige öffnen",
+            resizerTip: "Größe ändern",
         },
         south: {
             spacing_open: 14,
@@ -86,6 +89,9 @@ $(document).ready(function() {
             slidable: false,
             initClosed: true,
             size: '35%',
+            togglerTip_open: "Log Anzeige schließen",
+            togglerTip_closed: "Log Anzeige öffnen",
+            resizerTip: "Größe ändern",
         },
         // Editor automatisch an Fenstergröße anpassen
         onresize: function () {
