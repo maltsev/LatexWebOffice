@@ -163,7 +163,7 @@ $(document).ready(function() {
                 // Compiler wurde verändert, dadurch wird beim nächsten Kompilieren der forcecompile Parameter gesetzt,
                 // so dass die Datei auf jeden Fall neu kompiliert wird, auch wenn es keine Änderungen an der tex Datei gab
                 compilerChanged = true;
-                co0mpilerid = $(this).attr('value');
+                compilerid = $(this).attr('value');
             }
         });
 	};
