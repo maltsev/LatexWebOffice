@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Wed 4 Mar 2015 20:04:40 CET
+* Last Modified : Do 05 Mär 2015 13:03:04 CET
 
 * Author :  christian
 
@@ -27,7 +27,7 @@ from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 from core import settings
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES, DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM
+from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES, DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM, MAXFILESIZE
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.projecttemplate import ProjectTemplate
@@ -432,6 +432,21 @@ def uploadFile(f, folder, request, fromZip=False):
 
     # bestimme den Mimetype der Datei
     mime = getMimetypeFromFile(f, name)
+    
+    # speichere alte Position 
+    old_file_position = f.tell()
+    # gehe vom Anfang zum Ende
+    f.seek(0, os.SEEK_END)
+    # Speichere den Abstand vom Anfang zum Ende
+    size = f.tell()
+    # Gehere zurück zur alten Position in der Datei
+    f.seek(old_file_position, os.SEEK_SET)
+
+    if size > MAXFILESIZE:
+        return False, ERROR_MESSAGES['MAXFILESIZE']
+
+
+
 
     # Überprüfe, ob die einzelnen Dateien einen Namen ohne verbotene Zeichen haben
     # und ob sie eine Dateiendung besitzen

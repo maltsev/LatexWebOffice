@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fr 27 Feb 2015 23:18:37 CET
+* Last Modified : Do 05 Mär 2015 13:00:34 CET
 
 * Author :  christian
 
@@ -73,6 +73,7 @@ ERROR_MESSAGES = {
     'SELFCOLLABORATIONCANCEL': 'Der Nutzer darf nicht der Kollaboration an seinem Projekt kündigen.',
     'EMAILPWRECOVERSEND': 'Eine Email mit Anweisungen um ein neues Passwort zu erhalten wurde an {0} versendet',
     'PASSWORDCHANGED': 'Ihr Passwort wurde erfolgreich geändert. Sie können sich nun in das System einloggen',
+    'MAXFILESIZE': 'Die maximale Dateigröße von 5MB wurde überschritten',
 }
 
 ALLOWEDMIMETYPES = {
@@ -99,6 +100,8 @@ ALLOWEDMIMETYPES = {
         'application/CDFV2-corrupt': BinaryFile
     }
 }
+
+MAXFILESIZE = 5000000; #5MB
 
 ZIPMIMETYPE = 'application/zip'
 STANDARDENCODING = 'utf-8'
