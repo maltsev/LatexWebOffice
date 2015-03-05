@@ -99,7 +99,8 @@ def projectToJson(project):
                 ownerid=project.author.id,
                 ownername=project.author.username,
                 createtime=datetimeToString(project.createTime),
-                rootid=project.rootFolder.id)
+                rootid=project.rootFolder.id,
+                collaboratorsnum=len(project.getAllCollaborators()))
 
 
 def checkIfDirExistsAndUserHasRights(folderid, user, request, requirerights, lockcheck=False):
