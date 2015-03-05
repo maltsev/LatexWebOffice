@@ -141,7 +141,12 @@ $(document).ready(function() {
         
 		// Button für das Speichern belegen
 		$('#save').click(function() {
-			saveFile(false);
+		    if (!changesSaved) {
+		        saveFile(false);
+		    }
+		    else {
+		        setMsg('Keine Änderungen vorhanden.');
+		    }
 		});
 		// Button für das PDF Exportieren belegen
 		$('#pdfExport').click(function() {
@@ -278,7 +283,7 @@ function loadFile() {
                 tabSize: 4,                                  // Tab entspricht 4 Leerzeichen
                 extraKeys: {                                 // zusätzliche Tastaturbelegungen
                     "Ctrl-Space": "autocomplete",
-                    "Ctrl-S": function() { saveFile(false); },
+                    "Ctrl-S": function() { if (!changesSaved) { saveFile(false); } else { setMsg('Keine Änderungen vorhanden.'); } },
                     "Ctrl-K": function() {
                         (editor.getOption("autoCloseBrackets")?editor.setOption("autoCloseBrackets", false):
                         editor.setOption("autoCloseBrackets", true));
@@ -855,22 +860,30 @@ function isInt(n) {
 }
 
 function setMsg(text) {
-    $("#pdfviewer_msg").fadeOut(50);
+    if($("#pdfviewer_msg").is(':animated')) {
+         $("#pdfviewer_msg").stop().animate({opacity:'100'});
+    } else {
+        $("#pdfviewer_msg").fadeOut(50);
+    }
     $("#pdfviewer_msg").empty();
-    $("#pdfviewer_msg").fadeIn(0)
+    $("#pdfviewer_msg").fadeIn(0);
     $("#pdfviewer_msg").html('<p class="text-primary">' + text + '</p>').fadeOut(5000);
 }
 
 function setErrorMsg(text) {
-    $("#pdfviewer_msg").fadeOut(50);
+    if($("#pdfviewer_msg").is(':animated')) {
+         $("#pdfviewer_msg").stop().animate({opacity:'100'});
+    } else {
+        $("#pdfviewer_msg").fadeOut(50);
+    }
     $("#pdfviewer_msg").empty();
-    $("#pdfviewer_msg").fadeIn(0)
+    $("#pdfviewer_msg").fadeIn(0);
     $("#pdfviewer_msg").html('<p class="text-danger">' + text + '</p>');
 }
 
 function setLogText(text) {
     $("#compile_log").empty();
-    $("#compile_log").html(text)
+    $("#compile_log").html(text);
 }
 
 /**
