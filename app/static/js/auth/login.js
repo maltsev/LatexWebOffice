@@ -9,3 +9,14 @@ $(document).ready(function() {
         }
     });
 });
+$(document).ready(function() {
+    $('#password-lost-form').validate({
+        rules: {
+            email: {
+                required: true,
+                email: true,
+            },
+        }
+    });
+});
+

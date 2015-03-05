@@ -56,11 +56,6 @@ class ProjectTestCase(ProjectTemplateTestCase):
         self.project.delete()
         self.checkCascadeDelete()
 
-    def test_mainTex(self):
-        self.mainTexFile.source_code = 'test src'
-        self.mainTexFile.save()
-        self.assertEqual('test src', self.project.rootFolder.getMainTex().source_code)
-
     def checkCascadeDelete(self):
         self.assertRaises(ObjectDoesNotExist, ProjectTemplate.objects.get, pk=self.project.pk)
         self.assertRaises(ObjectDoesNotExist, Project.objects.get, pk=self.project.pk)

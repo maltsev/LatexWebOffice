@@ -5,7 +5,7 @@
 
 * Creation Date : 10-12-2014
 
-* Last Modified : 10 Dec 2014 13:17:00 CET
+* Last Modified : Do 26 Feb 2015 13:36:29 CET
 
 * Author :  maltsev
 
@@ -17,11 +17,10 @@
 import random
 import string
 from django.db import models
-from django.contrib.auth.models import User
 from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
 from app.models.folder import Folder
-
+from django.conf import settings
 
 
 
@@ -48,7 +47,7 @@ class ProjectTemplateManager(models.Manager):
 
 class ProjectTemplate(models.Model):
     name = models.CharField(max_length=255)
-    author = models.ForeignKey(User)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL)
     createTime = models.DateTimeField(auto_now_add=True)
     rootFolder = models.OneToOneField("Folder")
     objects = ProjectTemplateManager()

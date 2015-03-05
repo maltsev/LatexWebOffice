@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Thu 18 Dec 2014 11:53:41 PM CET
+* Last Modified : Do 26 Feb 2015 17:41:09 CET
 
 * Author :  maltsev
 
@@ -17,7 +17,8 @@ import os
 import shutil
 
 from django.test import TestCase
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from core import settings
 from app.models.folder import Folder
@@ -25,6 +26,7 @@ from app.models.project import Project
 from app.models.projecttemplate import ProjectTemplate
 from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
+from app.models.collaboration import Collaboration
 
 
 class ViewTestCase(TestCase):
@@ -44,7 +46,7 @@ class ViewTestCase(TestCase):
         """
 
         # erstelle user1
-        self._user1 = User.objects.create_user(username='user1@test.de', password='123456')
+        self._user1 = User.objects.create_user('user1@test.de', password='123456')
         self._user1._unhashedpw = '123456'
 
         # erstelle user2
@@ -59,10 +61,10 @@ class ViewTestCase(TestCase):
         self.client.login(username=self._user1.username, password=self._user1._unhashedpw)
 
         # erstelle ein Projekt als user1
-        self._user1_project1 = Project.objects.create(name='user1_project1', author=self._user1)
-        self._user1_project2 = Project.objects.create(name='user1_project2', author=self._user1)
-        self._user1_project3 = Project.objects.create(name='user1_project3', author=self._user1)
-        self._user1_project4 = Project.objects.create(name='Übungsprojekt 01', author=self._user1)
+        self._user1_project1 = Project.objects.createWithMainTex(name='user1_project1', author=self._user1)
+        self._user1_project2 = Project.objects.createWithMainTex(name='user1_project2', author=self._user1)
+        self._user1_project3 = Project.objects.createWithMainTex(name='user1_project3', author=self._user1)
+        self._user1_project4 = Project.objects.createWithMainTex(name='Übungsprojekt 01', author=self._user1)
 
         # erstelle eine Vorlage als user1
         self._user1_template1 = ProjectTemplate.objects.create(name='user1_template1', author=self._user1)
@@ -70,9 +72,30 @@ class ViewTestCase(TestCase):
         self._user1_template3 = ProjectTemplate.objects.create(name='user1_template2´3', author=self._user1)
 
         # erstelle ein Projekt als user2
-        self._user2_project1 = Project.objects.create(name='user2_project1', author=self._user2)
-        self._user2_project2 = Project.objects.create(name='user2_project2', author=self._user2)
+        self._user2_project1 = Project.objects.createWithMainTex(name='user2_project1', author=self._user2)
+        self._user2_project2 = Project.objects.createWithMainTex(name='user2_project2', author=self._user2)
         self._user2_template1 = ProjectTemplate.objects.create(name='user2_template1', author=self._user2)
+
+
+    def setUpCollaborations(self):
+        self._user2_sharedproject = Project.objects.createWithMainTex(name='user2_sharedproject', author=self._user2)
+        self._user2_sharedproject_folder1 = Folder.objects.create(name='user2_sharedproject_folder1',
+                                                                  parent=self._user2_sharedproject.rootFolder,
+                                                                  root=self._user2_sharedproject.rootFolder)
+        self._user2_sharedproject_folder2 = Folder.objects.create(name='user2_sharedproject_folder2',
+                                                                  parent=self._user2_sharedproject.rootFolder,
+                                                                  root=self._user2_sharedproject.rootFolder)
+
+        maintex = self._user2_sharedproject.rootFolder.getMainTex()
+        maintex.source_code = 'Hallo!'
+        maintex.save()
+
+
+        self._user2_sharedproject_folder1_texfile = TexFile(name='temp.tex', folder=self._user2_sharedproject_folder1,
+                                                    source_code='invalidtex source code')
+
+
+        Collaboration.objects.create(user=self._user1, project=self._user2_sharedproject, isConfirmed=True)
 
 
     def setUpSingleUser(self):
@@ -82,7 +105,7 @@ class ViewTestCase(TestCase):
         """
 
         # erstelle user1
-        self._user1 = User.objects.create_user(username='user1@test.de', password='123456')
+        self._user1 = User.objects.create_user('user1@test.de', password='123456')
         self._user1._unhashedpw = '123456'
 
         # logge user1 ein

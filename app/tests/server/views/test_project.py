@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Fr 20 Feb 2015 02:16:00 CET
+* Last Modified : Do 26 Feb 2015 17:45:13 CET
 
 * Author :  christian
 
@@ -19,8 +19,10 @@
 import zipfile
 import shutil
 import os
+import mimetypes
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE, DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM
 from app.common import util
@@ -1120,12 +1122,30 @@ class ProjectTestClass(ViewTestCase):
         # --------------------------------------------------------------------------------------------------------------
         # sende Anfrage zum exportieren eines Ordners mit einer ungültigen projectid
         response = util.documentPoster(self, command='exportzip', idpara=self._invalidid)
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['DIRECTORYNOTEXIST'])
+
+        # überprüfe die Antwort des Servers
+        # sollte status code 404 liefern
+        self.assertEqual(response.status_code, 404)
+        # es sollte keine Datei mitgesendet worden sein
+        self.assertNotIn('Content-Disposition', response)
+        # Content-Type sollte text/html sein
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        # Content-Length sollte nicht vorhanden sein
+        self.assertNotIn('Content-Length', response)
 
         # --------------------------------------------------------------------------------------------------------------
         # sende Anfrage zum exportieren eines Projektes mit einer rootfolderID die user2 gehört (als user1)
         response = util.documentPoster(self, command='exportzip', idpara=self._user2_project1.rootFolder.id)
-        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['NOTENOUGHRIGHTS'])
+
+        # überprüfe die Antwort des Servers
+        # sollte status code 404 liefern
+        self.assertEqual(response.status_code, 404)
+        # es sollte keine Datei mitgesendet worden sein
+        self.assertNotIn('Content-Disposition', response)
+        # Content-Type sollte text/html sein
+        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        # Content-Length sollte nicht vorhanden sein
+        self.assertNotIn('Content-Length', response)
 
 
     def test_inviteUser(self):
@@ -1186,7 +1206,7 @@ class ProjectTestClass(ViewTestCase):
         # sende Anfrage zum Einladen eines nicht registrierten Nutzers
         response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name="notregistered@latexweboffice.de")
         
-        not_registered_user = User.objects.create_user(username="notregistered@latexweboffice.de",
+        not_registered_user = User.objects.create_user(
                                                        email="notregistered@latexweboffice.de", password="123456",
                                                        first_name="None")
         # es sollte keine entsprechende Kollaboration mit Nutzer not_registered_user und Projekt user1_project1 in der Datenbank vorhanden sein
@@ -1645,3 +1665,11 @@ class ProjectTestClass(ViewTestCase):
         util.validateJsonSuccessResponse(self, response.content, {})
         self.assertFalse(Collaboration.objects.filter(pk=collaboration.id).exists())
         self.assertFalse(Project.objects.filter(author=self._user2, name=self._user1_project1.name).exists())
+
+
+        # Kollaboration ist bestätigt
+        collaboration2 = Collaboration.objects.create(user=self._user2, project=self._user1_project2, isConfirmed=True)
+        response = util.documentPoster(self, command='cancelcollaboration', idpara=self._user1_project2.id, name=self._user2.username)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(Collaboration.objects.filter(pk=collaboration2.id).exists())
+        self.assertFalse(Project.objects.filter(author=self._user2, name=self._user1_project2.name).exists())

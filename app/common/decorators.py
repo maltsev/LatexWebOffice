@@ -5,7 +5,7 @@
 
 * Creation Date : 16-12-2014
 
-* Last Modified : Di 16 Dez 2014 13:00:02 CET
+* Last Modified : Di 24 Feb 2015 15:49:14 CET
 
 * Author :  christian
 
@@ -19,6 +19,28 @@
 
 import time
 import os
+import sys
+
+def conditionally(dec, cond):
+    '''Einfacher Dekorator um einen angebenen Dekorator mit
+    einer condition zu verknüpfen. Der angebenene Dekorator
+    wird also nur benutzt, wenn cond=True ist.
+
+    :param dec angebener Dekorator
+    :param cond condition
+    '''
+    def resdec(f):
+        if not cond:
+            return f
+        return dec(f)
+    return resdec
+
+def decorator_autodisable(func):
+    return conditionally(func,'test' not in sys.argv)
+
+
+        
+
 
 
 def measure_time(function):

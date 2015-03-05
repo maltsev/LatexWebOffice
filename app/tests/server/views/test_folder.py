@@ -4,7 +4,7 @@
 
 * Creation Date : 26-11-2014
 
-* Last Modified : Tu 17 Feb 2015 21:32:00 CET
+* Last Modified : Wed 4 Mar 2015 20:04:40 CET
 
 * Author :  mattis
 
@@ -39,6 +39,7 @@ class FolderTestClass(ViewTestCase):
         self.setUpFolders()
         self.setUpFiles()
         self.setUpValues()
+        self.setUpCollaborations()
 
     def tearDown(self):
         """Freigabe von nicht mehr notwendigen Ressourcen.
@@ -62,6 +63,7 @@ class FolderTestClass(ViewTestCase):
         - user1 erstellt einen Unterordner in einem Projekt von user2 -> Fehler
         - user1 erstellt einen neuen Ordner mit einem Namen, der nur Leerzeichen enthält -> Fehler
         - user1 erstellt einen neuen Ordner mit einem Namen, der ein leerer String ist -> Fehler
+        - user1 erstellt einen neuen Ordner im rootFolder von user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -178,6 +180,26 @@ class FolderTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+
+
+        response = util.documentPoster(self, command='createdir', idpara=self._user2_sharedproject.rootFolder.id,
+                                       name=self._newname1)
+
+        folderobj = Folder.objects.get(name=self._newname1, parent=self._user2_sharedproject.rootFolder)
+        self.assertEqual(folderobj.getRoot().getProject(), self._user2_sharedproject)
+
+
+        serveranswer = {
+            'id': folderobj.id,
+            'name': folderobj.name,
+            'parentid': folderobj.parent.id,
+            'parentname': folderobj.parent.name
+        }
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+
+
+
     def test_rmDir(self):
         """Test der rmDir() Methode des folder view
 
@@ -188,6 +210,9 @@ class FolderTestClass(ViewTestCase):
         - user1 löscht Ordner mit einer folderID welche nicht existiert -> Fehler
         - user1 löscht rootFolder eines Projektes -> Fehler
         - user1 löscht Ordner eines Projektes welches user2 gehört -> Fehler
+        - user1 löscht einen Ordner aus user2_sharedproject -> Erfolg
+        - user1 löscht einen gesperrten (von user2) Ordner -> Fehler
+        - user1 löscht einen gesperrten (von sich selbst) Ordner -> Erfolg
 
         :return: None
         """
@@ -263,6 +288,29 @@ class FolderTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+
+        # user1 löscht einen Ordner aus user2_sharedproject
+        response = util.documentPoster(self, command='rmdir', idpara=self._user2_sharedproject_folder2.id)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(Folder.objects.filter(id=self._user2_sharedproject_folder2.id).exists())
+
+
+        # user1 löscht einen gesperrten (von user2) Ordner
+        self._user2_sharedproject_folder1_texfile.lock(self._user2)
+        response = util.documentPoster(self, command='rmdir', idpara=self._user2_sharedproject_folder1.id)
+        util.validateJsonFailureResponse(self, response.content, ERROR_MESSAGES['DIRLOCKED'])
+        self.assertTrue(Folder.objects.filter(id=self._user2_sharedproject_folder1.id).exists())
+
+
+        # user1 löscht einen gesperrten (von sich selbst) Ordner
+        self._user2_sharedproject_folder1_texfile.unlock()
+        self._user2_sharedproject_folder1_texfile.lock(self._user1)
+        response = util.documentPoster(self, command='rmdir', idpara=self._user2_sharedproject_folder1.id)
+        util.validateJsonSuccessResponse(self, response.content, {})
+        self.assertFalse(Folder.objects.filter(id=self._user2_sharedproject_folder1.id).exists())
+
+
+
     def test_renameDir(self):
         """Test der renameDir() Methode des folder view
 
@@ -275,6 +323,7 @@ class FolderTestClass(ViewTestCase):
         - user1 benennt einen Ordner um mit einem Namen der nur aus Leerzeichen besteht -> Fehler
         - user1 benennt einen Ordner um mit einem Namen der ein leerer String ist -> Fehler
         - user1 benennt einen Ordner um mit einem Namen der ungültige Zeichen enthält -> Fehler
+        - user1 benennt einen Ordner aus user2_sharedproject um -> Erfolg
 
         :return: None
         """
@@ -378,6 +427,20 @@ class FolderTestClass(ViewTestCase):
         # die Antwort des Servers sollte mit serveranswer übereinstimmen
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+
+        # user1 benennt einen Ordner aus user2_sharedproject um
+        response = util.documentPoster(self, command='renamedir', idpara=self._user2_sharedproject_folder1.id,
+                                       name=self._newname1)
+        self.assertEqual(Folder.objects.get(pk=self._user2_sharedproject_folder1.id).name, self._newname1)
+
+        serveranswer = {
+            'id': self._user2_sharedproject_folder1.id,
+            'name': self._newname1
+        }
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+
+
     def test_moveDir(self):
         """Test der moveDir() Methode des folder view
 
@@ -393,6 +456,7 @@ class FolderTestClass(ViewTestCase):
         - user1 verschiebt einen Ordner wobei im Zielordner bereits ein Ordner mit dem selben Namen existiert -> Fehler
           (dieser Test dient der Überprüfung, ob richtig erkannt wird, dass ein Ordner mit Umlauten im Namen
            bereits mit dem selben Ordner existiert, bsp. Übungs 01 -> übung 01 sollte einen Fehler liefern)
+        - user1 verschiebt einen Ordner in einen anderen Ordner aus user2_sharedproject -> Erfolg
 
         :return: None
         """
@@ -511,6 +575,20 @@ class FolderTestClass(ViewTestCase):
             # response sollte mit serveranswer übereinstimmen
             util.validateJsonFailureResponse(self, response.content, serveranswer)
 
+
+
+        response = util.documentPoster(self, command='movedir', idpara=self._user2_sharedproject_folder1.id,
+                                       idpara2=self._user2_sharedproject_folder2.id)
+        self.assertEqual(Folder.objects.get(pk=self._user2_sharedproject_folder1.id).parent, self._user2_sharedproject_folder2)
+
+        serveranswer = {'id': self._user2_sharedproject_folder1.id,
+                        'name': self._user2_sharedproject_folder1.name,
+                        'parentid': self._user2_sharedproject_folder2.id,
+                        'parentname': self._user2_sharedproject_folder2.name,
+                        'rootid': self._user2_sharedproject_folder1.root.id}
+        util.validateJsonSuccessResponse(self, response.content, serveranswer)
+
+
     def test_moveDir2(self):
         """Test2 der moveDir() Methode des folder view
 
@@ -574,13 +652,15 @@ class FolderTestClass(ViewTestCase):
         serveranswer = {
             'id': rootfolder.id,
             'name': rootfolder.name,
+            'project': rootfolder.getProject().name,
             'files': [
                 {'id': maintex.id,
                  'name': maintex.name,
                  'mimetype': maintex.mimeType,
                  'size': maintex.size,
                  'createTime': str(maintex.createTime),
-                 'lastModifiedTime': str(maintex.lastModifiedTime)}
+                 'lastModifiedTime': str(maintex.lastModifiedTime),
+                 'isAllowEdit': True}
             ],
             'folders': [{
                             'id': self._user2_project1_folder1.id,
@@ -617,20 +697,22 @@ class FolderTestClass(ViewTestCase):
         serveranswer = {
             'id': rootfolder.id,
             'name': rootfolder.name,
+            'project': rootfolder.getProject().name,
             'files': [
                 {'id': maintex.id,
                  'name': maintex.name,
                  'mimetype': maintex.mimeType,
                  'size': maintex.size,
                  'createTime': str(maintex.createTime),
-                 'lastModifiedTime': str(maintex.lastModifiedTime)
-                 },
+                 'lastModifiedTime': str(maintex.lastModifiedTime),
+                 'isAllowEdit': True},
                 {'id': self._user1_tex2.id,
                  'name': self._user1_tex2.name,
                  'mimetype': self._user1_tex2.mimeType,
                  'size': self._user1_tex2.size,
                  'createTime': str(self._user1_tex2.createTime),
-                 'lastModifiedTime': str(self._user1_tex2.lastModifiedTime)}
+                 'lastModifiedTime': str(self._user1_tex2.lastModifiedTime),
+                 'isAllowEdit': True}
             ],
             'folders': [
                 {
@@ -643,13 +725,15 @@ class FolderTestClass(ViewTestCase):
                          'mimetype': self._user1_tex3.mimeType,
                          'size': self._user1_tex3.size,
                          'createTime': str(self._user1_tex3.createTime),
-                         'lastModifiedTime': str(self._user1_tex3.lastModifiedTime)},
+                         'lastModifiedTime': str(self._user1_tex3.lastModifiedTime),
+                         'isAllowEdit': True},
                         {'id': self._user1_tex4.id,
                          'name': self._user1_tex4.name,
                          'mimetype': self._user1_tex4.mimeType,
                          'size': self._user1_tex4.size,
                          'createTime': str(self._user1_tex4.createTime),
-                         'lastModifiedTime': str(self._user1_tex4.lastModifiedTime)}
+                         'lastModifiedTime': str(self._user1_tex4.lastModifiedTime),
+                         'isAllowEdit': True}
                     ]
                 },
                 {
@@ -664,19 +748,22 @@ class FolderTestClass(ViewTestCase):
                               'mimetype': self._user1_binary1.mimeType,
                               'size': self._user1_binary1.size,
                               'createTime': str(self._user1_binary1.createTime),
-                              'lastModifiedTime': str(self._user1_binary1.lastModifiedTime)},
+                              'lastModifiedTime': str(self._user1_binary1.lastModifiedTime),
+                              'isAllowEdit': True},
                              {'id': self._user1_binary2.id,
                               'name': self._user1_binary2.name,
                               'mimetype': self._user1_binary2.mimeType,
                               'size': self._user1_binary2.size,
                               'createTime': str(self._user1_binary2.createTime),
-                              'lastModifiedTime': str(self._user1_binary2.lastModifiedTime)},
+                              'lastModifiedTime': str(self._user1_binary2.lastModifiedTime),
+                              'isAllowEdit': True},
                              {'id': self._user1_binary3.id,
                               'name': self._user1_binary3.name,
                               'mimetype': self._user1_binary3.mimeType,
                               'size': self._user1_binary3.size,
                               'createTime': str(self._user1_binary3.createTime),
-                              'lastModifiedTime': str(self._user1_binary3.lastModifiedTime)}
+                              'lastModifiedTime': str(self._user1_binary3.lastModifiedTime),
+                              'isAllowEdit': True}
                          ],
                          'folders': []},
                     ],
@@ -722,18 +809,22 @@ class FolderTestClass(ViewTestCase):
 
         collaboration.isConfirmed = True
         collaboration.save()
-        response = util.documentPoster(self, command='listfiles', idpara=self._user2_project2.rootFolder.id)
 
         maintex = self._user2_project2.rootFolder.getMainTex()
+        maintex.lock(self._user2)
+
+        response = util.documentPoster(self, command='listfiles', idpara=self._user2_project2.rootFolder.id)
         serveranswer = {
             'id': self._user2_project2.rootFolder.id,
             'name': self._user2_project2.rootFolder.name,
+            'project': self._user2_project2.name,
             'files': [  {'id': maintex.id,
                          'name': maintex.name,
                          'mimetype': maintex.mimeType,
                          'size': maintex.size,
                          'createTime': str(maintex.createTime),
-                         'lastModifiedTime': str(maintex.lastModifiedTime)}],
+                         'lastModifiedTime': str(maintex.lastModifiedTime),
+                         'isAllowEdit': False}],
             'folders': []
         }
         self.maxDiff = None

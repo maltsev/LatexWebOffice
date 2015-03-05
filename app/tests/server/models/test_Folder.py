@@ -55,16 +55,6 @@ class FolderTestCase(ModelTestCase):
         self.assertEqual(len(rootFilesAndFolders), len(newRootFilesAndFolders))
 
 
-    def test_mainTexDelete(self):
-        root = Folder.objects.create(name='root')
-        self.assertTrue(isinstance(root.getMainTex(), TexFile))
-        root.getMainTex().delete()
-        self.assertIsNone(root.getMainTex())
-        root.name = 'root2'
-        root.save()
-        self.assertIsNone(root.getMainTex())
-
-
     def test_getRoot(self):
         self.assertEqual(self.root, self.root_dir1_dir1_dir1.getRoot())
         self.assertEqual(self.root, self.root.getRoot())
@@ -83,7 +73,7 @@ class FolderTestCase(ModelTestCase):
 
 
     def test_getFilesAndFoldersRecursively(self):
-        rootFilesAndFolders = [self.root_file1, self.root.getMainTex(), self.root_dir1, self.root_dir1_file1,
+        rootFilesAndFolders = [self.root_file1, self.root_dir1, self.root_dir1_file1,
                                self.root_dir2, self.root_dir1_dir1, self.root_dir1_dir1_dir1,
                                self.root_dir1_dir1_dir1_file1, self.root_dir1_dir1_dir1_file2]
         sortFunc = lambda obj: obj.name + str(obj.pk)
@@ -105,7 +95,7 @@ class FolderTestCase(ModelTestCase):
 
     def test_dumpFolder(self):
         filesAndFolders = [
-            ['main.tex'], ['root_file1'], ['root_dir1'], ['root_dir2'],
+            ['root_file1'], ['root_dir1'], ['root_dir2'],
             ['root_dir1', 'root_dir1_file1'], ['root_dir1', 'root_dir1_dir1'],
             ['root_dir1', 'root_dir1_dir1', 'root_dir1_dir1_dir1'],
             ['root_dir1', 'root_dir1_dir1', 'root_dir1_dir1_dir1', 'root_dir1_dir1_dir1_file1'],

@@ -4,7 +4,7 @@
 
 * Creation Date : 19-11-2014
 
-* Last Modified : Mo 15 Dez 2014 13:36:32 CET
+* Last Modified : Mo 23 Feb 2015 17:35:02 CET
 
 * Author :  christian
 
@@ -15,12 +15,13 @@
 * Backlog entry : TEK1, 3ED9, DOK8
 
 """
-import logging
 import json
 import mimetypes
 import os
+import logging
 
-from core import settings
+from datetime import datetime
+
 from django.http import HttpResponse, Http404
 from django.views.static import serve
 
@@ -32,7 +33,7 @@ from app.models.file.binaryfile import BinaryFile
 from app.models.file.pdf import PDF
 from app.common import util
 from app.common.compile import latexcompile
-from app.common.constants import ERROR_MESSAGES, STANDARDENCODING
+from app.common.constants import ERROR_MESSAGES
 
 
 def createTexFile(request, user, folderid, texname):
@@ -74,11 +75,31 @@ def updateFile(request, user, fileid, filecontenttostring):
     # lese die PlainTextFile Datei ein
     plaintextobj = PlainTextFile.objects.get(id=fileid)
 
+    isallowedit = not plaintextobj.isLocked() or plaintextobj.lockedBy() == user
+
+    # wenn die Datei vom aktuellen Benutzer nicht bearbeitet werden darf (gesperrt bzw. nicht selber gesperrt)
+    if not isallowedit:
+        # speichere den Inhalt als neue Datei mit dem aktuellen Datum als Suffix
+        newplaintextobj_name = plaintextobj.name + '_' + user.username + '_' \
+                               + util.datetimeToString(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+        if not PlainTextFile.objects.filter(name=newplaintextobj_name, folder=plaintextobj.folder).exists():
+
+            newplaintextobj = TexFile.objects.create(name=newplaintextobj_name, folder=plaintextobj.folder,
+                                                     source_code=filecontenttostring)
+            return util.jsonResponse({'id': newplaintextobj.id, 'name': newplaintextobj.name,
+                                      'lasteditor': plaintextobj.lasteditor.username if plaintextobj.lasteditor else ""},
+                                     True, request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['FILELOCKED'])
+
+    # sonst sperre die Datei
+    plaintextobj.lock(user)
+
     # versuche den source code in der Datenbank durch den übergebenen String zu ersetzen
     try:
         plaintextobj.source_code = filecontenttostring
+        plaintextobj.lasteditor = user
         plaintextobj.save()
-        return util.jsonResponse({}, True, request)
+        return util.jsonResponse({'id': plaintextobj.id, 'name': plaintextobj.name}, True, request)
     except:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
 
@@ -206,7 +227,6 @@ def downloadFile(request, user, fileid):
     :param fileid: Id der Datei welcher heruntergeladen werden soll
     :return: filestream (404 im Fehlerfall)
     """
-
     # setze das logging level auf ERROR
     # da sonst Not Found: /document/ in der Console bei den Tests ausgegeben wird
     logger = logging.getLogger('django.request')
@@ -214,7 +234,7 @@ def downloadFile(request, user, fileid):
     logger.setLevel(logging.ERROR)
 
     # überprüfe ob der user auf die Datei zugreifen darf und diese auch existiert
-    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request)
+    rights, failurereturn = util.checkIfFileExistsAndUserHasRights(fileid, user, request, ['owner', 'collaborator'])
     if not rights:
         raise Http404
 
@@ -250,7 +270,7 @@ def downloadFile(request, user, fileid):
     _, encoding = mimetypes.guess_type(downloadfileobj.name)
 
     response['Content-Type'] = downloadfileobj.mimeType
-    response['Content-Length'] = downloadfileobj_size
+    response['Content-Length'] = len(response.content)
     if encoding is not None:
         response['Content-Encoding'] = encoding
 
@@ -260,6 +280,35 @@ def downloadFile(request, user, fileid):
 
     return response
 
+
+def getText(request, user, fileid):
+    """Liefert eine vom Client angeforderte Text Datei als JSON.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der Text Datei welcher heruntergeladen werden soll
+    :return: HttpResponse (JSON)
+    """
+
+    # hole das tex Datei Objekt
+    plaintextobj = PlainTextFile.objects.get(id=fileid)
+
+    isallowedit = not plaintextobj.isLocked() or plaintextobj.lockedBy() == user
+
+    if isallowedit:
+        plaintextobj.lock(user)
+
+    dictionary = {
+        'fileid': plaintextobj.id,
+        'filename': plaintextobj.name,
+        'rootid': plaintextobj.folder.getRoot().id,
+        'content': plaintextobj.source_code,
+        'lastmodifiedtime': util.datetimeToString(plaintextobj.lastModifiedTime),
+        'isallowedit': isallowedit,
+        'lasteditor': plaintextobj.lasteditor.username if plaintextobj.lasteditor else ""
+    }
+
+    return util.jsonResponse(dictionary, True, request)
 
 def fileInfo(request, user, fileid):
     """Liefert Informationen zur angeforderten Datei.
@@ -278,6 +327,8 @@ def fileInfo(request, user, fileid):
 
     # Sende die Datei-Informationen als JSON response
 
+    isallowedit = not fileobj.isLocked() or fileobj.lockedBy() == user
+
     # Sende die id und den Namen der Datei sowie des Ordners als JSON response
     dictionary = {'fileid': fileobj.id,
                   'filename': fileobj.name,
@@ -288,6 +339,8 @@ def fileInfo(request, user, fileid):
                   'createtime': util.datetimeToString(fileobj.createTime),
                   'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
                   'size': fileobj.size,
+                  'isallowedit': isallowedit,
+                  'lasteditor': fileobj.lasteditor.username if fileobj.lasteditor else "",
                   'mimetype': fileobj.mimeType,
                   'ownerid': projectobj.author.id,
                   'ownername': projectobj.author.username
@@ -296,17 +349,17 @@ def fileInfo(request, user, fileid):
     return util.jsonResponse(dictionary, True, request)
 
 
-def latexCompile(request, user, fileid, targetformat=0):
+def latexCompile(request, user, fileid, formatid, compilerid, forcecompile):
     """Kompiliert eine LaTeX Datei.
 
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
     :param fileid: Id der tex Datei welche kompiliert werden soll
-    :param targetformat 0 - PDF, 1 - HTML
+    :param formatid 0 - PDF, 1 - HTML
     :return: HttpResponse (JSON)
     """
 
-    errors, success = latexcompile(fileid, targetformat)
+    errors, success = latexcompile(fileid, formatid=formatid, compilerid=compilerid, forcecompile=forcecompile)
     if errors:
         if success:
             ret = success
@@ -360,3 +413,37 @@ def getLog(request, user, fileid):
         log = ERROR_MESSAGES['NOLOGFILE']
 
     return util.jsonResponse({'log': log}, True, request)
+
+
+def lockFile(request, user, fileid):
+    """Sperrt die Datei.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der Datei welche gesperrt werden soll
+    :return: HttpResponse (JSON)
+    """
+
+    file = File.objects.get(pk=fileid)
+    if file.isLocked() and file.lockedBy() != user:
+        return util.jsonErrorResponse(ERROR_MESSAGES['FILELOCKED'], request)
+
+    file.lock(user)
+    return util.jsonResponse({}, True, request)
+
+
+def unlockFile(request, user, fileid):
+    """Entsperrt die Datei.
+
+    :param request: Anfrage des Clients, wird unverändert zurückgesendet
+    :param user: User Objekt (eingeloggter Benutzer)
+    :param fileid: Id der Datei welche entsperrt werden soll
+    :return: HttpResponse (JSON)
+    """
+
+    file = File.objects.get(pk=fileid)
+    if file.isLocked() and file.lockedBy() != user:
+        return util.jsonErrorResponse(ERROR_MESSAGES['UNLOCKERROR'], request)
+
+    file.unlock()
+    return util.jsonResponse({}, True, request)

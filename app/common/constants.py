@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fr 20 Feb 2015 02:11:00 CET
+* Last Modified : Fr 27 Feb 2015 23:18:37 CET
 
 * Author :  christian
 
@@ -45,6 +45,9 @@ ERROR_MESSAGES = {
     'FILENAMEEXISTS': 'Diese Datei existiert schon',
     'DIRECTORYNOTEXIST': 'Dieses Verzeichnis existiert nicht',
     'FILENOTEXIST': 'Diese Datei existiert nicht',
+    'FILELOCKED': 'Die Datei ist von anderem Nutzer gesperrt',
+    'UNLOCKERROR': 'Die Datei konnte nicht entsperrt werden',
+    'DIRLOCKED': 'Das Verzeichnis ist von anderem Nutzer gesperrt',
     'UNKOWNERROR': 'Unbekannter Fehler',
     'BLANKNAME': 'Leere Namen sind nicht erlaubt',
     'DATABASEERROR': 'Datenbankfehler',
@@ -67,7 +70,9 @@ ERROR_MESSAGES = {
     'USERALREADYINVITED': 'Dieses Projekt ist für den Nutzer {0} bereits freigegeben.',
     'USERNOTFOUND': 'Ein Nutzer {0} konnte nicht gefunden werden.',
     'COLLABORATIONNOTFOUND': 'Die Kollaboration konnte nicht gefunden werden.',
-    'SELFCOLLABORATIONCANCEL': 'Der Nutzer darf nicht der Kollaboration an seinem Projekt kündigen.'
+    'SELFCOLLABORATIONCANCEL': 'Der Nutzer darf nicht der Kollaboration an seinem Projekt kündigen.',
+    'EMAILPWRECOVERSEND': 'Eine Email mit Anweisungen um ein neues Passwort zu erhalten wurde an {0} versendet',
+    'PASSWORDCHANGED': 'Ihr Passwort wurde erfolgreich geändert. Sie können sich nun in das System einloggen',
 }
 
 ALLOWEDMIMETYPES = {

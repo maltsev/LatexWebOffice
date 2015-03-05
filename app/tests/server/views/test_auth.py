@@ -4,7 +4,7 @@
 
 * Creation Date : 06-11-2014
 
-* Last Modified : Mi 14 Jan 2015 11:32:38 CET
+* Last Modified : Sa 28 Feb 2015 00:36:55 CET
 
 * Author : mattis
 
@@ -16,7 +16,9 @@
 
 
 from django.test import TestCase,Client
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 from app.common.constants import ERROR_MESSAGES
 from django.contrib.auth import login, authenticate
 
@@ -32,7 +34,7 @@ class AuthLoginTestClass(TestCase):
     def setUp(self):
         # create active user1
         user1 = User.objects.create_user(
-            username='user1@test.de', password='123456')
+            'user1@test.de', password='123456')
         user1._unhashedpw = '123456'
         self._user1 = user1
 
@@ -50,25 +52,25 @@ class AuthLoginTestClass(TestCase):
     # Test if a user is not logged in with an incorrect password -> user1
     def test_loginFailIncorrectPassword(self):
         response = self._client.post(
-            '/login/', {'email': self._user1.username, 'password': 'wrong'})
+                '/login/', {'email': self._user1.username, 'password': 'wrong','action':'login'})
         self.assertNotIn('_auth_user_id', self._client.session)
 
     # Test if an user receives a failure message on incorrect login -> user1
     def test_loginFailIncorrectUsername(self):
         response = self._client.post(
-            '/login/', {'email': 'wrongusername', 'password': self._user1._unhashedpw})
+            '/login/', {'email': 'wrongusername', 'password': self._user1._unhashedpw,'action':'login'})
         self.assertContains(response, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
 
     # Test if a user can't login when he is set inactive -> user2
     def test_loginFailInactiveUser(self):
         response = self._client.post(
-            '/login/', {'email': self._user2.username, 'password': self._user2._unhashedpw})
+            '/login/', {'email': self._user2.username, 'password': self._user2._unhashedpw,'action':'login'})
         self.assertContains(response, ERROR_MESSAGES['INACTIVEACCOUNT'].format(self._user2.username))
 
     # Test if a user is logged in with an correct password -> user1
     def test_loginSuccess(self):
         response = self._client.post(
-            '/login/', {'email': self._user1.username, 'password':self._user1._unhashedpw})
+            '/login/', {'email': self._user1.username, 'password':self._user1._unhashedpw,'action':'login'})
         self.assertIn('_auth_user_id', self._client.session)
 
     #Test that if an already logged in user tries to login, a redirect to the start page will be done
@@ -134,7 +136,7 @@ class AuthRegistrationTestClass(TestCase):
 
         # create active user7
         user7 = User.objects.create_user(
-            username='user7@test.de', password='123456')
+            'user7@test.de', password='123456')
         user7._unhashedpw = '123456'
         self._user7 = user7
 
@@ -162,7 +164,7 @@ class AuthRegistrationTestClass(TestCase):
     def test_registrationFailAlreadyRegistered(self):
         # create user1 separately again, because user1 from first registrationSuccess
         # doesn't exist here in our database
-        new_user = User.objects.create_user(username=self._user1_email,
+        new_user = User.objects.create_user(
                                                email=self._user1_email, password=self._user1_password1,
                                                first_name=self._user1_first_name)
         response = self._client.post(
@@ -202,7 +204,7 @@ class AuthRegistrationTestClass(TestCase):
     # Test that you will be directed to the startseite when trying to register while being already logged in
 
     def test_registrationRedirectWhenLoggedIn(self):
-        new_user = User.objects.create_user(username=self._user1_email,
+        new_user = User.objects.create_user(
                                                email=self._user1_email, password=self._user1_password1,
                                                first_name=self._user1_first_name)
         self._client.login(username=self._user1_email,password=self._user1_password1)

@@ -5,7 +5,7 @@
 
 * Creation Date : 23-11-2014
 
-* Last Modified : Fr 20 Feb 2015 02:11:00 CET
+* Last Modified : Wed 4 Mar 2015 20:04:40 CET
 
 * Author :  christian
 
@@ -102,7 +102,7 @@ def projectToJson(project):
                 rootid=project.rootFolder.id)
 
 
-def checkIfDirExistsAndUserHasRights(folderid, user, request, requirerights):
+def checkIfDirExistsAndUserHasRights(folderid, user, request, requirerights, lockcheck=False):
     """Überprüft, ob der Ordner mit der folderid existiert, und der User die Rechte hat diesen zu bearbeiten.
 
     :param folderid: Id des Ordners, für welchen die Überprüfung durchgeführt werden soll
@@ -118,45 +118,54 @@ def checkIfDirExistsAndUserHasRights(folderid, user, request, requirerights):
     except ObjectDoesNotExist:
         return False, jsonErrorResponse(ERROR_MESSAGES['DIRECTORYNOTEXIST'], request)
 
-    if 'collaborator' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=True).exists():
-        return True, None
-    elif 'invitee' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=False).exists():
-        return True, None
-    elif 'owner' in requirerights and project.author != user:
+    if not isAllowedAccessToProject(project, user, requirerights):
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
-    else:
-        return True, None
+
+    if lockcheck:
+        for file in folder.getFilesAndFoldersRecursively():
+            if isinstance(file, File) and file.isLocked() and file.lockedBy() != user:
+                return False, jsonErrorResponse(ERROR_MESSAGES['DIRLOCKED'], request)
+
+    return True, None
 
 
-def checkIfFileExistsAndUserHasRights(fileid, user, request, objecttype=File):
+
+def checkIfFileExistsAndUserHasRights(fileid, user, request, requirerights, lockcheck=False, objecttype=File):
     """Überprüft, ob die Datei mit der fileid existiert, und der User die Rechte hat diese zu bearbeiten.
 
     :param fileid: Id der Datei, für welche die Überprüfung durchgeführt werden soll
     :param user: Benutzer, für den die Überprüfung durchgeführt werden soll
     :param request: Anfrage des Clients, wird unverändert zurückgeschickt
+    :param requirerights: Erforderte Rechte (z. B ['owner', 'collaborator'] — user soll der Autor ODER der Kollaborator von der Datei sein)
     :param objecttype: Datei Objekt, für welches die Überprüfung durchgeführt werden soll, z.B. File oder TexFile
     :return: (False, HttpResponse (JSON) mit der entsprechenden Fehlermeldung), bzw. (True, None) bei Erfolg
     """
 
-    # wenn die Datei mit der fileid vom Typ objecttype nicht existiert
-    if not objecttype.objects.filter(id=fileid).exists():
+    try:
+        file = objecttype.objects.get(pk=fileid)
+        project = file.folder.getRoot().getProject()
+    except ObjectDoesNotExist:
         error = ERROR_MESSAGES['FILENOTEXIST']
-
-        file_exists = File.objects.filter(id=fileid).exists()
+        if not File.objects.filter(id=fileid).exists():
+            return False, jsonErrorResponse(error, request)
 
         # wenn es eine Tex Datei sein soll, es sich aber um einen anderen Dateityp handelt
-        if objecttype == TexFile and file_exists:
+        if objecttype == TexFile:
             error = ERROR_MESSAGES['NOTEXFILE']
-        elif objecttype == PlainTextFile and file_exists:
+        elif objecttype == PlainTextFile:
             error = ERROR_MESSAGES['NOPLAINTEXTFILE']
-        elif objecttype == PDF and file_exists:
+        elif objecttype == PDF:
             error = ERROR_MESSAGES['NOPDFFILE']
 
         return False, jsonErrorResponse(error, request)
-    elif not objecttype.objects.get(id=fileid).folder.getRoot().getProject().author == user:
+
+    if not isAllowedAccessToProject(project, user, requirerights):
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
+    elif lockcheck and file.isLocked() and file.lockedBy() != user:
+        return False, jsonErrorResponse(ERROR_MESSAGES['FILELOCKED'], request)
     else:
         return True, None
+
 
 
 def checkIfProjectExistsAndUserHasRights(projectid, user, request, requirerights):
@@ -174,14 +183,10 @@ def checkIfProjectExistsAndUserHasRights(projectid, user, request, requirerights
     except ObjectDoesNotExist:
         return False, jsonErrorResponse(ERROR_MESSAGES['PROJECTNOTEXIST'], request)
 
-    if 'collaborator' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=True).exists():
+    if isAllowedAccessToProject(project, user, requirerights):
         return True, None
-    elif 'invitee' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=False).exists():
-        return True, None
-    elif 'owner' in requirerights and project.author != user:
-        return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
     else:
-        return True, None
+        return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
 
 
 def checkIfTemplateExistsAndUserHasRights(templateid, user, request):
@@ -261,20 +266,22 @@ def checkFileForInvalidString(name, request):
     return checkObjectForInvalidString(file_name, request)
 
 
-def getFolderAndFileStructureAsDict(folderobj):
+def getFolderAndFileStructureAsDict(folderobj, user):
     """Liefert die Ordner- und Dateistruktur eines gegebenen Ordner Objektes als Dictionary.
 
     :param folderobj: Ordner Objekt, für den die gesamte Unterordner- und Dateistruktur geliefert werden soll
+    :param user: User Objekt (eingeloggter Benutzer)
     :return: dict
     """
 
-    return _getFoldersAndFilesJson(folderobj, data={})
+    return _getFoldersAndFilesJson(folderobj, user, data={'project': folderobj.getProject().name})
 
 
-def _getFoldersAndFilesJson(folderobj, data={}):
+def _getFoldersAndFilesJson(folderobj, user, data={}):
     """Hilfsmethode zur rekursiven Bestimmung der Ordner- und Dateistruktur eines gegebenen Ordner Objektes.
 
     :param folderobj: Ordner Objekt, für den die gesamte Unterordner- und Dateistruktur geliefert werden soll
+    :param user: User Objekt (eingeloggter Benutzer)
     :param data: Dictionary, in welchem die angeforderte Struktur gespeichert wird
     :return: dict
     """
@@ -292,8 +299,9 @@ def _getFoldersAndFilesJson(folderobj, data={}):
     # durchlaufe alle Dateien im aktuellen Ordner Objekt (folderobj)
     for f in files:
         if not '<log>' in f.name:
+            isAllowEdit = not f.isLocked() or f.lockedBy() == user
             filelist.append({'id': f.id, 'name': f.name, 'mimetype': f.mimeType, 'size': f.size,
-                            'createTime': str(f.createTime), 'lastModifiedTime': str(f.lastModifiedTime)})
+                            'createTime': str(f.createTime), 'lastModifiedTime': str(f.lastModifiedTime), 'isAllowEdit': isAllowEdit})
 
     # hole alle Unterordner Objekte des aktuelle Ordner Objektes (folderobj)
     folders = Folder.objects.filter(parent=folderobj)
@@ -301,7 +309,7 @@ def _getFoldersAndFilesJson(folderobj, data={}):
     # durchlaufe alle Unterordner im aktuellen Ordner Objekt
     for f in folders:
         # rufe diese Methode rekursiv mit dem Unterordner auf, und füge die Daten dem Dictionary hinzu
-        folderlist.append(_getFoldersAndFilesJson(f, data={}))
+        folderlist.append(_getFoldersAndFilesJson(f, user, data={}))
 
     return data
 
@@ -350,7 +358,7 @@ def getNextValidProjectName(user,name):
     queryProjects = Project.objects.filter(author=user, name__istartswith=name)
     
     # wenn noch kein Projekt mit dem Namen name existiert, ...
-    if not queryProjects.exists() :
+    if not queryProjects.filter(name__iexact=name).exists() :
         # ... wird der übergebene Name name unverändert zurückgegeben
         return name
     # wenn bereits ein Projekt mit dem Namen name existiert, ...
@@ -359,11 +367,11 @@ def getNextValidProjectName(user,name):
         # ... wird über die natürlichen Zahlen (ab festgelegtem Startwert) iteriert
         n = DUPLICATE_INIT_SUFFIX_NUM
         while True :
-            # wenn noch kein Projekt mit dem Namen name+' [n]' existiert, ...
+            # wenn noch kein Projekt mit dem Namen name+' (n)' existiert, ...
             if not queryProjects.filter(name__iexact=DUPLICATE_NAMING_REGEX.format(name,n)).exists() :
                 # ... wird dieser zurückgegeben
                 return DUPLICATE_NAMING_REGEX.format(name,n)
-            # wenn bereits ein Projekt mit dem Namen name+' [n]' existiert, ...
+            # wenn bereits ein Projekt mit dem Namen name+' (n)' existiert, ...
             else :
                 # ... wird mit der nächsten Zahl fortgefahren
                 n += 1
@@ -386,7 +394,7 @@ def getNextValidTemplateName(user,name):
     queryTemplates = ProjectTemplate.objects.filter(author=user, name__istartswith=name)
     
     # wenn noch keine Vorlage mit dem Namen name existiert, ...
-    if not queryTemplates.exists() :
+    if not queryTemplates.filter(name__iexact=name).exists() :
         # ... wird der übergebene Name name unverändert zurückgegeben
         return name
     # wenn bereits eine Vorlage mit dem Namen name existiert, ...
@@ -395,11 +403,11 @@ def getNextValidTemplateName(user,name):
         # ... wird über die natürlichen Zahlen (ab festgelegtem Startwert) iteriert
         n = DUPLICATE_INIT_SUFFIX_NUM
         while True :
-            # wenn noch keine Vorlage mit dem Namen name+' [n]' existiert, ...
+            # wenn noch keine Vorlage mit dem Namen name+' (n)' existiert, ...
             if not queryTemplates.filter(name__iexact=DUPLICATE_NAMING_REGEX.format(name,n)).exists() :
                 # ... wird dieser zurückgegeben
                 return DUPLICATE_NAMING_REGEX.format(name,n)
-            # wenn bereits eine Vorlage mit dem Namen name+' [n]' existiert, ...
+            # wenn bereits eine Vorlage mit dem Namen name+' (n)' existiert, ...
             else :
                 # ... wird mit der nächsten Zahl fortgefahren
                 n += 1
@@ -429,7 +437,7 @@ def uploadFile(f, folder, request, fromZip=False):
     # und ob sie eine Dateiendung besitzen
     illegalstring, failurereturn = checkFileForInvalidString(name, request)
     if not illegalstring:
-        return False, failurereturn
+        return False, ERROR_MESSAGES['INVALIDNAME']
 
     # wenn die Datei leer ist (python-magic liefert hier 'application/x-empty'),
     # bestimme den Mimetype über die Dateiendung
@@ -459,9 +467,20 @@ def uploadFile(f, folder, request, fromZip=False):
                 return False, ERROR_MESSAGES['DATABASEERROR']
     # wenn der Mimetype eine erlaubte Plaintext Datei ist
     elif mime in ALLOWEDMIMETYPES['plaintext']:
+        encoding = 'utf-8'
         try:
-            file = ALLOWEDMIMETYPES['plaintext'][mime].objects.create(name=name, source_code=f.read().decode('utf-8'),
+            import magic
+            plaintextfile = f.read()
+            m = magic.Magic(mime_encoding=True)
+            encoding = m.from_buffer(plaintextfile).decode(encoding='utf-8')
+            f.seek(0)
+        except:
+            pass
+
+        try:
+            file = ALLOWEDMIMETYPES['plaintext'][mime].objects.create(name=name, source_code=f.read().decode(encoding),
                                                                       folder=folder, mimeType=mime)
+
             file.save()
         except:
             return False, ERROR_MESSAGES['DATABASEERROR']
@@ -647,8 +666,8 @@ def validateJsonSuccessResponse(self, responsecontent, response):
     return _validateServerJsonResponse(self, responsecontent, SUCCESS, response)
 
 
-def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, idpara3=None, content=None, name=None,
-                   files=None):
+def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, idpara3=None, idpara4=None, idpara5=None,
+                   content=None, name=None, files=None):
     """Hilfsmethode um leichter die verschiedenen commands des document views durchzutesten.
 
     :param command: Befehl der ausgeführt werden soll
@@ -669,6 +688,10 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, idpara3
         dictionary['folderid'] = idpara2
     if idpara3 != None:
         dictionary['formatid'] = idpara3
+    if idpara4 != None:
+        dictionary['compilerid'] = idpara4
+    if idpara5 != None:
+        dictionary['forcecompile'] = idpara5
     if content != None:
         dictionary['content'] = content
     if name != None:
@@ -681,3 +704,22 @@ def documentPoster(self, command='NoCommand', idpara=None, idpara2=None, idpara3
 
 def isSQLiteDatabse():
     return 'sqlite3' in settings.DATABASES['default']['ENGINE']
+
+
+def isAllowedAccessToProject(project, user, requirerights):
+    """Überprüft, ob der Benutzer mit requirerights darf das Projekt bearbeiten.
+
+    :param project: das Projekt, für welches die Überprüfung durchgeführt werden soll
+    :param user: Benutzer, für den die Überprüfung durchgeführt werden soll
+    :param requirerights: Rechte des Benutzers
+    :return: True or False
+    """
+
+    if 'collaborator' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=True).exists():
+        return True
+    elif 'invitee' in requirerights and Collaboration.objects.filter(user=user, project=project, isConfirmed=False).exists():
+        return True
+    elif 'owner' in requirerights and project.author == user:
+        return True
+    else:
+        return False
