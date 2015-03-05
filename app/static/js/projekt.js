@@ -1156,9 +1156,12 @@ $(function() {
 		$('.projecttoolbar-converttotemplate').prop("disabled", !flag_remain);
 		$('.projecttoolbar-export').prop("disabled", !flag_remain);
 		$('.projecttoolbar-import').prop("disabled", !flag_basic);
+
 		$('.projecttoolbar-collabo').prop("disabled", !flag_remain);
-		$('.projecttoolbar-share').prop("disabled", !flag_owner);
-		$('.projecttoolbar-quitCollaboration').prop("disabled", !flag_remain || flag_owner);
+
+		// .projecttoolbar-share ist kein <button>, deshalb funktioniert prop("disabled") nicht
+		$('.projecttoolbar-share').attr("disabled", !flag_owner);
+		$('.projecttoolbar-quitCollaboration').attr("disabled", !flag_remain || flag_owner);
 		
 		/*
 		 * Aktualisiert die 'Freigabe entziehen'-Menü-Schaltfläche
@@ -1170,12 +1173,13 @@ $(function() {
 					'id':selectedNodeIDProjects
 				},
 				function(result,data) {
-					if(result)
-						$('.projecttoolbar-deny').prop("disabled", !data.response);
+					if(result) {
+						$('.projecttoolbar-deny').attr("disabled", !data.response);
+                    }
 				});
 		}
 		else
-			$('.projecttoolbar-deny').prop("disabled", true);
+			$('.projecttoolbar-deny').attr("disabled", true);
 		
 		$('.templatestoolbar-use').prop("disabled", !flag_remain);
 	}
