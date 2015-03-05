@@ -377,7 +377,7 @@ $(function () {
 			
 			var selectedNode = $("#"+prevSelectedNodeID);
 			if(selectedNode.hasClass("filesitem-file")) {
-				if($.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"])!=-1) {
+				if(selectedNode.data("file-mime") && selectedNode.data("file-mime").substr(0,4)=='text') {
 					// bei Doppelklick auf TEX-Datei zum Editor gehen
 					calculateFolderUntilRoot();
 					window.location.assign("/editor/#" + selectedNode.data("file-id"));
@@ -565,8 +565,8 @@ $(function () {
     	// ist ein Knoten ausgewählt?
     	if (node.length) {
     		// Text- oder TEX-Datei?
-    		if ($.inArray(node.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1)
-    		window.location.assign("/editor/#" + node.data("file-id"));
+    		if (selectedNodeObj.data("file-mime") && selectedNodeObj.data("file-mime").substr(0,4)=='text')
+    			window.location.assign("/editor/#" + node.data("file-id"));
     	}
     }
 	
@@ -976,7 +976,7 @@ $(function () {
 			selected = selectedNodeObj.length;
 			folder = selected && selectedNodeObj.hasClass("filesitem-folder");
 			file = selected && selectedNodeObj.hasClass("filesitem-file");
-			texFile = file && $.inArray(selectedNodeObj.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1;
+			texFile = selectedNodeObj.data("file-mime") && selectedNodeObj.data("file-mime").substr(0,4)=='text';
 		}
 		
 		// setzt die Aktivierungen der einzelnen Menü-Schaltflächen
