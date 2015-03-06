@@ -456,7 +456,7 @@ def activateCollaboration(request, user, projectid):
 
 
 def quitCollaboration(request, user, projectid):
-    """Kündigt der Kollaboration (bzw. Einladung) an einem Projekt (als Kollaborator)
+    """Kündigt der Kollaboration (bzw. Einladung) an einem Projekt (als Kollaborateur)
 
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
@@ -485,7 +485,7 @@ def cancelCollaboration(request, user, projectid, collaboratoremail):
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
     :param projectid: ID des Projektes, zu dessen der Freigabe entzieht werden soll
-    :param collaboratoremail: E-Mail-Adresse der Kollaborator
+    :param collaboratoremail: E-Mail-Adresse der Kollaborateur
     :return: HttpResponse (JSON)
     """
 
@@ -508,7 +508,7 @@ def cancelCollaboration(request, user, projectid, collaboratoremail):
     # ermittelt einen noch nicht verwendeten Projektnamen anhand des übergebenen Namens
     validname = util.getNextValidProjectName(collaborator,project.name+' ['+user.username+']')
     
-    # versucht ein Duplikat des Projektes für den Kollaborator in der Datenbank zu erstellen
+    # versucht ein Duplikat des Projektes für den Kollaborateur in der Datenbank zu erstellen
     try:
         Project.objects.cloneProject(project=project, name=validname, author=collaborator)
     except:

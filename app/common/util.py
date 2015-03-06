@@ -113,7 +113,7 @@ def checkIfDirExistsAndUserHasRights(folderid, user, request, requirerights, loc
     :param folderid: Id des Ordners, für welchen die Überprüfung durchgeführt werden soll
     :param user: Benutzer, für den die Überprüfung durchgeführt werden soll
     :param request: Anfrage des Clients, wird unverändert zurückgeschickt
-    :param requirerights: Erforderte Rechte (z. B ['owner', 'collaborator'] — user soll der Autor ODER der Kollaborator vom Projekt sein)
+    :param requirerights: Erforderte Rechte (z. B ['owner', 'collaborator'] — user soll der Autor ODER der Kollaborateur vom Projekt sein)
     :return: (False, HttpResponse (JSON) mit der entsprechenden Fehlermeldung), bzw. (True, None) bei Erfolg
     """
 
@@ -141,7 +141,7 @@ def checkIfFileExistsAndUserHasRights(fileid, user, request, requirerights, lock
     :param fileid: Id der Datei, für welche die Überprüfung durchgeführt werden soll
     :param user: Benutzer, für den die Überprüfung durchgeführt werden soll
     :param request: Anfrage des Clients, wird unverändert zurückgeschickt
-    :param requirerights: Erforderte Rechte (z. B ['owner', 'collaborator'] — user soll der Autor ODER der Kollaborator von der Datei sein)
+    :param requirerights: Erforderte Rechte (z. B ['owner', 'collaborator'] — user soll der Autor ODER der Kollaborateur von der Datei sein)
     :param objecttype: Datei Objekt, für welches die Überprüfung durchgeführt werden soll, z.B. File oder TexFile
     :return: (False, HttpResponse (JSON) mit der entsprechenden Fehlermeldung), bzw. (True, None) bei Erfolg
     """
@@ -179,7 +179,7 @@ def checkIfProjectExistsAndUserHasRights(projectid, user, request, requirerights
     :param projectid: Id des Projektes, für welches die Überprüfung durchgeführt werden soll
     :param user: Benutzer, für den die Überprüfung durchgeführt werden soll
     :param request: Anfrage des Clients, wird unverändert zurückgeschickt
-    :param requirerights: Erforderte Rechte (z. B ['owner', 'collaborator'] — user soll der Autor ODER der Kollaborator vom Projekt sein)
+    :param requirerights: Erforderte Rechte (z. B ['owner', 'collaborator'] — user soll der Autor ODER der Kollaborateur vom Projekt sein)
     :return: (False, HttpResponse (JSON) mit der entsprechenden Fehlermeldung), bzw. (True, None) bei Erfolg
     """
 

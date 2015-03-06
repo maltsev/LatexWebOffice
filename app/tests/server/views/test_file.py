@@ -207,7 +207,7 @@ class FileTestClass(ViewTestCase):
         util.validateJsonFailureResponse(self, response.content, serveranswer)
 
 
-        # user1 ist ein Kollaborator von self._user2_sharedproject
+        # user1 ist ein Kollaborateur von self._user2_sharedproject
         response = util.documentPoster(self, command='createtex', idpara=self._user2_sharedproject.rootFolder.id,
                                        name=self._newtex_name1)
 
