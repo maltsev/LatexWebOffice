@@ -55,6 +55,9 @@ ul.nav li button {
 .btn-group {
     border: 0;
 }
+.btn:focus {
+  outline: none;
+}
 #editormenu {
     height: 56px;
     width: 56px;

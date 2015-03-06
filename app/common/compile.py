@@ -57,12 +57,13 @@ def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
     # tex-File der übergebenen ID
     texobj = TexFile.objects.get(id=texid)
 
-    if forcecompile != '1' and formatid == '0':
+    # wenn die tex datei zuvor ohne Fehler kompiliert wurde, forcecompile nicht gesetzt ist und das Format PDF ist
+    if texobj.lastcompilestatus == 0 and forcecompile != '1' and formatid == '0':
+        # liefere die id und den Namen der PDF Datei, falls vorhanden
         pdfobj = PDF.objects.filter(name=texobj.name[:-3] + 'pdf', folder=texobj.folder)
 
         if pdfobj.exists():
-            if pdfobj[0].createTime > texobj.lastModifiedTime:
-                return None, {'id': pdfobj[0].id, 'name': pdfobj[0].name}
+            return None, {'id': pdfobj[0].id, 'name': pdfobj[0].name}
 
     # Pfad des root-Verzeichnisses
     # es werden alle Dateien und Ordner des Projektes in einen temporären Ordner kopiert
@@ -210,6 +211,21 @@ def latexmk(args, console_output):
 
     if file_src.exists():
         file_data = {'id': file_src[0].id, 'name': file_src[0].name}
+
+    # status der vorherigen Kompilierung
+    oldstatus = args['texobj'].lastcompilestatus
+
+    # setze den entsprechenden lastcompilestatus
+    # 0 - keine Fehler
+    # 1 - Fehler bei der Kompilierung
+    if rc != 0:
+        args['texobj'].lastcompilestatus = 1
+    else:
+        args['texobj'].lastcompilestatus = 0
+
+    # speichere den status nur, wenn er sich geändert hat
+    if oldstatus != args['texobj'].lastcompilestatus:
+        args['texobj'].save()
 
     # wenn die Ziel-Datei erzeugt werden konnte
     if os.path.isfile(file_path):

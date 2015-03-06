@@ -14,6 +14,7 @@
 * Backlog entry :
 
 """
+from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
@@ -22,6 +23,7 @@ from app.models.file import plaintextfile
 
 class TexFile(plaintextfile.PlainTextFile):
     objects = plaintextfile.PlainTextFileManager()
+    lastcompilestatus = models.PositiveIntegerField(default=0)
 
 
 @receiver(pre_save, sender=TexFile)
