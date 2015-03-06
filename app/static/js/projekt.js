@@ -76,7 +76,8 @@ $(function() {
     });
 	$('.modal_share_confirm').on("click", function(e) {
 		// Aktion nach Klicken des Share Buttons
-		sendProjectInvitation(selectedNodeIDProjects,$('#modal_shareuser_tf').val());
+		sendProjectInvitation(selectedNodeIDProjects, $('#modal_shareuser_tf').val());
+        $('#modal_shareuser_tf').val("");
 	});
 	$('.modal_deny_confirm').on("click", function(e) {
 		// Aktion nach Klicken des deny Buttons
@@ -276,7 +277,6 @@ $(function() {
 	// 'Freigabe entziehen'-Schaltfläche
 	$('.projecttoolbar-deny').on("click", function() {
 		showInvitedUser();
-		
 	});
 	
 	// 'Einladung akzeptieren'-Schaltfläche
@@ -844,10 +844,9 @@ $(function() {
 			}, function(result,data) {
 				if(result) {
 					showAlertDialog("Projekt freigeben","Der Nutzer wurde zur Kollaboration Ihres Projektes eingeladen.");
-					$('.projecttoolbar-deny').prop("disabled", false);
-	
-				}
-				else {
+					$('.projecttoolbar-deny').toggleClass("disabled", false);
+	                refreshProjects();
+				} else {
 					showAlertDialog("Projekt freigeben",data.response);
 				}
 		});
@@ -865,9 +864,9 @@ $(function() {
 				'id':projectId
 			}, function(result,data) {
 				if(result) {
-					showAlertDialog("Freigabe entziehen","Sie haben den ausgewählten Benutzern erfolgreich die Projektfreigabe entzogen.")
-				}
-				else {
+					showAlertDialog("Freigabe entziehen","Sie haben den ausgewählten Benutzern erfolgreich die Projektfreigabe entzogen.");
+					refreshProjects();
+				} else {
 					showAlertDialog("Freigabe entziehen",data.response);
 				}
 				updateMenuButtonsProject();
@@ -886,8 +885,7 @@ $(function() {
 				if(result) {
 					refreshProjects();
 					showAlertDialog("Kollaboration beenden","Sie haben die Kollaboration beendet.");
-				}
-				else {
+				} else {
 					showAlertDialog("Kollaboration beenden",data.response);
 				}
 		});
@@ -1156,26 +1154,31 @@ $(function() {
 		$('.projecttoolbar-converttotemplate').prop("disabled", !flag_remain);
 		$('.projecttoolbar-export').prop("disabled", !flag_remain);
 		$('.projecttoolbar-import').prop("disabled", !flag_basic);
+
 		$('.projecttoolbar-collabo').prop("disabled", !flag_remain);
-		$('.projecttoolbar-share').prop("disabled", !flag_owner);
-		$('.projecttoolbar-quitCollaboration').prop("disabled", !flag_remain || flag_owner);
+
+		// .projecttoolbar-share ist kein <button>, deshalb funktioniert prop("disabled") nicht
+		$('.projecttoolbar-share').toggleClass("disabled", !flag_owner);
+		$('.projecttoolbar-quitCollaboration').toggleClass("disabled", !flag_remain || flag_owner);
 		
 		/*
 		 * Aktualisiert die 'Freigabe entziehen'-Menü-Schaltfläche
 		 * in Abhängigkeit dessen, ob für das selektierte Projekt eingeladene Nutzer vorliegen
 		 */
+
 		if(isProjectsPage && !editMode && flag_owner) {
 			documentsJsonRequest({
 					'command': 'hasinvitedusers',
 					'id':selectedNodeIDProjects
 				},
 				function(result,data) {
-					if(result)
-						$('.projecttoolbar-deny').prop("disabled", !data.response);
+					if(result) {
+						$('.projecttoolbar-deny').toggleClass("disabled", !data.response);
+                    }
 				});
-		}
-		else
-			$('.projecttoolbar-deny').prop("disabled", true);
+		} else {
+			$('.projecttoolbar-deny').toggleClass("disabled", true);
+        }
 		
 		$('.templatestoolbar-use').prop("disabled", !flag_remain);
 	}

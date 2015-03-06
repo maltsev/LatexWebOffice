@@ -13,6 +13,7 @@ var id;
 // 2 - xelatex
 var compilerid = 0;
 
+// Id des Root Ordners
 var rootid = -1;
 
 /// Editor
@@ -22,10 +23,16 @@ var editor;
 var changesSaved = true;
 
 // wurde der Compiler gewechselt?
-var compilerChanged = false;
+var forcecompile = 0;
 
+var lasterrormsg = '';
+
+var msgtimer;
+
+// ist die Datei zum Bearbeiten gesperrt
 var file_locked = false;
 
+// Dateiname
 var file_name = '';
 
 // Timer zur automatischen Speicherung
@@ -42,12 +49,11 @@ var selectionid = 0;
 
 // notwendig für jquery-layout
 var myLayout;
-
 var eastIsOpen = true;
 var southIsOpen = false;
 
 // Zeit bis der Editor nach einer Änderung der Fenstergröße aktualisiert wird
-var editorResizeTimeout = 50;
+var editorResizeTimeout = 150;
 
 // Zeit bis die Buttons wieder aktiviert werden, falls keine Antwort vom Server kommt
 var btnCompileExportTimeout = 15000;
@@ -66,6 +72,7 @@ $(document).ready(function() {
 
     // Funktion für SplitView, setzt die Breite der Trennlinie
     myLayout = $('#maincontainer').layout({
+        enableCursorHotkey: false,
         center: {
             spacing_open: 14,
             spacing_closed: 14,
@@ -78,6 +85,9 @@ $(document).ready(function() {
             slidable: false,
             initClosed: (mobile?true:false),
             size: (mobile?'100%':'40%'),
+            togglerTip_open: "PDF Anzeige schließen",
+            togglerTip_closed: "PDF Anzeige öffnen",
+            resizerTip: "Größe ändern",
         },
         south: {
             spacing_open: 14,
@@ -85,6 +95,9 @@ $(document).ready(function() {
             slidable: false,
             initClosed: true,
             size: '35%',
+            togglerTip_open: "Log Anzeige schließen",
+            togglerTip_closed: "Log Anzeige öffnen",
+            resizerTip: "Größe ändern",
         },
         // Editor automatisch an Fenstergröße anpassen
         onresize: function () {
@@ -95,6 +108,14 @@ $(document).ready(function() {
                 editorResizeTimeout
             );
         },
+        onopen_end: function() {
+            editor.refresh();
+            editor.focus();
+        },
+        onclose_end: function() {
+            editor.refresh();
+            editor.focus();
+        }
     });
 
 	// Datei-ID abfragen
@@ -106,10 +127,12 @@ $(document).ready(function() {
 	    // da das Dokument gerade geladen wird, gab es noch keine Änderungen an der tex Datei
 	    changesSaved = true;
 
+	    forcecompile = 1;
+
         loadFile();
 
         // Speichern und freigeben der tex Datei beim Schließen des Editors
-		$(window).bind('beforeunload', function() {
+		window.onbeforeunload = function() {
 			if (!changesSaved && !file_locked) {
 				    documentsJsonRequest({
                         'command': 'updatefile',
@@ -118,8 +141,10 @@ $(document).ready(function() {
                     }, function(result, data) {
                         unlock();
                 });
+	        } else if (!file_locked) {
+	            unlock();
 	        }
-		});
+		};
 
         // automatisches Speichern, falls Fenster/Tab inaktiv (sofern es Änderungen gab)
 		$(window).blur(function() {
@@ -130,7 +155,13 @@ $(document).ready(function() {
         
 		// Button für das Speichern belegen
 		$('#save').click(function() {
-			saveFile(false);
+		    if (!changesSaved) {
+		        saveFile(false);
+		    }
+		    else {
+		        setMsg('Keine Änderungen vorhanden.');
+		    }
+		    editor.focus();
 		});
 		// Button für das PDF Exportieren belegen
 		$('#pdfExport').click(function() {
@@ -161,9 +192,10 @@ $(document).ready(function() {
             if (compilerid != $(this).attr('value')) {
                 // Compiler wurde verändert, dadurch wird beim nächsten Kompilieren der forcecompile Parameter gesetzt,
                 // so dass die Datei auf jeden Fall neu kompiliert wird, auch wenn es keine Änderungen an der tex Datei gab
-                compilerChanged = true;
-                co0mpilerid = $(this).attr('value');
+                forcecompile = 1;
+                compilerid = $(this).attr('value');
             }
+            editor.focus();
         });
 	};
 });
@@ -223,6 +255,7 @@ function backToFileView() {
                 showAlertDialog("Datei entsperren", data.response);
             }
             if (rootid != -1) {
+                window.onbeforeunload = null;
                 window.location.replace('/dateien/#' + rootid);
             }
             else {
@@ -267,7 +300,13 @@ function loadFile() {
                 tabSize: 4,                                  // Tab entspricht 4 Leerzeichen
                 extraKeys: {                                 // zusätzliche Tastaturbelegungen
                     "Ctrl-Space": "autocomplete",
-                    "Ctrl-S": function() { saveFile(false); },
+                    "Ctrl-S": function() {
+                        if (!changesSaved) {
+                            saveFile(false);
+                        } else {
+                            setMsg('Keine Änderungen vorhanden.');
+                        }
+                    },
                     "Ctrl-K": function() {
                         (editor.getOption("autoCloseBrackets")?editor.setOption("autoCloseBrackets", false):
                         editor.setOption("autoCloseBrackets", true));
@@ -288,6 +327,7 @@ function loadFile() {
                 // Editor Event, wenn es Änderungen im Textfeld gibt
                 editor.on("change", function () {
                     changesSaved = false;
+                    forcecompile = 1;
                     if (autosaveInterval != 0 && !autosaveTimer) {
                         autosaveTimer = setInterval(function() {
                             if (changesSaved) {
@@ -419,7 +459,7 @@ function compileTex() {
             'id': id,
             'formatid': 0,
             'compilerid': compilerid,
-            'forcecompile': (compilerChanged?1:0)
+            'forcecompile': forcecompile
         }, function(result, data) {
             var pdfid = data.response.id;
             var pdf_url = null;
@@ -436,11 +476,13 @@ function compileTex() {
                 pdf_url = "/documents/?command=getpdf&id=" + pdfid +"&t=" + Math.random();
 
                 if (result) {
-                    compilerChanged = false;
+                    forcecompile = 0;
+                    clearErrorMsg();
                     setMsg("Kompilieren erfolgreich");
                     setLogText('Kompilieren erfolgreich, keine Log Datei vorhanden.');
                 }
                 else {
+                    forcecompile = 1;
                     setErrorMsg("Fehler beim Kompilieren");
                     setCompileLog();
                 }
@@ -507,15 +549,17 @@ function exportFile(formatid) {
 			'id': id,
             'formatid': formatid,
             'compilerid': compilerid,
-            'forcecompile': (compilerChanged?1:0)
+            'forcecompile': forcecompile
 		}, function(result, data) {
 			if (result) {
-			    compilerChanged = false;
+                forcecompile = 0;
 				documentsRedirect({
 					'command': 'downloadfile', 
 					'id': data.response.id
                 });
             } else {
+                forcecompile = 1;
+                clearErrorMsg();
                 setErrorMsg('Fehler beim Kompilieren');
                 setCompileLog();
             }
@@ -565,6 +609,7 @@ function table_readout_input() {
     ];
     hot.loadData(data);
     document.getElementById('table-description').value = "";
+    editor.focus();
 }
 
 /**
@@ -768,8 +813,13 @@ function disableEditor() {
     $(".CodeMirror-linenumbers").css('background', "#cfcfcf");
     editor.setOption("readOnly", true);
     editor.setOption("extraKeys", {});
-    myLayout.hide("east");
     myLayout.hide("south");
+
+    // URL zur PDF Datei
+    pdf_url = "/documents/?command=getpdf&texid=" + id +"&t=" + Math.random();
+
+    // Anzeige der PDF Datei
+    renderPDF(pdf_url, document.getElementById('pdf-viewer'));
 }
 
 
@@ -839,22 +889,37 @@ function isInt(n) {
 }
 
 function setMsg(text) {
-    $("#pdfviewer_msg").fadeOut(50);
+    clearTimeout(msgtimer);
+    if($("#pdfviewer_msg").is(':animated')) {
+         $("#pdfviewer_msg").stop().animate({opacity:'100'});
+    } else {
+        $("#pdfviewer_msg").fadeOut(50);
+    }
     $("#pdfviewer_msg").empty();
-    $("#pdfviewer_msg").fadeIn(0)
+    $("#pdfviewer_msg").fadeIn(0);
     $("#pdfviewer_msg").html('<p class="text-primary">' + text + '</p>').fadeOut(5000);
+    msgtimer = setTimeout(function() { if (lasterrormsg != '') { setErrorMsg(lasterrormsg); } }, 5000);
 }
 
 function setErrorMsg(text) {
-    $("#pdfviewer_msg").fadeOut(50);
+    lasterrormsg = text;
+    if($("#pdfviewer_msg").is(':animated')) {
+         $("#pdfviewer_msg").stop().animate({opacity:'100'});
+    } else {
+        $("#pdfviewer_msg").fadeOut(50);
+    }
     $("#pdfviewer_msg").empty();
-    $("#pdfviewer_msg").fadeIn(0)
+    $("#pdfviewer_msg").fadeIn(0);
     $("#pdfviewer_msg").html('<p class="text-danger">' + text + '</p>');
+}
+
+function clearErrorMsg() {
+    lasterrormsg = '';
 }
 
 function setLogText(text) {
     $("#compile_log").empty();
-    $("#compile_log").html(text)
+    $("#compile_log").html(text);
 }
 
 /**

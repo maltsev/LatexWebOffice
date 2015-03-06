@@ -374,22 +374,39 @@ def latexCompile(request, user, fileid, formatid, compilerid, forcecompile):
     return util.jsonErrorResponse(ERROR_MESSAGES['COMPILATIONERROR'], request)
 
 
-def getPDF(request, user, fileid):
+def getPDF(request, user, pdfid=None, texid=None, default=''):
     """Liefert die URL einer Datei per GET Request.
 
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
     :param user: User Objekt (eingeloggter Benutzer)
-    :param fileid: Id der tex Datei, von welcher die PDF Datei angefordert wurde
+    :param pdfid: Id der PDF Datei, welche angefordert wurde
+    :param texid: Id der tex Datei von welcher die PDF Datei angefordert wurde
     :return: URL der Datei
     """
 
-    # PDF Objekt
-    pdfobj = PDF.objects.get(id=fileid)
+    if (pdfid):
+        # PDF Objekt
+        pdfobj = PDF.objects.get(id=pdfid)
 
-    # Pfad zur PDF Datei
-    filepath = pdfobj.getTempPath()
+        # Pfad zur PDF Datei
+        filepath = pdfobj.getTempPath()
 
-    return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
+        return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
+    elif (texid):
+        #Tex Objekt
+        texobj = TexFile.objects.get(id=texid)
+
+        # PDF Objekt, welches zur Tex Datei gehört
+        pdfobj = PDF.objects.filter(folder=texobj.folder, name=texobj.name[:-3] + 'pdf')
+
+        if pdfobj.exists():
+            # Pfad zur PDF Datei
+            filepath = pdfobj[0].getTempPath()
+
+            return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
+        else:
+            return serve(request, os.path.basename(default), os.path.dirname(default))
+
 
 def getLog(request, user, fileid):
     """Liefert die Log Datei vom Kompilieren einer Tex Datei.

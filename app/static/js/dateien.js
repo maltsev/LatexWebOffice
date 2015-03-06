@@ -15,7 +15,6 @@ var postSelection = false;				// gibt an, ob eine explizite Nachselektion notwen
 var tree;
 var treeInst;
 var folderUntilRoot = 0;
-var rootFolderId
 
 var sorting = 0;						// Sortierungsvariable ( 0 = Name, 1 = Größe, 2 = Erstellungsdatum, 3 = Änderungsdatum, 4 = Typ )
 var sortOrder = 1;						// Sortierungsrichtung ( 1 = aufsteigend, -1 = absteigend )
@@ -30,7 +29,7 @@ var sortReplacements = {"ä":"a", "ö":"o", "ü":"u", "ß":"ss" };
 $(function () {
 	
     // ID zum vorliegenden Projekt
-	rootFolderId = parseInt(location.hash.substr(1), 10);
+	var rootFolderId = parseInt(location.hash.substr(1), 10);
 	window.top.name = rootFolderId;
 	if (! rootFolderId) {
 		window.location.replace("/projekt/");
@@ -238,6 +237,7 @@ $(function () {
     function renderProject(data) {
         var jsTreeData = convertRawDataToJsTreeData(data);
         $("#headline").html("Dateien und Ordner - " + data.project);
+
         if (tree) {
             treeInst.settings.core.data = jsTreeData;
             ignoreSorting = false;
@@ -264,8 +264,8 @@ $(function () {
                     "valid_children": []
                 },
                 "lockedfile":{
-                    "icon" : "glyphicon glyphicon-lock",
-                    "valid_children": []
+	                "icon" : "glyphicon glyphicon-lock",
+ 	                "valid_children": []
                 },
                 "folder":{
                     "icon" : "glyphicon glyphicon-folder-open",
@@ -382,7 +382,7 @@ $(function () {
 			
 			var selectedNode = $("#"+prevSelectedNodeID);
 			if(selectedNode.hasClass("filesitem-file")) {
-				if($.inArray(selectedNode.data("file-mime"), ["text/x-tex", "text/plain"])!=-1) {
+				if(selectedNode.data("file-mime") && selectedNode.data("file-mime").substr(0,4)=='text') {
 					// bei Doppelklick auf TEX-Datei zum Editor gehen
 					calculateFolderUntilRoot();
 					window.location.assign("/editor/#" + selectedNode.data("file-id"));
@@ -470,16 +470,19 @@ $(function () {
             "ready.jstree refresh.jstree before_open.jstree": function () {
             	
                 $(".jstree-node").each(function () {
+
                     var node = $(this);
 
-                    if (node.hasClass("filesitem-folder")) {
-                        var type = "folder";
-                    } else if (node.hasClass("filesitem-lockedFile")) {
-                        type = "lockedfile";
-                    } else {
-                        type = "file";
+                    if(node.hasClass("filesitem-folder")) {
+	                    var type = "folder";
                     }
-
+                    else if(node.hasClass("filesitem-lockedFile")) {
+ 	                    type = "lockedfile";
+                    }
+                    else {
+ 	                    type = "file";
+                    }
+                    
                     treeInst.set_type(node, type);
                 });
             }
@@ -540,11 +543,11 @@ $(function () {
         	var attrCreateTime = file.createTime,
         		attrLastModifiedTime = file.lastModifiedTime,
         		attrSize = file.size,
-        		fileClass = "filesitem-file";
+                fileClass = "filesitem-file";
 
-            if (! file.isAllowEdit) {
-                fileClass += " filesitem-lockedFile";
-            }
+                if(!file.isAllowEdit) {
+ 	                fileClass += " filesitem-lockedFile";
+                }
         	
             file.createTime = getRelativeTime(file.createTime);
             file.lastModifiedTime = getRelativeTime(file.lastModifiedTime);
@@ -582,8 +585,8 @@ $(function () {
     	// ist ein Knoten ausgewählt?
     	if (node.length) {
     		// Text- oder TEX-Datei?
-    		if ($.inArray(node.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1)
-    		window.location.assign("/editor/#" + node.data("file-id"));
+    		if (selectedNodeObj.data("file-mime") && selectedNodeObj.data("file-mime").substr(0,4)=='text')
+    			window.location.assign("/editor/#" + node.data("file-id"));
     	}
     }
 	
@@ -993,7 +996,7 @@ $(function () {
 			selected = selectedNodeObj.length;
 			folder = selected && selectedNodeObj.hasClass("filesitem-folder");
 			file = selected && selectedNodeObj.hasClass("filesitem-file");
-			texFile = file && $.inArray(selectedNodeObj.data("file-mime"), ["text/x-tex", "text/plain"]) !== -1;
+			texFile = selectedNodeObj.data("file-mime") && selectedNodeObj.data("file-mime").substr(0,4)=='text';
 			locked = file && selectedNodeObj.hasClass("filesitem-lockedFile");
 		}
 		

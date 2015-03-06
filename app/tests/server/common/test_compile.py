@@ -90,7 +90,7 @@ class CompilerTestClass(TestCase):
         self.file_tex.save()
 
         # kompiliert die gültige tex-Datei
-        errors, pdf = compile.latexcompile(self.file_tex.id, formatid=0)
+        errors, pdf = compile.latexcompile(self.file_tex.id, formatid=0, forcecompile=1)
 
         # es sollten keine Fehlermeldungen aufgetreten und eine pdf-Datei erzeugt worden sein
         self.assertTrue(errors == None)
@@ -105,7 +105,7 @@ class CompilerTestClass(TestCase):
         # ----------------------------------------------------------------------------------------------------
 
         # kompiliert dieselbe tex-Datei ein weiteres Mal
-        errors, pdf = compile.latexcompile(self.file_tex.id, formatid=0)
+        errors, pdf = compile.latexcompile(self.file_tex.id, formatid=0, forcecompile=1)
 
         # es sollten erneut keine Fehlermeldungen aufgetreten und eine pdf-Datei erzeugt worden sein
         self.assertTrue(errors == None)
@@ -160,7 +160,7 @@ class CompilerTestClass(TestCase):
         self.file_tex_img.save()
 
         # kompiliert die, die Bild-Datei referenzierende, tex-Datei
-        errors, pdf = compile.latexcompile(self.file_tex_img.id, formatid=0)
+        errors, pdf = compile.latexcompile(self.file_tex_img.id, formatid=0, forcecompile=1)
 
         # es sollten keine Fehlermeldungen auftreten und eine pdf-Datei erzeugt worden sein
         self.assertTrue(errors == None)
@@ -176,7 +176,7 @@ class CompilerTestClass(TestCase):
 
         # kompiliert die tex-Datei erneut
         # (die Bild-Datei wurde nach obigem Kompilierprozess entfernt)
-        errors, pdf = compile.latexcompile(self.file_tex_img.id, formatid=0)
+        errors, pdf = compile.latexcompile(self.file_tex_img.id, formatid=0, forcecompile=1)
 
         # das Kompilieren einer tex-Datei mit ungültiger Bild-Referenz sollte zu einem FILENOTFOUND führen, wobei dennoch eine pdf-Datei erzeugt wird
         self.assertTrue(errors != None)  # and errors[1].startswith(ERROR_MESSAGES['COMPILATIONERROR_FILENOTFOUND']))
@@ -204,7 +204,7 @@ class CompilerTestClass(TestCase):
         self.file_tex_bibtex.save()
 
         # kompiliert die tex-Datei
-        errors, pdf = compile.latexcompile(self.file_tex_bibtex.id, formatid=0)
+        errors, pdf = compile.latexcompile(self.file_tex_bibtex.id, formatid=0, forcecompile=1)
 
         # es sollten keine Fehlermeldungen aufgetreten und eine pdf-Datei erzeugt worden sein
         self.assertTrue(errors == None)
@@ -219,7 +219,7 @@ class CompilerTestClass(TestCase):
         self.file_tex_bibtex.save()
 
         # kompiliert die tex-Datei
-        errors, pdf = compile.latexcompile(self.file_tex_bibtex.id, formatid=0)
+        errors, pdf = compile.latexcompile(self.file_tex_bibtex.id, formatid=0, forcecompile=1)
 
         # das Kompilieren einer tex-Datei mit ungültiger bibtex-Referenz sollte zu einem CITATIONUNDEFINED führen, wobei dennoch eine pdf-Datei erzeugt wird
         # TODO
@@ -248,7 +248,7 @@ class CompilerTestClass(TestCase):
         self.file_tex_dp.save()
 
         # kompiliert die referenzierende tex-Datei
-        errors, pdf = compile.latexcompile(self.file_tex_dp.id, formatid=0)
+        errors, pdf = compile.latexcompile(self.file_tex_dp.id, formatid=0, forcecompile=1)
 
         # es sollte eine Fehlermeldung aufgetreten und keine pdf-Datei erzeugt worden sein
         self.assertTrue(errors != None)

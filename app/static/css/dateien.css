@@ -5,6 +5,10 @@
     overflow: hidden;
 }
 
+.filesitem-lockedFile .glyphicon-lock {
+    color: #cf1919;
+}
+
 .filesitem-name {
     width: 35%;
     display: inline-block;
