@@ -21,7 +21,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
-from core import settings
+import settings
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.projecttemplate import ProjectTemplate

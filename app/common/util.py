@@ -26,7 +26,7 @@ import tempfile
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
-from core import settings
+import settings
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES, DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM, MAXFILESIZE
 from app.models.folder import Folder
 from app.models.project import Project

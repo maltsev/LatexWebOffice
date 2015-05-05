@@ -23,7 +23,7 @@ from django.views.decorators.http import require_http_methods
 from django.shortcuts import render
 from django.views.static import serve
 
-from core import settings
+import settings
 from app.common import util
 from app.common.constants import ERROR_MESSAGES
 from app.views import file, folder, project, template

@@ -17,7 +17,7 @@
 import os
 import shutil
 from django.core.exceptions import ObjectDoesNotExist
-from core import settings
+import settings
 from app.models.folder import Folder
 from app.models.file.texfile import TexFile
 from app.tests.server.models.modeltestcase import ModelTestCase

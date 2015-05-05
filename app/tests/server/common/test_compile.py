@@ -30,7 +30,7 @@ from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.texfile import TexFile
 
 from app.models.project import Project
-from core.settings import BASE_DIR
+from settings import BASE_DIR
 
 
 class CompilerTestClass(TestCase):

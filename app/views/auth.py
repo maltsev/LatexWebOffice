@@ -22,7 +22,7 @@ from django.contrib import messages,auth
 from django.contrib.auth import get_user_model
 User = get_user_model()
 from django.contrib.auth.decorators import login_required
-from core.settings import LOGIN_URL
+from settings import LOGIN_URL
 from app.common.constants import ERROR_MESSAGES
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email

@@ -21,7 +21,7 @@ from django.db import models
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from core import settings
+import settings
 from app.models.file import file
 
 class BinaryFileManager(file.FileManager):

@@ -26,7 +26,7 @@ from app.models.file.pdf import PDF
 from app.models.file.file import File
 import app
 from app.models.file.binaryfile import BinaryFile
-from core import settings
+import settings
 
 
 class FolderManager(models.Manager):

@@ -25,7 +25,7 @@ import shutil
 
 from django.utils.encoding import smart_str
 
-from core import settings
+import settings
 from app.common.constants import ERROR_MESSAGES
 from app.common import util
 from app.models.file.file import File

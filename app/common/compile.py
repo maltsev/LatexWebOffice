@@ -27,7 +27,7 @@ from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.common import util
-from core.settings import BASE_DIR
+from settings import BASE_DIR
 
 
 def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
