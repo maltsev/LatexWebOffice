@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 * Purpose : Schnittstelle für Vorlagen

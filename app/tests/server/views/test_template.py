@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 * Purpose : Test des Template Views und zugehöriger Methoden (app/views/template.py)

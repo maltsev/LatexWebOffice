@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 * Purpose : Test des Project Views und zugehöriger Methoden (app/views/project.py)

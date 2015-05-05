@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 * Purpose : Test des Kompilierers (app/compile/compile.py)

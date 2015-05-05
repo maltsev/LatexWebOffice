@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """ 
 
 * Purpose : Testing of essential registration and login functionality

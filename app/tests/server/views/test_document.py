@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 * Purpose : Test der Dokument- und Projektverwaltung (app/view/documents.py)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 * Purpose : Test des LatexCompile Methode des File Views (app/views/file.py)
