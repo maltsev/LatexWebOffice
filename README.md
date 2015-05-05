@@ -1,7 +1,7 @@
 LatexWebOffice
 ==============
 
-[![Build Status](https://travis-ci.org/maltsev/LatexWebOffice.svg)](https://travis-ci.org/maltsev/LatexWebOffice) [![Coverage Status](https://coveralls.io/repos/maltsev/LatexWebOffice/badge.png?branch=dev)](https://coveralls.io/r/maltsev/LatexWebOffice?branch=dev)
+[![Build Status](https://travis-ci.org/maltsev/LatexWebOffice.svg)](https://travis-ci.org/maltsev/LatexWebOffice) [![Coverage Status](https://coveralls.io/repos/maltsev/LatexWebOffice/badge.png?branch=master)](https://coveralls.io/r/maltsev/LatexWebOffice?branch=master)
 
 
 ### Abhängigkeiten
@@ -9,7 +9,7 @@ LatexWebOffice
 2. [Django 1.7.1](https://www.djangoproject.com/)
 3. [Python-magic](https://pypi.python.org/pypi/python-magic/)
 4. [Einen Webserver](http://httpd.apache.org/)
-5. [Einen Pythonapplikationserver (apache mod wsgi, gunicorn, ...)](https://code.google.com/p/modwsgi/) 
+5. [Einen Pythonapplikationserver (apache mod wsgi, gunicorn, ...)](https://code.google.com/p/modwsgi/)
 6. [Mysql](http://www.mysql.de/)
 
 Grundsätzlich kann LatexWebOffice auch ohne Webserver, Pythonappliaktionserver und Mysql verwendet werden. In diesem Falle kann der Developerserver von Django verwendet werden. Dieser Modus ist jedoch für Produktivsystemen nicht zu empfehlen.
@@ -43,7 +43,7 @@ Alias /static/ /var/www/LatexWebOffice/app/static/
 
 # http://blog.dscpl.com.au/2014/09/setting-lang-and-lcall-when-using.html
 WSGIDaemonProcess latexweboffice lang='de_DE.UTF-8' locale='de_DE.UTF-8' python-path=/home/latexweboffice/Env/python3webofficeenv/lib/python3.4/site-packages
-WSGIProcessGroup latexweboffice        
+WSGIProcessGroup latexweboffice
 WSGIScriptAlias / /var/www/LatexWebOffice/core/wsgi.py
 
 <Directory "/var/www/LatexWebOffice/core">
