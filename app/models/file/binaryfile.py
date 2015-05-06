@@ -15,8 +15,8 @@
 
 """
 import os
-# TODO
-#import uuid
+import string
+import random
 
 from django.db import models
 from django.db.models.signals import post_delete, post_save
@@ -67,7 +67,7 @@ class BinaryFileManager(file.FileManager):
 
 
     def __createBinaryFile(self, content):
-        filename = str(uuid.uuid4())
+        filename = ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.digits) for _ in range(36))
         filepath = os.path.join(settings.FILE_ROOT, filename)
         if not os.path.exists(filepath):
             fileDirPath = os.path.dirname(filepath)
