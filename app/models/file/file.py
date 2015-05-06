@@ -21,8 +21,7 @@ from datetime import timedelta
 
 from django.db import models
 from django.conf import settings
-# TODO
-#from django.utils import timezone
+from datetime import datetime
 
 from app import common
 
@@ -62,7 +61,7 @@ class File(models.Model):
 
         self.lasteditor = user
         # Sperre für 10 Minuten
-        self.lockexpires = timezone.now() + timedelta(minutes=10)
+        self.lockexpires = datetime.now() + timedelta(minutes=10)
         self.save()
 
 
@@ -82,7 +81,7 @@ class File(models.Model):
         if not self.lockexpires:
             return False
 
-        return timezone.now() < self.lockexpires
+        return datetime.now() < self.lockexpires
 
     ##
     # Abbildet die Datei auf der Festplatte und gibt den temporären Verzeichnispfad zurück

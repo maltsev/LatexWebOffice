@@ -31,8 +31,6 @@ from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 import urllib
 import datetime
-# TODO
-#from django.utils import timezone
 from app.common.util import getUserModel
 User = getUserModel()
 
@@ -70,7 +68,7 @@ def login(request):
         elif request.POST['action']=='password-lost':
             if User.objects.filter(email__iexact=email).exists():
                 user=User.objects.get(email__iexact=email)
-                if (user.passwordlostdate+datetime.timedelta(minutes=5))<=timezone.now():
+                if (user.passwordlostdate+datetime.timedelta(minutes=5))<=datetime.datetime.now():
                     keygen = user.createrecoverkey()
                     user.save()
                     subject="Latexweboffice Passwortreset"
@@ -102,7 +100,7 @@ def lostPwHandler(request):
             key=request.GET['key']
             if User.objects.filter(email__iexact=email).exists():
                 user=User.objects.get(email__iexact=email) 
-                if user and user.passwordlostkey==key and ((user.passwordlostdate+datetime.timedelta(days=1))>=timezone.now()):
+                if user and user.passwordlostkey==key and ((user.passwordlostdate+datetime.timedelta(days=1))>=datetime.datetime.now()):
                     return render_to_response('passwordrecover.html',{'email':email,'key':key}, context_instance=RequestContext(request))
 
     elif request.method=='POST':
@@ -111,7 +109,7 @@ def lostPwHandler(request):
                     key=request.POST['key']
                     if User.objects.filter(email__iexact=email).exists():
                         user=User.objects.get(email__iexact=email) 
-                        if user and user.passwordlostkey==key and ((user.passwordlostdate+datetime.timedelta(days=1))>=timezone.now()):
+                        if user and user.passwordlostkey==key and ((user.passwordlostdate+datetime.timedelta(days=1))>=datetime.datetime.now()):
                             user.set_password(request.POST['password1'])
                             user.invalidateRecoverKey()
                             user.save()
