@@ -1,8 +1,7 @@
-# Django settings for mysite project.
 import os
 import sys
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -75,7 +74,9 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'urls'
 
-TEMPLATE_DIRS = ()
+TEMPLATE_DIRS = (
+    os.path.join(BASE_DIR, 'app', 'templates'),
+)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
