@@ -14,7 +14,8 @@
 * Backlog entry :
 
 """
-import io
+# TODO
+#import io
 import os
 
 from django.db import models

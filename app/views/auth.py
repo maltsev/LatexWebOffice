@@ -33,7 +33,8 @@ from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 import urllib
 import datetime
-from django.utils import timezone
+# TODO
+#from django.utils import timezone
 
 # see
 # https://docs.djangoproject.com/en/dev/topics/auth/default/#django.contrib.auth.login

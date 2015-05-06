@@ -14,13 +14,15 @@
 * Backlog entry :
 
 """
-import io
+# TODO
+#import io
 import os
 from datetime import timedelta
 
 from django.db import models
 from django.conf import settings
-from django.utils import timezone
+# TODO
+#from django.utils import timezone
 
 from app import common
 

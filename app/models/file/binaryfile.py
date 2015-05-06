@@ -15,7 +15,8 @@
 
 """
 import os
-import uuid
+# TODO
+#import uuid
 
 from django.db import models
 from django.db.models.signals import post_delete, post_save
@@ -42,7 +43,9 @@ class BinaryFileManager(file.FileManager):
         isFilepath = 'filepath' in kwargs and bool(kwargs['filepath'])
         requestFile = 'requestFile' in kwargs and kwargs['requestFile']
         if requestFile and not isFilepath:
-            content = b''
+            # TODO
+            #content = b''
+            content = ''
             for chunk in requestFile.chunks():
                 content = content + chunk
 
