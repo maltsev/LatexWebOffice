@@ -51,7 +51,9 @@ class File(models.Model):
 
 
     def getContent(self):
-        return io.StringIO()
+        # TODO
+        #return io.StringIO()
+        return ''
 
 
     def lock(self, user):
