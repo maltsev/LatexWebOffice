@@ -1032,8 +1032,12 @@ class ProjectTestClass(ViewTestCase):
         # Pfad zur temporären zip Datei
         tmp_zip_file = os.path.join(tmpfolder, (self._user1_project1.name + 'zip'))
         # Schreibe den Inhalt der empfangenen Datei in die temp zip Datei
-        with open(tmp_zip_file, 'a+b') as f:
+
+        try:
+            f = open(tmp_zip_file, 'a+b')
             f.write(response.content)
+        finally:
+            f.close()
 
         # überprüfe, ob es eine gültige zip Datei ist (magic number)
         self.assertTrue(zipfile.is_zipfile(tmp_zip_file))
@@ -1054,8 +1058,11 @@ class ProjectTestClass(ViewTestCase):
 
         # überprüfe, ob der Inhalt der main.tex Datei mit der Datenbank
         # übereinstimmt
-        with open(maintex_path, 'r') as maintex:
+        try:
+            maintex = open(maintex_path, 'r')
             self.assertEqual(maintex.read(), self._user1_tex1.source_code)
+        finally:
+            maintex.close()
 
         # überprüfe ob binary1 vorhanden ist
         binary1_path = os.path.join(folder2_subfolder1_path, self._user1_binary1.name)
@@ -1070,10 +1077,13 @@ class ProjectTestClass(ViewTestCase):
         self.assertTrue(os.path.isfile(binary3_path))
 
         # überprüfe ob der Inhalt der binary1 Datei mit der Datenbank übereinstimmt
-        with self._user1_binary1.getContent() as binfilecontent:
+        try:
+            binfilecontent = self._user1_binary1.getContent()
             tmp_binary1 = open(binary1_path, 'rb')
             self.assertEqual(tmp_binary1.read(), binfilecontent.read())
             tmp_binary1.close()
+        finally:
+            binfilecontent.close()
 
         # Lösche die temporäre zip Datei und das temp Verzeichnis
         if os.path.isdir(tmpfolder):
@@ -1098,8 +1108,11 @@ class ProjectTestClass(ViewTestCase):
         # Pfad zur temporären zip Datei
         tmp_zip_file = os.path.join(tmpfolder, (self._user1_project1.name + 'zip'))
         # Schreibe den Inhalt der empfangenen Datei in die temp zip Datei
-        with open(tmp_zip_file, 'a+b') as f:
+        try:
+            f = open(tmp_zip_file, 'a+b')
             f.write(response.content)
+        finally:
+            f.close()
 
         # überprüfe, ob es eine gültige zip Datei ist (magic number)
         self.assertTrue(zipfile.is_zipfile(tmp_zip_file))
@@ -1124,10 +1137,13 @@ class ProjectTestClass(ViewTestCase):
         self.assertTrue(os.path.isfile(binary3_path))
 
         # überprüfe ob der Inhalt der binary1 Datei mit der Datenbank übereinstimmt
-        with self._user1_binary1.getContent() as binfilecontent:
+        try:
+            binfilecontent = self._user1_binary1.getContent()
             tmp_binary1 = open(binary1_path, 'rb')
             self.assertEqual(tmp_binary1.read(), binfilecontent.read())
             tmp_binary1.close()
+        finally:
+            binfilecontent.close()
 
         # Lösche die temporäre zip Datei und das temp Verzeichnis
         if os.path.isdir(tmpfolder):

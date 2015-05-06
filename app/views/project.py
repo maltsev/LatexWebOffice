@@ -225,33 +225,33 @@ def importZip(request, user):
     failed = False
 
     try:
-        with transaction.atomic():
-            for root, dirs, files in os.walk(extract_path):
-                # relativer Pfad des derzeitigen Verzeichnis
-                path = root.split(os.sep)[rootdepth:]
-                # falls path true ist, ist root nicht das root Verzeichnis, wo die zip
-                # entpackt wurde
-                if path:
-                    # path is also ein subsubfolder und wir müssen den subfolder als parent setzen
-                    if path[:-1]:
-                        parent = projdict[os.path.join('', *path[:-1])]
-                    else:
-                        parent = projectobj.rootFolder
-                    name = util.convertLatinToUnicode(util.getFolderName(root))
-                    if name == '__MACOSX':
-                        continue
-                    # speichere Ordner
-                    folder = Folder.objects.create(
-                        name=util.convertLatinToUnicode(util.getFolderName(root)),
-                        parent=parent, root=projectobj.rootFolder)
-                    projdict[os.path.join('', *path)] = folder
-                for f in files:  # füge die Dateien dem Ordner hinzu
-                    fileobj = open(os.path.join(root, f), 'rb')
-                    result, msg = util.uploadFile(fileobj, folder, request, True)
-                    fileobj.close()
-                    if not result:
-                        returnmsg = util.jsonErrorResponse(msg, request)
-                        raise TypeError
+        transaction.atomic()
+        for root, dirs, files in os.walk(extract_path):
+            # relativer Pfad des derzeitigen Verzeichnis
+            path = root.split(os.sep)[rootdepth:]
+            # falls path true ist, ist root nicht das root Verzeichnis, wo die zip
+            # entpackt wurde
+            if path:
+                # path is also ein subsubfolder und wir müssen den subfolder als parent setzen
+                if path[:-1]:
+                    parent = projdict[os.path.join('', *path[:-1])]
+                else:
+                    parent = projectobj.rootFolder
+                name = util.convertLatinToUnicode(util.getFolderName(root))
+                if name == '__MACOSX':
+                    continue
+                # speichere Ordner
+                folder = Folder.objects.create(
+                    name=util.convertLatinToUnicode(util.getFolderName(root)),
+                    parent=parent, root=projectobj.rootFolder)
+                projdict[os.path.join('', *path)] = folder
+            for f in files:  # füge die Dateien dem Ordner hinzu
+                fileobj = open(os.path.join(root, f), 'rb')
+                result, msg = util.uploadFile(fileobj, folder, request, True)
+                fileobj.close()
+                if not result:
+                    returnmsg = util.jsonErrorResponse(msg, request)
+                    raise TypeError
     except TypeError:
         projectobj.delete()  # bei Fehler muss noch das Projekt selbst gelöscht werden
         failed = True

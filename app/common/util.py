@@ -527,7 +527,9 @@ def createZipFromFolder(folderpath, zip_file_path):
     os.chdir(wd)
 
     relroot = os.path.abspath(folderpath)
-    with zipfile.ZipFile(zip_file_path, "w") as zip:
+
+    try:
+        zip = zipfile.ZipFile(zip_file_path, "w")
         for root, dirs, files in os.walk(folderpath):
             # füge des Verzeichnis hinzu (notwendig für Verzeichnisse ohne weitere Dateien und Unterordner)
             zip.write(root, os.path.relpath(root, relroot))
@@ -536,6 +538,8 @@ def createZipFromFolder(folderpath, zip_file_path):
                 if os.path.isfile(filename):
                     arcname = os.path.join(os.path.relpath(root, relroot), file)
                     zip.write(filename, arcname)
+    finally:
+        zip.close()
 
     # stelle das vorherige Arbeitsverzeichnis wieder her
     os.chdir(oldwd)
