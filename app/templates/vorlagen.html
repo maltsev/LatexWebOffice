@@ -8,11 +8,11 @@
 
 <!-- Header -->
 {% block header %}
-    <link rel="stylesheet" href="/static/css/projekt.css">
-    <script src="/static/js/doT.min.js"></script>
-    <script src="/static/js/projekt.js"></script>
-    <script src="/static/js/jquery.validate.min.js"></script>
-    <script src="/static/js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/projekt.css">
+    <script src="{{ STATIC_URL }}js/doT.min.js"></script>
+    <script src="{{ STATIC_URL }}js/projekt.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery.validate.min.js"></script>
+    <script src="{{ STATIC_URL }}js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
 {% endblock %}
 
 <!-- Inhalt -->

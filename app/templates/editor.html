@@ -6,41 +6,41 @@
 
 <!-- Einbindung der SplitView Funktionalität -->
 <!-- benötigt jquery.min.js und jquery-ui.min.js -->
-<script type="text/javascript" src="/static/jquery-ui-layout/source/stable/jquery.layout.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}jquery-ui-layout/source/stable/jquery.layout.min.js"></script>
 
-<script src="/static/js/jquery.validate.min.js"></script>
+<script src="{{ STATIC_URL }}js/jquery.validate.min.js"></script>
 <!-- benötigt um pattern matching (regexp) nutzen zu können -->
-<script src="/static/js/jquery.validate.additional-methods.min.js"></script>
+<script src="{{ STATIC_URL }}js/jquery.validate.additional-methods.min.js"></script>
 
 <!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
-<script src="/static/js/auth/validate.js"></script>
+<script src="{{ STATIC_URL }}js/auth/validate.js"></script>
 <!-- validate einstellungen speziell für die Registrierung -->
-<script src="/static/js/auth/scaling.js"></script>
+<script src="{{ STATIC_URL }}js/auth/scaling.js"></script>
 
 <!-- Einbindung der Icons für den Editor -->
 <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
-<link href="/static/bootstrap/css/bootstrap.icon-large.min.css" rel="stylesheet">
+<link href="{{ STATIC_URL }}bootstrap/css/bootstrap.icon-large.min.css" rel="stylesheet">
 
 <!-- Einbindung der Funktionalität für den Grafikassisten -->
-<link rel="stylesheet" href="/static/css/dateien.css">
-<script src="/static/js/doT.min.js"></script>
-<script src="/static/jstree/jstree.min.js"></script>
+<link rel="stylesheet" href="{{ STATIC_URL }}css/dateien.css">
+<script src="{{ STATIC_URL }}js/doT.min.js"></script>
+<script src="{{ STATIC_URL }}jstree/jstree.min.js"></script>
 
 <!-- Einbindung der Funktionalität des Tabellenassistenen -->
-<script data-jsfiddle="common" src="/static/handsontable/dist/handsontable.min.js"></script>
-<link data-jsfiddle="common" rel="stylesheet" media="screen" href="/static/handsontable/dist/handsontable.css">
+<script data-jsfiddle="common" src="{{ STATIC_URL }}handsontable/dist/handsontable.min.js"></script>
+<link data-jsfiddle="common" rel="stylesheet" media="screen" href="{{ STATIC_URL }}handsontable/dist/handsontable.css">
 
 <!-- Einbindung der Funktionalität vom Editor -->
 <!-- codemirror-compressed beinhaltet auch alle addons, erstellt mit http://codemirror.net/doc/compress.html -->
-<script src="/static/codemirror/lib/codemirror-compressed.js"></script>
-<link href="/static//codemirror/lib/codemirror.css" rel="stylesheet">
-<link href="/static//codemirror/theme/ambiance.css" rel="stylesheet">
-<link href="/static//codemirror/addon/hint/show-hint.css" rel="stylesheet">
-<link href="/static//codemirror/addon/dialog/dialog.css" rel="stylesheet">
+<script src="{{ STATIC_URL }}codemirror/lib/codemirror-compressed.js"></script>
+<link href="{{ STATIC_URL }}/codemirror/lib/codemirror.css" rel="stylesheet">
+<link href="{{ STATIC_URL }}/codemirror/theme/ambiance.css" rel="stylesheet">
+<link href="{{ STATIC_URL }}/codemirror/addon/hint/show-hint.css" rel="stylesheet">
+<link href="{{ STATIC_URL }}/codemirror/addon/dialog/dialog.css" rel="stylesheet">
 
 <!-- Stylesheet für Editor Einstellungen -->
-<link href="/static/css/editor.css" rel="stylesheet">
-<script src="/static/js/editor.js"></script>
+<link href="{{ STATIC_URL }}css/editor.css" rel="stylesheet">
+<script src="{{ STATIC_URL }}js/editor.js"></script>
 <!-- Header Ende -->
 {% endblock %}
 <!--
@@ -231,7 +231,7 @@
 
 <!-- PDF Viewer Container -->
 <div id="pdf" class="ui-layout-east">
-   <script src="/static/pdfjs/build/pdf.js"></script>
+   <script src="{{ STATIC_URL }}pdfjs/build/pdf.js"></script>
    <div id="pdf-viewer"></div>
 <!-- PDF Viewer Container Ende -->
 </div>

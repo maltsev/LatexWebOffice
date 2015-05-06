@@ -2,9 +2,9 @@
 
 <!-- Header -->
 {% block header %}
-	<script src="/static/js/jquery.validate.min.js"></script>
-	<script src="/static/js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
-	<script src="/static/js/auth/login.js"></script><!-- validate einstellungen speziell für die Registrierung -->
+	<script src="{{ STATIC_URL }}js/jquery.validate.min.js"></script>
+	<script src="{{ STATIC_URL }}js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
+	<script src="{{ STATIC_URL }}js/auth/login.js"></script><!-- validate einstellungen speziell für die Registrierung -->
 {% endblock %}
 
 <!-- Inhalt -->
