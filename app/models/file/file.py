@@ -17,11 +17,10 @@
 # TODO
 #import io
 import os
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django.db import models
-from django.conf import settings
-from datetime import datetime
+from django.contrib.auth.models import User
 
 from app import common
 
@@ -43,7 +42,7 @@ class File(models.Model):
     folder = models.ForeignKey("Folder")
     mimeType = models.CharField(max_length=255, default='application/octet-stream')
     size = models.PositiveIntegerField(default=0)
-    lasteditor = models.ForeignKey(settings.AUTH_USER_MODEL,blank=True,null=True)
+    lasteditor = models.ForeignKey(User, blank=True,null=True)
     lockexpires = models.DateTimeField(blank=True,null=True)
     objects = FileManager()
 

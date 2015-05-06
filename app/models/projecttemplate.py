@@ -21,7 +21,7 @@ from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
 from app.models.folder import Folder
 from django.conf import settings
-
+from django.contrib.auth.models import User
 
 
 class ProjectTemplateManager(models.Manager):
@@ -47,7 +47,7 @@ class ProjectTemplateManager(models.Manager):
 
 class ProjectTemplate(models.Model):
     name = models.CharField(max_length=255)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL)
+    author = models.ForeignKey(User)
     createTime = models.DateTimeField(auto_now_add=True)
     rootFolder = models.OneToOneField("Folder")
     objects = ProjectTemplateManager()

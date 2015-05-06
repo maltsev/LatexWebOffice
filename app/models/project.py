@@ -65,7 +65,9 @@ class ProjectManager(models.Manager):
         return newProject
 
 class Project(projecttemplate.ProjectTemplate):
-    collaborators = models.ManyToManyField(settings.AUTH_USER_MODEL, through='Collaboration', through_fields=('project', 'user'))
+    # TODO
+    #collaborators = models.ManyToManyField(settings.AUTH_USER_MODEL, through='Collaboration', through_fields=('project', 'user'))
+    collaborators = models.ManyToManyField(User, through='Collaboration')
     objects = ProjectManager()
 
     def getAllCollaborators(self):

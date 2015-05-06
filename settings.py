@@ -64,7 +64,7 @@ TEMPLATE_LOADERS = (
 #     'django.template.loaders.eggs.Loader',
 )
 
-AUTH_USER_MODEL = 'app.LatexWebUser'
+AUTH_USER_MODEL = 'django.contrib.auth.models.User'
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
