@@ -48,6 +48,7 @@ class File(models.Model):
 
     class Meta:
         unique_together = ('name', 'folder')
+        app_label = 'app'
 
 
     def getContent(self):

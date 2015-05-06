@@ -65,6 +65,10 @@ class Folder(models.Model):
                              related_name='rootFolder')  # Darf leer sein nur bei RootFolder
     objects = FolderManager()
 
+    class Meta:
+        app_label = 'app'
+
+
     ##
     # Prüft ob das Verzeichnis ein Rootverzeichnis ist
     def isRoot(self):

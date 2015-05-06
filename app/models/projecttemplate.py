@@ -54,6 +54,7 @@ class ProjectTemplate(models.Model):
 
     class Meta:
         unique_together = ('name', 'author')
+        app_label = 'app'
 
     def __str__(self):
         return "{}_{}".format(self.pk, self.name)
