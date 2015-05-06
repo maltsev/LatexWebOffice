@@ -87,8 +87,12 @@ def updateFile(request, user, fileid, filecontenttostring):
 
             newplaintextobj = TexFile.objects.create(name=newplaintextobj_name, folder=plaintextobj.folder,
                                                      source_code=filecontenttostring)
+            lasteditor = ""
+            if plaintextobj.lasteditor:
+                plaintextobj.lasteditor.username
+
             return util.jsonResponse({'id': newplaintextobj.id, 'name': newplaintextobj.name,
-                                      'lasteditor': plaintextobj.lasteditor.username if plaintextobj.lasteditor else ""},
+                                      'lasteditor': lasteditor},
                                      True, request)
         return util.jsonErrorResponse(ERROR_MESSAGES['FILELOCKED'])
 
@@ -299,6 +303,10 @@ def getText(request, user, fileid):
     if isallowedit:
         plaintextobj.lock(user)
 
+    lasteditor = ""
+    if plaintextobj.lasteditor:
+        lasteditor = plaintextobj.lasteditor.username
+
     dictionary = {
         'fileid': plaintextobj.id,
         'filename': plaintextobj.name,
@@ -306,7 +314,7 @@ def getText(request, user, fileid):
         'content': plaintextobj.source_code,
         'lastmodifiedtime': util.datetimeToString(plaintextobj.lastModifiedTime),
         'isallowedit': isallowedit,
-        'lasteditor': plaintextobj.lasteditor.username if plaintextobj.lasteditor else ""
+        'lasteditor': lasteditor
     }
 
     return util.jsonResponse(dictionary, True, request)
@@ -330,6 +338,10 @@ def fileInfo(request, user, fileid):
 
     isallowedit = not fileobj.isLocked() or fileobj.lockedBy() == user
 
+    lasteditor = ""
+    if fileobj.lasteditor:
+        lasteditor = fileobj.lasteditor.username
+
     # Sende die id und den Namen der Datei sowie des Ordners als JSON response
     dictionary = {'fileid': fileobj.id,
                   'filename': fileobj.name,
@@ -341,7 +353,7 @@ def fileInfo(request, user, fileid):
                   'lastmodifiedtime': util.datetimeToString(fileobj.lastModifiedTime),
                   'size': fileobj.size,
                   'isallowedit': isallowedit,
-                  'lasteditor': fileobj.lasteditor.username if fileobj.lasteditor else "",
+                  'lasteditor': lasteditor,
                   'mimetype': fileobj.mimeType,
                   'ownerid': projectobj.author.id,
                   'ownername': projectobj.author.username
