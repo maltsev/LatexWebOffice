@@ -144,12 +144,12 @@ def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
                 errors.append(ERROR_MESSAGES['COMPILATIONERROR'] + ': return code ' + str(rc))
     except Exception:
         errors.append(ERROR_MESSAGES['COMPILATIONERROR'])
-    finally:
-        # entferne alle temporären Ordner
-        if os.path.isdir(out_dir_path):
-            shutil.rmtree(out_dir_path)
-        if os.path.isdir(root_path):
-            shutil.rmtree(root_path)
+
+    # entferne alle temporären Ordner
+    if os.path.isdir(out_dir_path):
+        shutil.rmtree(out_dir_path)
+    if os.path.isdir(root_path):
+        shutil.rmtree(root_path)
 
     # Rückgabe
     # 1. Liste mit während des Kompilieren aufgetretenen Fehlermeldungen oder None, falls keine Fehler aufgetreten
