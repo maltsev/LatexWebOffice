@@ -16,7 +16,7 @@
 * Backlog entry : TEK1, 3ED9, DOK8
 
 """
-import json
+import simplejson as json
 import mimetypes
 import os
 import logging

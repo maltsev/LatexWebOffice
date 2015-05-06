@@ -14,7 +14,7 @@
 * Sprintnumber : 1
 
 """
-import json
+import simplejson as json
 
 from app.common.constants import ERROR_MESSAGES
 from app.views.document import available_commands_output, globalparas

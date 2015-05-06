@@ -17,7 +17,7 @@
 
 """
 
-import json
+import simplejson as json
 import zipfile
 import os
 import mimetypes
