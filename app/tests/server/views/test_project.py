@@ -22,9 +22,6 @@ import shutil
 import os
 import mimetypes
 
-from django.contrib.auth import get_user_model
-User = get_user_model()
-
 from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE, DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM
 from app.common import util
 from app.models.collaboration import Collaboration
@@ -32,7 +29,8 @@ from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.plaintextfile import PlainTextFile
 from app.tests.server.views.viewtestcase import ViewTestCase
-
+from app.common.util import getUserModel
+User = getUserModel()
 
 class ProjectTestClass(ViewTestCase):
     def setUp(self):

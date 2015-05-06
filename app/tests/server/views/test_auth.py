@@ -16,13 +16,12 @@
 """
 
 
-from django.test import TestCase,Client
-from django.contrib.auth import get_user_model
-User = get_user_model()
+from django.test import TestCase, Client
 
 from app.common.constants import ERROR_MESSAGES
 from django.contrib.auth import login, authenticate
-
+from app.common.util import getUserModel
+User = getUserModel()
 
 class AuthLoginTestClass(TestCase):
 

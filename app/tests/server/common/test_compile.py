@@ -21,16 +21,15 @@ import os
 import shutil
 
 from django.test import TestCase
-from django.contrib.auth import get_user_model
-User = get_user_model()
 
 from app.common import compile
 from app.models.file.pdf import PDF
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.texfile import TexFile
-
 from app.models.project import Project
 from settings import BASE_DIR
+from app.common.util import getUserModel
+User = getUserModel()
 
 
 class CompilerTestClass(TestCase):

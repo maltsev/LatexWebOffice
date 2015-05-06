@@ -19,8 +19,6 @@
 
 from django.shortcuts import render,redirect, render_to_response
 from django.contrib import messages,auth
-from django.contrib.auth import get_user_model
-User = get_user_model()
 from django.contrib.auth.decorators import login_required
 from settings import LOGIN_URL
 from app.common.constants import ERROR_MESSAGES
@@ -35,6 +33,8 @@ import urllib
 import datetime
 # TODO
 #from django.utils import timezone
+from app.common.util import getUserModel
+User = getUserModel()
 
 # see
 # https://docs.djangoproject.com/en/dev/topics/auth/default/#django.contrib.auth.login

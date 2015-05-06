@@ -19,8 +19,8 @@ from django.test import TestCase
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.file import File
-from django.contrib.auth import get_user_model
-User = get_user_model()
+from app.common.util import getUserModel
+User = getUserModel()
 
 
 class ModelTestCase(TestCase):

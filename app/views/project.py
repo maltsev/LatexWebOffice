@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-﻿"""
+"""
 
 * Purpose : Verwaltung von Project Models
 
@@ -23,8 +23,7 @@ import zipfile
 import shutil
 import logging
 
-from django.contrib.auth import get_user_model
-User = get_user_model()
+
 from django.http import HttpResponse, Http404
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
@@ -36,6 +35,7 @@ from app.models.file.texfile import TexFile
 from app.common import util
 from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE, STANDARDENCODING
 
+User = util.getUserModel()
 
 def projectCreate(request, user, projectname):
     """Erstellt ein neues Projekt mit dem Namen projectname (ggf. mit einem generierten numerischen Suffix).
