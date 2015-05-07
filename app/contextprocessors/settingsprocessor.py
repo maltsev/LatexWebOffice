@@ -21,7 +21,7 @@ from app.views.document import available_commands_output, globalparas
 
 
 def Error_messages(request):
-    return {'ERROR_MESSAGES': json.dumps(ERROR_MESSAGES)}
+    return {'ERROR_MESSAGES': json.dumps(ERROR_MESSAGES, ensure_ascii=False)}
 
 
 def Available_commands(request):

@@ -43,7 +43,7 @@
     <script>moment.locale("de");</script>
 	<script src="{{ STATIC_URL }}js/nav/nav.js"></script>
     <script src="{{ STATIC_URL }}js/general.js"></script>
-	<script>var ERROR_MESSAGES=JSON.parse("{{ ERROR_MESSAGES }}".replace(/&quot;/g, "\"").replace(/(?:\r\n|\r|\n)/g,''));</script> <!-- Standard Fehlermeldungen vom Server (kann nicht in den static Ordner) -->
+	<script>var ERROR_MESSAGES={{ ERROR_MESSAGES|safe }};</script> <!-- Standard Fehlermeldungen vom Server (kann nicht in den static Ordner) -->
 	<script>var user = "{{ user.email }}";</script>
 	<!-- seitenspezifische Header -->
 	{% block header %}{% endblock %}
