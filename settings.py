@@ -1,6 +1,9 @@
 import os
 import sys
 
+from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
+
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 DEBUG = True
@@ -74,11 +77,17 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
+TEMPLATE_CONTEXT_PROCESSORS += ('app.contextprocessors.settingsprocessor.Error_messages',
+                                'app.contextprocessors.settingsprocessor.Available_commands',
+                                'app.contextprocessors.settingsprocessor.Global_paras',)
+
 ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR, 'app', 'templates'),
 )
+
+
 
 INSTALLED_APPS = (
     'django.contrib.auth',
