@@ -38,6 +38,10 @@ class PlainTextFile(file.File):
     source_code = models.TextField(blank=True)
     objects = PlainTextFileManager()
 
+    class Meta:
+        app_label = 'app'
+
+
     def getContent(self):
         output = io.StringIO()
         output.write(self.source_code)

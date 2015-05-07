@@ -22,6 +22,10 @@ from django.dispatch import receiver
 class PDF(binaryfile.BinaryFile):
     objects = binaryfile.BinaryFileManager()
 
+    class Meta:
+        app_label = 'app'
+
+
 @receiver(pre_save, sender=PDF)
 def pdfPreSave(instance, **kwargs):
     instance.mimeType = 'application/pdf'

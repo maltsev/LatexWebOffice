@@ -22,3 +22,6 @@ class Collaboration(models.Model):
     user = models.ForeignKey(User)
     project = models.ForeignKey("Project")
     isConfirmed = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = 'app'

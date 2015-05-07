@@ -70,6 +70,10 @@ class Project(projecttemplate.ProjectTemplate):
     collaborators = models.ManyToManyField(User, through='Collaboration')
     objects = ProjectManager()
 
+    class Meta:
+        app_label = 'app'
+
+
     def getAllCollaborators(self):
         return self.collaborators.all()
 

@@ -85,6 +85,10 @@ class BinaryFile(file.File):
     filepath = models.CharField(max_length=255)
     objects = BinaryFileManager()
 
+    class Meta:
+        app_label = 'app'
+
+
     def getContent(self):
         return open(str(self.filepath), 'rb')
 
