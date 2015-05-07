@@ -89,7 +89,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
-    #'app'
+    'app'
 )
 
 # See http://docs.djangoproject.com/en/dev/topics/logging for
