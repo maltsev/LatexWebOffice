@@ -246,8 +246,11 @@ def checkObjectForInvalidString(string, request):
 
     if string == '' or string.isspace():
         return False, jsonErrorResponse(ERROR_MESSAGES['BLANKNAME'], request)
-    if any(invalid in string for invalid in INVALIDCHARS):
-        return False, jsonErrorResponse(ERROR_MESSAGES['INVALIDNAME'], request)
+
+    for invalid in INVALIDCHARS:
+        if invalid in string:
+            return False, jsonErrorResponse(ERROR_MESSAGES['INVALIDNAME'], request)
+
     return True, None
 
 
