@@ -373,9 +373,9 @@ def getNextValidProjectName(user,name):
         n = DUPLICATE_INIT_SUFFIX_NUM
         while True :
             # wenn noch kein Projekt mit dem Namen name+' (n)' existiert, ...
-            if not queryProjects.filter(name__iexact=DUPLICATE_NAMING_REGEX.format(name,n)).exists() :
+            if not queryProjects.filter(name__iexact=DUPLICATE_NAMING_REGEX % (name,n)).exists() :
                 # ... wird dieser zurückgegeben
-                return DUPLICATE_NAMING_REGEX.format(name,n)
+                return DUPLICATE_NAMING_REGEX % (name,n)
             # wenn bereits ein Projekt mit dem Namen name+' (n)' existiert, ...
             else :
                 # ... wird mit der nächsten Zahl fortgefahren
@@ -409,9 +409,9 @@ def getNextValidTemplateName(user,name):
         n = DUPLICATE_INIT_SUFFIX_NUM
         while True :
             # wenn noch keine Vorlage mit dem Namen name+' (n)' existiert, ...
-            if not queryTemplates.filter(name__iexact=DUPLICATE_NAMING_REGEX.format(name,n)).exists() :
+            if not queryTemplates.filter(name__iexact=DUPLICATE_NAMING_REGEX % (name,n)).exists() :
                 # ... wird dieser zurückgegeben
-                return DUPLICATE_NAMING_REGEX.format(name,n)
+                return DUPLICATE_NAMING_REGEX % (name,n)
             # wenn bereits eine Vorlage mit dem Namen name+' (n)' existiert, ...
             else :
                 # ... wird mit der nächsten Zahl fortgefahren
@@ -506,7 +506,7 @@ def uploadFile(f, folder, request, fromZip=False):
             return False, ERROR_MESSAGES['DATABASEERROR']
     # sonst ist der Dateityp nicht erlaubt
     else:
-        return False, ERROR_MESSAGES['ILLEGALFILETYPE'].format(mime)
+        return False, ERROR_MESSAGES['ILLEGALFILETYPE'] % mime
 
     return True, {'id': file.id, 'name': file.name}
 

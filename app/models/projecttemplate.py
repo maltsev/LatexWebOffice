@@ -31,7 +31,7 @@ class ProjectTemplateManager(models.Manager):
 
         project = kwargs['project']
 
-        projectTemplateName = kwargs.get('name', "{} (Vorlage)".format(project.name))
+        projectTemplateName = kwargs.get('name', "%s (Vorlage)" % project.name)
         projectTemplateAuthor = kwargs.get('author', project.author)
 
         projectTemplate = self.create(name=projectTemplateName, author=projectTemplateAuthor)
@@ -57,7 +57,7 @@ class ProjectTemplate(models.Model):
         app_label = 'app'
 
     def __str__(self):
-        return "{}_{}".format(self.pk, self.name)
+        return "%s_%s" % (self.pk, self.name)
 
 
 @receiver(post_delete, sender=ProjectTemplate)

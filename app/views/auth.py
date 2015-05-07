@@ -61,7 +61,7 @@ def login(request):
                     auth.login(request, user)
                     return redirect('/projekt/')
                 else:
-                    messages.error(request, ERROR_MESSAGES['INACTIVEACCOUNT'].format(email))
+                    messages.error(request, ERROR_MESSAGES['INACTIVEACCOUNT'] % email)
 
             else:
                 messages.error(request, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
@@ -83,10 +83,10 @@ Falls dies nicht von Ihnen angefordert wurde, ignorieren Sie bitte diese Email.
 Mit freundlichen Grüßen,
 Ihr LatexWebOfficeteam
                 """
-                    emailsend=EmailMessage(subject,body.format(email,url))
+                    emailsend=EmailMessage(subject,body % (email,url))
                     emailsend.to=[email]
                     emailsend.send()
-            messages.success(request,ERROR_MESSAGES['EMAILPWRECOVERSEND'].format(email))
+            messages.success(request,ERROR_MESSAGES['EMAILPWRECOVERSEND']% email)
             
 
 

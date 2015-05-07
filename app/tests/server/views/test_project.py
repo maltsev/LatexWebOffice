@@ -168,8 +168,8 @@ class ProjectTestClass(ViewTestCase):
         
         # erwartete Antwort des Servers
         serveranswer = {'id': Project.objects.get(author=self._user1,
-                                                  name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM)).id,
-                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM)}
+                                                  name=DUPLICATE_NAMING_REGEX % (self._newname1, DUPLICATE_INIT_SUFFIX_NUM)).id,
+                        'name': DUPLICATE_NAMING_REGEX % (self._newname1, DUPLICATE_INIT_SUFFIX_NUM)}
         
         # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
         self.assertTrue(Project.objects.get(id=serveranswer['id']))
@@ -190,8 +190,8 @@ class ProjectTestClass(ViewTestCase):
         
         # erwartete Antwort des Servers
         serveranswer = {'id': Project.objects.get(author=self._user1,
-                                                  name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
-                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)}
+                                                  name=DUPLICATE_NAMING_REGEX % (self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
+                        'name': DUPLICATE_NAMING_REGEX % (self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)}
         
         # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
         self.assertTrue(Project.objects.get(id=serveranswer['id']))
@@ -311,8 +311,8 @@ class ProjectTestClass(ViewTestCase):
         
         # erwartete Antwort des Servers
         serveranswer = {'id': Project.objects.get(author=self._user1,
-                                                  name=DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM)).id,
-                        'name': DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM)}
+                                                  name=DUPLICATE_NAMING_REGEX % (self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM)).id,
+                        'name': DUPLICATE_NAMING_REGEX % (self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM)}
         
         # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
         self.assertTrue(Project.objects.get(id=serveranswer['id']))
@@ -334,8 +334,8 @@ class ProjectTestClass(ViewTestCase):
         
         # erwartete Antwort des Servers
         serveranswer = {'id': Project.objects.get(author=self._user1,
-                                                  name=DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
-                        'name': DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM+1)}
+                                                  name=DUPLICATE_NAMING_REGEX % (self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
+                        'name': DUPLICATE_NAMING_REGEX % (self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM+1)}
         
         # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
         self.assertTrue(Project.objects.get(id=serveranswer['id']))
@@ -506,7 +506,7 @@ class ProjectTestClass(ViewTestCase):
         self.assertNotEqual(Project.objects.get(id=self._user1_project3.id).name, self._user1_project2.name.upper())
 
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(self._user1_project2.name.upper())
+        serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'] % self._user1_project2.name.upper()
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -557,7 +557,7 @@ class ProjectTestClass(ViewTestCase):
             self.assertNotEqual(Project.objects.get(id=self._user1_project3.id).name, self._user1_project4.name.upper())
 
             # erwartete Antwort des Servers
-            serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(self._user1_project2.name.upper())
+            serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'] % self._user1_project2.name.upper()
 
             # überprüfe die Antwort des Servers
             # status sollte failure sein
@@ -904,7 +904,7 @@ class ProjectTestClass(ViewTestCase):
 
         # Die Binärdatei sollte eine ILLEGALFILETYPE Fehlermeldung hervorrufen
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['ILLEGALFILETYPE'].format("application/octet-stream")
+        serveranswer = ERROR_MESSAGES['ILLEGALFILETYPE'] % "application/octet-stream"
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -1200,7 +1200,7 @@ class ProjectTestClass(ViewTestCase):
         self.assertFalse(Collaboration.objects.filter(user=self._user1, project=self._user1_project1))
         
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['USERALREADYINVITED'].format(self._user1.username)
+        serveranswer = ERROR_MESSAGES['USERALREADYINVITED'] % self._user1.username
         
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -1241,7 +1241,7 @@ class ProjectTestClass(ViewTestCase):
         self.assertFalse(Collaboration.objects.filter(user=not_registered_user, project=self._user1_project1))
         
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['USERNOTFOUND'].format("notregistered@latexweboffice.de")
+        serveranswer = ERROR_MESSAGES['USERNOTFOUND'] % "notregistered@latexweboffice.de"
         
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -1295,7 +1295,7 @@ class ProjectTestClass(ViewTestCase):
         self.assertTrue((Collaboration.objects.filter(user=self._user2, project=self._user1_project1)).count() == 1)
         
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['USERALREADYINVITED'].format(self._user2.username)
+        serveranswer = ERROR_MESSAGES['USERALREADYINVITED'] % self._user2.username
         
         # überprüfe die Antwort des Servers
         # status sollte failure sein

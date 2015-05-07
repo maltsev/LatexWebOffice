@@ -65,7 +65,7 @@ class AuthLoginTestClass(TestCase):
     def test_loginFailInactiveUser(self):
         response = self._client.post(
             '/login/', {'email': self._user2.username, 'password': self._user2._unhashedpw,'action':'login'})
-        self.assertContains(response, ERROR_MESSAGES['INACTIVEACCOUNT'].format(self._user2.username))
+        self.assertContains(response, ERROR_MESSAGES['INACTIVEACCOUNT'] % self._user2.username)
 
     # Test if a user is logged in with an correct password -> user1
     def test_loginSuccess(self):

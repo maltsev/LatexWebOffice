@@ -105,4 +105,4 @@ class File(models.Model):
 
 
     def __str__(self):
-        return "{}{}".format(self.folder, self.name)
+        return "%s%s" % (self.folder, self.name)

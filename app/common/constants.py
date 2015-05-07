@@ -28,7 +28,7 @@ ERROR_MESSAGES = {
     'INVALIDEMAIL': 'Ungültige E-Mail-Adresse',
     'NOEMPTYFIELDS': 'Keine leeren Eingaben erlaubt.',
     'PASSWORDSDONTMATCH': 'Passwörter stimmen nicht überein.',
-    'INACTIVEACCOUNT': '{0} ist nicht verifiziert.',
+    'INACTIVEACCOUNT': '%s ist nicht verifiziert.',
     'WRONGLOGINCREDENTIALS': 'E-Mail-Adresse oder Passwort falsch.',
     'LOGINORREGFAILED': 'Anmeldung nach Registrierung fehlgeschlagen.',
     'INVALIDCHARACTERINFIRSTNAME': 'Vorname enthält ungültiges Zeichen.',
@@ -36,10 +36,10 @@ ERROR_MESSAGES = {
     'NOTALLPOSTPARAMETERS': 'Es wurden nicht alle benötigten POST Parameter übermittelt',
     'PROJECTNOTCREATED': 'Fehler beim Erstellen des Projektes',
     'COMMANDNOTFOUND': 'Befehl nicht gefunden',
-    'MISSINGPARAMETER': 'Fehlender Parameter: {0}',
+    'MISSINGPARAMETER': 'Fehlender Parameter: %s',
     'FILENOTCREATED': 'Datei konnte nicht erstellt werden.',
     'EMPTYTEXNOTCREATED': 'main.tex Datei konnte im neuen Projekt nicht erstellt werden.',
-    'PROJECTALREADYEXISTS': 'Ein Projekt mit dem Namen {0} existiert bereits.',
+    'PROJECTALREADYEXISTS': 'Ein Projekt mit dem Namen %s existiert bereits.',
     'NOTENOUGHRIGHTS': 'Nutzer hat für diese Aktion nicht ausreichend Rechte',
     'FOLDERNAMEEXISTS': 'Dieses Verzeichnis existiert schon',
     'FILENAMEEXISTS': 'Diese Datei existiert schon',
@@ -60,18 +60,18 @@ ERROR_MESSAGES = {
     'NOPLAINTEXTFILE': 'Datei kann nicht bearbeitet werden, keine Text Datei.',
     'NOTEXFILE': 'Keine Tex Datei.',
     'NOPDFFILE': 'Keine PDF Datei.',
-    'ILLEGALFILETYPE': 'Dateityp {0} ist nicht erlaubt',
+    'ILLEGALFILETYPE': 'Dateityp %s ist nicht erlaubt',
     'NOTAZIPFILE' : 'Ungültige zip-Datei',
     'EMPTYZIPFILE' : 'Leere zip-Datei',
-    'TEMPLATEALREADYEXISTS': 'Eine Vorlage mit dem Namen {0} existiert bereits.',
+    'TEMPLATEALREADYEXISTS': 'Eine Vorlage mit dem Namen %s existiert bereits.',
     'TEMPLATENOTEXIST': 'Vorlage nicht gefunden',
     'UNKNOWNFORMAT': 'Unbekanntes Ausgabeformat',
     'NOLOGFILE': 'Keine Log Datei vorhanden.',
-    'USERALREADYINVITED': 'Dieses Projekt ist für den Nutzer {0} bereits freigegeben.',
-    'USERNOTFOUND': 'Ein Nutzer {0} konnte nicht gefunden werden.',
+    'USERALREADYINVITED': 'Dieses Projekt ist für den Nutzer %s bereits freigegeben.',
+    'USERNOTFOUND': 'Ein Nutzer %s konnte nicht gefunden werden.',
     'COLLABORATIONNOTFOUND': 'Die Kollaboration konnte nicht gefunden werden.',
     'SELFCOLLABORATIONCANCEL': 'Der Nutzer darf nicht der Kollaboration an seinem Projekt kündigen.',
-    'EMAILPWRECOVERSEND': 'Eine Email mit Anweisungen um ein neues Passwort zu erhalten wurde an {0} versendet',
+    'EMAILPWRECOVERSEND': 'Eine Email mit Anweisungen um ein neues Passwort zu erhalten wurde an %s versendet',
     'PASSWORDCHANGED': 'Ihr Passwort wurde erfolgreich geändert. Sie können sich nun in das System einloggen',
     'MAXFILESIZE': 'Die maximale Dateigröße von 5MB wurde überschritten',
 }
@@ -110,7 +110,7 @@ STANDARDENCODING = 'utf-8'
 INVALIDCHARS = '<>;|"\/?*'
 
 # Namensschema für automatische Benennung bei bereits vorhandenen Namen
-DUPLICATE_NAMING_REGEX = '{0} ({1})'
+DUPLICATE_NAMING_REGEX = '%s (%s)'
 # Startwert für numerische Suffixe
 DUPLICATE_INIT_SUFFIX_NUM = 2
 

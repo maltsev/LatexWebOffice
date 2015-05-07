@@ -112,7 +112,7 @@ class Folder(models.Model):
         if self.parent:
             folderPath = os.path.join(self.parent.getTempPath(), self.name)
         else:
-            folderPath = os.path.join(settings.PROJECT_ROOT, "{}_{}".format(self.pk, self.name))
+            folderPath = os.path.join(settings.PROJECT_ROOT, "%s_%s" % (self.pk, self.name))
 
         if not os.path.exists(folderPath):
             os.makedirs(folderPath)
@@ -177,8 +177,8 @@ class Folder(models.Model):
     def __str__(self):
         if self.isRoot():
             try:
-                return "{}/".format(self.getProject())
+                return "%s/" % self.getProject()
             except ObjectDoesNotExist:
-                return "{}/".format(self.name)
+                return "%s/" % self.name
         else:
-            return "{}{}/".format(self.parent, self.name)
+            return "%s%s/" % (self.parent, self.name)

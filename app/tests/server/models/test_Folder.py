@@ -106,4 +106,4 @@ class FolderTestCase(ModelTestCase):
         for fileOrFolder in filesAndFolders:
             pathParts = [self.root.getTempPath()] + fileOrFolder
             path = os.path.join(*pathParts)
-            self.assertTrue(os.path.exists(path), "Not exists: {}".format(path))
+            self.assertTrue(os.path.exists(path), "Not exists: %s" % path)

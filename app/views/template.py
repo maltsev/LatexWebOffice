@@ -101,7 +101,7 @@ def templateRename(request, user, templateid, newtemplatename):
 
     # überprüfe ob eine Vorlage mit dem Namen 'newtemplatename' bereits für diese Benutzer existiert
     if ProjectTemplate.objects.filter(name__iexact=newtemplatename.lower(), author=user).exists():
-        return util.jsonErrorResponse(ERROR_MESSAGES['TEMPLATEALREADYEXISTS'].format(newtemplatename), request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['TEMPLATEALREADYEXISTS'] % newtemplatename, request)
     else:
         # versuche die Vorlage umzubenennen
         try:

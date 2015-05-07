@@ -67,7 +67,7 @@ def measure_time(function):
         # Dauer
         duration = t2-t1
 
-        print('{0}: {1}'.format(function.__name__, str(duration) + os.linesep))
+        print('%s: %s' % (function.__name__, str(duration) + os.linesep))
 
         return duration
 

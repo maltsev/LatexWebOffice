@@ -801,7 +801,7 @@ class FileTestClass(ViewTestCase):
         serveranswer = {
             'failure':
                 [
-                    {'name': file1_name, 'reason': ERROR_MESSAGES['ILLEGALFILETYPE'].format("application/octet-stream")},
+                    {'name': file1_name, 'reason': ERROR_MESSAGES['ILLEGALFILETYPE'] % "application/octet-stream"},
                 ],
             'success':
                 [

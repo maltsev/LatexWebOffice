@@ -122,7 +122,7 @@ def projectRename(request, user, projectid, newprojectname):
     projectobj = Project.objects.get(id=projectid)
     # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
     if Project.objects.filter(name__iexact=newprojectname.lower(), author=user).exists():
-        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(newprojectname), request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'] % newprojectname, request)
     else:
         # versuche das Projekt umzubenennen
         try:
@@ -364,12 +364,12 @@ def inviteUser(request, user, projectid, inviteusermail):
                     return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
             # wenn eine entsprechende Kollaboration bereits vorliegt
             else :
-                return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(inviteuser.username), request)
+                return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'] % inviteuser.username, request)
         else :
-            return util.jsonErrorResponse(ERROR_MESSAGES['USERNOTFOUND'].format(inviteusermail), request)
+            return util.jsonErrorResponse(ERROR_MESSAGES['USERNOTFOUND'] % inviteusermail, request)
     # wenn es sich bei der übergebenen E-Mail-Adresse des einzuladenen Nutzers um die des aufrufenden Nutzers handelt
     else :
-        return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(user.username), request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'] % user.username, request)
 
 
 def hasInvitedUsers(request, user, projectid):

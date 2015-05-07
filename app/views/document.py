@@ -274,9 +274,9 @@ def execute(request):
             # wenn der Parameter nicht gefunden wurde oder ein Parameter, welcher eine id angeben sollte
             # Zeichen enthält, die keine Zahlen sind, gib Fehlermeldung zurück
             if request.POST.get(para['para']['name']) is None:
-                return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para['para']), request)
+                return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'] % (para['para']), request)
             elif para['para']['type'] == int and (not request.POST.get(para['para']['name']).isdigit()):
-                return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para['para']), request)
+                return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'] % (para['para']), request)
             # sonst füge den Parameter zu der Argumentliste hinzu
             else:
                 args.append(request.POST[para['para']['name']])
@@ -362,4 +362,4 @@ def execute(request):
 
             return file.getPDF(request, request.user, texid=texid, default=defaultpdfPath)
 
-    return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format('unknown'), request)
+    return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'] % 'unknown', request)

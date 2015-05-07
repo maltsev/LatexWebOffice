@@ -95,8 +95,8 @@ class TemplateTestClass(ViewTestCase):
         
         # erwartete Antwort des Servers
         serveranswer = {'id': ProjectTemplate.objects.get(author=self._user1,
-                                                          name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM)).id,
-                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM)}
+                                                          name=DUPLICATE_NAMING_REGEX % (self._newname1,DUPLICATE_INIT_SUFFIX_NUM)).id,
+                        'name': DUPLICATE_NAMING_REGEX % (self._newname1,DUPLICATE_INIT_SUFFIX_NUM)}
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -111,8 +111,8 @@ class TemplateTestClass(ViewTestCase):
         
         # erwartete Antwort des Servers
         serveranswer = {'id': ProjectTemplate.objects.get(author=self._user1,
-                                                          name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
-                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)}
+                                                          name=DUPLICATE_NAMING_REGEX % (self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
+                        'name': DUPLICATE_NAMING_REGEX % (self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)}
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -201,11 +201,11 @@ class TemplateTestClass(ViewTestCase):
                                        idpara=self._user1_template1.id, name=self._newname1)
         
         projectobj = Project.objects.get(author=self._user1,
-                                         name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM))
+                                         name=DUPLICATE_NAMING_REGEX % (self._newname1,DUPLICATE_INIT_SUFFIX_NUM))
         
         # erwartete Antwort des Servers
         serveranswer = {'id': projectobj.id,
-                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM),
+                        'name': DUPLICATE_NAMING_REGEX % (self._newname1,DUPLICATE_INIT_SUFFIX_NUM),
                         'rootid': projectobj.rootFolder.id}
 
         # überprüfe die Antwort des Servers
@@ -220,11 +220,11 @@ class TemplateTestClass(ViewTestCase):
                                        idpara=self._user1_template1.id, name=self._newname1)
         
         projectobj = Project.objects.get(author=self._user1,
-                                         name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1))
+                                         name=DUPLICATE_NAMING_REGEX % (self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1))
         
         # erwartete Antwort des Servers
         serveranswer = {'id': projectobj.id,
-                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1),
+                        'name': DUPLICATE_NAMING_REGEX % (self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1),
                         'rootid': projectobj.rootFolder.id}
 
         # überprüfe die Antwort des Servers
@@ -405,7 +405,7 @@ class TemplateTestClass(ViewTestCase):
                             self._user1_template2.name.upper())
 
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['TEMPLATEALREADYEXISTS'].format(self._user1_template2.name.upper())
+        serveranswer = ERROR_MESSAGES['TEMPLATEALREADYEXISTS'] % self._user1_template2.name.upper()
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
