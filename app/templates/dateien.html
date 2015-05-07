@@ -254,22 +254,19 @@
         </div>
     </div>
     
-    {% verbatim %}
-    <script id="template_filesitem-file" type="text/template">
-        <span class="filesitem-name fadeblock" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
-            <span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
-        </span>
-        <span class="filesitem-editdate" title="verändert {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
-    </script>
-    {% endverbatim %}
 
-    {% verbatim %}
+    <script id="template_filesitem-file" type="text/template">
+        <span class="filesitem-name fadeblock" title="[[= it.mimetype ]], erstellt [[= it.createTime ]]">
+            <span class="filesitem-nameWrapper">[[= it.name ]]</span> <span class="filesitem-size">[[= it.size ]] KB</span>
+        </span>
+        <span class="filesitem-editdate" title="verändert [[= it.lastModifiedTime ]]">[[= it.lastModifiedTime ]]</span>
+    </script>
+
     <script id="template_filesitem-folder" type="text/template">
         <span class="filesitem-name fadeblock" title="Verzeichnis">
-            <span class="filesitem-nameWrapper">{{= it.name }}</span>
+            <span class="filesitem-nameWrapper">[[= it.name ]]</span>
         </span>
     </script>
-    {% endverbatim %}
 
     <div class="fileswrapper" style="max-width: 823px"></div>
 </div>

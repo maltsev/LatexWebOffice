@@ -63,24 +63,23 @@
                   <h4 class="modal-title" id="graphik-assistent-label">Graphikassistent</h4>
                </div>
                <div class="modal-body">
-                  {% verbatim %}
+
                   <div>
                      Bitte wählen Sie eine oder mehrere Graphiken aus.
                   </div>
                   <script id="template_filesitem-file" type="text/template">
-                     <span class="filesitem-name" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
-                         <span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
+                     <span class="filesitem-name" title="[[= it.mimetype ]], erstellt [[= it.createTime ]]">
+                         <span class="filesitem-nameWrapper">[[= it.name ]]</span> <span class="filesitem-size">[[= it.size ]] KB</span>
                      </span>
-                     <span class="filesitem-editdate" title="Verändert {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
+                     <span class="filesitem-editdate" title="Verändert [[= it.lastModifiedTime ]]">[[= it.lastModifiedTime ]]</span>
                   </script>
-                  {% endverbatim %}
-                  {% verbatim %}
+
                   <script id="template_filesitem-folder" type="text/template">
                      <span class="filesitem-name" title="Verzeichnis">
-                         <span class="filesitem-nameWrapper">{{= it.name }}</span>
+                         <span class="filesitem-nameWrapper">[[= it.name ]]</span>
                      </span>
                   </script>
-                  {% endverbatim %}
+
                   <div id="fileswrapper" class="fileswrapper"></div>
                   <div class="row">
                      <div class="col-sm-2" >

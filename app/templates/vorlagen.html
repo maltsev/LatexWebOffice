@@ -121,18 +121,15 @@
                     </a></li>
                 </ul>
         </div>
-
     </div>
-    
-    {% verbatim %}
+
     <script id="template_projectsitem" type="text/template">
-        <span class="projectsitem-name fadeblock" erstellt {{= it.createtime }}">
-            <span class="projectsitem-nameWrapper">{{= it.name }}</span>
+        <span class="projectsitem-name fadeblock" erstellt [[= it.createtime ]]">
+            <span class="projectsitem-nameWrapper">[[= it.name ]]</span>
         </span>
-        <span class="projectsitem-createdate fadeblock" title="erstellt {{= it.createTime }}">{{= it.createTime }}</span>
-        <span class="projectsitem-author">{{= it.ownername }}</span>
+        <span class="projectsitem-createdate fadeblock" title="erstellt [[= it.createTime ]]">[[= it.createTime ]]</span>
+        <span class="projectsitem-author">[[= it.ownername ]]</span>
     </script>
-    {% endverbatim %}
     
     <div class="templateswrapper projectswrapper" style="max-width: 820px"></div>
 </div>

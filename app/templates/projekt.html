@@ -327,22 +327,20 @@
                 </ul>
         </div>
     </div>
-    
-    {% verbatim %}
-    <script id="template_projectsitem" type="text/template">
-        <span class="projectsitem-name fadeblock" erstellt {{= it.createtime }}">
-            <span class="projectsitem-nameWrapper">{{= it.name }}</span>
-        </span>
-        <span class="projectsitem-createdate fadeblock" title="erstellt {{= it.createTime }}">{{= it.createTime }}</span>
-        <span class="projectsitem-author">{{= it.ownername }}</span>
 
-        {{? it.collaboratorsnum }}
-            <span class="projectsitem-collaboratorsnum" title="{{= it.collaboratorsnum }} {{? it.collaboratorsnum > 1 }}Kollaborateure{{??}}Kollaborateur{{?}}">
-                <span class="glyphicon glyphicon-share"></span>{{= it.collaboratorsnum }}
+    <script id="template_projectsitem" type="text/template">
+        <span class="projectsitem-name fadeblock" erstellt [[= it.createtime ]]">
+            <span class="projectsitem-nameWrapper">[[= it.name ]]</span>
+        </span>
+        <span class="projectsitem-createdate fadeblock" title="erstellt [[= it.createTime ]]">[[= it.createTime ]]</span>
+        <span class="projectsitem-author">[[= it.ownername ]]</span>
+
+        [[? it.collaboratorsnum ]]
+            <span class="projectsitem-collaboratorsnum" title="[[= it.collaboratorsnum ]] [[? it.collaboratorsnum > 1 ]]Kollaborateure[[??]]Kollaborateur[[?]]">
+                <span class="glyphicon glyphicon-share"></span>[[= it.collaboratorsnum ]]
             </span>
-        {{?}}
+        [[?]]
     </script>
-    {% endverbatim %}
 
     <div class="projectswrapper" style="max-width: 820px"></div>
 </div>
