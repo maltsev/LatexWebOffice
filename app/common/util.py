@@ -640,7 +640,7 @@ def convertLatinToUnicode(string):
 
     # versuche den String nach 'utf-8' zu konvertieren
     try:
-        return bytes(string, 'cp437').decode('utf-8')
+        return string.encode('cp437').decode('utf-8')
     # ansonsten gib den String unverändert zurück
     except UnicodeDecodeError:
         return string
