@@ -14,8 +14,7 @@
 * Backlog entry :
 
 """
-# TODO
-#import io
+import StringIO
 import os
 from datetime import timedelta, datetime
 
@@ -52,9 +51,7 @@ class File(models.Model):
 
 
     def getContent(self):
-        # TODO
-        #return io.StringIO()
-        return ''
+        return StringIO.StringIO()
 
 
     def lock(self, user):

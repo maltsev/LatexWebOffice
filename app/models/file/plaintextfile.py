@@ -14,9 +14,7 @@
 * Backlog entry :
 
 """
-# TODO
-#import io
-import os
+import StringIO
 
 from django.db import models
 from django.db.models.signals import pre_save
@@ -43,7 +41,7 @@ class PlainTextFile(file.File):
 
 
     def getContent(self):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         output.write(self.source_code)
         return output
 
