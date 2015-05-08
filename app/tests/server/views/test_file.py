@@ -930,7 +930,7 @@ class FileTestClass(ViewTestCase):
         # der Inhalt der heruntergeladenen Datei und der Datei auf dem Server sollte übereinstimmen
         self.assertEqual(self._user1_tex1.source_code, smart_str(response.content))
         # der Content-Type sollte .tex entsprechen
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.tex'])
+        self.assertIn(response['Content-Type'], ['application/x-tex', 'text/x-tex'])
         # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
         ori_file = self._user1_tex1.getContent()
         self.assertTrue(0.99 < (int(response['Content-Length']) / util.getFileSize(ori_file)) < 1.01)
@@ -949,7 +949,7 @@ class FileTestClass(ViewTestCase):
         # es sollte keine Datei mitgesendet worden sein
         self.assertNotIn('Content-Disposition', response)
         # Content-Type sollte text/html sein
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        self.assertEqual(response['Content-Type'], 'text/html; charset=utf-8')
         # Content-Length sollte nicht vorhanden sein
         self.assertNotIn('Content-Length', response)
 
@@ -964,13 +964,13 @@ class FileTestClass(ViewTestCase):
         # es sollte keine Datei mitgesendet worden sein
         self.assertNotIn('Content-Disposition', response)
         # Content-Type sollte text/html sein
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        self.assertEqual(response['Content-Type'], 'text/html; charset=utf-8')
         # Content-Length sollte nicht vorhanden sein
         self.assertNotIn('Content-Length', response)
 
         sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
         response = util.documentPoster(self, command='downloadfile', idpara=sharedproject_maintex.id)
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.tex'])
+        self.assertIn(response['Content-Type'], ['application/x-tex', 'text/x-tex'])
         # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
         file_content = sharedproject_maintex.getContent()
         self.assertTrue(0.99 < (int(response['Content-Length']) / util.getFileSize(file_content)) < 1.01)
