@@ -265,7 +265,12 @@ def checkFileForInvalidString(name, request):
     """
 
     # trenne die Dateiendung vom Dateinamen
-    file_name, file_extension = os.path.splitext(name)
+    split_name = os.path.splitext(name)
+    if split_name[0]:
+        file_name, file_extension = split_name
+    else:
+        file_extension, file_name = split_name
+
 
     # file_extension ist ein leerer String wenn entweder keine Dateiendung vorhanden ist
     # oder der Dateiname nur die Dateiendung beinhaltet, z.B. name = '.tex'
