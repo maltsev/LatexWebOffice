@@ -205,7 +205,7 @@ def checkIfTemplateExistsAndUserHasRights(templateid, user, request):
     :return: (False, HttpResponse (JSON) mit der entsprechenden Fehlermeldung), bzw. (True, None) bei Erfolg
     """
 
-    if not ProjectTemplate.objects.filter(id=templateid).exclude(project__isnull=False).exists():
+    if not ProjectTemplate.objects.filter(id=templateid, project__isnull=True).exists():
         return False, jsonErrorResponse(ERROR_MESSAGES['TEMPLATENOTEXIST'], request)
     elif not ProjectTemplate.objects.get(id=templateid).author == user:
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)

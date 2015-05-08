@@ -120,7 +120,7 @@ def listTemplates(request, user):
     :return: HttpResponse (JSON)
     """
 
-    availableprojects = ProjectTemplate.objects.filter(author=user).exclude(project__isnull=False)
+    availableprojects = ProjectTemplate.objects.filter(author=user, project__isnull=True)
 
     if availableprojects is None:
         return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
