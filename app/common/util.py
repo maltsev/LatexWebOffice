@@ -28,8 +28,9 @@ from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist, ImproperlyConfigured
 
 import settings
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES, MAXFILESIZE
+from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, MAXFILESIZE
 from app.common.constants import DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM, SEEK_END, SEEK_SET
+from app.common.mimetypes import ALLOWEDMIMETYPES
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.projecttemplate import ProjectTemplate

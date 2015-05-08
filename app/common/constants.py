@@ -16,11 +16,6 @@
 * Backlog entry : -
 
 """
-from app.models.file.texfile import TexFile
-from app.models.file.plaintextfile import PlainTextFile
-from app.models.file.binaryfile import BinaryFile
-from app.models.file.pdf import PDF
-from app.models.file.image import Image
 
 # Fehlermeldungen, welche von den verschiedenen Methoden zur Rückgabe genutzt werden
 ERROR_MESSAGES = {
@@ -76,32 +71,7 @@ ERROR_MESSAGES = {
     'MAXFILESIZE': 'Die maximale Dateigröße von 5MB wurde überschritten',
 }
 
-ALLOWEDMIMETYPES = {
-    'plaintext': {
-        'text/x-tex': TexFile,                      # Linux
-        'application/x-tex': TexFile,               # Windows
-        'text/plain': PlainTextFile,
-
-        'text/x-c': PlainTextFile,                  # C Source File
-        'text/html': PlainTextFile,                 # HTML
-        'text/x-java-source,java': PlainTextFile    # Java Source File
-    },
-    'binary': {
-        'image/png': Image,
-        'image/jpg': Image,
-        'image/jpeg': Image,
-        'image/gif': Image,
-        'application/tga': Image,
-
-        'application/pdf': PDF,
-        'application/postscript': BinaryFile,
-        'application/x-dvi': BinaryFile,
-        'application/zip': BinaryFile,
-        'application/CDFV2-corrupt': BinaryFile
-    }
-}
-
-MAXFILESIZE = 5000000; #5MB
+MAXFILESIZE = 5000000 #5MB
 
 ZIPMIMETYPE = 'application/zip'
 STANDARDENCODING = 'utf-8'
