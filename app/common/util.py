@@ -47,7 +47,7 @@ def jsonDecoder(responseContent):
     :return: dict
     """
 
-    return json.loads(str(responseContent, encoding='utf-8'))
+    return json.loads(responseContent)
 
 
 def jsonResponse(response, status, request):
