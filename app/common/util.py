@@ -28,7 +28,8 @@ from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist, ImproperlyConfigured
 
 import settings
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES, DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM, MAXFILESIZE
+from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES, MAXFILESIZE
+from app.common.constants import DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM, SEEK_END, SEEK_SET
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.projecttemplate import ProjectTemplate
@@ -444,11 +445,11 @@ def uploadFile(f, folder, request, fromZip=False):
     # speichere alte Position 
     old_file_position = f.tell()
     # gehe vom Anfang zum Ende
-    f.seek(0, os.SEEK_END)
+    f.seek(0, SEEK_END)
     # Speichere den Abstand vom Anfang zum Ende
     size = f.tell()
     # Gehere zurück zur alten Position in der Datei
-    f.seek(old_file_position, os.SEEK_SET)
+    f.seek(old_file_position, SEEK_SET)
 
     if size > MAXFILESIZE:
         return False, ERROR_MESSAGES['MAXFILESIZE']
@@ -571,9 +572,9 @@ def getFileSize(pyfile):
     """
 
     old_file_position = pyfile.tell()
-    pyfile.seek(0, os.SEEK_END)
+    pyfile.seek(0, SEEK_END)
     size = pyfile.tell()
-    pyfile.seek(old_file_position, os.SEEK_SET)
+    pyfile.seek(old_file_position, SEEK_SET)
 
     return size
 
