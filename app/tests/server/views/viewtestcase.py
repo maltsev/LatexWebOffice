@@ -47,15 +47,15 @@ class ViewTestCase(TestCase):
         """
 
         # erstelle user1
-        self._user1 = User.objects.create_user('user1@test.de', password='123456')
+        self._user1 = User.objects.create_user('user1@test.de', 'user1@test.de', password='123456')
         self._user1._unhashedpw = '123456'
 
         # erstelle user2
-        self._user2 = User.objects.create_user('user2@test.de', password='test123')
+        self._user2 = User.objects.create_user('user2@test.de', 'user2@test.de', password='test123')
         self._user2._unhashedpw = 'test123'
 
         # erstelle user3
-        self._user3 = User.objects.create_user('user3@test.de', password='test123')
+        self._user3 = User.objects.create_user('user3@test.de', 'user3@test.de', password='test123')
         self._user3._unhashedpw = 'test123'
 
         # logge user1 ein
@@ -106,7 +106,7 @@ class ViewTestCase(TestCase):
         """
 
         # erstelle user1
-        self._user1 = User.objects.create_user('user1@test.de', password='123456')
+        self._user1 = User.objects.create_user('user1@test.de', 'user1@test.de', password='123456')
         self._user1._unhashedpw = '123456'
 
         # logge user1 ein

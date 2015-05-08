@@ -33,14 +33,12 @@ class AuthLoginTestClass(TestCase):
     # client - the client to do requests with
     def setUp(self):
         # create active user1
-        user1 = User.objects.create_user(
-            'user1@test.de', password='123456')
+        user1 = User.objects.create_user('user1@test.de', 'user1@test.de', password='123456')
         user1._unhashedpw = '123456'
         self._user1 = user1
 
         # create inactive user2
-        user2 = User.objects.create_user(
-            'user2@test.de', password='test123')
+        user2 = User.objects.create_user('user2@test.de', 'user2@test.de', password='test123')
         user2._unhashedpw = 'test123'
         user2.is_active = False
         user2.save()
@@ -135,8 +133,7 @@ class AuthRegistrationTestClass(TestCase):
         self._user5_password2 = 'test 123'
 
         # create active user7
-        user7 = User.objects.create_user(
-            'user7@test.de', password='123456')
+        user7 = User.objects.create_user('user7@test.de', 'user7@test.de', password='123456')
         user7._unhashedpw = '123456'
         self._user7 = user7
 
@@ -164,9 +161,10 @@ class AuthRegistrationTestClass(TestCase):
     def test_registrationFailAlreadyRegistered(self):
         # create user1 separately again, because user1 from first registrationSuccess
         # doesn't exist here in our database
-        new_user = User.objects.create_user(
-                                               email=self._user1_email, password=self._user1_password1,
-                                               first_name=self._user1_first_name)
+        new_user = User.objects.create_user(self._user1_email, self._user1_email, password=self._user1_password1)
+        new_user.first_name = self._user1_first_name
+        new_user.save()
+
         response = self._client.post(
             '/registration/', {'first_name': self._user1_first_name, 'email': self._user1_email,
             'password1': self._user1_password1, 'password2': self._user1_password2}, follow=True)
@@ -204,9 +202,10 @@ class AuthRegistrationTestClass(TestCase):
     # Test that you will be directed to the startseite when trying to register while being already logged in
 
     def test_registrationRedirectWhenLoggedIn(self):
-        new_user = User.objects.create_user(
-                                               email=self._user1_email, password=self._user1_password1,
-                                               first_name=self._user1_first_name)
+        new_user = User.objects.create_user(self._user1_email, self._user1_email, password=self._user1_password1)
+        new_user.first_name = self._user1_first_name
+        new_user.save()
+
         self._client.login(username=self._user1_email,password=self._user1_password1)
         self.assertIn('_auth_user_id',self._client.session)
         response=self._client.get('/registration/')

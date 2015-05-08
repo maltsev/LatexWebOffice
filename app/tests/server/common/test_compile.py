@@ -44,7 +44,7 @@ class CompilerTestClass(TestCase):
         """
 
         # erstellt einen neuen Benutzer
-        self.user = User.objects.create_user('user@test.de', password='123456')
+        self.user = User.objects.create_user('user@test.de', 'user@test.de', password='123456')
 
         # loggt den erzeugten Benutzer ein
         self.client.login(username=self.user.username, password='123456')

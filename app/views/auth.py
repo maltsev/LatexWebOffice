@@ -174,8 +174,9 @@ def registration(request):
             foundErrors = True
         # if all validation checks pass, create new user
         if not foundErrors:
-            new_user = User.objects.create_user(email=email,
-                                                password=password1, first_name=first_name)
+            new_user = User.objects.create_user(email, email, password=password1)
+            new_user.first_name = first_name
+            new_user.save()
 
             # user login and redirection to start page
             user = auth.authenticate(username=email, password=password1)

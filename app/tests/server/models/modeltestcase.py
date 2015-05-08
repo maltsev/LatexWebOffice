@@ -25,7 +25,7 @@ User = getUserModel()
 
 class ModelTestCase(TestCase):
     def setUpProject(self):
-        self.author = User.objects.create_user('admin@admin.com', password='123')
+        self.author = User.objects.create_user('admin@admin.com', 'admin@admin.com', password='123')
 
         self.project = Project.objects.createWithMainTex(name='LatexWebOffice', author=self.author)
         self.rootFolder = self.project.rootFolder

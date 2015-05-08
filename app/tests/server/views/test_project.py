@@ -1234,9 +1234,7 @@ class ProjectTestClass(ViewTestCase):
         # sende Anfrage zum Einladen eines nicht registrierten Nutzers
         response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name="notregistered@latexweboffice.de")
         
-        not_registered_user = User.objects.create_user(
-                                                       email="notregistered@latexweboffice.de", password="123456",
-                                                       first_name="None")
+        not_registered_user = User.objects.create_user("notregistered@latexweboffice.de", "notregistered@latexweboffice.de", password="123456")
         # es sollte keine entsprechende Kollaboration mit Nutzer not_registered_user und Projekt user1_project1 in der Datenbank vorhanden sein
         self.assertFalse(Collaboration.objects.filter(user=not_registered_user, project=self._user1_project1))
         
