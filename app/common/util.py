@@ -542,12 +542,12 @@ def createZipFromFolder(folderpath, zip_file_path):
         zip = zipfile.ZipFile(zip_file_path, "w")
         for root, dirs, files in os.walk(folderpath):
             # füge des Verzeichnis hinzu (notwendig für Verzeichnisse ohne weitere Dateien und Unterordner)
-            zip.writestr(os.path.relpath(root, relroot) + os.path.sep, '')
+            zip.writestr(str(os.path.relpath(root, relroot)) + os.path.sep, '')
             for file in files:
                 filename = os.path.join(root, file)
                 if os.path.isfile(filename):
                     arcname = os.path.join(os.path.relpath(root, relroot), file)
-                    zip.write(filename, arcname)
+                    zip.write(str(filename), str(arcname))
     finally:
         zip.close()
 
