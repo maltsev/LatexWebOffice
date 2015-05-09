@@ -2,21 +2,19 @@ language: python
 python:
   - "2.6"
   - "2.7"
-env:
-  - PYTEST="pytest" VIRTUALENV="virtualenv"
 matrix:
   include:
     - python: 2.7
-      env: TEST_PY24="true" PYTEST="pytest==2.3.3 py==1.4.12" VIRTUALENV="virtualenv==1.7.2"
+      env: TEST_PY24="true"
 install:
   - if [ "${TEST_PY24}" == "true" ]; then
       deactivate;
-      /bin/sh ../.travis-make-py24-virtualenv.sh $PWD/py24-ve;
+      /bin/sh ./travis-make-py24-virtualenv.sh $PWD/py24-ve;
       source $PWD/py24-ve/bin/activate;
       fi
   - pip install -r requirements.txt
   - pip install coveralls
-  - sudo apt-get install texlive-latex-extra -y
+#  - sudo apt-get install texlive-latex-extra -y
 script:
   - python -V
   - coverage run --source=app manage.py test
