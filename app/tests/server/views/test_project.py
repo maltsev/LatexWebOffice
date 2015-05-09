@@ -998,6 +998,7 @@ class ProjectTestClass(ViewTestCase):
                 shutil.rmtree(tmpfolder)
             '''
 
+
     def test_exportZip(self):
         """Test der exportZip() Methode des project view
 
@@ -1157,7 +1158,7 @@ class ProjectTestClass(ViewTestCase):
         # es sollte keine Datei mitgesendet worden sein
         self.assertNotIn('Content-Disposition', response)
         # Content-Type sollte text/html sein
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        self.assertEqual(response['Content-Type'], 'text/html; charset=utf-8')
         # Content-Length sollte nicht vorhanden sein
         self.assertNotIn('Content-Length', response)
 
@@ -1171,7 +1172,7 @@ class ProjectTestClass(ViewTestCase):
         # es sollte keine Datei mitgesendet worden sein
         self.assertNotIn('Content-Disposition', response)
         # Content-Type sollte text/html sein
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        self.assertEqual(response['Content-Type'], 'text/html; charset=utf-8')
         # Content-Length sollte nicht vorhanden sein
         self.assertNotIn('Content-Length', response)
 
