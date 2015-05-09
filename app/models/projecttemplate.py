@@ -22,6 +22,7 @@ from django.dispatch import receiver
 from app.models.folder import Folder
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class ProjectTemplateManager(models.Manager):
@@ -62,8 +63,11 @@ class ProjectTemplate(models.Model):
 
 @receiver(post_delete, sender=ProjectTemplate)
 def projectTemplatePostDelete(instance, **kwargs):
-    if instance.rootFolder:
-        instance.rootFolder.delete()
+        try:
+            if instance.rootFolder:
+                instance.rootFolder.delete()
+        except ObjectDoesNotExist:
+            pass
 
 ##
 # Automatische Erzeugung des Rootverzeichnises
