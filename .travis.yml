@@ -13,10 +13,7 @@ install:
       source $PWD/py24-ve/bin/activate;
       fi
   - pip install -r requirements.txt
-  - pip install coveralls
 #  - sudo apt-get install texlive-latex-extra -y
 script:
   - python -V
-  - coverage run --source=app manage.py test
-after_success:
-  - coveralls
+  - python manage.py test

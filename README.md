@@ -1,7 +1,7 @@
 LatexWebOffice
 ==============
 
-[![Build Status](https://travis-ci.org/maltsev/LatexWebOffice.svg)](https://travis-ci.org/maltsev/LatexWebOffice) [![Coverage Status](https://coveralls.io/repos/maltsev/LatexWebOffice/badge.png?branch=master)](https://coveralls.io/r/maltsev/LatexWebOffice?branch=master)
+[![Build Status](https://travis-ci.org/maltsev/LatexWebOffice.svg)](https://travis-ci.org/maltsev/LatexWebOffice)
 
 
 ### Abhängigkeiten
