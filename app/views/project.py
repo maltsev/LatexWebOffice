@@ -156,6 +156,7 @@ def listProjects(request, user):
     return util.jsonResponse(json_return, True, request)
 
 
+@transaction.commit_manually
 def importZip(request, user):
     """Importiert ein Projekt aus einer vom Client übergebenen zip Datei.
 
@@ -181,6 +182,8 @@ def importZip(request, user):
     zip_file = open(zip_file_path, 'wb')
     zip_file.write(files[0].read())
     zip_file.close()
+
+    transaction.commit()
 
     # überprüfe ob es sich um eine gültige .zip Datei handelt
     # und ob die zip Datei kleiner als 150 bytes ist
@@ -224,8 +227,9 @@ def importZip(request, user):
 
     failed = False
 
+    transaction.commit()
+
     try:
-        transaction.atomic()
         for root, dirs, files in os.walk(extract_path):
             # relativer Pfad des derzeitigen Verzeichnis
             path = root.split(os.sep)[rootdepth:]
@@ -253,6 +257,7 @@ def importZip(request, user):
                     returnmsg = util.jsonErrorResponse(msg, request)
                     raise TypeError
     except TypeError:
+        transaction.rollback()
         projectobj.delete()  # bei Fehler muss noch das Projekt selbst gelöscht werden
         failed = True
 
@@ -271,6 +276,8 @@ def importZip(request, user):
     # lösche alle temporären Dateien und Ordner
     if os.path.isdir(tmpfolder):
         shutil.rmtree(tmpfolder)
+
+    transaction.commit()
     return returnmsg
 
 
