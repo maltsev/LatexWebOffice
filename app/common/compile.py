@@ -78,7 +78,7 @@ def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
     rc = 0
 
     file_data = {}
-    errors = None
+    errors = []
 
     # Parameter für die Kompilierung
     # '-f' führt die Kompilieren auch unter auftretenden Fehlern so möglich durch
@@ -154,7 +154,7 @@ def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
     # Rückgabe
     # 1. Liste mit während des Kompilieren aufgetretenen Fehlermeldungen oder None, falls keine Fehler aufgetreten
     # 2. Array mit ID und Name der erzeugten pdf-Datei oder None, falls keine pdf-Datei erzeugt werden konnte
-    return errors, file_data
+    return errors or None, file_data
 
 
 def latexmk(args, console_output):
