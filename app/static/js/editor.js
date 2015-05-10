@@ -59,6 +59,8 @@ var editorResizeTimeout = 150;
 var btnCompileExportTimeout = 15000;
 var btnCompileExportTimeout_HTML = 60000;
 
+var timeout;
+
 /**
  * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
  */
