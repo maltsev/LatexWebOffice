@@ -426,8 +426,11 @@ def execute_command(args, workingdir, console_output=False):
 
     if console_output:
         return subprocess.call(args, bufsize=0, cwd=workingdir)
-    else:
-        return subprocess.call(args, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, bufsize=0, cwd=workingdir)
+
+    dev_null = open(os.devnull, 'wb')
+    rc = subprocess.call(args, stdout=dev_null, stderr=dev_null, bufsize=0, cwd=workingdir)
+    dev_null.close()
+    return rc
 
 
 def htlatex_script(parameter, console_output=False):
