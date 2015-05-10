@@ -72,6 +72,3 @@ tags
 
 /media/
 /static/
-
-# user specific settings
-core/latexwebofficeconf.py
