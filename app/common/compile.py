@@ -193,7 +193,7 @@ def latexmk(args, console_output):
     if args['format'][1:] == ('pdf' or 'ps' or 'dvi'):
         log_path = os.path.join(args['outdirpath'], args['texobj'].name[:-3] + "log")
         if os.path.isfile(log_path):
-            logfile = open(log_path, 'r', encoding="cp437")
+            logfile = open(log_path, 'r')
             logfile.seek(0)
             old_log = PlainTextFile.objects.filter(name=args['texobj'].name[:-3] + '<log>',
                                                    folder=args['texobj'].folder)
@@ -343,7 +343,7 @@ def get_Errors(log_path):
 
     errors = []
 
-    log = open(log_path, "r", encoding="cp437")
+    log = open(log_path, "r")
 
     # durchläuft sämtliche Zeilen der log-Datei
     for l in log:
