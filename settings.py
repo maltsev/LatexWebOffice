@@ -151,4 +151,5 @@ if 'test' in sys.argv:
     }
 
 
-from local_settings import *
+if os.path.isfile(os.path.join(BASE_DIR, 'local_settings.py')):
+    from local_settings import *
