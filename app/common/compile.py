@@ -363,8 +363,7 @@ def get_Errors(log_path):
             if index_notf != -1:
                 # extrahiert den Namen der fehlenden Datei aus der aktuell betrachteten Zeile
                 filename = line[index_file + len('file') + 2: index_notf - 2]
-                error = ERROR_MESSAGES['COMPILATIONERROR_FILENOTFOUND'] + \
-                        ': Die Datei \'' + filename + '\' konnte nicht gefunden werden.'
+                error = "%s: Die Datei '%s' konnte nicht gefunden werden." % (ERROR_MESSAGES['COMPILATIONERROR_FILENOTFOUND'], filename)
                 # bestimmt die Index-Position von 'line' in der aktuell betrachteten Zeile
                 index_line = line.find('line')
                 # falls 'line' in der aktuell betrachteten Zeile enthalten ist
@@ -378,13 +377,11 @@ def get_Errors(log_path):
         # ----------------------------------------------------------------------------------------------------
         # SYNTAX ERROR
         # ----------------------------------------------------------------------------------------------------
-        if 'job aborted' in line:
-            if 'no legal \end found' in line:
-                errors.append(
-                    ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR'] + ': Es konnte kein gültiges \end gefunden werden.')
+        if 'job aborted' in line and 'no legal \end found' in line:
+                errors.append(u'%s: Es konnte kein gültiges \end gefunden werden.' % ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR'])
         # undefiniertes Steuerzeichen
         if 'undefined control sequence' in line:
-            error = ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR'] + ': Undefiniertes Steuerzeichen.'
+            error = u'%s: Undefiniertes Steuerzeichen.' % ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR']
             # extrahiert die Zeilennummer für das undefinierte Steuerzeichen aus der nächsten log-Zeile
             nxt_line = str(log.readline())
             line_no = nxt_line[2:nxt_line.find(' ')]
