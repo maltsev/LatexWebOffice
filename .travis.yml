@@ -13,7 +13,7 @@ install:
       source $PWD/py24-ve/bin/activate;
       fi
   - pip install -r requirements.txt
-#  - sudo apt-get install texlive-latex-extra -y
+  - sudo apt-get install texlive-latex-base -y
 script:
   - python -V
   - python manage.py test
