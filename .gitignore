@@ -72,3 +72,5 @@ tags
 
 /media/
 /static/
+
+local_settings.py
