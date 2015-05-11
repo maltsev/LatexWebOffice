@@ -126,8 +126,6 @@ LOGGING = {
 
 
 # Project settings
-LOGIN_URL = '/login/'
-
 FILE_ROOT = os.path.join(MEDIA_ROOT, 'files')
 PROJECT_ROOT = os.path.join(MEDIA_ROOT, 'projects')
 TESTFILES_ROOT = os.path.join(BASE_DIR, 'app', 'tests', 'server', 'static')

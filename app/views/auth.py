@@ -16,19 +16,19 @@
 * Backlog entry :  RUA1, RUA4
 
 """
+import re
+import urllib
+import datetime
 
 from django.shortcuts import redirect, render_to_response
 from django.contrib import messages,auth
 from django.contrib.auth.decorators import login_required
-from settings import LOGIN_URL
-from app.common.constants import ERROR_MESSAGES
 from django.views.decorators.csrf import csrf_exempt
 from django.template import RequestContext
-import re
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
-import urllib
-import datetime
+
+from app.common.constants import ERROR_MESSAGES
 from app.common.util import getUserModel
 User = getUserModel()
 
@@ -41,7 +41,7 @@ User = getUserModel()
 #  @param request The HttpRequest Object
 def login(request):
     if request.user.is_authenticated():
-        return redirect('/projekt/')
+        return redirect('projekt')
 
     email = ''
     if request.session.has_key('email'):
@@ -57,7 +57,7 @@ def login(request):
             if user is not None:
                 if user.is_active:
                     auth.login(request, user)
-                    return redirect('/projekt/')
+                    return redirect('projekt')
                 else:
                     messages.error(request, ERROR_MESSAGES['INACTIVEACCOUNT'] % email)
 
@@ -123,7 +123,7 @@ def lostPwHandler(request):
 @login_required
 def logout(request):
     auth.logout(request)
-    return redirect(LOGIN_URL)
+    return redirect('login')
 
 
 ## Default handler for registration requests by the client that sends the user the registration page.
@@ -134,7 +134,7 @@ def logout(request):
 def registration(request):
 
     if request.user.is_authenticated():
-        return redirect('/projekt/')
+        return redirect('projekt')
 
     email = ''
     first_name = ''
@@ -181,7 +181,7 @@ def registration(request):
             if user is not None:
                 if user.is_active:
                     auth.login(request, user)
-                    return redirect('/projekt/')
+                    return redirect('projekt')
             else:
                 messages.error(request, ERROR_MESSAGES['LOGINORREGFAILED'])
 
