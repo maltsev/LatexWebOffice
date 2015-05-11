@@ -37,6 +37,7 @@ SITE_ID = 1
 USE_I18N = True
 USE_L10N = True
 
+LOGIN_URL = '/login/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
