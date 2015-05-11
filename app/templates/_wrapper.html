@@ -32,6 +32,13 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}css/general.css">
 
 	<!-- Javascript -->
+    <script>
+        var BASE_URL = "{% url index %}";
+        var STATIC_URL = "{{ STATIC_URL }}";
+        <!-- Standard Fehlermeldungen vom Server (kann nicht in den static Ordner) -->
+        var ERROR_MESSAGES={{ ERROR_MESSAGES|safe }};
+        var user = "{{ user.email }}";
+    </script>
 	<script src="{{ STATIC_URL }}js/jquery.min.js"></script>
 	<script src="{{ STATIC_URL }}js/jquery.cookie.js"></script>
 	<script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
@@ -43,8 +50,6 @@
     <script>moment.locale("de");</script>
 	<script src="{{ STATIC_URL }}js/nav/nav.js"></script>
     <script src="{{ STATIC_URL }}js/general.js"></script>
-	<script>var ERROR_MESSAGES={{ ERROR_MESSAGES|safe }};</script> <!-- Standard Fehlermeldungen vom Server (kann nicht in den static Ordner) -->
-	<script>var user = "{{ user.email }}";</script>
 	<!-- seitenspezifische Header -->
 	{% block header %}{% endblock %}
 </head>

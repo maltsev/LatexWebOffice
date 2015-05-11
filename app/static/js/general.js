@@ -28,7 +28,7 @@ function documentsJsonRequest(param, handler, contentType, processData) {
 			contentType : 'application/x-www-form-urlencoded; charset=UTF-8';
 	processData = typeof processData !== 'undefined' ?
 			processData : true;
-	jQuery.ajax('/documents/', {
+	jQuery.ajax(getUrl('/documents/'), {
 		'type': 'POST',
 		'data': param,
 		'cache': false,
@@ -70,7 +70,7 @@ function documentsDataRequest(param, handler, contentType, processData) {
 			contentType : 'application/x-www-form-urlencoded; charset=UTF-8';
 	processData = typeof processData !== 'undefined' ?
 			processData : true;
-	jQuery.ajax('/documents/', {
+	jQuery.ajax(getUrl('/documents/'), {
 		'type': 'POST',
 		'data': param,
 		'cache': false,
@@ -99,7 +99,7 @@ function documentsDataRequest(param, handler, contentType, processData) {
  * @param param Paramter für die Anfrage (command, id, …)
  */
 function documentsRedirect(param) {
-	var form = $('<form></form>').attr('action',  '/documents/').attr('method', 'post');
+	var form = $('<form></form>').attr('action', getUrl('/documents/')).attr('method', 'post');
 	$('body').append(form);
 
 	// CSRF Token
@@ -155,6 +155,17 @@ function showAlertDialog(title, message, redirection){
         }
 	})
 }
+
+
+
+function getUrl(url) {
+    return BASE_URL.replace(/\/+$/, "") + url;
+}
+
+function getStaticUrl(url) {
+    return STATIC_URL.replace(/\/+$/, "") + url;
+}
+
 
 /**
  * Liefert true, falls ein mobiler Browser oder eine niedrige Auflösung verwendet wird, sonst false

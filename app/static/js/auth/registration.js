@@ -9,7 +9,7 @@ $(document).ready(function() {
                 required: true,
                 email: true,
                 remote: {
-                    url: "/reguserexists/",
+                    url: getUrl("/reguserexists/"),
                     type: "post",
                     data: {
                         'email': function() {

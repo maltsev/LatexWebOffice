@@ -643,7 +643,7 @@ $(function() {
 	 */
 	function openProject() {
 		
-		document.location.assign('/dateien/#' + treeInstProjects.get_node(prevSelectedNodeID).li_attr["data-rootid"]);
+		document.location.assign(getUrl('/dateien/#' + treeInstProjects.get_node(prevSelectedNodeID).li_attr["data-rootid"]));
 		
 	}
 	
@@ -801,10 +801,10 @@ $(function() {
 						showAlertDialog("Projekt in Vorlage umwandeln",
 						                "Eine Vorlage mit dem Namen "+name+" existiert bereits:<br>"+
 									    "Es wurde eine neue Vorlage <b>"+data.response.name+"</b> erstellt.",
-									    "/vorlagen/");
+									    getUrl("/vorlagen/"));
 					else
 						// Weiterleitung zu den Vorlagen
-						window.location.replace("/vorlagen/");
+						window.location.replace(getUrl("/vorlagen/"));
 				}
 				// wenn eine entsprechende Vorlage nicht angelegt werden konnte
 				else
@@ -955,10 +955,10 @@ $(function() {
 						showAlertDialog("Vorlage in Projekt umwandeln",
 						                "Ein Projekt mit dem Namen "+name+" existiert bereits:<br>"+
 									    "Es wurde ein neues Projekt <b>"+data.response.name+"</b> erstellt.",
-									    "/projekt/");
+									    getUrl("/projekt/"));
 					else
 						// Weiterleitung zu den Projekten
-						window.location.replace("/projekt/");
+						window.location.replace(getUrl("/projekt/"));
 				} else {
 					showAlertDialog("Vorlage in Projekt umwandeln",data.response);
 	            }

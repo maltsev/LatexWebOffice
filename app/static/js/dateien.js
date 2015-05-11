@@ -32,7 +32,7 @@ $(function () {
 	var rootFolderId = parseInt(location.hash.substr(1), 10);
 	window.top.name = rootFolderId;
 	if (! rootFolderId) {
-		window.location.replace("/projekt/");
+		window.location.replace(getUrl("/projekt/"));
 	    return;
 	}
 	
@@ -81,7 +81,7 @@ $(function () {
 		// Datei
 		if(selectedNodeObj.hasClass("filesitem-file")) {
 			calculateFolderUntilRoot();
-			window.location.assign("/editor/#" + selectedNodeObj.data("file-id"));
+			window.location.assign(getUrl("/editor/#" + selectedNodeObj.data("file-id")));
 		}
 		// Verzeichnis
 		else if(selectedNodeObj.hasClass("filesitem-folder"))
@@ -385,7 +385,7 @@ $(function () {
 				if(selectedNode.data("file-mime") && selectedNode.data("file-mime").substr(0,4)=='text') {
 					// bei Doppelklick auf TEX-Datei zum Editor gehen
 					calculateFolderUntilRoot();
-					window.location.assign("/editor/#" + selectedNode.data("file-id"));
+					window.location.assign(getUrl("/editor/#" + selectedNode.data("file-id")));
 				}
 			}
 			
@@ -586,7 +586,7 @@ $(function () {
     	if (node.length) {
     		// Text- oder TEX-Datei?
     		if (selectedNodeObj.data("file-mime") && selectedNodeObj.data("file-mime").substr(0,4)=='text')
-    			window.location.assign("/editor/#" + node.data("file-id"));
+    			window.location.assign(getUrl("/editor/#" + node.data("file-id")));
     	}
     }
 	
