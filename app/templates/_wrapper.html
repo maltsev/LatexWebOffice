@@ -21,7 +21,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=Edge">
 	<title>LatexWebOffice</title>
-	<link rel="icon" type="image/png" href="/favicon.png" />
+	<link rel="icon" type="image/png" href="{{ STATIC_URL }}img/favicon.png" />
 	<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
 
 	<!-- Stylesheets -->	
@@ -61,19 +61,19 @@
 		    <span class="icon-bar"></span>
 		    <span class="icon-bar"></span>
 		  </button>
-		  <ul class="nav navbar-nav"><li><a class="navbar-brand" href="/"><img src="{{ STATIC_URL }}img/icon.png" onmouseover=this.src="{{ STATIC_URL }}img/icon_selected.png"; onmouseout=this.src="{{ STATIC_URL }}img/icon.png"; id="logo" alt="Logo vom LatexWebOffice"></a></li></ul><!-- das Logo mit Link zur startseite soll immer angezeigt werden -->
+		  <ul class="nav navbar-nav"><li><a class="navbar-brand" href="{% url index %}"><img src="{{ STATIC_URL }}img/icon.png" onmouseover=this.src="{{ STATIC_URL }}img/icon_selected.png"; onmouseout=this.src="{{ STATIC_URL }}img/icon.png"; id="logo" alt="Logo vom LatexWebOffice"></a></li></ul><!-- das Logo mit Link zur startseite soll immer angezeigt werden -->
 	    </div>
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
 			{% if user.is_authenticated %}<!-- nur eingeloggte User sollen Projekte und Vorlagen sehen können -->
-                    <li><a href="/projekt/">Projekte</a>
+                    <li><a href="{% url projekt %}">Projekte</a>
                     </li>
-                    <li><a href="/vorlagen/">Vorlagen</a>
+                    <li><a href="{% url vorlagen %}">Vorlagen</a>
                     </li>
                     {% else %}
-		    <li><a href="/registration/">Registrieren</a> <!-- noch nicht eingeloggte User sehen dafür Registrierung und Login -->
+		    <li><a href="{% url registration %}">Registrieren</a> <!-- noch nicht eingeloggte User sehen dafür Registrierung und Login -->
                     </li>
-                    <li><a href="/login/">Einloggen</a>
+                    <li><a href="{% url login %}">Einloggen</a>
                     </li>
                     {% endif %}
 
@@ -82,9 +82,9 @@
                     <li class="dropdown">
                         <a href="#" class="glyphicon glyphicon-question-sign dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                            <li><a href="/faq/">FAQ</a>
+                            <li><a href="{% url faq %}">FAQ</a>
                             </li>
-			    <li><a href="/impressum/">Impressum</a>
+			    <li><a href="{% url impressum %}">Impressum</a>
                             </li>
                         </ul>
                     </li>
@@ -93,7 +93,7 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" id="glyph-question-sign-dropdown" data-toggle="dropdown" role="button" aria-expanded="false">{{ user.email }}<span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                            <li><a href="/logout/">Abmelden</a>
+                            <li><a href="{% url logout %}">Abmelden</a>
                             </li>
                         </ul>
                     </li>
