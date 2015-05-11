@@ -70,14 +70,19 @@ TEMPLATE_LOADERS = (
 
 AUTH_USER_MODEL = 'auth.User'
 
+IS_SSO_ENABLED = True
+
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'app.middleware.SingleSignOnMiddleware'
 )
+
+if IS_SSO_ENABLED:
+    MIDDLEWARE_CLASSES += ('app.middleware.SingleSignOnMiddleware',)
+
 
 TEMPLATE_CONTEXT_PROCESSORS += ('app.contextprocessors.settingsprocessor.Error_messages',
                                 'app.contextprocessors.settingsprocessor.Available_commands',

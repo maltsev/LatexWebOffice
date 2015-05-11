@@ -32,6 +32,12 @@
 	<div class="tab-content">
 
 		<div role="tabpanel" class="tab-pane active" id="login">
+            {% if IS_SSO_ENABLED %}
+                <div class="col-sm-offset-2" style="margin-bottom: 20px">
+                    <a href="{{ SSO_URL }}" class="btn btn-lg btn-primary btn-block">Single Sign-On</a>
+                </div>
+            {% endif %}
+
 			<form class="form-horizontal" id="loginform" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
 				<div id="logininputdiv">
 					<input type="hidden" name="action" value="login">

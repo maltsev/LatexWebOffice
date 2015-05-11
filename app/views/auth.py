@@ -86,10 +86,13 @@ Ihr LatexWebOfficeteam
                     emailsend.to=[email]
                     emailsend.send()
             messages.success(request,ERROR_MESSAGES['EMAILPWRECOVERSEND']% email)
-            
 
+    sso_url = ''
+    if 'SSO_URL' in dir(settings):
+        sso_url = settings.SSO_URL
 
-    return render_to_response('login.html', {'email': email}, context_instance=RequestContext(request))
+    params = {'email': email, 'IS_SSO_ENABLED': settings.IS_SSO_ENABLED, 'SSO_URL': sso_url}
+    return render_to_response('login.html', params, context_instance=RequestContext(request))
 
 
 def lostPwHandler(request):
