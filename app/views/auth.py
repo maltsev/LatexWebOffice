@@ -17,15 +17,13 @@
 
 """
 
-from django.shortcuts import render,redirect, render_to_response
+from django.shortcuts import redirect, render_to_response
 from django.contrib import messages,auth
 from django.contrib.auth.decorators import login_required
 from settings import LOGIN_URL
 from app.common.constants import ERROR_MESSAGES
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
 from django.views.decorators.csrf import csrf_exempt
-from django.template import Template, context, RequestContext
+from django.template import RequestContext
 import re
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse

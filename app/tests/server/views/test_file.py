@@ -16,8 +16,6 @@
 * Backlog entry : -
 
 """
-
-import mimetypes
 import filecmp
 import os
 import tempfile

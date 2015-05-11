@@ -31,7 +31,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from app.models.collaboration import Collaboration
 from app.models.folder import Folder
 from app.models.project import Project
-from app.models.file.texfile import TexFile
 from app.common import util
 from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE, STANDARDENCODING
 
