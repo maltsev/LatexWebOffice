@@ -362,7 +362,7 @@ def fileInfo(request, user, fileid):
     return util.jsonResponse(dictionary, True, request)
 
 
-def latexCompile(request, user, fileid, formatid, compilerid, forcecompile):
+def latexCompile(request, user, fileid, formatid, forcecompile):
     """Kompiliert eine LaTeX Datei.
 
     :param request: Anfrage des Clients, wird unverändert zurückgesendet
@@ -372,7 +372,7 @@ def latexCompile(request, user, fileid, formatid, compilerid, forcecompile):
     :return: HttpResponse (JSON)
     """
 
-    errors, success = latexcompile(fileid, formatid=formatid, compilerid=compilerid, forcecompile=forcecompile)
+    errors, success = latexcompile(fileid, formatid=formatid, forcecompile=forcecompile)
     if errors:
         if success:
             ret = success

@@ -30,7 +30,7 @@ from app.common import util
 from settings import BASE_DIR
 
 
-def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
+def latexcompile(texid, formatid=0, forcecompile=0, debug=False):
     """Kompiliert eine tex Datei mit der übergebenen texid in das entsprechende Ausgabeformat (formatid).
 
     formatid:   0 - PDF
@@ -52,7 +52,7 @@ def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
     """
 
     formatid = str(formatid)
-    compilerid = str(compilerid)
+    #compilerid = str(compilerid)
     forcecompile = str(forcecompile)
 
     # tex-File der übergebenen ID
@@ -98,8 +98,8 @@ def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
     # mögliche Latex Compiler
     compilerargs = {
         '0': 'pdflatex --shell-escape %O %S',
-        '1': 'lualatex --shell-escape %O %S',
-        '2': 'xelatex --shell-escape %O %S'
+     #  '1': 'lualatex --shell-escape %O %S',
+     #  '2': 'xelatex --shell-escape %O %S'
     }
 
     args = {
@@ -107,7 +107,7 @@ def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
         'texpath': texobj.getTempPath(),
         'format': '',
         'outdirpath': out_dir_path,
-        'compilerargs': compilerargs[compilerid],
+        'compilerargs': compilerargs['0'],
         'cwd': texobj.folder.getTempPath(),
         'force': '-f'
     }

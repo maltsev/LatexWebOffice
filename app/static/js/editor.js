@@ -7,12 +7,6 @@
 /// ID der im Editor geöffneten Datei
 var id;
 
-// ID des verwendeten Compilers
-// 0 - pdflatex
-// 1 - lualatex
-// 2 - xelatex
-var compilerid = 0;
-
 // Id des Root Ordners
 var rootid = -1;
 
@@ -188,17 +182,6 @@ $(document).ready(function() {
 		$('#backtofileview').click(function() {
 			backToFileView();
 		});
-        // Dropdowm Button Text je nach Auswahl des Compilers richtig setzen und die compilerID ändern
-		$("#compiler-dropdown li a").click(function(){
-            $(this).parents(".compiler-btn").find('.btn').html($(this).text()+" <span class=\"caret\"></span>");
-            if (compilerid != $(this).attr('value')) {
-                // Compiler wurde verändert, dadurch wird beim nächsten Kompilieren der forcecompile Parameter gesetzt,
-                // so dass die Datei auf jeden Fall neu kompiliert wird, auch wenn es keine Änderungen an der tex Datei gab
-                forcecompile = 1;
-                compilerid = $(this).attr('value');
-            }
-            editor.focus();
-        });
 	};
 });
 
@@ -460,7 +443,6 @@ function compileTex() {
             'command': 'compile',
             'id': id,
             'formatid': 0,
-            'compilerid': compilerid,
             'forcecompile': forcecompile
         }, function(result, data) {
             var pdfid = data.response.id;
@@ -550,7 +532,6 @@ function exportFile(formatid) {
 			'command': 'compile',
 			'id': id,
             'formatid': formatid,
-            'compilerid': compilerid,
             'forcecompile': forcecompile
 		}, function(result, data) {
 			if (result) {

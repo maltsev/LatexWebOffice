@@ -42,7 +42,7 @@ globalparas = {
     'folderid': {'name': 'folderid', 'type': int},
     'name': {'name': 'name', 'type': str},
     'formatid': {'name': 'formatid', 'type': int},
-    'compilerid': {'name': 'compilerid', 'type': int},
+#   'compilerid': {'name': 'compilerid', 'type': int},
     'forcecompile': {'name': 'forcecompile', 'type': int}
 }
 
@@ -159,7 +159,8 @@ available_commands = {
         'command': file.latexCompile,
         'parameters': [{'para': globalparas['id'], 'type': TexFile,
                         'requirerights': ['owner', 'collaborator'], 'lockcheck': True},
-                       {'para': globalparas['formatid']}, {'para': globalparas['compilerid']},
+                       {'para': globalparas['formatid']},
+                       # {'para': globalparas['compilerid']},
                        {'para': globalparas['forcecompile']}]
     },
     'lockfile': {
