@@ -16,4 +16,4 @@ install:
   - sudo apt-get install texlive-latex-base -y
 script:
   - python -V
-  - python manage.py test
+  - python manage.py test app
