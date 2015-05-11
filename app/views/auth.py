@@ -29,6 +29,7 @@ from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 
 from app.common.constants import ERROR_MESSAGES
+import settings
 from app.common.util import getUserModel
 User = getUserModel()
 
@@ -123,7 +124,10 @@ def lostPwHandler(request):
 @login_required
 def logout(request):
     auth.logout(request)
-    return redirect('login')
+    if 'SSO_LOGOUT_URL' in dir(settings):
+        return redirect(settings.SSO_LOGOUT_URL)
+    else:
+        return redirect('login')
 
 
 ## Default handler for registration requests by the client that sends the user the registration page.
