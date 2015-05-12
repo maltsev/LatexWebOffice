@@ -14,11 +14,13 @@
 * Sprintnumber : 1 
     
 """
+import urllib
 
-
+from django.core import mail
 from django.test import TestCase, Client
 
 from app.common.constants import ERROR_MESSAGES
+from app.models.recoverkey import RecoverKey
 from app.common.util import getUserModel
 User = getUserModel()
 
@@ -43,47 +45,84 @@ class AuthLoginTestClass(TestCase):
         user2.save()
         self._user2 = user2
 
-        self._client = Client()
-
 
     # Test if a user is not logged in with an incorrect password -> user1
     def test_loginFailIncorrectPassword(self):
-        response = self._client.post(
+        response = self.client.post(
                 '/login/', {'email': self._user1.username, 'password': 'wrong','action':'login'})
-        self.assertNotIn('_auth_user_id', self._client.session)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
 
     # Test if an user receives a failure message on incorrect login -> user1
     def test_loginFailIncorrectUsername(self):
-        response = self._client.post(
+        response = self.client.post(
             '/login/', {'email': 'wrongusername', 'password': self._user1._unhashedpw,'action':'login'})
         self.assertContains(response, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
 
+
     # Test if a user can't login when he is set inactive -> user2
     def test_loginFailInactiveUser(self):
-        response = self._client.post(
+        response = self.client.post(
             '/login/', {'email': self._user2.username, 'password': self._user2._unhashedpw,'action':'login'})
         self.assertContains(response, ERROR_MESSAGES['INACTIVEACCOUNT'] % self._user2.username)
 
+
     # Test if a user is logged in with an correct password -> user1
     def test_loginSuccess(self):
-        response = self._client.post(
+        response = self.client.post(
             '/login/', {'email': self._user1.username, 'password':self._user1._unhashedpw,'action':'login'})
-        self.assertIn('_auth_user_id', self._client.session)
+        self.assertIn('_auth_user_id', self.client.session)
+
+
+    # Test if a user get email with password recovery link
+    def test_loginPasswordLost(self):
+        expectedBody = u"""
+Hallo!
+
+Jemand hat einen Link zur Passwortwiederherstellung angefordert: http://testserver/recoverpw/?email=%s&key=%s
+
+Falls dies nicht von Ihnen angefordert wurde, ignorieren Sie bitte diese Email.
+
+Mit freundlichen Grüßen,
+Ihr LatexWebOfficeteam
+"""
+
+        self.assertEqual(RecoverKey.objects.count(), 0)
+        self.client.post('/login/', {'email': self._user1.username, 'action':'password-lost'})
+
+        self.assertEqual(RecoverKey.objects.count(), 1)
+        self.assertEqual(emailMessageStubDict['subject'], 'Latexweboffice Passwortreset')
+
+        recoverKey = RecoverKey.objects.getByUser(self._user1)
+        self.assertEqual(emailMessageStubDict['body'], expectedBody % (urllib.quote_plus(self._user1.username), recoverKey.key))
+        self.assertEqual(emailMessageStubDict['to'], [self._user1.username])
+
+
+    # Test if password recovery was successful
+    def test_recoverPassword(self):
+        recoverKey = RecoverKey.objects.getByUser(self._user1)
+        response = self.client.get('/recoverpw/', {'email': self._user1.username, 'key': recoverKey.key})
+        self.assertEqual(response.context['email'], self._user1.username)
+        self.assertEqual(response.context['key'], recoverKey.key)
+
+        newPassword = '98729275030'
+        self.client.post('/recoverpw/', {'email': self._user1.username, 'key': recoverKey.key, 'password1': newPassword})
+        self.assertTrue(User.objects.get(pk=self._user1.pk).check_password(newPassword))
+
 
     #Test that if an already logged in user tries to login, a redirect to the start page will be done
     def test_redirectForAuthenticatedUsers(self):
-        self._client.login(username=self._user1.username,password=self._user1._unhashedpw)
-        response=(self._client.get('/login/'))
+        self.client.login(username=self._user1.username,password=self._user1._unhashedpw)
+        response=(self.client.get('/login/'))
         self.assertRedirects(response,'/projekt/')
 
 
     def test_logoutUser(self):
-        self._client.login(username=self._user1.username,password=self._user1._unhashedpw)
-        self.assertIn('_auth_user_id',self._client.session)
-        response=self._client.get('/logout/')
-        self.assertNotIn('_auth_user_id',self._client.session)
+        self.client.login(username=self._user1.username,password=self._user1._unhashedpw)
+        self.assertIn('_auth_user_id',self.client.session)
+        response=self.client.get('/logout/')
+        self.assertNotIn('_auth_user_id',self.client.session)
         self.assertRedirects(response,'/login/')
-
 
 
 
@@ -136,25 +175,25 @@ class AuthRegistrationTestClass(TestCase):
         user7._unhashedpw = '123456'
         self._user7 = user7
 
-        self._client = Client()
-
 
     # Test Überprüfung, ob eine Emailadresse schon existiert
     def test_userexists(self):
-        response=self._client.post('/reguserexists/',{'email':self._user7.username})
+        response=self.client.post('/reguserexists/',{'email':self._user7.username})
         self.assertContains(response,'false')
 
-        response=self._client.post('/reguserexists/',{'email':'Idonotexist@moeplrocks.de'})
+        response=self.client.post('/reguserexists/',{'email':'Idonotexist@moeplrocks.de'})
         self.assertContains(response,'true')
+
 
     # Test if you successfully register when you fill out all fields and
     # enter a valid email address -> user1
     # if automatic login after registration was successful this test passes
     def test_registrationSuccess(self):
-        response = self._client.post(
+        response = self.client.post(
             '/registration/', {'first_name': self._user1_first_name, 'email': self._user1_email,
             'password1': self._user1_password1, 'password2': self._user1_password2})
-        self.assertIn('_auth_user_id', self._client.session)
+        self.assertIn('_auth_user_id', self.client.session)
+
 
     # Test if you can't register when same email is already registered
     def test_registrationFailAlreadyRegistered(self):
@@ -164,48 +203,73 @@ class AuthRegistrationTestClass(TestCase):
         new_user.first_name = self._user1_first_name
         new_user.save()
 
-        response = self._client.post(
+        response = self.client.post(
             '/registration/', {'first_name': self._user1_first_name, 'email': self._user1_email,
             'password1': self._user1_password1, 'password2': self._user1_password2}, follow=True)
-        self.assertNotIn('_auth_user_id',self._client.session)
+        self.assertNotIn('_auth_user_id',self.client.session)
+
 
     # Test if you can't register with an invalid email address -> user 2
     def test_registrationFailInvalidEmail(self):
-        response = self._client.post(
+        response = self.client.post(
             '/registration/', {'first_name': self._user2_first_name, 'email': self._user2_email,
             'password1': self._user2_password1, 'password2': self._user2_password2})
-        self.assertNotIn('_auth_user_id',self._client.session)
+        self.assertNotIn('_auth_user_id',self.client.session)
+
 
     # Test if you can't register when you didn't fill out all fields -> user3
     def test_registrationFailNotFilledAllFields(self):
-        response = self._client.post(
+        response = self.client.post(
             '/registration/', {'first_name': self._user3_first_name, 'email': self._user3_email,
             'password1': self._user3_password1, 'password2': self._user3_password2})
-        self.assertNotIn('_auth_user_id',self._client.session)
+        self.assertNotIn('_auth_user_id',self.client.session)
+
 
     # Test if you can't register when the passwords do not match -> user4
     def test_registrationFailPasswordsDontMatch(self):
-        response = self._client.post(
+        response = self.client.post(
             '/registration/', {'first_name': self._user4_first_name, 'email': self._user4_email,
             'password1': self._user4_password1, 'password2': self._user4_password2})
-        self.assertNotIn('_auth_user_id',self._client.session)
+        self.assertNotIn('_auth_user_id',self.client.session)
+
 
     # Test if you can't register when password contains spaces -> user5
     def test_registrationFailPasswordContainsSpaces(self):
-        response = self._client.post(
+        response = self.client.post(
             '/registration/', {'first_name': self._user5_first_name, 'email': self._user5_email,
             'password1': self._user5_password1, 'password2': self._user5_password2})
-        self.assertNotIn('_auth_user_id',self._client.session)
+        self.assertNotIn('_auth_user_id',self.client.session)
 
 
     # Test that you will be directed to the startseite when trying to register while being already logged in
-
     def test_registrationRedirectWhenLoggedIn(self):
         new_user = User.objects.create_user(self._user1_email, self._user1_email, password=self._user1_password1)
         new_user.first_name = self._user1_first_name
         new_user.save()
 
-        self._client.login(username=self._user1_email,password=self._user1_password1)
-        self.assertIn('_auth_user_id',self._client.session)
-        response=self._client.get('/registration/')
+        self.client.login(username=self._user1_email,password=self._user1_password1)
+        self.assertIn('_auth_user_id',self.client.session)
+        response=self.client.get('/registration/')
         self.assertRedirects(response,'/projekt/')
+
+
+
+emailMessageStubDict = {}
+
+class EmailMessageStub:
+
+    def __init__(self, subject, body):
+        emailMessageStubDict['subject'] = subject
+        emailMessageStubDict['body'] = body
+
+
+    def __set__(self, instance, value):
+        emailMessageStubDict[instance] = value
+
+
+    def send(self):
+        emailMessageStubDict['to'] = self.to
+        emailMessageStubDict['isSend'] = True
+
+
+mail.EmailMessage = EmailMessageStub
