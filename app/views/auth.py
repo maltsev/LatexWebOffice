@@ -27,8 +27,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.template import RequestContext
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
+from django.core.exceptions import ObjectDoesNotExist
 
 from app.common.constants import ERROR_MESSAGES
+from app.models.recoverkey import RecoverKey
 from app.common.util import getUserModel
 User = getUserModel()
 
@@ -47,6 +49,7 @@ def login(request):
     if request.session.has_key('email'):
         email=request.session.get('email')
         del request.session['email']
+
     if request.method == 'POST' and 'action' in request.POST and 'email' in request.POST:
         email = request.POST['email']
         if request.POST['action']=='login':
@@ -63,27 +66,31 @@ def login(request):
 
             else:
                 messages.error(request, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
-        elif request.POST['action']=='password-lost':
-            if User.objects.filter(email__iexact=email).exists():
-                user=User.objects.get(email__iexact=email)
-                if (user.passwordlostdate+datetime.timedelta(minutes=5))<=datetime.datetime.now():
-                    keygen = user.createrecoverkey()
-                    user.save()
-                    subject="Latexweboffice Passwortreset"
-                    url=request.build_absolute_uri(reverse('recoverpw'))+'?'+urllib.parse.urlencode({'email':email,'key':keygen})
-                    body="""
-Hallo {0},
 
-Jemand hat einen Link zur Passwortwiederherstellung angefordert: {1} 
+
+        elif request.POST['action'] == 'password-lost':
+            try:
+                user = User.objects.get(email__iexact=email)
+                recoverKey = RecoverKey.objects.getByUser(user)
+                subject="Latexweboffice Passwortreset"
+                url = request.build_absolute_uri(reverse('recoverpw'))+'?'+urllib.urlencode({'email': email, 'key': recoverKey.key})
+                body=u"""
+Hallo!
+
+Jemand hat einen Link zur Passwortwiederherstellung angefordert: %s
 
 Falls dies nicht von Ihnen angefordert wurde, ignorieren Sie bitte diese Email.
 
 Mit freundlichen Grüßen,
 Ihr LatexWebOfficeteam
-                """
-                    emailsend=EmailMessage(subject,body % (email,url))
-                    emailsend.to=[email]
-                    emailsend.send()
+"""
+                emailsend=EmailMessage(subject, body % url)
+                emailsend.to=[email]
+                emailsend.send()
+
+            except ObjectDoesNotExist:
+                pass
+
             messages.success(request,ERROR_MESSAGES['EMAILPWRECOVERSEND']% email)
             
 
@@ -92,28 +99,35 @@ Ihr LatexWebOfficeteam
 
 
 def lostPwHandler(request):
-    if request.method=='GET':
-        if 'email' in request.GET and 'key' in request.GET:
-            email=request.GET['email']
-            key=request.GET['key']
-            if User.objects.filter(email__iexact=email).exists():
-                user=User.objects.get(email__iexact=email) 
-                if user and user.passwordlostkey==key and ((user.passwordlostdate+datetime.timedelta(days=1))>=datetime.datetime.now()):
-                    return render_to_response('passwordrecover.html',{'email':email,'key':key}, context_instance=RequestContext(request))
+    if request.method == 'GET' and 'email' in request.GET and 'key' in request.GET:
+        email = request.GET['email']
+        key = request.GET['key']
 
-    elif request.method=='POST':
-        if 'email' in request.POST and 'key' in request.POST and 'password1' in request.POST:
-                    email=request.POST['email']
-                    key=request.POST['key']
-                    if User.objects.filter(email__iexact=email).exists():
-                        user=User.objects.get(email__iexact=email) 
-                        if user and user.passwordlostkey==key and ((user.passwordlostdate+datetime.timedelta(days=1))>=datetime.datetime.now()):
-                            user.set_password(request.POST['password1'])
-                            user.invalidateRecoverKey()
-                            user.save()
-                            messages.success(request,ERROR_MESSAGES['PASSWORDCHANGED'])
-                            request.session['email']=email
-                            return redirect('login')
+        try:
+            user = User.objects.get(email__iexact=email)
+            if RecoverKey.objects.isValid(user, key):
+                return render_to_response('passwordrecover.html', {'email':email,'key':key}, context_instance=RequestContext(request))
+
+        except ObjectDoesNotExist:
+            pass
+
+
+    elif request.method == 'POST' and 'email' in request.POST and 'key' in request.POST and 'password1' in request.POST:
+        email=request.POST['email']
+        key=request.POST['key']
+
+        try:
+            user=User.objects.get(email__iexact=email)
+            if RecoverKey.objects.isValid(user, key):
+                user.set_password(request.POST['password1'])
+                RecoverKey.objects.get(key=key).delete()
+                user.save()
+                messages.success(request,ERROR_MESSAGES['PASSWORDCHANGED'])
+                request.session['email'] = email
+                return redirect('login')
+
+        except ObjectDoesNotExist:
+            pass
 
 
     return render_to_response('passwordrecoverwrong.html',context_instance=RequestContext(request))
