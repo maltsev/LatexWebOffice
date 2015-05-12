@@ -141,7 +141,7 @@ def lostPwHandler(request):
 @login_required
 def logout(request):
     auth.logout(request)
-    if 'SSO_LOGOUT_URL' in dir(settings):
+    if 'SSO_LOGOUT_URL' in dir(settings) and request.build_absolute_uri().find('https://sso.') == 0:
         return redirect(settings.SSO_LOGOUT_URL)
     else:
         return redirect('login')

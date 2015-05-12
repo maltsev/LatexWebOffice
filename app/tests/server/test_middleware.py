@@ -48,7 +48,7 @@ class SingleSignOnMiddlewareTestClass(TestCase):
         # Abmeldung
         response = self.client.get('/logout/', REMOTE_USER='p_adam01')
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], 'https://sso.uni-muenster.de/SingleSignOff')
+        self.assertEqual(response['Location'], 'http://testserver/login/')
 
 
 
