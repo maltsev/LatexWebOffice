@@ -23,9 +23,8 @@ import os
 import mimetypes
 import tempfile
 
-from django.db.models.loading import get_model
 from django.http import HttpResponse
-from django.core.exceptions import ObjectDoesNotExist, ImproperlyConfigured
+from django.core.exceptions import ObjectDoesNotExist
 
 import settings
 from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, MAXFILESIZE
@@ -39,6 +38,7 @@ from app.models.file.texfile import TexFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.pdf import PDF
 from app.models.collaboration import Collaboration
+
 
 def jsonDecoder(responseContent):
     """Dekodiert ein JSON als Dictionary.
@@ -776,16 +776,3 @@ def isAllowedAccessToProject(project, user, requirerights):
         return True
     else:
         return False
-
-
-def getUserModel():
-    """
-    Returns the User model that is active in this project.
-    Adapted version of django.contrib.auth.get_user_model() (Django 1.8)
-    """
-    try:
-        return get_model(*settings.AUTH_USER_MODEL.split('.', 1))
-    except ValueError:
-        raise ImproperlyConfigured('AUTH_USER_MODEL must be of the form "app_label.model_name"')
-    except LookupError:
-        raise ImproperlyConfigured('AUTH_USER_MODEL refers to model "%s" that has not been installed' % settings.AUTH_USER_MODEL)

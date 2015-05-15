@@ -18,11 +18,12 @@ import urllib
 
 from django.core import mail
 from django.test import TestCase, Client
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from app.common.constants import ERROR_MESSAGES
 from app.models.recoverkey import RecoverKey
-from app.common.util import getUserModel
-User = getUserModel()
+
 
 class AuthLoginTestClass(TestCase):
 
