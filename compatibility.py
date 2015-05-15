@@ -55,3 +55,14 @@ if not hasattr(os, 'relpath'):
             return os.path.join(*rel_list)
 
     os.path.relpath = relpath
+
+
+
+if not hasattr(os, 'SEEK_SET'):
+    os.SEEK_SET = 0
+
+if not hasattr(os, 'SEEK_CUR'):
+    os.SEEK_CUR = 1
+
+if not hasattr(os, 'SEEK_END'):
+    os.SEEK_END = 2
