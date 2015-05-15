@@ -21,19 +21,20 @@ import urllib
 import datetime
 
 from django.shortcuts import redirect, render_to_response
-from django.contrib import messages,auth
+from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.template import RequestContext
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from app.common.constants import ERROR_MESSAGES
 import settings
 from app.models.recoverkey import RecoverKey
-from app.common.util import getUserModel
-User = getUserModel()
+
 
 # see
 # https://docs.djangoproject.com/en/dev/topics/auth/default/#django.contrib.auth.login

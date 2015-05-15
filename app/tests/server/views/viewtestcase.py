@@ -18,6 +18,8 @@ import os
 import shutil
 
 from django.test import TestCase
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 import settings
 from app.models.folder import Folder
@@ -26,8 +28,6 @@ from app.models.projecttemplate import ProjectTemplate
 from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
 from app.models.collaboration import Collaboration
-from app.common.util import getUserModel
-User = getUserModel()
 
 
 class ViewTestCase(TestCase):

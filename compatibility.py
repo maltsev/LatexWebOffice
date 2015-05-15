@@ -1,7 +1,17 @@
 import os
 import sys
 
+import django.contrib.auth
+from django.db.models.loading import get_model
+from django.core.exceptions import ImproperlyConfigured
 
+import settings
+
+#
+#
+#   Python
+#
+#
 
 # Creates os.path.relpath for Python 2.4
 # Source: http://unittest-ext.googlecode.com/hg-history/fde01baf0a62881cb996b43d044eade876dd01b2/unittest2/unittest2/compatibility.py
@@ -66,3 +76,31 @@ if not hasattr(os, 'SEEK_CUR'):
 
 if not hasattr(os, 'SEEK_END'):
     os.SEEK_END = 2
+
+
+
+
+
+
+
+#
+#
+#   Django
+#
+#
+
+if not hasattr(django.contrib.auth, 'get_user_model'):
+    def get_user_model():
+        """
+        Returns the User model that is active in this project.
+        Adapted version of django.contrib.auth.get_user_model() (Django 1.8)
+        """
+        try:
+            return get_model(*settings.AUTH_USER_MODEL.split('.', 1))
+        except ValueError:
+            raise ImproperlyConfigured('AUTH_USER_MODEL must be of the form "app_label.model_name"')
+        except LookupError:
+            raise ImproperlyConfigured('AUTH_USER_MODEL refers to model "%s" that has not been installed' % settings.AUTH_USER_MODEL)
+
+
+    django.contrib.auth.get_user_model = get_user_model

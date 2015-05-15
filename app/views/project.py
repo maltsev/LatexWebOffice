@@ -16,17 +16,17 @@
 * Backlog entry : TEK1, 3ED9, DOK8, KOL1
 
 """
-
 import os
 import tempfile
 import zipfile
 import shutil
 import logging
 
-
 from django.http import HttpResponse, Http404
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from app.models.collaboration import Collaboration
 from app.models.folder import Folder
@@ -34,7 +34,6 @@ from app.models.project import Project
 from app.common import util
 from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE, STANDARDENCODING
 
-User = util.getUserModel()
 
 def projectCreate(request, user, projectname):
     """Erstellt ein neues Projekt mit dem Namen projectname (ggf. mit einem generierten numerischen Suffix).
