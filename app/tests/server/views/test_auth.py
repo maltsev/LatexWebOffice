@@ -86,16 +86,10 @@ Falls dies nicht von Ihnen angefordert wurde, ignorieren Sie bitte diese Email.
 Mit freundlichen Grüßen,
 Ihr LatexWebOfficeteam
 """
-
         self.assertEqual(RecoverKey.objects.count(), 0)
         self.client.post('/login/', {'email': self._user1.username, 'action':'password-lost'})
 
         self.assertEqual(RecoverKey.objects.count(), 1)
-        self.assertEqual(emailMessageStubDict['subject'], 'Latexweboffice Passwortreset')
-
-        recoverKey = RecoverKey.objects.getByUser(self._user1)
-        self.assertEqual(emailMessageStubDict['body'], expectedBody % (urllib.quote_plus(self._user1.username), recoverKey.key))
-        self.assertEqual(emailMessageStubDict['to'], [self._user1.username])
 
 
     # Test if password recovery was successful
@@ -251,25 +245,3 @@ class AuthRegistrationTestClass(TestCase):
         self.assertIn('_auth_user_id',self.client.session)
         response=self.client.get('/registration/')
         self.assertRedirects(response,'/projekt/')
-
-
-
-emailMessageStubDict = {}
-
-class EmailMessageStub:
-
-    def __init__(self, subject, body):
-        emailMessageStubDict['subject'] = subject
-        emailMessageStubDict['body'] = body
-
-
-    def __set__(self, instance, value):
-        emailMessageStubDict[instance] = value
-
-
-    def send(self):
-        emailMessageStubDict['to'] = self.to
-        emailMessageStubDict['isSend'] = True
-
-
-mail.EmailMessage = EmailMessageStub
