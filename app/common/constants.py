@@ -86,7 +86,3 @@ DUPLICATE_INIT_SUFFIX_NUM = 2
 
 SUCCESS = 'success'
 FAILURE = 'failure'
-
-SEEK_SET = 0
-SEEK_CUR = 1
-SEEK_END = 2

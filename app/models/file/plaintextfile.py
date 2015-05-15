@@ -21,7 +21,6 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
 from app.models.file import file
-from app.common.constants import SEEK_END, SEEK_SET
 
 
 class PlainTextFileManager(file.FileManager):
@@ -50,9 +49,9 @@ class PlainTextFile(file.File):
         plaintextfile = self.getContent()
 
         old_file_position = plaintextfile.tell()
-        plaintextfile.seek(0, SEEK_END)
+        plaintextfile.seek(0, os.SEEK_END)
         plaintextfilesize = plaintextfile.tell()
-        plaintextfile.seek(old_file_position, SEEK_SET)
+        plaintextfile.seek(old_file_position, os.SEEK_SET)
         plaintextfile.close()
 
         return plaintextfilesize
