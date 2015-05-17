@@ -17,6 +17,11 @@ from django.contrib.auth.models import User
 class SingleSignOnMiddleware:
 
     def process_request(self, request):
+        """Authentifiziert über SSO authentifizierten Benutzer in Django
+
+        :param request: Anfrage des Clients
+        """
+
         if 'REMOTE_USER' not in request.META or request.user.is_authenticated():
             return
 
@@ -27,6 +32,12 @@ class SingleSignOnMiddleware:
 
 
     def get_user(self, request):
+        """Gibt den über SSO authentifizierten Benutzer zurück
+
+        :param request: Anfrage des Clients
+        :return: django.contrib.auth.models.User
+        """
+
         remote_login = request.META.get('REMOTE_USER')
         if not remote_login:
             return None
@@ -43,6 +54,13 @@ class SingleSignOnMiddleware:
 
 
     def register_user(self, email, full_name):
+        """Registriert den Benutzer
+
+        :param email: E-Mail-Adresse
+        :param full_name: Vollname
+        :return: django.contrib.auth.models.User
+        """
+
         new_user = User.objects.create_user(email, email, password=str(random()))
 
         first_name, last_name = self.split_name(full_name)
@@ -58,6 +76,12 @@ class SingleSignOnMiddleware:
 
 
     def split_name(self, full_name):
+        """Teilt Vollname in Vor- und Nachname
+
+        :param full_name: Vollname
+        :return: tuple
+        """
+
         name_parts = full_name.split('&nbsp;', 1)
         if len(name_parts) == 2:
             return name_parts
