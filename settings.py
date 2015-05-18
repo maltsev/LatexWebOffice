@@ -130,19 +130,8 @@ LOGGING = {
 
 
 
-
-
-# Project settings
-FILE_ROOT = os.path.join(MEDIA_ROOT, 'files')
-PROJECT_ROOT = os.path.join(MEDIA_ROOT, 'projects')
-TESTFILES_ROOT = os.path.join(BASE_DIR, 'app', 'tests', 'server', 'static')
-
-
-
 if 'test' in sys.argv:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media', 'test')
-    FILE_ROOT = os.path.join(MEDIA_ROOT, 'files')
-    PROJECT_ROOT = os.path.join(MEDIA_ROOT, 'projects')
 
     PASSWORD_HASHERS = (
         'django.contrib.auth.hashers.MD5PasswordHasher',

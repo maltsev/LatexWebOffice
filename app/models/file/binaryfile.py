@@ -68,7 +68,7 @@ class BinaryFileManager(file.FileManager):
 
     def __createBinaryFile(self, content):
         filename = ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.digits) for _ in range(36))
-        filepath = os.path.join(settings.FILE_ROOT, filename)
+        filepath = os.path.join(settings.MEDIA_ROOT, 'files', filename)
         if not os.path.exists(filepath):
             fileDirPath = os.path.dirname(filepath)
             if not os.path.exists(fileDirPath):
