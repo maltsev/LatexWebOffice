@@ -771,9 +771,9 @@ class FileTestClass(ViewTestCase):
         file1_name = 'test_bin.bin'
         file2_name = 'test_tex_simple.tex'
         file3_name = 'test_jpg.jpg'
-        file1 = open(os.path.join(settings.TESTFILES_ROOT, file1_name), 'rb')
-        file2 = open(os.path.join(settings.TESTFILES_ROOT, file2_name), 'rb')
-        file3 = open(os.path.join(settings.TESTFILES_ROOT, file3_name), 'rb')
+        file1 = open(os.path.join(self.testfiles_root, file1_name), 'rb')
+        file2 = open(os.path.join(self.testfiles_root, file2_name), 'rb')
+        file3 = open(os.path.join(self.testfiles_root, file3_name), 'rb')
 
         # Anfrage an den Server
         serverrequest = {

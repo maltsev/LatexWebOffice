@@ -124,13 +124,6 @@ LOGGING = {
 
 
 
-
-
-# Project settings
-TESTFILES_ROOT = os.path.join(BASE_DIR, 'app', 'tests', 'server', 'static')
-
-
-
 if 'test' in sys.argv:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media', 'test')
 

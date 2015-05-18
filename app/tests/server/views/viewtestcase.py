@@ -35,6 +35,9 @@ class ViewTestCase(TestCase):
 
     """
 
+    testfiles_root = os.path.join(settings.BASE_DIR, 'app', 'tests', 'server', 'static')
+
+
     def setUpUserAndProjects(self):
         """Erstellt Benutzer und Projekte für die Tests.
 
@@ -201,24 +204,24 @@ class ViewTestCase(TestCase):
         texfile2_name_specialchars = u'Übungsblatt02.tex'
 
         # Pfad für die zip
-        self._zipfile1_path = os.path.join(settings.TESTFILES_ROOT, zipfile1_name)
+        self._zipfile1_path = os.path.join(self.testfiles_root, zipfile1_name)
 
         # Ändere den Source Code der main.tex Datei von user1_project1
         self._user1_tex1 = self._user1_project1.rootFolder.getMainTex()
-        texfile1 = open(os.path.join(settings.TESTFILES_ROOT, texfile1_name), 'r')
+        texfile1 = open(os.path.join(self.testfiles_root, texfile1_name), 'r')
         self._user1_tex1_source_code = texfile1.read()
         self._user1_tex1.source_code = self._user1_tex1_source_code
         self._user1_tex1.save()
 
         # Erstelle eine .tex Datei für user1 in user1_project1_root (Projekt root Verzeichnis)
-        texfile2 = open(os.path.join(settings.TESTFILES_ROOT, texfile2_name), 'r')
+        texfile2 = open(os.path.join(self.testfiles_root, texfile2_name), 'r')
         self._user1_tex2_source_code = texfile2.read()
         self._user1_tex2 = TexFile(name=texfile2_name, folder=self._user1_project1.rootFolder,
                                    source_code=self._user1_tex2_source_code)
         self._user1_tex2.save()
 
         # Erstelle eine .tex Datei für user1 in user1_project1_folder1
-        texfile3 = open(os.path.join(settings.TESTFILES_ROOT, texfile3_name), 'r')
+        texfile3 = open(os.path.join(self.testfiles_root, texfile3_name), 'r')
         self._user1_tex3_source_code = texfile3.read()
         self._user1_tex3 = TexFile(name=texfile3_name, folder=self._user1_project1_folder1,
                                    source_code=self._user1_tex3_source_code)
@@ -244,7 +247,7 @@ class ViewTestCase(TestCase):
         self._user1_tex6.save()
 
         # Erstelle eine Binärdatei für user1 in user1_project1_folder2_subfolder1
-        self._user1_binfile1_path = os.path.join(settings.TESTFILES_ROOT, binfile1_name)
+        self._user1_binfile1_path = os.path.join(self.testfiles_root, binfile1_name)
         binfile1 = open(self._user1_binfile1_path, 'rb')
         self._user1_binary1 = BinaryFile.objects.createFromFile(name=binfile1_name,
                                                                 folder=self._user1_project1_folder2_subfolder1,
@@ -253,12 +256,12 @@ class ViewTestCase(TestCase):
 
         # Ändere den Source Code der main.tex Datei von user2_project1
         self._user2_tex1 = self._user2_project1.rootFolder.getMainTex()
-        texfile2 = open(os.path.join(settings.TESTFILES_ROOT, texfile2_name), 'r')
+        texfile2 = open(os.path.join(self.testfiles_root, texfile2_name), 'r')
         self._user2_tex1.source_code = texfile2.read()
         self._user2_tex1.save()
 
         # Erstelle eine jpg Bilddatei für user1 in user1_project1_folder2_subfolder1
-        self._user1_binary2_path = os.path.join(settings.TESTFILES_ROOT, binfile2_name)
+        self._user1_binary2_path = os.path.join(self.testfiles_root, binfile2_name)
         binfile2 = open(self._user1_binary2_path, 'rb')
         self._user1_binary2 = BinaryFile.objects.createFromFile(name=binfile2_name,
                                                                 folder=self._user1_project1_folder2_subfolder1,
@@ -266,7 +269,7 @@ class ViewTestCase(TestCase):
         binfile2.close()
 
         # Erstelle eine png Bilddatei für user1 in user1_project1_folder2_subfolder2
-        self._user1_binary3_path = os.path.join(settings.TESTFILES_ROOT, binfile3_name)
+        self._user1_binary3_path = os.path.join(self.testfiles_root, binfile3_name)
         binfile3 = open(self._user1_binary3_path, 'rb')
         self._user1_binary3 = BinaryFile.objects.createFromFile(name=binfile3_name,
                                                                 folder=self._user1_project1_folder2_subfolder1,
@@ -277,7 +280,7 @@ class ViewTestCase(TestCase):
     # setzt einige Variablen, die in den Tests verwendet werden können
     def setUpValues(self):
         texfile_name = 'test_tex_simple.tex'
-        texfile = open(os.path.join(settings.TESTFILES_ROOT, texfile_name), 'r')
+        texfile = open(os.path.join(self.testfiles_root, texfile_name), 'r')
         self._new_code1 = texfile.read()
         texfile.close()
         self._newtex_name1 = 'NeuerTexName1.tex'
