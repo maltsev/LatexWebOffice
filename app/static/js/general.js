@@ -157,13 +157,22 @@ function showAlertDialog(title, message, redirection){
 }
 
 
-
-function getUrl(url) {
-    return BASE_URL.replace(/\/+$/, "") + url;
+/**
+ * Gibt den absoluten URL zurück
+ * @param String relativ URL
+ * @return String absolut URL
+ */
+function getUrl(relativeUrl) {
+    return BASE_URL.replace(/\/+$/, "") + relativeUrl;
 }
 
-function getStaticUrl(url) {
-    return STATIC_URL.replace(/\/+$/, "") + url;
+/**
+ * Gibt den absoluten URL der statischen Datei zurück
+ * @param String relativ URL
+ * @return String absolut URL
+ */
+function getStaticUrl(relativeUrl) {
+    return STATIC_URL.replace(/\/+$/, "") + relativeUrl;
 }
 
 
