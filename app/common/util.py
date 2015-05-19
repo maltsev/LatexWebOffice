@@ -558,9 +558,11 @@ def createZipFromFolder(folderpath, zip_file_path):
 
 
 def extractZipToFolder(folderpath, zip_file_path):
-    """Entpackt alle Dateien und Ordner der zip Datei zip_file_path in den Ordner folderpath.
+    """Entpackt alle Dateien und Ordner der zip Datei zip_file_path
+       in den Ordner folderpath.
 
-    :param folderpath: Pfad zum Ordner, in dem die .zip Datei entpackt werden soll, Beispiel: /home/user/test
+    :param folderpath: Pfad zum Ordner, in dem die .zip Datei entpackt
+                       werden soll, Beispiel: /home/user/test
     :param zip_file_path: Pfad zur .zip Datei, Beispiel: /home/user/test.zip
     :return: None
     """
