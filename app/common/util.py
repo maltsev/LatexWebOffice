@@ -566,23 +566,19 @@ def extractZipToFolder(folderpath, zip_file_path):
     """
 
     zip_file = zipfile.ZipFile(zip_file_path, 'r')
-
     for name in zip_file.namelist():
         dirname, filename = os.path.split(name)
 
-        if not filename:
-            dirpath = os.path.join(folderpath, dirname)
-            if not os.path.exists(dirpath):
-                # Verzeichnis
-                os.mkdir(dirpath)
-        else:
+        if filename:
             # Datei
             fd = open(os.path.join(folderpath, name), 'w')
             fd.write(zip_file.read(name))
             fd.close()
-
-
-    #zip_file.extractall(folderpath)
+        else:
+            dirpath = os.path.join(folderpath, dirname)
+            if not os.path.exists(dirpath):
+                # Verzeichnis
+                os.mkdir(dirpath)
 
     zip_file.close()
 
