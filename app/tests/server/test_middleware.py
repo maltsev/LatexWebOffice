@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.test import TestCase
 from django.contrib.admin.models import User
 
@@ -56,4 +57,6 @@ class SingleSignOnMiddlewareTestClass(TestCase):
     def test_split_name(self):
         obj = SingleSignOnMiddleware()
 
-        self.assertEqual(obj.split_name('John&nbsp;Smith'), ['John', 'Smith'])
+        self.assertEqual(obj.split_name('John&nbsp;Smith'), ('John', 'Smith'))
+        self.assertEqual(obj.split_name('Cassio&nbsp;van&nbsp;den&nbsp;Berg'), ('Cassio van den Berg', ''))
+        self.assertEqual(obj.split_name('Maria&nbsp;Rebekka&nbsp;Sch&auml;fer'), (u'Maria Rebekka Schäfer', ''))

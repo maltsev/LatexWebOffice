@@ -13,6 +13,8 @@ from random import random
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 
+from app.common.util import unescapeHTML
+
 
 class SingleSignOnMiddleware:
 
@@ -82,8 +84,10 @@ class SingleSignOnMiddleware:
         :return: tuple
         """
 
-        name_parts = full_name.split('&nbsp;', 1)
+        full_name_decoded = unescapeHTML(full_name.replace('&nbsp;', ' '))
+        name_parts = full_name_decoded.split(' ')
         if len(name_parts) == 2:
-            return name_parts
+            return tuple(name_parts)
         else:
-            return (name_parts[0], '')
+            # Vor- und/oder Nachname besteht aus mehreren Wörtern => schwer richtig zu parsen
+            return (full_name_decoded, '')
