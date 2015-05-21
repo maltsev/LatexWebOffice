@@ -22,6 +22,8 @@ import zipfile
 import os
 import mimetypes
 import tempfile
+import re
+
 
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
@@ -774,3 +776,44 @@ def isAllowedAccessToProject(project, user, requirerights):
         return True
     else:
         return False
+
+
+
+def unescapeHTML(s):
+    """Dekodiert HTML-Zeichen. Verbesserte Variante von HTMLParser.HTMLParse.unescape() (Python 2.4)
+    Quelle: https://hg.python.org/cpython/file/2.7/Lib/HTMLParser.py#l447
+
+    :param s: Zeichenkette mit HTML-Zeichen
+    :return: String
+    """
+
+    if '&' not in s:
+        return s
+    def replaceEntities(s):
+        s = s.groups()[0]
+        try:
+            if s[0] == "#":
+                s = s[1:]
+                if s[0] in ['x','X']:
+                    c = int(s[1:], 16)
+                else:
+                    c = int(s)
+                return unichr(c)
+        except ValueError:
+            return '&#'+s+';'
+        else:
+            # Cannot use name2codepoint directly, because HTMLParser supports apos,
+            # which is not part of HTML 4
+            import htmlentitydefs
+            if unescapeHTML.entitydefs is None:
+                unescapeHTML.entitydefs = {'apos':u"'"}
+                for k, v in htmlentitydefs.name2codepoint.iteritems():
+                    unescapeHTML.entitydefs[k] = unichr(v)
+            try:
+                return unescapeHTML.entitydefs[s]
+            except KeyError:
+                return '&'+s+';'
+
+    return re.sub(r"&(#?[xX]?(?:[0-9a-fA-F]+|\w{1,8}));", replaceEntities, s)
+
+unescapeHTML.entitydefs = None
