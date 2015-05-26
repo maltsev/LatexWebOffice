@@ -34,7 +34,7 @@ def latexcompile(texid, formatid=0, forcecompile=0, debug=False):
     """Kompiliert eine tex Datei mit der übergebenen texid in das entsprechende Ausgabeformat (formatid).
 
     formatid:   0 - PDF
-                1 - HTML mit htlatex (Rückgabe als zip Datei)
+                1 - HTML mit htlatex (Rückgabe als zip Datei) (deaktiviert)
                 2 - DVI
                 3 - PS
 
@@ -118,9 +118,9 @@ def latexcompile(texid, formatid=0, forcecompile=0, debug=False):
             args['format'] = latexmk_formatargs[formatid]
             rc, file_data = latexmk(args, console_output=debug)
         # HTML Format mit htlatex
-        elif formatid == '1':
-            args['outdirpath'] = out_dir_path + os.sep
-            rc, file_data = htlatex(args, console_output=debug)
+        #elif formatid == '1':
+        #    args['outdirpath'] = out_dir_path + os.sep
+        #    rc, file_data = htlatex(args, console_output=debug)
         # Ungültige formatid
         else:
             errors = ERROR_MESSAGES['UNKNOWNFORMAT']

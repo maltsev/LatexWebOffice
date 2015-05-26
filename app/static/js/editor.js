@@ -163,10 +163,10 @@ $(document).ready(function() {
 		$('#pdfExport').click(function() {
 			exportFile(0);
 		});
-        // Button für das HTML Exportieren belegen
-		$('#export_html').click(function() {
-			exportFile(1);
-		});
+        // Button für das HTML Exportieren belegen (deaktiviert)
+		//$('#export_html').click(function() {
+		//	exportFile(1);
+		//});
 		// Button für das DVI Exportieren belegen
 		$('#export_dvi').click(function() {
 			exportFile(2);
