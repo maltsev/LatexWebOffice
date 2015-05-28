@@ -27,7 +27,7 @@ from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.common import util
-from settings import BASE_DIR
+import settings
 
 
 def latexcompile(texid, formatid=0, forcecompile=0, debug=False):
@@ -176,6 +176,10 @@ def latexmk(args, console_output):
     if os.path.isfile(file_path):
         tempPdfPath = os.path.join(args['outdirpath'], file_name + '_old')
         os.rename(file_path, tempPdfPath)
+
+
+    if hasattr(settings, 'TEXINPUTS'):
+        os.environ["TEXINPUTS"] = settings.TEXINPUTS
 
     # kompiliert die tex-Datei gemäß der gesetzten Argumente:
     rc = execute_command(command, args['cwd'], console_output=console_output)
@@ -409,7 +413,7 @@ def latexmk_path():
     :return: Dateipfad zum Latexmk-Script
     """
 
-    return os.path.join(BASE_DIR, "app", "common", "latexmk.pl")
+    return os.path.join(settings.BASE_DIR, "app", "common", "latexmk.pl")
 
 
 def execute_command(args, workingdir, console_output=False):
