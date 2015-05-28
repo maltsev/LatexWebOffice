@@ -14,7 +14,3 @@ LatexWebOffice
 3. Aktiviere die Umgebung: `source venv/bin/activate`
 4. Installiere Python Module: `pip install -r requirements.txt`
 5. Erzeuge die Datenbank: `python manage.py syncdb`
-
-
-### Was fehlt noch
-- latex -> HTML
