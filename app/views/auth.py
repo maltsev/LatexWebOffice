@@ -207,7 +207,13 @@ def registration(request):
             else:
                 messages.error(request, ERROR_MESSAGES['LOGINORREGFAILED'])
 
-    return render_to_response('registration.html', {'first_name': first_name, 'email': email}, context_instance=RequestContext(request))
+    sso_url = ''
+    if 'SSO_URL' in dir(settings):
+        sso_url = settings.SSO_URL
+
+    return render_to_response('registration.html',
+                              {'first_name': first_name, 'IS_SSO_ENABLED': settings.IS_SSO_ENABLED, 'SSO_URL': sso_url, 'email': email},
+                              context_instance=RequestContext(request))
 
 
 @csrf_exempt
