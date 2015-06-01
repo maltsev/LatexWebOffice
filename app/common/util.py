@@ -17,17 +17,21 @@
 
 """
 
-import json
+import simplejson as json
 import zipfile
 import os
 import mimetypes
 import tempfile
+import re
+
 
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
-from core import settings
-from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, ALLOWEDMIMETYPES, DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM, MAXFILESIZE
+import settings
+from app.common.constants import ERROR_MESSAGES, SUCCESS, FAILURE, INVALIDCHARS, MAXFILESIZE
+from app.common.constants import DUPLICATE_NAMING_REGEX, DUPLICATE_INIT_SUFFIX_NUM
+from app.common.allowedmimetypes import ALLOWEDMIMETYPES
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.projecttemplate import ProjectTemplate
@@ -45,7 +49,7 @@ def jsonDecoder(responseContent):
     :return: dict
     """
 
-    return json.loads(str(responseContent, encoding='utf-8'))
+    return json.loads(responseContent)
 
 
 def jsonResponse(response, status, request):
@@ -203,7 +207,7 @@ def checkIfTemplateExistsAndUserHasRights(templateid, user, request):
     :return: (False, HttpResponse (JSON) mit der entsprechenden Fehlermeldung), bzw. (True, None) bei Erfolg
     """
 
-    if not ProjectTemplate.objects.filter(id=templateid).exclude(project__isnull=False).exists():
+    if not ProjectTemplate.objects.filter(id=templateid, project__isnull=True).exists():
         return False, jsonErrorResponse(ERROR_MESSAGES['TEMPLATENOTEXIST'], request)
     elif not ProjectTemplate.objects.get(id=templateid).author == user:
         return False, jsonErrorResponse(ERROR_MESSAGES['NOTENOUGHRIGHTS'], request)
@@ -246,8 +250,11 @@ def checkObjectForInvalidString(string, request):
 
     if string == '' or string.isspace():
         return False, jsonErrorResponse(ERROR_MESSAGES['BLANKNAME'], request)
-    if any(invalid in string for invalid in INVALIDCHARS):
-        return False, jsonErrorResponse(ERROR_MESSAGES['INVALIDNAME'], request)
+
+    for invalid in INVALIDCHARS:
+        if invalid in string:
+            return False, jsonErrorResponse(ERROR_MESSAGES['INVALIDNAME'], request)
+
     return True, None
 
 
@@ -260,7 +267,12 @@ def checkFileForInvalidString(name, request):
     """
 
     # trenne die Dateiendung vom Dateinamen
-    file_name, file_extension = os.path.splitext(name)
+    split_name = os.path.splitext(name)
+    if split_name[0]:
+        file_name, file_extension = split_name
+    else:
+        file_extension, file_name = split_name
+
 
     # file_extension ist ein leerer String wenn entweder keine Dateiendung vorhanden ist
     # oder der Dateiname nur die Dateiendung beinhaltet, z.B. name = '.tex'
@@ -373,9 +385,9 @@ def getNextValidProjectName(user,name):
         n = DUPLICATE_INIT_SUFFIX_NUM
         while True :
             # wenn noch kein Projekt mit dem Namen name+' (n)' existiert, ...
-            if not queryProjects.filter(name__iexact=DUPLICATE_NAMING_REGEX.format(name,n)).exists() :
+            if not queryProjects.filter(name__iexact=DUPLICATE_NAMING_REGEX % (name,n)).exists() :
                 # ... wird dieser zurückgegeben
-                return DUPLICATE_NAMING_REGEX.format(name,n)
+                return DUPLICATE_NAMING_REGEX % (name,n)
             # wenn bereits ein Projekt mit dem Namen name+' (n)' existiert, ...
             else :
                 # ... wird mit der nächsten Zahl fortgefahren
@@ -409,9 +421,9 @@ def getNextValidTemplateName(user,name):
         n = DUPLICATE_INIT_SUFFIX_NUM
         while True :
             # wenn noch keine Vorlage mit dem Namen name+' (n)' existiert, ...
-            if not queryTemplates.filter(name__iexact=DUPLICATE_NAMING_REGEX.format(name,n)).exists() :
+            if not queryTemplates.filter(name__iexact=DUPLICATE_NAMING_REGEX % (name,n)).exists() :
                 # ... wird dieser zurückgegeben
-                return DUPLICATE_NAMING_REGEX.format(name,n)
+                return DUPLICATE_NAMING_REGEX % (name,n)
             # wenn bereits eine Vorlage mit dem Namen name+' (n)' existiert, ...
             else :
                 # ... wird mit der nächsten Zahl fortgefahren
@@ -506,7 +518,7 @@ def uploadFile(f, folder, request, fromZip=False):
             return False, ERROR_MESSAGES['DATABASEERROR']
     # sonst ist der Dateityp nicht erlaubt
     else:
-        return False, ERROR_MESSAGES['ILLEGALFILETYPE'].format(mime)
+        return False, ERROR_MESSAGES['ILLEGALFILETYPE'] % mime
 
     return True, {'id': file.id, 'name': file.name}
 
@@ -527,30 +539,51 @@ def createZipFromFolder(folderpath, zip_file_path):
     os.chdir(wd)
 
     relroot = os.path.abspath(folderpath)
-    with zipfile.ZipFile(zip_file_path, "w") as zip:
+
+    zip = False
+    try:
+        zip = zipfile.ZipFile(zip_file_path, "w")
         for root, dirs, files in os.walk(folderpath):
             # füge des Verzeichnis hinzu (notwendig für Verzeichnisse ohne weitere Dateien und Unterordner)
-            zip.write(root, os.path.relpath(root, relroot))
+            zip.writestr(str(os.path.relpath(root, relroot)) + os.path.sep, '')
             for file in files:
                 filename = os.path.join(root, file)
                 if os.path.isfile(filename):
                     arcname = os.path.join(os.path.relpath(root, relroot), file)
-                    zip.write(filename, arcname)
+                    zip.write(str(filename), str(arcname))
+    finally:
+        if zip:
+            zip.close()
 
     # stelle das vorherige Arbeitsverzeichnis wieder her
     os.chdir(oldwd)
 
 
 def extractZipToFolder(folderpath, zip_file_path):
-    """Entpackt alle Dateien und Ordner der zip Datei zip_file_path in den Ordner folderpath.
+    """Entpackt alle Dateien und Ordner der zip Datei zip_file_path
+       in den Ordner folderpath.
 
-    :param folderpath: Pfad zum Ordner, in dem die .zip Datei entpackt werden soll, Beispiel: /home/user/test
+    :param folderpath: Pfad zum Ordner, in dem die .zip Datei entpackt
+                       werden soll, Beispiel: /home/user/test
     :param zip_file_path: Pfad zur .zip Datei, Beispiel: /home/user/test.zip
     :return: None
     """
 
     zip_file = zipfile.ZipFile(zip_file_path, 'r')
-    zip_file.extractall(folderpath)
+    for name in zip_file.namelist():
+        dirname, filename = os.path.split(name)
+
+        if filename:
+            # Datei
+            fd = open(os.path.join(folderpath, name), 'w')
+            fd.write(zip_file.read(name))
+            fd.close()
+        else:
+            dirpath = os.path.join(folderpath, dirname)
+            if not os.path.exists(dirpath):
+                # Verzeichnis
+                os.mkdir(dirpath)
+
     zip_file.close()
 
 
@@ -626,7 +659,7 @@ def convertLatinToUnicode(string):
 
     # versuche den String nach 'utf-8' zu konvertieren
     try:
-        return bytes(string, 'cp437').decode('utf-8')
+        return string.encode('cp437').decode('utf-8')
     # ansonsten gib den String unverändert zurück
     except UnicodeDecodeError:
         return string
@@ -743,3 +776,44 @@ def isAllowedAccessToProject(project, user, requirerights):
         return True
     else:
         return False
+
+
+
+def unescapeHTML(s):
+    """Dekodiert HTML-Zeichen. Verbesserte Variante von HTMLParser.HTMLParse.unescape() (Python 2.4)
+    Quelle: https://hg.python.org/cpython/file/2.7/Lib/HTMLParser.py#l447
+
+    :param s: Zeichenkette mit HTML-Zeichen
+    :return: String
+    """
+
+    if '&' not in s:
+        return s
+    def replaceEntities(s):
+        s = s.groups()[0]
+        try:
+            if s[0] == "#":
+                s = s[1:]
+                if s[0] in ['x','X']:
+                    c = int(s[1:], 16)
+                else:
+                    c = int(s)
+                return unichr(c)
+        except ValueError:
+            return '&#'+s+';'
+        else:
+            # Cannot use name2codepoint directly, because HTMLParser supports apos,
+            # which is not part of HTML 4
+            import htmlentitydefs
+            if unescapeHTML.entitydefs is None:
+                unescapeHTML.entitydefs = {'apos':u"'"}
+                for k, v in htmlentitydefs.name2codepoint.iteritems():
+                    unescapeHTML.entitydefs[k] = unichr(v)
+            try:
+                return unescapeHTML.entitydefs[s]
+            except KeyError:
+                return '&'+s+';'
+
+    return re.sub(r"&(#?[xX]?(?:[0-9a-fA-F]+|\w{1,8}));", replaceEntities, s)
+
+unescapeHTML.entitydefs = None

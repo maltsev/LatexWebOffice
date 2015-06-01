@@ -14,7 +14,7 @@
 * Backlog entry :
 
 """
-import io
+import StringIO
 import os
 
 from django.db import models
@@ -37,8 +37,12 @@ class PlainTextFile(file.File):
     source_code = models.TextField(blank=True)
     objects = PlainTextFileManager()
 
+    class Meta:
+        app_label = 'app'
+
+
     def getContent(self):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         output.write(self.source_code)
         return output
 

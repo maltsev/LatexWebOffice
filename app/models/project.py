@@ -15,11 +15,11 @@
 
 """
 from django.db import models
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from app.models import projecttemplate, folder, collaboration
-from django.conf import settings
 from django.contrib.auth.models import User
+
+from app.models import projecttemplate, folder, collaboration
 from app.models.file.texfile import TexFile
 
 
@@ -65,8 +65,14 @@ class ProjectManager(models.Manager):
         return newProject
 
 class Project(projecttemplate.ProjectTemplate):
-    collaborators = models.ManyToManyField(settings.AUTH_USER_MODEL, through='Collaboration', through_fields=('project', 'user'))
+    # TODO
+    #collaborators = models.ManyToManyField(settings.AUTH_USER_MODEL, through='Collaboration', through_fields=('project', 'user'))
+    collaborators = models.ManyToManyField(User, through='Collaboration')
     objects = ProjectManager()
+
+    class Meta:
+        app_label = 'app'
+
 
     def getAllCollaborators(self):
         return self.collaborators.all()

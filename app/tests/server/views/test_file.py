@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 * Purpose : Test des File Views und zugehöriger Methoden (app/views/file.py)
@@ -15,8 +16,6 @@
 * Backlog entry : -
 
 """
-
-import mimetypes
 import filecmp
 import os
 import tempfile
@@ -24,7 +23,7 @@ import shutil
 
 from django.utils.encoding import smart_str
 
-from core import settings
+import settings
 from app.common.constants import ERROR_MESSAGES
 from app.common import util
 from app.models.file.file import File
@@ -772,9 +771,9 @@ class FileTestClass(ViewTestCase):
         file1_name = 'test_bin.bin'
         file2_name = 'test_tex_simple.tex'
         file3_name = 'test_jpg.jpg'
-        file1 = open(os.path.join(settings.TESTFILES_ROOT, file1_name), 'rb')
-        file2 = open(os.path.join(settings.TESTFILES_ROOT, file2_name), 'rb')
-        file3 = open(os.path.join(settings.TESTFILES_ROOT, file3_name), 'rb')
+        file1 = open(os.path.join(self.testfiles_root, file1_name), 'rb')
+        file2 = open(os.path.join(self.testfiles_root, file2_name), 'rb')
+        file3 = open(os.path.join(self.testfiles_root, file3_name), 'rb')
 
         # Anfrage an den Server
         serverrequest = {
@@ -800,7 +799,7 @@ class FileTestClass(ViewTestCase):
         serveranswer = {
             'failure':
                 [
-                    {'name': file1_name, 'reason': ERROR_MESSAGES['ILLEGALFILETYPE'].format("application/octet-stream")},
+                    {'name': file1_name, 'reason': ERROR_MESSAGES['ILLEGALFILETYPE'] % "application/octet-stream"},
                 ],
             'success':
                 [
@@ -929,7 +928,7 @@ class FileTestClass(ViewTestCase):
         # der Inhalt der heruntergeladenen Datei und der Datei auf dem Server sollte übereinstimmen
         self.assertEqual(self._user1_tex1.source_code, smart_str(response.content))
         # der Content-Type sollte .tex entsprechen
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.tex'])
+        self.assertIn(response['Content-Type'], ['application/x-tex', 'text/x-tex'])
         # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
         ori_file = self._user1_tex1.getContent()
         self.assertTrue(0.99 < (int(response['Content-Length']) / util.getFileSize(ori_file)) < 1.01)
@@ -948,7 +947,7 @@ class FileTestClass(ViewTestCase):
         # es sollte keine Datei mitgesendet worden sein
         self.assertNotIn('Content-Disposition', response)
         # Content-Type sollte text/html sein
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        self.assertEqual(response['Content-Type'], 'text/html; charset=utf-8')
         # Content-Length sollte nicht vorhanden sein
         self.assertNotIn('Content-Length', response)
 
@@ -963,13 +962,13 @@ class FileTestClass(ViewTestCase):
         # es sollte keine Datei mitgesendet worden sein
         self.assertNotIn('Content-Disposition', response)
         # Content-Type sollte text/html sein
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        self.assertEqual(response['Content-Type'], 'text/html; charset=utf-8')
         # Content-Length sollte nicht vorhanden sein
         self.assertNotIn('Content-Length', response)
 
         sharedproject_maintex = self._user2_sharedproject.rootFolder.getMainTex()
         response = util.documentPoster(self, command='downloadfile', idpara=sharedproject_maintex.id)
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.tex'])
+        self.assertIn(response['Content-Type'], ['application/x-tex', 'text/x-tex'])
         # Content-Length sollte (ungefähr) die Größe der originalen Datei besitzen
         file_content = sharedproject_maintex.getContent()
         self.assertTrue(0.99 < (int(response['Content-Length']) / util.getFileSize(file_content)) < 1.01)

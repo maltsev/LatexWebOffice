@@ -1,4 +1,5 @@
-﻿"""
+# -*- coding: utf-8 -*-
+"""
 
 * Purpose : Verwaltung von Project Models
 
@@ -15,23 +16,21 @@
 * Backlog entry : TEK1, 3ED9, DOK8, KOL1
 
 """
-
 import os
 import tempfile
 import zipfile
 import shutil
 import logging
 
-from django.contrib.auth import get_user_model
-User = get_user_model()
 from django.http import HttpResponse, Http404
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from app.models.collaboration import Collaboration
 from app.models.folder import Folder
 from app.models.project import Project
-from app.models.file.texfile import TexFile
 from app.common import util
 from app.common.constants import ERROR_MESSAGES, ZIPMIMETYPE, STANDARDENCODING
 
@@ -121,7 +120,7 @@ def projectRename(request, user, projectid, newprojectname):
     projectobj = Project.objects.get(id=projectid)
     # überprüfe ob ein Projekt mit dem Namen 'projectname' bereits für diese Benutzer existiert
     if Project.objects.filter(name__iexact=newprojectname.lower(), author=user).exists():
-        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(newprojectname), request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['PROJECTALREADYEXISTS'] % newprojectname, request)
     else:
         # versuche das Projekt umzubenennen
         try:
@@ -155,6 +154,7 @@ def listProjects(request, user):
     return util.jsonResponse(json_return, True, request)
 
 
+@transaction.commit_manually
 def importZip(request, user):
     """Importiert ein Projekt aus einer vom Client übergebenen zip Datei.
 
@@ -180,6 +180,8 @@ def importZip(request, user):
     zip_file = open(zip_file_path, 'wb')
     zip_file.write(files[0].read())
     zip_file.close()
+
+    transaction.commit()
 
     # überprüfe ob es sich um eine gültige .zip Datei handelt
     # und ob die zip Datei kleiner als 150 bytes ist
@@ -223,35 +225,37 @@ def importZip(request, user):
 
     failed = False
 
+    transaction.commit()
+
     try:
-        with transaction.atomic():
-            for root, dirs, files in os.walk(extract_path):
-                # relativer Pfad des derzeitigen Verzeichnis
-                path = root.split(os.sep)[rootdepth:]
-                # falls path true ist, ist root nicht das root Verzeichnis, wo die zip
-                # entpackt wurde
-                if path:
-                    # path is also ein subsubfolder und wir müssen den subfolder als parent setzen
-                    if path[:-1]:
-                        parent = projdict[os.path.join('', *path[:-1])]
-                    else:
-                        parent = projectobj.rootFolder
-                    name = util.convertLatinToUnicode(util.getFolderName(root))
-                    if name == '__MACOSX':
-                        continue
-                    # speichere Ordner
-                    folder = Folder.objects.create(
-                        name=util.convertLatinToUnicode(util.getFolderName(root)),
-                        parent=parent, root=projectobj.rootFolder)
-                    projdict[os.path.join('', *path)] = folder
-                for f in files:  # füge die Dateien dem Ordner hinzu
-                    fileobj = open(os.path.join(root, f), 'rb')
-                    result, msg = util.uploadFile(fileobj, folder, request, True)
-                    fileobj.close()
-                    if not result:
-                        returnmsg = util.jsonErrorResponse(msg, request)
-                        raise TypeError
+        for root, dirs, files in os.walk(extract_path):
+            # relativer Pfad des derzeitigen Verzeichnis
+            path = root.split(os.sep)[rootdepth:]
+            # falls path true ist, ist root nicht das root Verzeichnis, wo die zip
+            # entpackt wurde
+            if path:
+                # path is also ein subsubfolder und wir müssen den subfolder als parent setzen
+                if path[:-1]:
+                    parent = projdict[os.path.join('', *path[:-1])]
+                else:
+                    parent = projectobj.rootFolder
+                name = util.convertLatinToUnicode(util.getFolderName(root))
+                if name == '__MACOSX':
+                    continue
+                # speichere Ordner
+                folder = Folder.objects.create(
+                    name=util.convertLatinToUnicode(util.getFolderName(root)),
+                    parent=parent, root=projectobj.rootFolder)
+                projdict[os.path.join('', *path)] = folder
+            for f in files:  # füge die Dateien dem Ordner hinzu
+                fileobj = open(os.path.join(root, f), 'rb')
+                result, msg = util.uploadFile(fileobj, folder, request, True)
+                fileobj.close()
+                if not result:
+                    returnmsg = util.jsonErrorResponse(msg, request)
+                    raise TypeError
     except TypeError:
+        transaction.rollback()
         projectobj.delete()  # bei Fehler muss noch das Projekt selbst gelöscht werden
         failed = True
 
@@ -270,6 +274,8 @@ def importZip(request, user):
     # lösche alle temporären Dateien und Ordner
     if os.path.isdir(tmpfolder):
         shutil.rmtree(tmpfolder)
+
+    transaction.commit()
     return returnmsg
 
 
@@ -363,12 +369,12 @@ def inviteUser(request, user, projectid, inviteusermail):
                     return util.jsonErrorResponse(ERROR_MESSAGES['DATABASEERROR'], request)
             # wenn eine entsprechende Kollaboration bereits vorliegt
             else :
-                return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(inviteuser.username), request)
+                return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'] % inviteuser.username, request)
         else :
-            return util.jsonErrorResponse(ERROR_MESSAGES['USERNOTFOUND'].format(inviteusermail), request)
+            return util.jsonErrorResponse(ERROR_MESSAGES['USERNOTFOUND'] % inviteusermail, request)
     # wenn es sich bei der übergebenen E-Mail-Adresse des einzuladenen Nutzers um die des aufrufenden Nutzers handelt
     else :
-        return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'].format(user.username), request)
+        return util.jsonErrorResponse(ERROR_MESSAGES['USERALREADYINVITED'] % user.username, request)
 
 
 def hasInvitedUsers(request, user, projectid):

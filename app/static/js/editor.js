@@ -7,12 +7,6 @@
 /// ID der im Editor geöffneten Datei
 var id;
 
-// ID des verwendeten Compilers
-// 0 - pdflatex
-// 1 - lualatex
-// 2 - xelatex
-var compilerid = 0;
-
 // Id des Root Ordners
 var rootid = -1;
 
@@ -58,6 +52,8 @@ var editorResizeTimeout = 150;
 // Zeit bis die Buttons wieder aktiviert werden, falls keine Antwort vom Server kommt
 var btnCompileExportTimeout = 15000;
 var btnCompileExportTimeout_HTML = 60000;
+
+var timeout;
 
 /**
  * Lädt den Editor, sobald das Dokument vollständig geladen wurde.
@@ -167,10 +163,10 @@ $(document).ready(function() {
 		$('#pdfExport').click(function() {
 			exportFile(0);
 		});
-        // Button für das HTML Exportieren belegen
-		$('#export_html').click(function() {
-			exportFile(1);
-		});
+        // Button für das HTML Exportieren belegen (deaktiviert)
+		//$('#export_html').click(function() {
+		//	exportFile(1);
+		//});
 		// Button für das DVI Exportieren belegen
 		$('#export_dvi').click(function() {
 			exportFile(2);
@@ -186,17 +182,6 @@ $(document).ready(function() {
 		$('#backtofileview').click(function() {
 			backToFileView();
 		});
-        // Dropdowm Button Text je nach Auswahl des Compilers richtig setzen und die compilerID ändern
-		$("#compiler-dropdown li a").click(function(){
-            $(this).parents(".compiler-btn").find('.btn').html($(this).text()+" <span class=\"caret\"></span>");
-            if (compilerid != $(this).attr('value')) {
-                // Compiler wurde verändert, dadurch wird beim nächsten Kompilieren der forcecompile Parameter gesetzt,
-                // so dass die Datei auf jeden Fall neu kompiliert wird, auch wenn es keine Änderungen an der tex Datei gab
-                forcecompile = 1;
-                compilerid = $(this).attr('value');
-            }
-            editor.focus();
-        });
 	};
 });
 
@@ -238,7 +223,7 @@ function resetPanes() {
  * Leitet den Benutzer zurück zur Projektverwaltung.
  */
 function backToProject() {
-	window.location.replace('/projekt/');
+	window.location.replace(getUrl('/projekt/'));
 }
 
 /**
@@ -256,7 +241,7 @@ function backToFileView() {
             }
             if (rootid != -1) {
                 window.onbeforeunload = null;
-                window.location.replace('/dateien/#' + rootid);
+                window.location.replace(getUrl('/dateien/#' + rootid));
             }
             else {
                 backToProject();
@@ -264,7 +249,7 @@ function backToFileView() {
 	    });
 	} else {
         if (rootid != -1) {
-            window.location.replace('/dateien/#' + rootid);
+            window.location.replace(getUrl('/dateien/#' + rootid));
         }
         else {
             backToProject();
@@ -458,14 +443,13 @@ function compileTex() {
             'command': 'compile',
             'id': id,
             'formatid': 0,
-            'compilerid': compilerid,
             'forcecompile': forcecompile
         }, function(result, data) {
             var pdfid = data.response.id;
             var pdf_url = null;
 
             if (isNaN(pdfid)) {
-                pdf_url = "/static/default.pdf";
+                pdf_url = getStaticUrl("/default.pdf");
                 setErrorMsg("Fehler beim Kompilierem");
             }
             else {
@@ -473,7 +457,7 @@ function compileTex() {
                 // schickt einen GET Request an den Server
                 // dieser liefert die PDF Datei, falls vorhanden
                 // sonst wird eine default PDF geschickt
-                pdf_url = "/documents/?command=getpdf&id=" + pdfid +"&t=" + Math.random();
+                pdf_url = getUrl("/documents/?command=getpdf&id=" + pdfid +"&t=" + Math.random());
 
                 if (result) {
                     forcecompile = 0;
@@ -548,7 +532,6 @@ function exportFile(formatid) {
 			'command': 'compile',
 			'id': id,
             'formatid': formatid,
-            'compilerid': compilerid,
             'forcecompile': forcecompile
 		}, function(result, data) {
 			if (result) {
@@ -708,7 +691,7 @@ function createImageTree() {
             	if (selectedNode['class'].indexOf('filesitem-file') >= 0) {
             		if (selectedNode["data-file-mime"] == "text/x-tex") {
             			// bei Doppelklick auf TEX-Datei zum Editor gehen
-            			window.location.replace("/editor/#" + selectedNode["data-file-id"]);
+            			window.location.replace(getUrl("/editor/#" + selectedNode["data-file-id"]));
             		}
             	}
             },
@@ -816,7 +799,7 @@ function disableEditor() {
     myLayout.hide("south");
 
     // URL zur PDF Datei
-    pdf_url = "/documents/?command=getpdf&texid=" + id +"&t=" + Math.random();
+    pdf_url = getUrl("/documents/?command=getpdf&texid=" + id +"&t=" + Math.random());
 
     // Anzeige der PDF Datei
     renderPDF(pdf_url, document.getElementById('pdf-viewer'));
@@ -957,7 +940,7 @@ function renderPDF(url, canvasContainer, options) {
     }
 
     //PDFJS.disableWorker = true;
-    PDFJS.workerSrc = '/static/pdfjs//build/pdf.worker.js';
+    PDFJS.workerSrc = getStaticUrl('/pdfjs/build/pdf.worker.js');
     PDFJS.getDocument(url).then(renderPages);
 }
 
@@ -967,7 +950,7 @@ function renderPDF(url, canvasContainer, options) {
 */
 function loadEditorTheme(theme) {
     // in diesem Ordner befinden sich die CodeMirror Themes
-    var cmthemeurl = '/static/codemirror/theme/'
+    var cmthemeurl = getStaticUrl('/codemirror/theme/');
 
     // Lade die zugehörige css Datei, falls diese noch nicht geladen wurde
     if (!document.getElementById(theme))
@@ -992,7 +975,7 @@ function loadEditorTheme(theme) {
 */
 function loadKeyMap(keymap) {
     // in diesem Ordner befinden sich die CodeMirror KeyMaps
-    var cmkeymapurl = '/static/codemirror/keymap/';
+    var cmkeymapurl = getStaticUrl('/codemirror/keymap/');
     // Lädt die zugehörige js Datei, falls diese noch nicht geladen wurde
     if (!document.getElementById(keymap))
     {

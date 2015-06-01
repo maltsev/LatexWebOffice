@@ -6,41 +6,41 @@
 
 <!-- Einbindung der SplitView Funktionalität -->
 <!-- benötigt jquery.min.js und jquery-ui.min.js -->
-<script type="text/javascript" src="/static/jquery-ui-layout/source/stable/jquery.layout.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}jquery-ui-layout/source/stable/jquery.layout.min.js"></script>
 
-<script src="/static/js/jquery.validate.min.js"></script>
+<script src="{{ STATIC_URL }}js/jquery.validate.min.js"></script>
 <!-- benötigt um pattern matching (regexp) nutzen zu können -->
-<script src="/static/js/jquery.validate.additional-methods.min.js"></script>
+<script src="{{ STATIC_URL }}js/jquery.validate.additional-methods.min.js"></script>
 
 <!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
-<script src="/static/js/auth/validate.js"></script>
+<script src="{{ STATIC_URL }}js/auth/validate.js"></script>
 <!-- validate einstellungen speziell für die Registrierung -->
-<script src="/static/js/auth/scaling.js"></script>
+<script src="{{ STATIC_URL }}js/auth/scaling.js"></script>
 
 <!-- Einbindung der Icons für den Editor -->
-<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
-<link href="/static/bootstrap/css/bootstrap.icon-large.min.css" rel="stylesheet">
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+<link href="{{ STATIC_URL }}bootstrap/css/bootstrap.icon-large.min.css" rel="stylesheet">
 
 <!-- Einbindung der Funktionalität für den Grafikassisten -->
-<link rel="stylesheet" href="/static/css/dateien.css">
-<script src="/static/js/doT.min.js"></script>
-<script src="/static/jstree/jstree.min.js"></script>
+<link rel="stylesheet" href="{{ STATIC_URL }}css/dateien.css">
+<script src="{{ STATIC_URL }}js/doT.min.js"></script>
+<script src="{{ STATIC_URL }}jstree/jstree.min.js"></script>
 
 <!-- Einbindung der Funktionalität des Tabellenassistenen -->
-<script data-jsfiddle="common" src="/static/handsontable/dist/handsontable.min.js"></script>
-<link data-jsfiddle="common" rel="stylesheet" media="screen" href="/static/handsontable/dist/handsontable.css">
+<script data-jsfiddle="common" src="{{ STATIC_URL }}handsontable/dist/handsontable.min.js"></script>
+<link data-jsfiddle="common" rel="stylesheet" media="screen" href="{{ STATIC_URL }}handsontable/dist/handsontable.css">
 
 <!-- Einbindung der Funktionalität vom Editor -->
 <!-- codemirror-compressed beinhaltet auch alle addons, erstellt mit http://codemirror.net/doc/compress.html -->
-<script src="/static/codemirror/lib/codemirror-compressed.js"></script>
-<link href="/static//codemirror/lib/codemirror.css" rel="stylesheet">
-<link href="/static//codemirror/theme/ambiance.css" rel="stylesheet">
-<link href="/static//codemirror/addon/hint/show-hint.css" rel="stylesheet">
-<link href="/static//codemirror/addon/dialog/dialog.css" rel="stylesheet">
+<script src="{{ STATIC_URL }}codemirror/lib/codemirror-compressed.js"></script>
+<link href="{{ STATIC_URL }}/codemirror/lib/codemirror.css" rel="stylesheet">
+<link href="{{ STATIC_URL }}/codemirror/theme/ambiance.css" rel="stylesheet">
+<link href="{{ STATIC_URL }}/codemirror/addon/hint/show-hint.css" rel="stylesheet">
+<link href="{{ STATIC_URL }}/codemirror/addon/dialog/dialog.css" rel="stylesheet">
 
 <!-- Stylesheet für Editor Einstellungen -->
-<link href="/static/css/editor.css" rel="stylesheet">
-<script src="/static/js/editor.js"></script>
+<link href="{{ STATIC_URL }}css/editor.css" rel="stylesheet">
+<script src="{{ STATIC_URL }}js/editor.js"></script>
 <!-- Header Ende -->
 {% endblock %}
 <!--
@@ -63,24 +63,23 @@
                   <h4 class="modal-title" id="graphik-assistent-label">Graphikassistent</h4>
                </div>
                <div class="modal-body">
-                  {% verbatim %}
+
                   <div>
                      Bitte wählen Sie eine oder mehrere Graphiken aus.
                   </div>
                   <script id="template_filesitem-file" type="text/template">
-                     <span class="filesitem-name" title="{{= it.mimetype }}, erstellt {{= it.createTime }}">
-                         <span class="filesitem-nameWrapper">{{= it.name }}</span> <span class="filesitem-size">{{= it.size }} KB</span>
+                     <span class="filesitem-name" title="[[= it.mimetype ]], erstellt [[= it.createTime ]]">
+                         <span class="filesitem-nameWrapper">[[= it.name ]]</span> <span class="filesitem-size">[[= it.size ]] KB</span>
                      </span>
-                     <span class="filesitem-editdate" title="Verändert {{= it.lastModifiedTime }}">{{= it.lastModifiedTime }}</span>
+                     <span class="filesitem-editdate" title="Verändert [[= it.lastModifiedTime ]]">[[= it.lastModifiedTime ]]</span>
                   </script>
-                  {% endverbatim %}
-                  {% verbatim %}
+
                   <script id="template_filesitem-folder" type="text/template">
                      <span class="filesitem-name" title="Verzeichnis">
-                         <span class="filesitem-nameWrapper">{{= it.name }}</span>
+                         <span class="filesitem-nameWrapper">[[= it.name ]]</span>
                      </span>
                   </script>
-                  {% endverbatim %}
+
                   <div id="fileswrapper" class="fileswrapper"></div>
                   <div class="row">
                      <div class="col-sm-2" >
@@ -190,11 +189,11 @@
                </button>
                <div class="btn-group">
                   <button id="export" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Exportieren als ..." autocomplete="off">
-                     <i class="fa fa-file-code-o"></i> <!-- HTML-Export -->
+                     <i class="fa fa-file-code-o"></i> <!-- DVI und PS Export -->
                      <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu">
-                     <li><a id="export_html" style="cursor:pointer;">HTML</a></li>
+                     <!-- <li><a id="export_html" style="cursor:pointer;">HTML</a></li> -->
                      <li><a id="export_dvi" style="cursor:pointer;">DVI</a></li>
                      <li><a id="export_ps" style="cursor:pointer;">PS</a></li>
                   </ul>
@@ -208,17 +207,6 @@
                <button id="compile" type="button" class="btn btn-default" title="Tex Datei kompilieren" autocomplete="off">
                   <i class="fa fa-refresh"></i> <!-- parallele Anzeige von TEX und PDF-Ausgabe -->
                </button>
-               <div class="btn-group compiler-btn">
-                  <button id="compiler" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Compiler" autocomplete="off">
-                  PDFLaTeX
-                  <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" id="compiler-dropdown">
-                     <li><a id="0_pdflatex" value="0" style="cursor:pointer;">PDFLaTeX</a></li>
-                     <li><a id="1_lualatex" value="1" style="cursor:pointer;">LuaLaTeX</a></li>
-                     <li><a id="2_xelatex" value="2" style="cursor:pointer;">XeLaTeX</a></li>
-                  </ul>
-               </div>
             </div>
          </div>
       </nav>
@@ -231,7 +219,7 @@
 
 <!-- PDF Viewer Container -->
 <div id="pdf" class="ui-layout-east">
-   <script src="/static/pdfjs/build/pdf.js"></script>
+   <script src="{{ STATIC_URL }}pdfjs/build/pdf.js"></script>
    <div id="pdf-viewer"></div>
 <!-- PDF Viewer Container Ende -->
 </div>

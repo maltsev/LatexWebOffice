@@ -26,7 +26,7 @@ from app.models.file.pdf import PDF
 from app.models.file.file import File
 import app
 from app.models.file.binaryfile import BinaryFile
-from core import settings
+import settings
 
 
 class FolderManager(models.Manager):
@@ -64,6 +64,10 @@ class Folder(models.Model):
     root = models.ForeignKey("self", blank=True, null=True,
                              related_name='rootFolder')  # Darf leer sein nur bei RootFolder
     objects = FolderManager()
+
+    class Meta:
+        app_label = 'app'
+
 
     ##
     # Prüft ob das Verzeichnis ein Rootverzeichnis ist
@@ -108,7 +112,7 @@ class Folder(models.Model):
         if self.parent:
             folderPath = os.path.join(self.parent.getTempPath(), self.name)
         else:
-            folderPath = os.path.join(settings.PROJECT_ROOT, "{}_{}".format(self.pk, self.name))
+            folderPath = os.path.join(settings.MEDIA_ROOT, 'projects', "%s_%s" % (self.pk, self.name))
 
         if not os.path.exists(folderPath):
             os.makedirs(folderPath)
@@ -173,8 +177,8 @@ class Folder(models.Model):
     def __str__(self):
         if self.isRoot():
             try:
-                return "{}/".format(self.getProject())
+                return "%s/" % self.getProject()
             except ObjectDoesNotExist:
-                return "{}/".format(self.name)
+                return "%s/" % self.name
         else:
-            return "{}{}/".format(self.parent, self.name)
+            return "%s%s/" % (self.parent, self.name)

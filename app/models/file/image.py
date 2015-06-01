@@ -19,3 +19,6 @@ from app.models.file import binaryfile
 
 class Image(binaryfile.BinaryFile):
     objects = binaryfile.BinaryFileManager()
+
+    class Meta:
+        app_label = 'app'

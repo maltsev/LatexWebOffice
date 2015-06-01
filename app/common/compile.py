@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 * Purpose : Kompilierer
@@ -26,14 +27,14 @@ from app.models.file.texfile import TexFile
 from app.models.file.binaryfile import BinaryFile
 from app.models.file.plaintextfile import PlainTextFile
 from app.common import util
-from core.settings import BASE_DIR
+import settings
 
 
-def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
+def latexcompile(texid, formatid=0, forcecompile=0, debug=False):
     """Kompiliert eine tex Datei mit der übergebenen texid in das entsprechende Ausgabeformat (formatid).
 
     formatid:   0 - PDF
-                1 - HTML mit htlatex (Rückgabe als zip Datei)
+                1 - HTML mit htlatex (Rückgabe als zip Datei) (deaktiviert)
                 2 - DVI
                 3 - PS
 
@@ -51,7 +52,7 @@ def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
     """
 
     formatid = str(formatid)
-    compilerid = str(compilerid)
+    #compilerid = str(compilerid)
     forcecompile = str(forcecompile)
 
     # tex-File der übergebenen ID
@@ -77,7 +78,7 @@ def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
     rc = 0
 
     file_data = {}
-    errors = None
+    errors = []
 
     # Parameter für die Kompilierung
     # '-f' führt die Kompilieren auch unter auftretenden Fehlern so möglich durch
@@ -97,8 +98,8 @@ def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
     # mögliche Latex Compiler
     compilerargs = {
         '0': 'pdflatex --shell-escape %O %S',
-        '1': 'lualatex --shell-escape %O %S',
-        '2': 'xelatex --shell-escape %O %S'
+     #  '1': 'lualatex --shell-escape %O %S',
+     #  '2': 'xelatex --shell-escape %O %S'
     }
 
     args = {
@@ -106,7 +107,7 @@ def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
         'texpath': texobj.getTempPath(),
         'format': '',
         'outdirpath': out_dir_path,
-        'compilerargs': compilerargs[compilerid],
+        'compilerargs': compilerargs['0'],
         'cwd': texobj.folder.getTempPath(),
         'force': '-f'
     }
@@ -117,9 +118,9 @@ def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
             args['format'] = latexmk_formatargs[formatid]
             rc, file_data = latexmk(args, console_output=debug)
         # HTML Format mit htlatex
-        elif formatid == '1':
-            args['outdirpath'] = out_dir_path + os.sep
-            rc, file_data = htlatex(args, console_output=debug)
+        #elif formatid == '1':
+        #    args['outdirpath'] = out_dir_path + os.sep
+        #    rc, file_data = htlatex(args, console_output=debug)
         # Ungültige formatid
         else:
             errors = ERROR_MESSAGES['UNKNOWNFORMAT']
@@ -143,17 +144,17 @@ def latexcompile(texid, formatid=0, compilerid=0, forcecompile=0, debug=False):
                 errors.append(ERROR_MESSAGES['COMPILATIONERROR'] + ': return code ' + str(rc))
     except Exception:
         errors.append(ERROR_MESSAGES['COMPILATIONERROR'])
-    finally:
-        # entferne alle temporären Ordner
-        if os.path.isdir(out_dir_path):
-            shutil.rmtree(out_dir_path)
-        if os.path.isdir(root_path):
-            shutil.rmtree(root_path)
+
+    # entferne alle temporären Ordner
+    if os.path.isdir(out_dir_path):
+        shutil.rmtree(out_dir_path)
+    if os.path.isdir(root_path):
+        shutil.rmtree(root_path)
 
     # Rückgabe
     # 1. Liste mit während des Kompilieren aufgetretenen Fehlermeldungen oder None, falls keine Fehler aufgetreten
     # 2. Array mit ID und Name der erzeugten pdf-Datei oder None, falls keine pdf-Datei erzeugt werden konnte
-    return errors, file_data
+    return errors or None, file_data
 
 
 def latexmk(args, console_output):
@@ -176,6 +177,10 @@ def latexmk(args, console_output):
         tempPdfPath = os.path.join(args['outdirpath'], file_name + '_old')
         os.rename(file_path, tempPdfPath)
 
+
+    if hasattr(settings, 'TEXINPUTS'):
+        os.environ["TEXINPUTS"] = settings.TEXINPUTS
+
     # kompiliert die tex-Datei gemäß der gesetzten Argumente:
     rc = execute_command(command, args['cwd'], console_output=console_output)
 
@@ -192,7 +197,7 @@ def latexmk(args, console_output):
     if args['format'][1:] == ('pdf' or 'ps' or 'dvi'):
         log_path = os.path.join(args['outdirpath'], args['texobj'].name[:-3] + "log")
         if os.path.isfile(log_path):
-            logfile = open(log_path, 'r', encoding="cp437")
+            logfile = open(log_path, 'r')
             logfile.seek(0)
             old_log = PlainTextFile.objects.filter(name=args['texobj'].name[:-3] + '<log>',
                                                    folder=args['texobj'].folder)
@@ -342,7 +347,7 @@ def get_Errors(log_path):
 
     errors = []
 
-    log = open(log_path, "r", encoding="cp437")
+    log = open(log_path, "r")
 
     # durchläuft sämtliche Zeilen der log-Datei
     for l in log:
@@ -362,8 +367,7 @@ def get_Errors(log_path):
             if index_notf != -1:
                 # extrahiert den Namen der fehlenden Datei aus der aktuell betrachteten Zeile
                 filename = line[index_file + len('file') + 2: index_notf - 2]
-                error = ERROR_MESSAGES['COMPILATIONERROR_FILENOTFOUND'] + \
-                        ': Die Datei \'' + filename + '\' konnte nicht gefunden werden.'
+                error = "%s: Die Datei '%s' konnte nicht gefunden werden." % (ERROR_MESSAGES['COMPILATIONERROR_FILENOTFOUND'], filename)
                 # bestimmt die Index-Position von 'line' in der aktuell betrachteten Zeile
                 index_line = line.find('line')
                 # falls 'line' in der aktuell betrachteten Zeile enthalten ist
@@ -377,13 +381,11 @@ def get_Errors(log_path):
         # ----------------------------------------------------------------------------------------------------
         # SYNTAX ERROR
         # ----------------------------------------------------------------------------------------------------
-        if 'job aborted' in line:
-            if 'no legal \end found' in line:
-                errors.append(
-                    ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR'] + ': Es konnte kein gültiges \end gefunden werden.')
+        if 'job aborted' in line and 'no legal \end found' in line:
+                errors.append(u'%s: Es konnte kein gültiges \end gefunden werden.' % ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR'])
         # undefiniertes Steuerzeichen
         if 'undefined control sequence' in line:
-            error = ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR'] + ': Undefiniertes Steuerzeichen.'
+            error = u'%s: Undefiniertes Steuerzeichen.' % ERROR_MESSAGES['COMPILATIONERROR_SYNTAXERROR']
             # extrahiert die Zeilennummer für das undefinierte Steuerzeichen aus der nächsten log-Zeile
             nxt_line = str(log.readline())
             line_no = nxt_line[2:nxt_line.find(' ')]
@@ -411,7 +413,7 @@ def latexmk_path():
     :return: Dateipfad zum Latexmk-Script
     """
 
-    return os.path.join(BASE_DIR, "app", "common", "latexmk.pl")
+    return os.path.join(settings.BASE_DIR, "app", "common", "latexmk.pl")
 
 
 def execute_command(args, workingdir, console_output=False):
@@ -425,8 +427,11 @@ def execute_command(args, workingdir, console_output=False):
 
     if console_output:
         return subprocess.call(args, bufsize=0, cwd=workingdir)
-    else:
-        return subprocess.call(args, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, bufsize=0, cwd=workingdir)
+
+    dev_null = open(os.devnull, 'wb')
+    rc = subprocess.call(args, stdout=dev_null, stderr=dev_null, bufsize=0, cwd=workingdir)
+    dev_null.close()
+    return rc
 
 
 def htlatex_script(parameter, console_output=False):

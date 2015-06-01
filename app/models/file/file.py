@@ -14,13 +14,12 @@
 * Backlog entry :
 
 """
-import io
+import StringIO
 import os
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django.db import models
-from django.conf import settings
-from django.utils import timezone
+from django.contrib.auth.models import User
 
 from app import common
 
@@ -42,16 +41,17 @@ class File(models.Model):
     folder = models.ForeignKey("Folder")
     mimeType = models.CharField(max_length=255, default='application/octet-stream')
     size = models.PositiveIntegerField(default=0)
-    lasteditor = models.ForeignKey(settings.AUTH_USER_MODEL,blank=True,null=True)
+    lasteditor = models.ForeignKey(User, blank=True,null=True)
     lockexpires = models.DateTimeField(blank=True,null=True)
     objects = FileManager()
 
     class Meta:
         unique_together = ('name', 'folder')
+        app_label = 'app'
 
 
     def getContent(self):
-        return io.StringIO()
+        return StringIO.StringIO()
 
 
     def lock(self, user):
@@ -60,7 +60,7 @@ class File(models.Model):
 
         self.lasteditor = user
         # Sperre für 10 Minuten
-        self.lockexpires = timezone.now() + timedelta(minutes=10)
+        self.lockexpires = datetime.now() + timedelta(minutes=10)
         self.save()
 
 
@@ -80,7 +80,7 @@ class File(models.Model):
         if not self.lockexpires:
             return False
 
-        return timezone.now() < self.lockexpires
+        return datetime.now() < self.lockexpires
 
     ##
     # Abbildet die Datei auf der Festplatte und gibt den temporären Verzeichnispfad zurück
@@ -102,4 +102,4 @@ class File(models.Model):
 
 
     def __str__(self):
-        return "{}{}".format(self.folder, self.name)
+        return "%s%s" % (self.folder, self.name)

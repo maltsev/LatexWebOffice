@@ -14,8 +14,8 @@
 * Backlog entry :
 
 """
-import tempfile, os
-from core.settings import BASE_DIR
+import os
+from settings import BASE_DIR
 from app.models.file.pdf import PDF
 from app.tests.server.models.modeltestcase import ModelTestCase
 

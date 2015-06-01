@@ -25,6 +25,9 @@ class TexFile(plaintextfile.PlainTextFile):
     objects = plaintextfile.PlainTextFileManager()
     lastcompilestatus = models.PositiveIntegerField(default=0)
 
+    class Meta:
+        app_label = 'app'
+
 
 @receiver(pre_save, sender=TexFile)
 def texFilePreSave(instance, **kwargs):

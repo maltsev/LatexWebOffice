@@ -17,7 +17,7 @@
 import os
 import shutil
 from django.core.exceptions import ObjectDoesNotExist
-from core import settings
+import settings
 from app.models.folder import Folder
 from app.models.file.texfile import TexFile
 from app.tests.server.models.modeltestcase import ModelTestCase
@@ -83,7 +83,7 @@ class FolderTestCase(ModelTestCase):
 
 
     def test_getTempFilepath(self):
-        rootDirpath = os.path.join(settings.PROJECT_ROOT, str(self.root.pk) + '_' + self.root.name)
+        rootDirpath = os.path.join(settings.MEDIA_ROOT, 'projects', str(self.root.pk) + '_' + self.root.name)
 
         self.assertEquals(rootDirpath, self.root.getTempPath())
         self.assertTrue(os.path.exists(rootDirpath))
@@ -106,4 +106,4 @@ class FolderTestCase(ModelTestCase):
         for fileOrFolder in filesAndFolders:
             pathParts = [self.root.getTempPath()] + fileOrFolder
             path = os.path.join(*pathParts)
-            self.assertTrue(os.path.exists(path), "Not exists: {}".format(path))
+            self.assertTrue(os.path.exists(path), "Not exists: %s" % path)

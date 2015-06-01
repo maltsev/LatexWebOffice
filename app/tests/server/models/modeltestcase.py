@@ -14,18 +14,20 @@
 * Backlog entry :
 
 """
-import os
+import os 
+
 from django.test import TestCase
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 from app.models.folder import Folder
 from app.models.project import Project
 from app.models.file.file import File
-from django.contrib.auth import get_user_model
-User = get_user_model()
 
 
 class ModelTestCase(TestCase):
     def setUpProject(self):
-        self.author = User.objects.create_user('admin@admin.com', password='123')
+        self.author = User.objects.create_user('admin@admin.com', 'admin@admin.com', password='123')
 
         self.project = Project.objects.createWithMainTex(name='LatexWebOffice', author=self.author)
         self.rootFolder = self.project.rootFolder

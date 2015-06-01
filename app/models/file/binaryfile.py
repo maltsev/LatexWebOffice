@@ -15,13 +15,14 @@
 
 """
 import os
-import uuid
+import string
+import random
 
 from django.db import models
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from core import settings
+import settings
 from app.models.file import file
 
 class BinaryFileManager(file.FileManager):
@@ -42,7 +43,9 @@ class BinaryFileManager(file.FileManager):
         isFilepath = 'filepath' in kwargs and bool(kwargs['filepath'])
         requestFile = 'requestFile' in kwargs and kwargs['requestFile']
         if requestFile and not isFilepath:
-            content = b''
+            # TODO
+            #content = b''
+            content = ''
             for chunk in requestFile.chunks():
                 content = content + chunk
 
@@ -64,8 +67,8 @@ class BinaryFileManager(file.FileManager):
 
 
     def __createBinaryFile(self, content):
-        filename = str(uuid.uuid4())
-        filepath = os.path.join(settings.FILE_ROOT, filename)
+        filename = ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.digits) for _ in range(36))
+        filepath = os.path.join(settings.MEDIA_ROOT, 'files', filename)
         if not os.path.exists(filepath):
             fileDirPath = os.path.dirname(filepath)
             if not os.path.exists(fileDirPath):
@@ -81,6 +84,10 @@ class BinaryFileManager(file.FileManager):
 class BinaryFile(file.File):
     filepath = models.CharField(max_length=255)
     objects = BinaryFileManager()
+
+    class Meta:
+        app_label = 'app'
+
 
     def getContent(self):
         return open(str(self.filepath), 'rb')

@@ -1,15 +1,14 @@
+{% extends "_wrapper.html" %}
+
 <!--
-@author: Martin Koláček  
+@author: Martin Koláček
 @creation: 03.11.2014 - sprint-nr: 1
 @last-change: 20.11.2014 - sprint-nr: 2
 -->
 
-<!-- embedding file: _wrapper.html -->
-{% extends "_wrapper.html" %}
-
 <!-- content to embed in wrapper.html as content -->
 {% block header %}
-<link rel="stylesheet" href="/static/css/startseite.css">
+<link rel="stylesheet" href="{{ STATIC_URL }}css/startseite.css">
 {% endblock %}
 {% block content %}
 
@@ -27,41 +26,41 @@
 			
 			<div class = "carousel-inner">
 				<div class = "item active">
-					<img src ="/static/img/editor.jpg" alt = "Beach" class = "img-responsive center-block" style="width: 100%;">
+					<img src ="{{ STATIC_URL }}img/editor.jpg" alt = "Beach" class = "img-responsive center-block" style="width: 100%;">
 					<div class = "carousel-caption">
 						<h4>Willkommen bei LatexWebOffice</h4>
 					</div>
 				</div>
 				<div class = "item">
-					<img src ="/static/img/projekte.jpg" alt = "Girls" class = "img-responsive center-block" style="width: 100%;">
+					<img src ="{{ STATIC_URL }}img/projekte.jpg" alt = "Girls" class = "img-responsive center-block" style="width: 100%;">
 										<div class = "carousel-caption">
 						<h4>Projekte</h4>
 						<h2>An einem Ort versammelt und nie mehr verbummelt.</h2>
 					</div>
 				</div>
 				<div class = "item">
-					<img src ="/static/img/vorlagen.jpg" alt = "Homer" class = "img-responsive center-block" style="width: 100%;">
+					<img src ="{{ STATIC_URL }}img/vorlagen.jpg" alt = "Homer" class = "img-responsive center-block" style="width: 100%;">
 										<div class = "carousel-caption">
 						<h4>Vorlagen</h4>
 						<h2>Warum die Hausarbeit neu erfinden?</h2>
 					</div>
 				</div>
 				<div class = "item">
-					<img src ="/static/img/graphik.jpg" alt = "Homer" class = "img-responsive center-block" style="width: 100%;">
+					<img src ="{{ STATIC_URL }}img/graphik.jpg" alt = "Homer" class = "img-responsive center-block" style="width: 100%;">
 										<div class = "carousel-caption">
 						<h4>Eingabeassistenten</h4>
 						<h2>Ob Tabellen oder Graphiken, beides im Handumdrehen erstellt.</h2>
 					</div>
 				</div>
 				<div class = "item">
-					<img src ="/static/img/freigabe.jpg" alt = "Homer" class = "img-responsive center-block" style="width: 100%;">
+					<img src ="{{ STATIC_URL }}img/freigabe.jpg" alt = "Homer" class = "img-responsive center-block" style="width: 100%;">
 										<div class = "carousel-caption">
 						<h4>Kollaboration</h4>
 						<h2>Geteiltes Leid ist halbes Leid.</h2>
 					</div>
 				</div>
 				<div class = "item">
-					<img src ="/static/img/faq.jpg" alt = "Homer" class = "img-responsive center-block" style="width: 100%;">
+					<img src ="{{ STATIC_URL }}img/faq.jpg" alt = "Homer" class = "img-responsive center-block" style="width: 100%;">
 										<div class = "carousel-caption">
 						<h4>FAQ</h4>
 						<h2>Noch Fragen?</h2>

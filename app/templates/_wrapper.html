@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <!--
 
 * Purpose : Basisseite mit Navigation
@@ -10,45 +9,47 @@
 
 * Author : mattis
 
-* Coauthors :   
+* Coauthors :
 
 * Sprintnumber : 1,4
 
-* Backlog entry : 
+* Backlog entry :
 
 -->
-
-
-
 <html lang="en">
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=Edge">
 	<title>LatexWebOffice</title>
-	<link rel="icon" type="image/png" href="/favicon.png" />
+	<link rel="icon" type="image/png" href="{{ STATIC_URL }}img/favicon.png" />
 	<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
 
 	<!-- Stylesheets -->	
-	<link rel="stylesheet" href="/static/bootstrap/css/bootstrapflat.min.css">
-	<link rel="stylesheet" href="/static/jquery-ui/jquery-ui.min.css">
-	<link rel="stylesheet" href="/static/jstree/themes/default/style.min.css">
-	<link rel="stylesheet" href="/static/css/navigation/nav.css">
-    <link rel="stylesheet" href="/static/css/general.css">
+	<link rel="stylesheet" href="{{ STATIC_URL }}bootstrap/css/bootstrapflat.min.css">
+	<link rel="stylesheet" href="{{ STATIC_URL }}jquery-ui/jquery-ui.min.css">
+	<link rel="stylesheet" href="{{ STATIC_URL }}jstree/themes/default/style.min.css">
+	<link rel="stylesheet" href="{{ STATIC_URL }}css/navigation/nav.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/general.css">
 
 	<!-- Javascript -->
-	<script src="/static/js/jquery.min.js"></script>
-	<script src="/static/js/jquery.cookie.js"></script>
-	<script src="/static/bootstrap/js/bootstrap.min.js"></script>
-	<script src="/static/jquery-ui/jquery-ui.min.js"></script>
-	<script src="/static/jstree/jstree.min.js"></script>
+    <script>
+        var BASE_URL = "{% url index %}";
+        var STATIC_URL = "{{ STATIC_URL }}";
+        <!-- Standard Fehlermeldungen vom Server (kann nicht in den static Ordner) -->
+        var ERROR_MESSAGES={{ ERROR_MESSAGES|safe }};
+        var user = "{{ user.email }}";
+    </script>
+	<script src="{{ STATIC_URL }}js/jquery.min.js"></script>
+	<script src="{{ STATIC_URL }}js/jquery.cookie.js"></script>
+	<script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
+	<script src="{{ STATIC_URL }}jquery-ui/jquery-ui.min.js"></script>
+	<script src="{{ STATIC_URL }}jstree/jstree.min.js"></script>
     <!-- datetime formatter -->
-    <script src="/static/js/moments.min.js"></script>
-    <script src="/static/js/moments.locale.de.js"></script>
+    <script src="{{ STATIC_URL }}js/moments.min.js"></script>
+    <script src="{{ STATIC_URL }}js/moments.locale.de.js"></script>
     <script>moment.locale("de");</script>
-	<script src="/static/js/nav/nav.js"></script>
-    <script src="/static/js/general.js"></script>
-	<script>var ERROR_MESSAGES=JSON.parse("{{ ERROR_MESSAGES }}".replace(/&quot;/g, "\"").replace(/(?:\r\n|\r|\n)/g,''));</script> <!-- Standard Fehlermeldungen vom Server (kann nicht in den static Ordner) -->
-	<script>var user = "{{ user.email }}";</script>
+	<script src="{{ STATIC_URL }}js/nav/nav.js"></script>
+    <script src="{{ STATIC_URL }}js/general.js"></script>
 	<!-- seitenspezifische Header -->
 	{% block header %}{% endblock %}
 </head>
@@ -65,19 +66,19 @@
 		    <span class="icon-bar"></span>
 		    <span class="icon-bar"></span>
 		  </button>
-		  <ul class="nav navbar-nav"><li><a class="navbar-brand" href="/"><img src="/static/img/icon.png" onmouseover=this.src="/static/img/icon_selected.png"; onmouseout=this.src="/static/img/icon.png"; id="logo" alt="Logo vom LatexWebOffice"></a></li></ul><!-- das Logo mit Link zur startseite soll immer angezeigt werden -->
+		  <ul class="nav navbar-nav"><li><a class="navbar-brand" href="{% url index %}"><img src="{{ STATIC_URL }}img/icon.png" onmouseover=this.src="{{ STATIC_URL }}img/icon_selected.png"; onmouseout=this.src="{{ STATIC_URL }}img/icon.png"; id="logo" alt="Logo vom LatexWebOffice"></a></li></ul><!-- das Logo mit Link zur startseite soll immer angezeigt werden -->
 	    </div>
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
 			{% if user.is_authenticated %}<!-- nur eingeloggte User sollen Projekte und Vorlagen sehen können -->
-                    <li><a href="/projekt/">Projekte</a>
+                    <li><a href="{% url projekt %}">Projekte</a>
                     </li>
-                    <li><a href="/vorlagen/">Vorlagen</a>
+                    <li><a href="{% url vorlagen %}">Vorlagen</a>
                     </li>
                     {% else %}
-		    <li><a href="/registration/">Registrieren</a> <!-- noch nicht eingeloggte User sehen dafür Registrierung und Login -->
+		    <li><a href="{% url registration %}">Registrieren</a> <!-- noch nicht eingeloggte User sehen dafür Registrierung und Login -->
                     </li>
-                    <li><a href="/login/">Einloggen</a>
+                    <li><a href="{% url login %}">Einloggen</a>
                     </li>
                     {% endif %}
 
@@ -86,9 +87,9 @@
                     <li class="dropdown">
                         <a href="#" class="glyphicon glyphicon-question-sign dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                            <li><a href="/faq/">FAQ</a>
+                            <li><a href="{% url faq %}">FAQ</a>
                             </li>
-			    <li><a href="/impressum/">Impressum</a>
+			    <li><a href="{% url impressum %}">Impressum</a>
                             </li>
                         </ul>
                     </li>
@@ -97,7 +98,7 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" id="glyph-question-sign-dropdown" data-toggle="dropdown" role="button" aria-expanded="false">{{ user.email }}<span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                            <li><a href="/logout/">Abmelden</a>
+                            <li><a href="{% url logout %}">Abmelden</a>
                             </li>
                         </ul>
                     </li>

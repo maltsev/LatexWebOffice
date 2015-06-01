@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 * Purpose : Test der Dokument- und Projektverwaltung (app/view/documents.py)
@@ -69,7 +70,7 @@ class DocumentsTestClass(ViewTestCase):
         response = util.documentPoster(self, command='createdir', idpara=None, name='newfolder')
 
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['MISSINGPARAMETER'].format(missingpara_id)
+        serveranswer = ERROR_MESSAGES['MISSINGPARAMETER'] % missingpara_id
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -93,7 +94,7 @@ class DocumentsTestClass(ViewTestCase):
         response = util.documentPoster(self, command='createdir', idpara='noIntID', name='newfolder')
 
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['MISSINGPARAMETER'].format(missingpara_id)
+        serveranswer = ERROR_MESSAGES['MISSINGPARAMETER'] % missingpara_id
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -105,7 +106,7 @@ class DocumentsTestClass(ViewTestCase):
         response = util.documentPoster(self, command='updatefile', idpara=1)
 
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['MISSINGPARAMETER'].format(missingpara_content)
+        serveranswer = ERROR_MESSAGES['MISSINGPARAMETER'] % missingpara_content
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -117,7 +118,7 @@ class DocumentsTestClass(ViewTestCase):
         response = util.documentPoster(self, command='renamefile', idpara=1)
 
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['MISSINGPARAMETER'].format(missingpara_name)
+        serveranswer = ERROR_MESSAGES['MISSINGPARAMETER'] % missingpara_name
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein

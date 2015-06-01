@@ -1,3 +1,5 @@
+{% extends "_wrapper.html" %}
+
 <!--
 
 * Purpose :
@@ -8,22 +10,20 @@
 
 * Author : mattis
 
-* Coauthors :   
+* Coauthors :
 
 * Sprintnumber : 1,4
 
-* Backlog entry : 
+* Backlog entry :
 
 -->
 
-{% extends "_wrapper.html" %}
-
 <!-- Header -->
 {% block header %}
-	<script src="/static/js/jquery.validate.min.js"></script>
-	<script src="/static/js/jquery.validate.additional-methods.min.js"></script><!-- benötigt um pattern matching (regexp) nutzen zu können -->
-	<script src="/static/js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
-	<script src="/static/js/auth/registration.js"></script><!-- validate einstellungen speziell für die Registrierung -->
+	<script src="{{ STATIC_URL }}js/jquery.validate.min.js"></script>
+	<script src="{{ STATIC_URL }}js/jquery.validate.additional-methods.min.js"></script><!-- benötigt um pattern matching (regexp) nutzen zu können -->
+	<script src="{{ STATIC_URL }}js/auth/validate.js"></script><!-- allgemeine einstellungen für jquery validate (Fehlermeldungen + Boostrap Komp.)-->
+	<script src="{{ STATIC_URL }}js/auth/registration.js"></script><!-- validate einstellungen speziell für die Registrierung -->
 {% endblock %}
 
 <!-- Inhalt -->
@@ -32,6 +32,13 @@
 <div class="page-header">
 	<h1>Registrierung</h1>
 </div>
+
+{% if IS_SSO_ENABLED %}
+    <div class="col-sm-offset-2" style="margin-bottom: 40px">
+        <a href="{{ SSO_URL }}" class="btn btn-success btn-block">mit der Unikennung anmelden (SSO)</a>
+    </div>
+{% endif %}
+
 <form class="form-horizontal" id="regform" data-toggle="validator" action="#" method="post" role="form">{% csrf_token %}
 	<div class="form-group has-feedback">
 		<label for="first_name" class="col-sm-2 control-label" placeholder="Vorname">Vorname</label>

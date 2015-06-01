@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 * Purpose : Dokument- und Projektverwaltung Schnittstelle
@@ -22,7 +23,7 @@ from django.views.decorators.http import require_http_methods
 from django.shortcuts import render
 from django.views.static import serve
 
-from core import settings
+import settings
 from app.common import util
 from app.common.constants import ERROR_MESSAGES
 from app.views import file, folder, project, template
@@ -41,7 +42,7 @@ globalparas = {
     'folderid': {'name': 'folderid', 'type': int},
     'name': {'name': 'name', 'type': str},
     'formatid': {'name': 'formatid', 'type': int},
-    'compilerid': {'name': 'compilerid', 'type': int},
+#   'compilerid': {'name': 'compilerid', 'type': int},
     'forcecompile': {'name': 'forcecompile', 'type': int}
 }
 
@@ -158,7 +159,8 @@ available_commands = {
         'command': file.latexCompile,
         'parameters': [{'para': globalparas['id'], 'type': TexFile,
                         'requirerights': ['owner', 'collaborator'], 'lockcheck': True},
-                       {'para': globalparas['formatid']}, {'para': globalparas['compilerid']},
+                       {'para': globalparas['formatid']},
+                       # {'para': globalparas['compilerid']},
                        {'para': globalparas['forcecompile']}]
     },
     'lockfile': {
@@ -273,9 +275,9 @@ def execute(request):
             # wenn der Parameter nicht gefunden wurde oder ein Parameter, welcher eine id angeben sollte
             # Zeichen enthält, die keine Zahlen sind, gib Fehlermeldung zurück
             if request.POST.get(para['para']['name']) is None:
-                return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para['para']), request)
+                return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'] % (para['para']), request)
             elif para['para']['type'] == int and (not request.POST.get(para['para']['name']).isdigit()):
-                return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format(para['para']), request)
+                return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'] % (para['para']), request)
             # sonst füge den Parameter zu der Argumentliste hinzu
             else:
                 args.append(request.POST[para['para']['name']])
@@ -361,4 +363,4 @@ def execute(request):
 
             return file.getPDF(request, request.user, texid=texid, default=defaultpdfPath)
 
-    return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'].format('unknown'), request)
+    return util.jsonErrorResponse(ERROR_MESSAGES['MISSINGPARAMETER'] % 'unknown', request)

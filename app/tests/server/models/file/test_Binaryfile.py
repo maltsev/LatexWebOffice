@@ -15,7 +15,7 @@
 
 """
 import tempfile, os
-from core.settings import BASE_DIR
+from settings import BASE_DIR
 from app.models.file.binaryfile import BinaryFile
 from app.tests.server.models.modeltestcase import ModelTestCase
 
@@ -28,10 +28,10 @@ class BinaryFileTestCase(ModelTestCase):
 
 
     def test_getContent(self):
-        sourceCode = 'Straße, ändern, tést'
+        sourceCode = u'Straße, ändern, tést'
         tmpfile, filepath = tempfile.mkstemp()
         file = open(filepath, 'wb')
-        file.write(bytearray(sourceCode, 'utf-8'))
+        file.write(sourceCode.encode('UTF-8'))
         file.close()
 
         binaryFileModel = BinaryFile.objects.create(name='readme.txt', filepath=filepath,

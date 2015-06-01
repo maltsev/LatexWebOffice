@@ -71,6 +71,6 @@ tags
 *.swo
 
 /media/
+/static/
 
-# user specific settings
-core/latexwebofficeconf.py
+local_settings.py

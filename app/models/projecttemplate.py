@@ -16,12 +16,14 @@
 """
 import random
 import string
+
 from django.db import models
 from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
-from app.models.folder import Folder
-from django.conf import settings
+from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 
+from app.models.folder import Folder
 
 
 class ProjectTemplateManager(models.Manager):
@@ -31,7 +33,7 @@ class ProjectTemplateManager(models.Manager):
 
         project = kwargs['project']
 
-        projectTemplateName = kwargs.get('name', "{} (Vorlage)".format(project.name))
+        projectTemplateName = kwargs.get('name', "%s (Vorlage)" % project.name)
         projectTemplateAuthor = kwargs.get('author', project.author)
 
         projectTemplate = self.create(name=projectTemplateName, author=projectTemplateAuthor)
@@ -47,22 +49,26 @@ class ProjectTemplateManager(models.Manager):
 
 class ProjectTemplate(models.Model):
     name = models.CharField(max_length=255)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL)
+    author = models.ForeignKey(User)
     createTime = models.DateTimeField(auto_now_add=True)
     rootFolder = models.OneToOneField("Folder")
     objects = ProjectTemplateManager()
 
     class Meta:
         unique_together = ('name', 'author')
+        app_label = 'app'
 
     def __str__(self):
-        return "{}_{}".format(self.pk, self.name)
+        return "%s_%s" % (self.pk, self.name)
 
 
 @receiver(post_delete, sender=ProjectTemplate)
 def projectTemplatePostDelete(instance, **kwargs):
-    if instance.rootFolder:
-        instance.rootFolder.delete()
+        try:
+            if instance.rootFolder:
+                instance.rootFolder.delete()
+        except ObjectDoesNotExist:
+            pass
 
 ##
 # Automatische Erzeugung des Rootverzeichnises

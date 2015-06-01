@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 * Purpose : Test des Kompilierers (app/compile/compile.py)
@@ -27,9 +28,8 @@ from app.common import compile
 from app.models.file.pdf import PDF
 from app.models.file.plaintextfile import PlainTextFile
 from app.models.file.texfile import TexFile
-
 from app.models.project import Project
-from core.settings import BASE_DIR
+from settings import BASE_DIR
 
 
 class CompilerTestClass(TestCase):
@@ -44,7 +44,7 @@ class CompilerTestClass(TestCase):
         """
 
         # erstellt einen neuen Benutzer
-        self.user = User.objects.create_user('user@test.de', password='123456')
+        self.user = User.objects.create_user('user@test.de', 'user@test.de', password='123456')
 
         # loggt den erzeugten Benutzer ein
         self.client.login(username=self.user.username, password='123456')

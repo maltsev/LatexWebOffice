@@ -1,9 +1,14 @@
+{% extends "_wrapper.html" %}
+
 <!--
 @author: Franziska Everinghoff
-@creation: 08.01.2015 - sprint-nr: 
-@last-change: 08.01.2015 - sprint-nr: 
+@creation: 08.01.2015 - sprint-nr:
+@last-change: 08.01.2015 - sprint-nr:
 -->
-<script src="/static/js/jquery.min.js"></script>
+
+<!-- Header -->
+{% block header %}
+<script src="{{ STATIC_URL }}js/jquery.min.js"></script>
 <script language="javascript" type="text/javascript">
 function scrollToPosition(id){
 	var idString = "#"+id;
@@ -11,11 +16,7 @@ function scrollToPosition(id){
 	var position = p.position();
 	window.scrollTo(0, position.top-60);
 }
-</script> 
-{% extends "_wrapper.html" %}
-
-<!-- Header -->
-{% block header %}
+</script>
 {% endblock %}
 
 <!-- Inhalt -->

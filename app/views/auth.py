@@ -16,24 +16,25 @@
 * Backlog entry :  RUA1, RUA4
 
 """
-
-from django.shortcuts import render,redirect, render_to_response
-from django.contrib import messages,auth
-from django.contrib.auth import get_user_model
-User = get_user_model()
-from django.contrib.auth.decorators import login_required
-from core.settings import LOGIN_URL
-from app.common.constants import ERROR_MESSAGES
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
-from django.views.decorators.csrf import csrf_exempt
-from django.template import Template, context, RequestContext
 import re
-from django.core.mail import EmailMessage
-from django.core.urlresolvers import reverse
 import urllib
 import datetime
-from django.utils import timezone
+
+from django.shortcuts import redirect, render_to_response
+from django.contrib import messages, auth
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.template import RequestContext
+from django.core.mail import EmailMessage
+from django.core.urlresolvers import reverse
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
+from app.common.constants import ERROR_MESSAGES
+import settings
+from app.models.recoverkey import RecoverKey
+
 
 # see
 # https://docs.djangoproject.com/en/dev/topics/auth/default/#django.contrib.auth.login
@@ -44,12 +45,13 @@ from django.utils import timezone
 #  @param request The HttpRequest Object
 def login(request):
     if request.user.is_authenticated():
-        return redirect('/projekt/')
+        return redirect('projekt')
 
     email = ''
     if request.session.has_key('email'):
         email=request.session.get('email')
         del request.session['email']
+
     if request.method == 'POST' and 'action' in request.POST and 'email' in request.POST:
         email = request.POST['email']
         if request.POST['action']=='login':
@@ -60,63 +62,77 @@ def login(request):
             if user is not None:
                 if user.is_active:
                     auth.login(request, user)
-                    return redirect('/projekt/')
+                    return redirect('projekt')
                 else:
-                    messages.error(request, ERROR_MESSAGES['INACTIVEACCOUNT'].format(email))
+                    messages.error(request, ERROR_MESSAGES['INACTIVEACCOUNT'] % email)
 
             else:
                 messages.error(request, ERROR_MESSAGES['WRONGLOGINCREDENTIALS'])
-        elif request.POST['action']=='password-lost':
-            if User.objects.filter(email__iexact=email).exists():
-                user=User.objects.get(email__iexact=email)
-                if (user.passwordlostdate+datetime.timedelta(minutes=5))<=timezone.now():
-                    keygen = user.createrecoverkey()
-                    user.save()
-                    subject="Latexweboffice Passwortreset"
-                    url=request.build_absolute_uri(reverse('recoverpw'))+'?'+urllib.parse.urlencode({'email':email,'key':keygen})
-                    body="""
-Hallo {0},
 
-Jemand hat einen Link zur Passwortwiederherstellung angefordert: {1} 
+
+        elif request.POST['action'] == 'password-lost':
+            try:
+                user = User.objects.get(email__iexact=email)
+                recoverKey = RecoverKey.objects.getByUser(user)
+                subject="Latexweboffice Passwortreset"
+                url = request.build_absolute_uri(reverse('recoverpw'))+'?'+urllib.urlencode({'email': email, 'key': recoverKey.key})
+                body=u"""
+Hallo!
+
+Jemand hat einen Link zur Passwortwiederherstellung angefordert: %s
 
 Falls dies nicht von Ihnen angefordert wurde, ignorieren Sie bitte diese Email.
 
 Mit freundlichen Grüßen,
 Ihr LatexWebOfficeteam
-                """
-                    emailsend=EmailMessage(subject,body.format(email,url))
-                    emailsend.to=[email]
-                    emailsend.send()
-            messages.success(request,ERROR_MESSAGES['EMAILPWRECOVERSEND'].format(email))
-            
+"""
+                emailsend=EmailMessage(subject, body % url)
+                emailsend.to=[email]
+                emailsend.send()
 
+            except ObjectDoesNotExist:
+                pass
 
-    return render_to_response('login.html', {'email': email}, context_instance=RequestContext(request))
+            messages.success(request,ERROR_MESSAGES['EMAILPWRECOVERSEND']% email)
+
+    sso_url = ''
+    if 'SSO_URL' in dir(settings):
+        sso_url = settings.SSO_URL
+
+    params = {'email': email, 'IS_SSO_ENABLED': settings.IS_SSO_ENABLED, 'SSO_URL': sso_url}
+    return render_to_response('login.html', params, context_instance=RequestContext(request))
 
 
 def lostPwHandler(request):
-    if request.method=='GET':
-        if 'email' in request.GET and 'key' in request.GET:
-            email=request.GET['email']
-            key=request.GET['key']
-            if User.objects.filter(email__iexact=email).exists():
-                user=User.objects.get(email__iexact=email) 
-                if user and user.passwordlostkey==key and ((user.passwordlostdate+datetime.timedelta(days=1))>=timezone.now()):
-                    return render_to_response('passwordrecover.html',{'email':email,'key':key}, context_instance=RequestContext(request))
+    if request.method == 'GET' and 'email' in request.GET and 'key' in request.GET:
+        email = request.GET['email']
+        key = request.GET['key']
 
-    elif request.method=='POST':
-        if 'email' in request.POST and 'key' in request.POST and 'password1' in request.POST:
-                    email=request.POST['email']
-                    key=request.POST['key']
-                    if User.objects.filter(email__iexact=email).exists():
-                        user=User.objects.get(email__iexact=email) 
-                        if user and user.passwordlostkey==key and ((user.passwordlostdate+datetime.timedelta(days=1))>=timezone.now()):
-                            user.set_password(request.POST['password1'])
-                            user.invalidateRecoverKey()
-                            user.save()
-                            messages.success(request,ERROR_MESSAGES['PASSWORDCHANGED'])
-                            request.session['email']=email
-                            return redirect('login')
+        try:
+            user = User.objects.get(email__iexact=email)
+            if RecoverKey.objects.isValid(user, key):
+                return render_to_response('passwordrecover.html', {'email':email,'key':key}, context_instance=RequestContext(request))
+
+        except ObjectDoesNotExist:
+            pass
+
+
+    elif request.method == 'POST' and 'email' in request.POST and 'key' in request.POST and 'password1' in request.POST:
+        email=request.POST['email']
+        key=request.POST['key']
+
+        try:
+            user=User.objects.get(email__iexact=email)
+            if RecoverKey.objects.isValid(user, key):
+                user.set_password(request.POST['password1'])
+                RecoverKey.objects.get(key=key).delete()
+                user.save()
+                messages.success(request,ERROR_MESSAGES['PASSWORDCHANGED'])
+                request.session['email'] = email
+                return redirect('login')
+
+        except ObjectDoesNotExist:
+            pass
 
 
     return render_to_response('passwordrecoverwrong.html',context_instance=RequestContext(request))
@@ -126,7 +142,10 @@ def lostPwHandler(request):
 @login_required
 def logout(request):
     auth.logout(request)
-    return redirect(LOGIN_URL)
+    if 'SSO_LOGOUT_URL' in dir(settings) and request.build_absolute_uri().find('https://sso.') == 0:
+        return redirect(settings.SSO_LOGOUT_URL)
+    else:
+        return redirect('login')
 
 
 ## Default handler for registration requests by the client that sends the user the registration page.
@@ -137,7 +156,7 @@ def logout(request):
 def registration(request):
 
     if request.user.is_authenticated():
-        return redirect('/projekt/')
+        return redirect('projekt')
 
     email = ''
     first_name = ''
@@ -175,19 +194,26 @@ def registration(request):
             foundErrors = True
         # if all validation checks pass, create new user
         if not foundErrors:
-            new_user = User.objects.create_user(email=email,
-                                                password=password1, first_name=first_name)
+            new_user = User.objects.create_user(email, email, password=password1)
+            new_user.first_name = first_name
+            new_user.save()
 
             # user login and redirection to start page
             user = auth.authenticate(username=email, password=password1)
             if user is not None:
                 if user.is_active:
                     auth.login(request, user)
-                    return redirect('/projekt/')
+                    return redirect('projekt')
             else:
                 messages.error(request, ERROR_MESSAGES['LOGINORREGFAILED'])
 
-    return render_to_response('registration.html', {'first_name': first_name, 'email': email}, context_instance=RequestContext(request))
+    sso_url = ''
+    if 'SSO_URL' in dir(settings):
+        sso_url = settings.SSO_URL
+
+    return render_to_response('registration.html',
+                              {'first_name': first_name, 'IS_SSO_ENABLED': settings.IS_SSO_ENABLED, 'SSO_URL': sso_url, 'email': email},
+                              context_instance=RequestContext(request))
 
 
 @csrf_exempt

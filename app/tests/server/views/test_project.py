@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 * Purpose : Test des Project Views und zugehöriger Methoden (app/views/project.py)
@@ -169,8 +170,8 @@ class ProjectTestClass(ViewTestCase):
         
         # erwartete Antwort des Servers
         serveranswer = {'id': Project.objects.get(author=self._user1,
-                                                  name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM)).id,
-                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM)}
+                                                  name=DUPLICATE_NAMING_REGEX % (self._newname1, DUPLICATE_INIT_SUFFIX_NUM)).id,
+                        'name': DUPLICATE_NAMING_REGEX % (self._newname1, DUPLICATE_INIT_SUFFIX_NUM)}
         
         # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
         self.assertTrue(Project.objects.get(id=serveranswer['id']))
@@ -191,8 +192,8 @@ class ProjectTestClass(ViewTestCase):
         
         # erwartete Antwort des Servers
         serveranswer = {'id': Project.objects.get(author=self._user1,
-                                                  name=DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
-                        'name': DUPLICATE_NAMING_REGEX.format(self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)}
+                                                  name=DUPLICATE_NAMING_REGEX % (self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
+                        'name': DUPLICATE_NAMING_REGEX % (self._newname1,DUPLICATE_INIT_SUFFIX_NUM+1)}
         
         # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
         self.assertTrue(Project.objects.get(id=serveranswer['id']))
@@ -312,8 +313,8 @@ class ProjectTestClass(ViewTestCase):
         
         # erwartete Antwort des Servers
         serveranswer = {'id': Project.objects.get(author=self._user1,
-                                                  name=DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM)).id,
-                        'name': DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM)}
+                                                  name=DUPLICATE_NAMING_REGEX % (self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM)).id,
+                        'name': DUPLICATE_NAMING_REGEX % (self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM)}
         
         # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
         self.assertTrue(Project.objects.get(id=serveranswer['id']))
@@ -335,8 +336,8 @@ class ProjectTestClass(ViewTestCase):
         
         # erwartete Antwort des Servers
         serveranswer = {'id': Project.objects.get(author=self._user1,
-                                                  name=DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
-                        'name': DUPLICATE_NAMING_REGEX.format(self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM+1)}
+                                                  name=DUPLICATE_NAMING_REGEX % (self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM+1)).id,
+                        'name': DUPLICATE_NAMING_REGEX % (self._user1_project2.name,DUPLICATE_INIT_SUFFIX_NUM+1)}
         
         # das erstellte Projekt sollte in der Datenbank vorhanden und abrufbar sein
         self.assertTrue(Project.objects.get(id=serveranswer['id']))
@@ -507,7 +508,7 @@ class ProjectTestClass(ViewTestCase):
         self.assertNotEqual(Project.objects.get(id=self._user1_project3.id).name, self._user1_project2.name.upper())
 
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(self._user1_project2.name.upper())
+        serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'] % self._user1_project2.name.upper()
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -558,7 +559,7 @@ class ProjectTestClass(ViewTestCase):
             self.assertNotEqual(Project.objects.get(id=self._user1_project3.id).name, self._user1_project4.name.upper())
 
             # erwartete Antwort des Servers
-            serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'].format(self._user1_project2.name.upper())
+            serveranswer = ERROR_MESSAGES['PROJECTALREADYEXISTS'] % self._user1_project2.name.upper()
 
             # überprüfe die Antwort des Servers
             # status sollte failure sein
@@ -905,7 +906,7 @@ class ProjectTestClass(ViewTestCase):
 
         # Die Binärdatei sollte eine ILLEGALFILETYPE Fehlermeldung hervorrufen
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['ILLEGALFILETYPE'].format("application/octet-stream")
+        serveranswer = ERROR_MESSAGES['ILLEGALFILETYPE'] % "application/octet-stream"
 
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -999,6 +1000,7 @@ class ProjectTestClass(ViewTestCase):
                 shutil.rmtree(tmpfolder)
             '''
 
+
     def test_exportZip(self):
         """Test der exportZip() Methode des project view
 
@@ -1031,8 +1033,12 @@ class ProjectTestClass(ViewTestCase):
         # Pfad zur temporären zip Datei
         tmp_zip_file = os.path.join(tmpfolder, (self._user1_project1.name + 'zip'))
         # Schreibe den Inhalt der empfangenen Datei in die temp zip Datei
-        with open(tmp_zip_file, 'a+b') as f:
+
+        try:
+            f = open(tmp_zip_file, 'a+b')
             f.write(response.content)
+        finally:
+            f.close()
 
         # überprüfe, ob es eine gültige zip Datei ist (magic number)
         self.assertTrue(zipfile.is_zipfile(tmp_zip_file))
@@ -1053,8 +1059,11 @@ class ProjectTestClass(ViewTestCase):
 
         # überprüfe, ob der Inhalt der main.tex Datei mit der Datenbank
         # übereinstimmt
-        with open(maintex_path, 'r') as maintex:
+        try:
+            maintex = open(maintex_path, 'r')
             self.assertEqual(maintex.read(), self._user1_tex1.source_code)
+        finally:
+            maintex.close()
 
         # überprüfe ob binary1 vorhanden ist
         binary1_path = os.path.join(folder2_subfolder1_path, self._user1_binary1.name)
@@ -1069,10 +1078,13 @@ class ProjectTestClass(ViewTestCase):
         self.assertTrue(os.path.isfile(binary3_path))
 
         # überprüfe ob der Inhalt der binary1 Datei mit der Datenbank übereinstimmt
-        with self._user1_binary1.getContent() as binfilecontent:
+        try:
+            binfilecontent = self._user1_binary1.getContent()
             tmp_binary1 = open(binary1_path, 'rb')
             self.assertEqual(tmp_binary1.read(), binfilecontent.read())
             tmp_binary1.close()
+        finally:
+            binfilecontent.close()
 
         # Lösche die temporäre zip Datei und das temp Verzeichnis
         if os.path.isdir(tmpfolder):
@@ -1097,8 +1109,11 @@ class ProjectTestClass(ViewTestCase):
         # Pfad zur temporären zip Datei
         tmp_zip_file = os.path.join(tmpfolder, (self._user1_project1.name + 'zip'))
         # Schreibe den Inhalt der empfangenen Datei in die temp zip Datei
-        with open(tmp_zip_file, 'a+b') as f:
+        try:
+            f = open(tmp_zip_file, 'a+b')
             f.write(response.content)
+        finally:
+            f.close()
 
         # überprüfe, ob es eine gültige zip Datei ist (magic number)
         self.assertTrue(zipfile.is_zipfile(tmp_zip_file))
@@ -1123,10 +1138,13 @@ class ProjectTestClass(ViewTestCase):
         self.assertTrue(os.path.isfile(binary3_path))
 
         # überprüfe ob der Inhalt der binary1 Datei mit der Datenbank übereinstimmt
-        with self._user1_binary1.getContent() as binfilecontent:
+        try:
+            binfilecontent = self._user1_binary1.getContent()
             tmp_binary1 = open(binary1_path, 'rb')
             self.assertEqual(tmp_binary1.read(), binfilecontent.read())
             tmp_binary1.close()
+        finally:
+            binfilecontent.close()
 
         # Lösche die temporäre zip Datei und das temp Verzeichnis
         if os.path.isdir(tmpfolder):
@@ -1142,7 +1160,7 @@ class ProjectTestClass(ViewTestCase):
         # es sollte keine Datei mitgesendet worden sein
         self.assertNotIn('Content-Disposition', response)
         # Content-Type sollte text/html sein
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        self.assertEqual(response['Content-Type'], 'text/html; charset=utf-8')
         # Content-Length sollte nicht vorhanden sein
         self.assertNotIn('Content-Length', response)
 
@@ -1156,7 +1174,7 @@ class ProjectTestClass(ViewTestCase):
         # es sollte keine Datei mitgesendet worden sein
         self.assertNotIn('Content-Disposition', response)
         # Content-Type sollte text/html sein
-        self.assertEqual(response['Content-Type'], mimetypes.types_map['.html'])
+        self.assertEqual(response['Content-Type'], 'text/html; charset=utf-8')
         # Content-Length sollte nicht vorhanden sein
         self.assertNotIn('Content-Length', response)
 
@@ -1185,7 +1203,7 @@ class ProjectTestClass(ViewTestCase):
         self.assertFalse(Collaboration.objects.filter(user=self._user1, project=self._user1_project1))
         
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['USERALREADYINVITED'].format(self._user1.username)
+        serveranswer = ERROR_MESSAGES['USERALREADYINVITED'] % self._user1.username
         
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -1219,14 +1237,12 @@ class ProjectTestClass(ViewTestCase):
         # sende Anfrage zum Einladen eines nicht registrierten Nutzers
         response = util.documentPoster(self, command='inviteuser', idpara=self._user1_project1.id, name="notregistered@latexweboffice.de")
         
-        not_registered_user = User.objects.create_user(
-                                                       email="notregistered@latexweboffice.de", password="123456",
-                                                       first_name="None")
+        not_registered_user = User.objects.create_user("notregistered@latexweboffice.de", "notregistered@latexweboffice.de", password="123456")
         # es sollte keine entsprechende Kollaboration mit Nutzer not_registered_user und Projekt user1_project1 in der Datenbank vorhanden sein
         self.assertFalse(Collaboration.objects.filter(user=not_registered_user, project=self._user1_project1))
         
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['USERNOTFOUND'].format("notregistered@latexweboffice.de")
+        serveranswer = ERROR_MESSAGES['USERNOTFOUND'] % "notregistered@latexweboffice.de"
         
         # überprüfe die Antwort des Servers
         # status sollte failure sein
@@ -1280,7 +1296,7 @@ class ProjectTestClass(ViewTestCase):
         self.assertTrue((Collaboration.objects.filter(user=self._user2, project=self._user1_project1)).count() == 1)
         
         # erwartete Antwort des Servers
-        serveranswer = ERROR_MESSAGES['USERALREADYINVITED'].format(self._user2.username)
+        serveranswer = ERROR_MESSAGES['USERALREADYINVITED'] % self._user2.username
         
         # überprüfe die Antwort des Servers
         # status sollte failure sein

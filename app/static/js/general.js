@@ -28,7 +28,7 @@ function documentsJsonRequest(param, handler, contentType, processData) {
 			contentType : 'application/x-www-form-urlencoded; charset=UTF-8';
 	processData = typeof processData !== 'undefined' ?
 			processData : true;
-	jQuery.ajax('/documents/', {
+	jQuery.ajax(getUrl('/documents/'), {
 		'type': 'POST',
 		'data': param,
 		'cache': false,
@@ -70,7 +70,7 @@ function documentsDataRequest(param, handler, contentType, processData) {
 			contentType : 'application/x-www-form-urlencoded; charset=UTF-8';
 	processData = typeof processData !== 'undefined' ?
 			processData : true;
-	jQuery.ajax('/documents/', {
+	jQuery.ajax(getUrl('/documents/'), {
 		'type': 'POST',
 		'data': param,
 		'cache': false,
@@ -99,7 +99,7 @@ function documentsDataRequest(param, handler, contentType, processData) {
  * @param param Paramter für die Anfrage (command, id, …)
  */
 function documentsRedirect(param) {
-	var form = $('<form></form>').attr('action',  '/documents/').attr('method', 'post');
+	var form = $('<form></form>').attr('action', getUrl('/documents/')).attr('method', 'post');
 	$('body').append(form);
 
 	// CSRF Token
@@ -155,6 +155,26 @@ function showAlertDialog(title, message, redirection){
         }
 	})
 }
+
+
+/**
+ * Gibt den absoluten URL zurück
+ * @param String relativ URL
+ * @return String absolut URL
+ */
+function getUrl(relativeUrl) {
+    return BASE_URL.replace(/\/+$/, "") + relativeUrl;
+}
+
+/**
+ * Gibt den absoluten URL der statischen Datei zurück
+ * @param String relativ URL
+ * @return String absolut URL
+ */
+function getStaticUrl(relativeUrl) {
+    return STATIC_URL.replace(/\/+$/, "") + relativeUrl;
+}
+
 
 /**
  * Liefert true, falls ein mobiler Browser oder eine niedrige Auflösung verwendet wird, sonst false
